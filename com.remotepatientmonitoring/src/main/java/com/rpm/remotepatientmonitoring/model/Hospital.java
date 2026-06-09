@@ -7,26 +7,30 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "hospitals")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Account {
+public class Hospital {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true, length = 255)
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "account_id", nullable = false, unique = true)
+    private Account account;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
-    private String passwordHash;
+    @Column(name = "hospital_code", nullable = false, unique = true, length = 50)
+    private String hospitalCode;
 
-    @Column(nullable = false, length = 20)
-    private String role;
+    @Column(name = "full_name", nullable = false, length = 255)
+    private String fullName;
 
-    @Column(name = "is_email_verified", nullable = false)
-    private Boolean isEmailVerified = false;
+    @Column(length = 500)
+    private String address;
+
+    @Column(length = 20)
+    private String phone;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
