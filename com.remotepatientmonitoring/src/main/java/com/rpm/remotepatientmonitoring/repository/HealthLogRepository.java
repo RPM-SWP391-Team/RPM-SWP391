@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface HealthLogRepository extends JpaRepository<DailyHealthLog, Integer> {
     List<DailyHealthLog> findByPatientIdAndLogDate(Integer patientId, LocalDate logDate);
+    List<DailyHealthLog> findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate date);
 }
