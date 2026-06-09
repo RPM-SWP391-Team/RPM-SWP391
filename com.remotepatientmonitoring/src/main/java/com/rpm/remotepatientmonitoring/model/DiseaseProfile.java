@@ -3,6 +3,7 @@ package com.rpm.remotepatientmonitoring.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DiseaseProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,11 +28,14 @@ public class DiseaseProfile {
     private String description;
 
     @Column(name = "requires_bp_input", nullable = false)
+    @Builder.Default
     private Boolean requiresBpInput = false;
 
     @Column(name = "requires_glucose_input", nullable = false)
+    @Builder.Default
     private Boolean requiresGlucoseInput = false;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 }
