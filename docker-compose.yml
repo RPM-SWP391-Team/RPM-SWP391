@@ -10,13 +10,6 @@ services:
     depends_on:
       - db
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
-
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
