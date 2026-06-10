@@ -1,5 +1,6 @@
-package com.rpm.remotepatientmonitoring.model;
+package com.rpm.remotepatientmonitoring.model.entities;
 
+import com.rpm.remotepatientmonitoring.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;

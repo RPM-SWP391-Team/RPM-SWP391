@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.model;
+package com.rpm.remotepatientmonitoring.model.enums;
 
 public enum Role {
     PATIENT,
