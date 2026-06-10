@@ -1,14 +1,17 @@
 package com.rpm.remotepatientmonitoring.controller;
 
+import com.rpm.remotepatientmonitoring.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/auth")
 public class AuthController {
+
+    @Autowired
+    private AuthService authService;
 
     @GetMapping("/login")
     public String loginPage(
@@ -25,8 +28,27 @@ public class AuthController {
         return "auth/login";
     }
 
-    @GetMapping("/dashboard")
-    public String dashboard() {
-        return "redirect:/dashboard";
+    @GetMapping("/register")
+    public String registerPage() {
+        return "auth/register";
+    }
+
+    @PostMapping("/register")
+    public String register(
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+            Model model
+    ) {
+        if (!password.equals(confirmPassword)) {
+            model.addAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
+            return "auth/register";
+        }
+        if (authService.emailExists(email)) {
+            model.addAttribute("errorMessage", "Email này đã được đăng ký!");
+            return "auth/register";
+        }
+        authService.registerPatient(email, password);
+        return "redirect:/auth/login?registered=true";
     }
 }
