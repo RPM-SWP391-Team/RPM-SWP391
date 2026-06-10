@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biểu Đồ Tiến Triển Sức Khỏe</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding-bottom: 50px;
+        }
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            background-color: #ffffff;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background-color: #ffffff;
+            border-bottom: 1.5px solid #f1f3f5;
+            padding: 20px 25px;
+        }
+        .card-body-custom {
+            padding: 25px;
+        }
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-dark navbar-custom py-3 mb-5">
+        <div class="container">
+            <a href="/patient/dashboard" class="navbar-brand mb-0 h1 text-decoration-none">
+                <i class="fa-solid fa-chevron-left me-2 small"></i>Quay lại Dashboard
+            </a>
+            <span class="navbar-text text-white fw-semibold">
+                Báo cáo tiến triển: <span th:text="${patient.fullName}">Nguyễn Văn A</span>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fa-solid fa-chart-line text-primary me-2"></i>Biểu Đồ Xu Hướng Sức Khỏe
+                    </h2>
+                    <span class="badge bg-primary px-3 py-2 rounded-pill">7 ngày gần nhất</span>
+                </div>
+                <p class="text-muted mt-2">Biểu đồ biểu diễn các chỉ số đo huyết áp và đường huyết đã ghi nhận trong tuần qua.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            
+            <!-- Chart 1: Blood Pressure Chart -->
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex align-items-center">
+                        <i class="fa-solid fa-heartpulse text-danger fa-xl me-2"></i>
+                        <h4 class="mb-0 fw-bold">Biểu Đồ Huyết Áp</h4>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="chart-container">
+                            <canvas id="bpChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 2: Glucose Level Chart -->
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex align-items-center">
+                        <i class="fa-solid fa-droplet text-info fa-xl me-2"></i>
+                        <h4 class="mb-0 fw-bold">Biểu Đồ Đường Huyết</h4>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="chart-container">
+                            <canvas id="glucoseChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Render Charts Script -->
+    <script th:inline="javascript">
+        // Injecting and parsing Thymeleaf model JSON data directly
+        const dates = [(${datesJson})];
+        const systolic = [(${systolicJson})];
+        const diastolic = [(${diastolicJson})];
+        const glucose = [(${glucoseJson})];
+
+        // 1. Blood Pressure Chart
+        const bpCtx = document.getElementById('bpChart').getContext('2d');
+        new Chart(bpCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Huyết áp tâm thu (Systolic)',
+                        data: systolic,
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Huyết áp tâm trương (Diastolic)',
+                        data: diastolic,
+                        borderColor: '#2a5298',
+                        backgroundColor: 'rgba(42, 82, 152, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Chỉ số (mmHg)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Ngày đo & Khung giờ'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Glucose Level Chart
+        const glucoseCtx = document.getElementById('glucoseChart').getContext('2d');
+        new Chart(glucoseCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Chỉ số đường huyết (Glucose)',
+                        data: glucose,
+                        borderColor: '#0dcaf0',
+                        backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Chỉ số (mg/dL)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Ngày đo & Khung giờ'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
+</body>
+</html>
