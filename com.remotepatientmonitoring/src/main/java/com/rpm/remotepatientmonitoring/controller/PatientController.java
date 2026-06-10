@@ -1,19 +1,33 @@
 package com.rpm.remotepatientmonitoring.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
 import com.rpm.remotepatientmonitoring.model.DiseaseProfile;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.TreatmentPlan;
+import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
+import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Controller
 @RequestMapping("/patient")
 public class PatientController {
+
+    @Autowired
+    private HealthLogRepository healthLogRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
 
     @GetMapping("/dashboard")
     public String getDashboard(Model model) {
@@ -67,5 +81,36 @@ public class PatientController {
         model.addAttribute("targetFiber", 20.0);
 
         return "patient/dashboard";
+    }
+
+    @GetMapping("/progress")
+    public String getProgressReport(Model model) throws JsonProcessingException {
+        Patient patient = patientRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No patient found in the database. Please initialize data first."));
+
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
+
+        List<String> dates = new ArrayList<>();
+        List<Integer> systolicList = new ArrayList<>();
+        List<Integer> diastolicList = new ArrayList<>();
+        List<Double> glucoseList = new ArrayList<>();
+
+        for (DailyHealthLog log : logs) {
+            dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
+            systolicList.add(log.getSystolicBp() != null ? log.getSystolicBp() : 0);
+            diastolicList.add(log.getDiastolicBp() != null ? log.getDiastolicBp() : 0);
+            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : 0.0);
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        model.addAttribute("patient", patient);
+        model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
+        model.addAttribute("systolicJson", objectMapper.writeValueAsString(systolicList));
+        model.addAttribute("diastolicJson", objectMapper.writeValueAsString(diastolicList));
+        model.addAttribute("glucoseJson", objectMapper.writeValueAsString(glucoseList));
+
+        return "patient/progress";
     }
 }
