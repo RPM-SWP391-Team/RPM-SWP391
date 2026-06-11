@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo tài khoản bác sĩ - RPM System</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-box">
+        <h2>Hệ thống theo dõi bệnh nhân từ xa</h2>
+        <h3>Tạo tài khoản bác sĩ</h3>
+
+        <div th:if="${successMessage}" class="alert alert-success">
+            <p th:text="${successMessage}"></p>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-error">
+            <p th:text="${errorMessage}"></p>
+        </div>
+
+        <form th:action="@{/hospital/doctor/create}" method="post">
+            <div class="form-group">
+                <label>Họ tên bác sĩ</label>
+                <input type="text" name="fullName" placeholder="Nhập họ tên" required/>
+            </div>
+            <div class="form-group">
+                <label>Mã bác sĩ</label>
+                <input type="text" name="doctorCode" placeholder="Ví dụ: BS001" required/>
+            </div>
+            <div class="form-group">
+                <label>Email đăng nhập</label>
+                <input type="email" name="email" placeholder="Nhập email" required/>
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="text" name="phone" placeholder="Nhập SĐT" required/>
+            </div>
+            <div class="form-group">
+                <label>Chuyên khoa</label>
+                <input type="text" name="specialty" placeholder="Ví dụ: Nội tiết"/>
+            </div>
+            <input type="hidden" name="hospitalId" value="1"/>
+            <button type="submit" class="btn-login">Tạo tài khoản & Gửi mật khẩu</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>
