@@ -12,4 +12,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
     Optional<Doctor> findByAccountId(Integer accountId);
     Optional<Doctor> findByPhone(String phone);
     List<Doctor> findByHospitalId(Integer hospitalId);
+    boolean existsByDoctorCode(String doctorCode);
+    boolean existsByPhone(String phone);
 }
