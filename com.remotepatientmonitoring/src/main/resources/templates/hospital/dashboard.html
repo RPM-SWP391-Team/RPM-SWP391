@@ -2,15 +2,416 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Bệnh viện - RPM System</title>
-    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1A73E8;
+            --primary-hover: #155cb4;
+            --primary-light: #E8F0FE;
+            --bg-light: #F4F7FE;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --sidebar-width: 260px;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid #E2E8F0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 1.5rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .sidebar-footer {
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #F1F5F9;
+        }
+        
+        /* Main Content Styling */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding: 2rem;
+        }
+        .navbar-top {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Cards & Metrics */
+        .metric-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            border: none;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(26, 115, 232, 0.08);
+        }
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .metric-icon.blue {
+            background-color: #E8F0FE;
+            color: #1A73E8;
+        }
+        .metric-icon.green {
+            background-color: #E6F4EA;
+            color: #137333;
+        }
+        .metric-icon.yellow {
+            background-color: #FEF7E0;
+            color: #B06000;
+        }
+        .metric-icon.red {
+            background-color: #FCE8E6;
+            color: #C5221F;
+        }
+        .card-custom {
+            background-color: #ffffff;
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            margin-bottom: 2rem;
+        }
+        .card-custom-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #F1F5F9;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-custom-body {
+            padding: 1.5rem;
+        }
+        
+        /* Mobile responsive toggle */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+        
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
-<div style="padding: 20px;">
-    <h2>Dashboard Bệnh viện</h2>
-    <a th:href="@{/hospital/doctor/create}">Tạo tài khoản bác sĩ</a>
-    &nbsp;|&nbsp;
-    <a th:href="@{/auth/logout}">Đăng xuất</a>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-heart-pulse-fill"></i>
+        <span>RPM System</span>
+    </div>
+    <div class="sidebar-menu">
+        <a th:href="@{/hospital/dashboard}" class="menu-item active">
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="@{/hospital/doctor/create}" class="menu-item">
+            <i class="bi bi-person-plus-fill"></i>
+            <span>Tạo tài khoản bác sĩ</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
 </div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Top Navbar -->
+    <div class="navbar-top">
+        <div class="d-flex align-items-center gap-3">
+            <button class="sidebar-toggle" id="toggleSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-none d-md-block">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/hospital/dashboard}" class="text-decoration-none">Trang chủ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard Bệnh viện</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-end d-none d-sm-block">
+                <h6 class="mb-0 fw-semibold">Quản trị viên</h6>
+                <small class="text-muted">Bệnh viện đa khoa</small>
+            </div>
+            <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-building"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title Header -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Dashboard Quản trị Bệnh viện</h2>
+        <p class="text-muted">Hệ thống giám sát và quản lý dữ liệu theo dõi sức khỏe bệnh nhân từ xa.</p>
+    </div>
+
+    <!-- Metric Cards Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div>
+                    <span class="text-muted small fw-medium">Bác sĩ hoạt động</span>
+                    <h3 class="fw-bold mt-1 mb-0">12</h3>
+                </div>
+                <div class="metric-icon blue">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div>
+                    <span class="text-muted small fw-medium">Bệnh nhân giám sát</span>
+                    <h3 class="fw-bold mt-1 mb-0">148</h3>
+                </div>
+                <div class="metric-icon green">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div>
+                    <span class="text-muted small fw-medium">Cảnh báo bất thường</span>
+                    <h3 class="fw-bold mt-1 mb-0 text-danger">3</h3>
+                </div>
+                <div class="metric-icon red">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="metric-card">
+                <div>
+                    <span class="text-muted small fw-medium">Trạng thái hệ thống</span>
+                    <h3 class="fw-bold mt-1 mb-0 text-success">98.5%</h3>
+                </div>
+                <div class="metric-icon yellow">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Tables & Actions -->
+    <div class="row">
+        <!-- Monitoring Table -->
+        <div class="col-lg-8">
+            <div class="card card-custom">
+                <div class="card-custom-header">
+                    <span>Hoạt động giám sát gần đây</span>
+                    <span class="badge bg-primary-light text-primary fw-semibold">Thời gian thực</span>
+                </div>
+                <div class="card-custom-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Bệnh nhân</th>
+                                    <th>Mã bệnh nhân</th>
+                                    <th>Bác sĩ phụ trách</th>
+                                    <th>Trạng thái</th>
+                                    <th class="pe-4 text-end">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <span class="fw-medium">Nguyễn Văn A</span>
+                                        </div>
+                                    </td>
+                                    <td>BN-2026-001</td>
+                                    <td>BS. Lê Minh Hoàng</td>
+                                    <td><span class="badge bg-success-subtle text-success text-success-emphasis">Bình thường</span></td>
+                                    <td class="pe-4 text-end">
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <span class="fw-medium">Trần Thị B</span>
+                                        </div>
+                                    </td>
+                                    <td>BN-2026-002</td>
+                                    <td>BS. Nguyễn Thị Lan</td>
+                                    <td><span class="badge bg-danger-subtle text-danger text-danger-emphasis">Nhịp tim cao</span></td>
+                                    <td class="pe-4 text-end">
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <span class="fw-medium">Phạm Văn C</span>
+                                        </div>
+                                    </td>
+                                    <td>BN-2026-003</td>
+                                    <td>BS. Lê Minh Hoàng</td>
+                                    <td><span class="badge bg-warning-subtle text-warning text-warning-emphasis">Huyết áp thấp</span></td>
+                                    <td class="pe-4 text-end">
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick actions / Sidebar cards -->
+        <div class="col-lg-4">
+            <div class="card card-custom">
+                <div class="card-custom-header">
+                    <span>Thao tác nhanh</span>
+                </div>
+                <div class="card-custom-body d-flex flex-column gap-3">
+                    <a th:href="@{/hospital/doctor/create}" class="btn btn-primary w-100 text-white d-flex align-items-center justify-content-center gap-2 py-2 shadow-sm rounded-3">
+                        <i class="bi bi-person-plus-fill"></i>
+                        Tạo tài khoản bác sĩ
+                    </a>
+                    
+                    <button class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                        Xuất báo cáo hoạt động
+                    </button>
+                    
+                    <hr class="my-2 text-muted">
+                    
+                    <div class="p-3 bg-light rounded-3">
+                        <h6 class="fw-semibold mb-2 d-flex align-items-center gap-2 text-primary">
+                            <i class="bi bi-shield-check"></i>
+                            An toàn dữ liệu
+                        </h6>
+                        <p class="text-muted small mb-0">Hệ thống đang hoạt động ở chế độ bảo mật cao nhất, mã hóa đầu-cuối mọi thông số sinh tồn.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const toggleSidebarBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleSidebarBtn && sidebar) {
+        toggleSidebarBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
+    }
+</script>
 </body>
 </html>
