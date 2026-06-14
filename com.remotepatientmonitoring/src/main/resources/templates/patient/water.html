@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghi Nhận Uống Nước</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-custom {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .card-custom:hover {
+            transform: translateY(-3px);
+        }
+        .water-card {
+            background-color: #ffffff;
+            border-left: 5px solid #0d6efd;
+        }
+        .btn-water {
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-water:hover {
+            transform: translateY(-2px);
+        }
+        .btn-back {
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .progress-circle-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+        }
+        .water-bubble {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark navbar-custom py-3">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
+            </span>
+            <div class="d-flex align-items-center text-white">
+                <i class="fa-regular fa-user-circle fa-2x me-2"></i>
+                <div>
+                    <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
+                    <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="mb-4 d-flex align-items-center justify-content-between">
+            <a href="/patient/dashboard" class="btn btn-outline-secondary btn-back">
+                <i class="fa-solid fa-arrow-left me-2"></i>Quay lại Dashboard
+            </a>
+            <h3 class="fw-bold text-dark mb-0">Theo Dõi Nước Uống</h3>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left panel: Circle Progress representation -->
+            <div class="col-lg-5 text-center">
+                <div class="card card-custom p-5 bg-white">
+                    <h5 class="fw-bold text-primary mb-4">
+                        <i class="fa-solid fa-glass-water me-2"></i>Tiến Độ Hôm Nay
+                    </h5>
+                    
+                    <div class="progress-circle-container mb-4">
+                        <!-- Simple visual indicator -->
+                        <div class="rounded-circle border border-primary border-5 d-flex align-items-center justify-content-center" style="width: 180px; height: 180px; background-color: #f0f7ff;">
+                            <div class="water-bubble">
+                                <i class="fa-solid fa-tint fa-3x text-primary mb-2"></i>
+                                <h4 class="fw-bold mb-0 text-dark"><span id="txtCurrent" th:text="${currentWater}">0</span></h4>
+                                <small class="text-muted">/ <span th:text="${targetWater}">2000</span> ml</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fs-6">
+                            Đạt: <span id="txtProgress" th:text="${waterProgress}">0</span>% mục tiêu
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right panel: Controls to log water -->
+            <div class="col-lg-7">
+                <div class="card card-custom water-card p-4 h-100">
+                    <h4 class="fw-bold text-primary mb-3">Ghi Nhận Lượng Nước Uống</h4>
+                    <p class="text-muted small mb-4">
+                        Click chọn cốc nước tương ứng bên dưới để cộng dồn vào lượng nước uống hôm nay của bạn.
+                    </p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-4">
+                            <button class="btn btn-outline-primary btn-water w-100" onclick="addWater(250)">
+                                <i class="fa-solid fa-glass-water fa-2x d-block mb-2 text-primary"></i>
+                                <span>Cốc nhỏ</span>
+                                <strong class="d-block mt-1">+250 ml</strong>
+                            </button>
+                        </div>
+                        <div class="col-sm-4">
+                            <button class="btn btn-outline-primary btn-water w-100" onclick="addWater(500)">
+                                <i class="fa-solid fa-glass-water-droplet fa-2x d-block mb-2 text-info"></i>
+                                <span>Cốc lớn</span>
+                                <strong class="d-block mt-1">+500 ml</strong>
+                            </button>
+                        </div>
+                        <div class="col-sm-4">
+                            <button class="btn btn-outline-primary btn-water w-100" onclick="addWater(750)">
+                                <i class="fa-solid fa-bottle-water fa-2x d-block mb-2 text-dark"></i>
+                                <span>Bình nước</span>
+                                <strong class="d-block mt-1">+750 ml</strong>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-danger rounded-pill px-4 fw-semibold" onclick="resetWater()">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Đặt lại từ đầu (0 ml)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ==================== JAVASCRIPT: Fetch API ==================== -->
+    <script>
+        const targetWater = [[${targetWater}]];
+
+        function updateUI(amount) {
+            document.getElementById('txtCurrent').innerText = amount;
+            const progress = targetWater > 0 ? Math.round((amount / targetWater) * 100) : 0;
+            document.getElementById('txtProgress').innerText = progress;
+        }
+
+        function addWater(amount) {
+            const params = new URLSearchParams();
+            params.append('amount', amount);
+
+            fetch('/patient/api/water/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateUI(data.currentAmount);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể ghi nhận.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        function resetWater() {
+            if (!confirm('Bạn có chắc chắn muốn đặt lại lượng nước đã uống hôm nay về 0ml?')) return;
+
+            fetch('/patient/api/water/reset', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateUI(0);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể đặt lại.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+    </script>
+</body>
+</html>
