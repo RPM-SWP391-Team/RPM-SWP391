@@ -27,6 +27,7 @@ public class HealthLogController {
 
     @GetMapping("/log")
     public String showLogForm(Model model) {
+        Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
         DailyHealthLog log = DailyHealthLog.builder()
                 .logDate(LocalDate.now())
                 .logTime(LocalDateTime.now())
@@ -35,6 +36,7 @@ public class HealthLogController {
                 .isAlertProcessed(false)
                 .build();
         model.addAttribute("healthLog", log);
+        model.addAttribute("patient", patient);
         return "patient/log";
     }
 

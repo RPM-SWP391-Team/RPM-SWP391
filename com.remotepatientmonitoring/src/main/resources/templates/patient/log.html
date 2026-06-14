@@ -64,28 +64,6 @@
             border-color: #2a5298;
             box-shadow: 0 0 0 0.25rem rgba(42, 82, 152, 0.15);
         }
-        .form-check-custom {
-            padding: 15px;
-            border-radius: 12px;
-            background-color: #f8f9fa;
-            border: 1.5px solid #dee2e6;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .form-check-custom:hover {
-            border-color: #2a5298;
-            background-color: #f1f3f5;
-        }
-        .form-check-input {
-            width: 1.6em;
-            height: 1.6em;
-            margin-left: 0;
-            cursor: pointer;
-        }
         .btn-submit {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: #fff;
@@ -127,6 +105,69 @@
             border-bottom: 2px solid #eef2f3;
             padding-bottom: 8px;
         }
+        /* Custom Method Tab Style */
+        .method-tabs {
+            display: flex;
+            background-color: #f1f3f5;
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+        .method-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.2s;
+        }
+        .method-tab.active {
+            background-color: #ffffff;
+            color: #2a5298;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        /* OCR Container Style */
+        .ocr-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .ocr-upload-box:hover {
+            border-color: #2a5298;
+            background-color: #f1f5f9;
+        }
+        /* Slider styling */
+        .slider-container {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-top: 10px;
+        }
+        .slider-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2a5298;
+        }
+        /* Scanner animation */
+        .scanner-line {
+            width: 100%;
+            height: 4px;
+            background-color: #3b82f6;
+            position: relative;
+            animation: scan 1.5s infinite linear;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+        @keyframes scan {
+            0% { top: 0px; }
+            50% { top: 180px; }
+            100% { top: 0px; }
+        }
     </style>
 </head>
 <body>
@@ -148,82 +189,151 @@
                 <div class="card card-form">
                     <div class="form-header">
                         <h2 class="fw-bold mb-1"><i class="fa-solid fa-heart-pulse me-2 text-warning"></i>Nhập Nhật Ký Sức Khỏe</h2>
-                        <p class="mb-0 text-white-50 small">Theo dõi sức khỏe hàng ngày để nhận hướng dẫn tốt nhất</p>
+                        <p class="mb-0 text-white-50 small" th:text="'Nhóm bệnh lý lý nền: ' + ${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không xác định'}">Bệnh lý nền</p>
                     </div>
                     
                     <div class="form-body">
-                        <form th:action="@{/patient/log}" th:object="${healthLog}" method="POST">
-                            
-                            <!-- Log Type Selection -->
+                        <!-- Smart Input Method Selector -->
+                        <div class="method-tabs">
+                            <div class="method-tab active" id="tab-manual" onclick="switchInputMethod('MANUAL')">
+                                <i class="fa-solid fa-keyboard me-2"></i>Nhập thủ công / Thanh lăn
+                            </div>
+                            <div class="method-tab" id="tab-ocr" onclick="switchInputMethod('OCR')">
+                                <i class="fa-solid fa-camera me-2"></i>Chụp ảnh máy đo (AI OCR)
+                            </div>
+                        </div>
+
+                        <!-- Main Form -->
+                        <form th:action="@{/patient/log}" th:object="${healthLog}" method="POST" id="healthLogForm">
+                            <input type="hidden" th:field="*{inputMethod}" id="inputMethodField" value="MANUAL">
+
+                            <!-- Log Type Selection: Customize dynamically based on Patient profile -->
                             <div class="mb-4">
                                 <label class="form-label-custom"><i class="fa-regular fa-clock"></i>Thời điểm đo</label>
-                                <select th:field="*{logType}" class="form-select form-control-custom" required>
-                                    <option value="MORNING">Buổi Sáng (Morning)</option>
-                                    <option value="EVENING">Buổi Tối (Evening)</option>
-                                    <option value="RANDOM">Đo Ngẫu Nhiên (Random)</option>
+                                <select th:field="*{logType}" class="form-select form-control-custom" id="logTypeSelect" required>
+                                    <!-- Options will be populated or filtered by JS dynamically based on disease group -->
                                 </select>
                             </div>
 
-                            <!-- Section: Blood Pressure & Heart Rate -->
-                            <div class="section-title">Huyết áp & Nhịp tim</div>
-                            
-                            <div class="row g-3">
-                                <div class="col-6 mb-3">
-                                    <label class="form-label-custom"><i class="fa-solid fa-gauge-high"></i>Tâm thu</label>
-                                    <input type="number" th:field="*{systolicBp}" class="form-control form-control-custom" placeholder="Ví dụ: 120" min="50" max="300">
-                                    <div class="form-text small text-muted">Systolic (mmHg)</div>
+                            <!-- ================= NHẬP THỦ CÔNG PANEL ================= -->
+                            <div id="manual-input-panel">
+                                <!-- Section 1: Huyết áp (Only for Tăng huyết áp & Đồng mắc) -->
+                                <div id="bp-section">
+                                    <div class="section-title">Chỉ số Huyết áp & Nhịp tim</div>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label-custom"><i class="fa-solid fa-gauge-high"></i>Tâm thu (mmHg)</label>
+                                            <input type="number" th:field="*{systolicBp}" id="systolicBp" class="form-control form-control-custom" placeholder="Ví dụ: 120" min="50" max="300">
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label-custom"><i class="fa-solid fa-gauge-simple"></i>Tâm trương (mmHg)</label>
+                                            <input type="number" th:field="*{diastolicBp}" id="diastolicBp" class="form-control form-control-custom" placeholder="Ví dụ: 80" min="30" max="200">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label-custom"><i class="fa-solid fa-heartbeat"></i>Nhịp tim</label>
+                                        <input type="number" th:field="*{heartRate}" id="heartRate" class="form-control form-control-custom" placeholder="Nhịp tim (lần/phút)" min="20" max="300">
+                                    </div>
                                 </div>
-                                <div class="col-6 mb-3">
-                                    <label class="form-label-custom"><i class="fa-solid fa-gauge-simple"></i>Tâm trương</label>
-                                    <input type="number" th:field="*{diastolicBp}" class="form-control form-control-custom" placeholder="Ví dụ: 80" min="30" max="200">
-                                    <div class="form-text small text-muted">Diastolic (mmHg)</div>
+
+                                <!-- Section 2: Đường huyết (Only for Tiểu đường & Đồng mắc) -->
+                                <div id="glucose-section">
+                                    <div class="section-title">Chỉ số Đường huyết (Glucose)</div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="form-label-custom"><i class="fa-solid fa-droplet"></i>Chỉ số Glucose</label>
+                                        <input type="number" step="0.1" th:field="*{glucoseLevel}" id="glucoseLevel" class="form-control form-control-custom" placeholder="Ví dụ: 95.5" min="10" max="600" oninput="updateGlucoseSlider(this.value)">
+
+                                        <div class="form-text small text-muted mt-2">Bình thường: 70 - 130 mg/dL</div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 3: Notes -->
+                                <div class="section-title">Ghi chú & Triệu chứng</div>
+                                <div class="mb-4">
+                                    <textarea th:field="*{patientNotes}" class="form-control form-control-custom" rows="3" placeholder="Ví dụ: Cơ thể sảng khoái, không đau đầu mệt mỏi..."></textarea>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label-custom"><i class="fa-solid fa-heartbeat"></i>Nhịp tim</label>
-                                <input type="number" th:field="*{heartRate}" class="form-control form-control-custom" placeholder="Nhịp tim (lần/phút)" min="20" max="300">
-                            </div>
+                            <!-- ================= AI OCR PANEL ================= -->
+                            <div id="ocr-input-panel" style="display: none;">
+                                <div class="section-title">Chụp hình ảnh thiết bị đo</div>
+                                <p class="text-muted small">Chụp ảnh màn hình hiển thị của Máy đo huyết áp hoặc Máy đo đường huyết bằng camera điện thoại của bạn.</p>
+                                
+                                <div class="ocr-upload-box mb-4" id="upload-box" onclick="triggerPhotoUpload()">
+                                    <i class="fa-solid fa-cloud-arrow-up fa-3x mb-3 text-muted"></i>
+                                    <h5 class="fw-bold">Chụp ảnh hoặc Chọn tệp tin</h5>
+                                    <p class="text-muted small mb-0">Hỗ trợ JPG, PNG từ máy đo của bạn</p>
+                                    <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="simulateOCR()">
+                                </div>
 
-                            <!-- Section: Glucose Level -->
-                            <div class="section-title">Chỉ số Đường huyết</div>
-                            
-                            <div class="mb-4">
-                                <label class="form-label-custom"><i class="fa-solid fa-droplet"></i>Đường huyết (Glucose)</label>
-                                <input type="number" step="0.1" th:field="*{glucoseLevel}" class="form-control form-control-custom" placeholder="Ví dụ: 95.5" min="10" max="600">
-                                <div class="form-text small text-muted">Đơn vị: mg/dL (khoảng bình thường: 70 - 130)</div>
-                            </div>
+                                <!-- Spinner loader during simulated OCR scanning -->
+                                <div id="ocr-loading-area" class="text-center py-4 border rounded-3 bg-light mb-4 d-none">
+                                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                                    <h6 class="fw-bold text-dark">Đang phân tích hình ảnh bằng Google Cloud Vision API...</h6>
+                                    <p class="small text-muted mb-0">Hệ thống AI đang đọc chỉ số đo tự động</p>
+                                    <div class="mx-auto mt-3 border bg-white" style="height: 180px; width: 180px; overflow: hidden; position: relative;">
+                                        <div class="scanner-line"></div>
+                                        <img src="https://static.vecteezy.com/system/resources/previews/000/583/525/original/blood-pressure-monitor-illustration-vector.jpg" style="width: 100%; height: 100%; object-fit: contain; opacity: 0.6;">
+                                    </div>
+                                </div>
 
-                            <!-- Section: Adherence -->
-                            <div class="section-title">Tuân thủ điều trị</div>
+                                <!-- OCR Warning area -->
+                                <div id="ocr-error-area" class="alert alert-danger d-none" role="alert">
+                                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                    <strong>Không đọc được chỉ số — vui lòng nhập tay.</strong> Ảnh mờ hoặc góc chụp lệch.
+                                </div>
 
-                            <!-- Medication taken check -->
-                            <label class="form-check-custom" for="isMedicationTaken">
-                                <span><i class="fa-solid fa-prescription-bottle-medication me-2 text-danger"></i>Đã uống đủ thuốc</span>
-                                <input class="form-check-input" type="checkbox" th:field="*{isMedicationTaken}" id="isMedicationTaken">
-                            </label>
+                                <!-- OCR Confirm popup UI -->
+                                <div id="ocr-confirm-area" class="p-4 border rounded-4 bg-light mb-4 d-none">
+                                    <h5 class="fw-bold text-success mb-3"><i class="fa-solid fa-circle-check me-2"></i>Kết quả phân tích bằng AI</h5>
+                                    
+                                    <div id="ocr-result-bp" class="mb-3 d-none">
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <small class="text-muted">Tâm thu</small>
+                                                <h3 class="fw-bold text-dark" id="ocr-val-systolic">125 <span class="fs-6 fw-normal">mmHg</span></h3>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted">Tâm trương</small>
+                                                <h3 class="fw-bold text-dark" id="ocr-val-diastolic">82 <span class="fs-6 fw-normal">mmHg</span></h3>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted">Nhịp tim</small>
+                                                <h3 class="fw-bold text-dark" id="ocr-val-heartrate">75 <span class="fs-6 fw-normal">bpm</span></h3>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <!-- Water intake check -->
-                            <label class="form-check-custom" for="isWaterIntakeDone">
-                                <span><i class="fa-solid fa-glass-water me-2 text-primary"></i>Đã uống đủ nước</span>
-                                <input class="form-check-input" type="checkbox" th:field="*{isWaterIntakeDone}" id="isWaterIntakeDone">
-                            </label>
+                                    <div id="ocr-result-glucose" class="mb-3 d-none">
+                                        <small class="text-muted">Đường huyết (Glucose)</small>
+                                        <h3 class="fw-bold text-dark" id="ocr-val-glucose">96.5 <span class="fs-6 fw-normal">mg/dL</span></h3>
+                                    </div>
 
-                            <!-- Section: Notes -->
-                            <div class="section-title">Ghi chú & Triệu chứng</div>
-                            
-                            <div class="mb-4">
-                                <label class="form-label-custom"><i class="fa-regular fa-comment-dots"></i>Ghi chú của bạn</label>
-                                <textarea th:field="*{patientNotes}" class="form-control form-control-custom" rows="3" placeholder="Ví dụ: Cảm thấy mệt mỏi, đau đầu nhẹ..."></textarea>
+                                    <hr>
+                                    <p class="small text-muted mb-3">Vui lòng xác nhận xem chỉ số AI đọc được có khớp hoàn toàn với màn hình máy đo của bạn không?</p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 flex-grow-1" onclick="ocrEditManual()">Sửa lại (Nhập tay)</button>
+                                        <button type="button" class="btn btn-success text-white rounded-pill px-4 flex-grow-1" onclick="ocrConfirmSubmit()">Xác nhận đúng</button>
+                                    </div>
+                                </div>
+
+                                <!-- Simulated buttons to test flows easily -->
+                                <div class="d-flex gap-2 justify-content-center mb-3">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="simulateSuccessfulPhotoUpload()"><i class="fa-solid fa-vial me-1"></i>Thử tải ảnh đọc thành công</button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="simulateFailedPhotoUpload()"><i class="fa-solid fa-bug me-1"></i>Thử ảnh mờ lỗi OCR</button>
+                                </div>
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="row g-3 mt-4">
+                            <div class="row g-3 mt-4" id="form-action-buttons">
                                 <div class="col-6">
                                     <a href="/patient/dashboard" class="btn btn-cancel">Hủy bỏ</a>
                                 </div>
                                 <div class="col-6">
-                                    <button type="submit" class="btn btn-submit">Lưu Nhật Ký</button>
+                                    <button type="button" class="btn btn-submit" onclick="validateAndSubmit()">Lưu Nhật Ký</button>
                                 </div>
                             </div>
 
@@ -237,5 +347,186 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script th:inline="javascript">
+        /* Lấy thông tin bệnh lý của bệnh nhân */
+        /*[# th:if="${patient != null && patient.diseaseProfile != null}"]*/
+        const profileName = /*[[${patient.diseaseProfile.profileName}]]*/ '';
+        /*[/]*/
+        /*[# th:if="${patient == null || patient.diseaseProfile == null}"]*/
+        const profileName = 'Đồng mắc';
+        /*[/]*/
+
+        const hasHypertension = profileName.includes('Huyết áp') || profileName.includes('Đồng mắc');
+        const hasDiabetes = profileName.includes('Tiểu đường') || profileName.includes('Đồng mắc');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Thiết lập hiển thị động theo bệnh lý nền
+            const bpSection = document.getElementById('bp-section');
+            const glucoseSection = document.getElementById('glucose-section');
+            const logTypeSelect = document.getElementById('logTypeSelect');
+
+            let optionsHtml = '';
+
+            if (hasHypertension && hasDiabetes) {
+                bpSection.style.display = 'block';
+                glucoseSection.style.display = 'block';
+                optionsHtml = `
+                    <option value="MORNING">Buổi sáng: Sau khi thức dậy / Trước ăn sáng (Cả 2 chỉ số)</option>
+                    <option value="EVENING">Buổi tối: Sau bữa tối 2h / Trước đi ngủ (Cả 2 chỉ số)</option>
+                    <option value="RANDOM">Đo ngẫu nhiên</option>
+                `;
+            } else if (hasHypertension) {
+                bpSection.style.display = 'block';
+                glucoseSection.style.display = 'none';
+                optionsHtml = `
+                    <option value="MORNING">Buổi sáng: Đo ngay sau khi thức dậy (trước ăn + uống thuốc)</option>
+                    <option value="EVENING">Buổi tối: Đo trước đi ngủ hoặc trước ăn tối</option>
+                    <option value="RANDOM">Đo ngẫu nhiên</option>
+                `;
+            } else if (hasDiabetes) {
+                bpSection.style.display = 'none';
+                glucoseSection.style.display = 'block';
+                optionsHtml = `
+                    <option value="GLUCOSE1">Mốc 1: Đo trước khi ăn sáng</option>
+                    <option value="GLUCOSE2">Mốc 2: Đo sau bữa ăn tối đúng 2 tiếng</option>
+                    <option value="RANDOM">Đo ngẫu nhiên</option>
+                `;
+            }
+
+            logTypeSelect.innerHTML = optionsHtml;
+        });
+
+        // Toggle Nhập tay vs AI OCR
+        function switchInputMethod(method) {
+            const inputMethodField = document.getElementById('inputMethodField');
+            inputMethodField.value = method;
+
+            document.getElementById('tab-manual').classList.toggle('active', method === 'MANUAL');
+            document.getElementById('tab-ocr').classList.toggle('active', method === 'OCR');
+
+            document.getElementById('manual-input-panel').style.display = method === 'MANUAL' ? 'block' : 'none';
+            document.getElementById('ocr-input-panel').style.display = method === 'OCR' ? 'block' : 'none';
+            document.getElementById('form-action-buttons').style.display = method === 'MANUAL' ? 'flex' : 'none';
+        }
+
+        // Link Range Sliders to Inputs (Removed Blood Pressure Sliders)
+        function updateGlucoseInput(val) {
+            document.getElementById('glucoseLevel').value = val;
+            document.getElementById('glucoseLevelVal').innerText = parseFloat(val).toFixed(1);
+        }
+        function updateGlucoseSlider(val) {
+            if (val >= 10 && val <= 300) {
+                document.getElementById('glucoseLevelSlider').value = val;
+                document.getElementById('glucoseLevelVal').innerText = parseFloat(val).toFixed(1);
+            }
+        }
+
+        // Trigger file select
+        function triggerPhotoUpload() {
+            document.getElementById('file-input').click();
+        }
+
+        // Simulate successful OCR
+        function simulateSuccessfulPhotoUpload() {
+            switchInputMethod('OCR');
+            document.getElementById('upload-box').classList.add('d-none');
+            document.getElementById('ocr-loading-area').classList.remove('d-none');
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('ocr-error-area').classList.add('d-none');
+
+            setTimeout(() => {
+                document.getElementById('ocr-loading-area').classList.add('d-none');
+                document.getElementById('ocr-confirm-area').classList.remove('d-none');
+
+                if (hasHypertension) {
+                    document.getElementById('ocr-result-bp').classList.remove('d-none');
+                    document.getElementById('ocr-val-systolic').innerHTML = '122 <span class="fs-6 fw-normal">mmHg</span>';
+                    document.getElementById('ocr-val-diastolic').innerHTML = '80 <span class="fs-6 fw-normal">mmHg</span>';
+                    document.getElementById('ocr-val-heartrate').innerHTML = '74 <span class="fs-6 fw-normal">bpm</span>';
+                }
+                if (hasDiabetes) {
+                    document.getElementById('ocr-result-glucose').classList.remove('d-none');
+                    document.getElementById('ocr-val-glucose').innerHTML = '95.5 <span class="fs-6 fw-normal">mg/dL</span>';
+                }
+            }, 1800);
+        }
+
+        // Simulate failed OCR
+        function simulateFailedPhotoUpload() {
+            switchInputMethod('OCR');
+            document.getElementById('upload-box').classList.add('d-none');
+            document.getElementById('ocr-loading-area').classList.remove('d-none');
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('ocr-error-area').classList.add('d-none');
+
+            setTimeout(() => {
+                document.getElementById('ocr-loading-area').classList.add('d-none');
+                document.getElementById('ocr-error-area').classList.remove('d-none');
+                setTimeout(() => {
+                    alert("Không đọc được chỉ số — vui lòng nhập tay");
+                    switchInputMethod('MANUAL');
+                    document.getElementById('ocr-error-area').classList.add('d-none');
+                    document.getElementById('upload-box').classList.remove('d-none');
+                }, 1500);
+            }, 1800);
+        }
+
+        function simulateOCR() {
+            simulateSuccessfulPhotoUpload();
+        }
+
+        // User edits simulated OCR manually
+        function ocrEditManual() {
+            // Populate manual form with AI parsed metrics
+            if (hasHypertension) {
+                document.getElementById('systolicBp').value = 122;
+                document.getElementById('diastolicBp').value = 80;
+                document.getElementById('heartRate').value = 74;
+            }
+            if (hasDiabetes) {
+                document.getElementById('glucoseLevel').value = 95.5;
+                updateGlucoseSlider(95.5);
+            }
+            switchInputMethod('MANUAL');
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('upload-box').classList.remove('d-none');
+        }
+
+        // User confirms OCR and submits directly
+        function ocrConfirmSubmit() {
+            if (hasHypertension) {
+                document.getElementById('systolicBp').value = 122;
+                document.getElementById('diastolicBp').value = 80;
+                document.getElementById('heartRate').value = 74;
+            }
+            if (hasDiabetes) {
+                document.getElementById('glucoseLevel').value = 95.5;
+            }
+            document.getElementById('inputMethodField').value = 'OCR';
+            document.getElementById('healthLogForm').submit();
+        }
+
+        // Validation for manual submit
+        function validateAndSubmit() {
+            if (hasHypertension) {
+                const sys = document.getElementById('systolicBp').value;
+                const dia = document.getElementById('diastolicBp').value;
+                if (!sys || !dia) {
+                    alert('Chỉ số huyết áp (Tâm thu và Tâm trương) là bắt buộc đối với bệnh nhân Tăng huyết áp.');
+                    return;
+                }
+            }
+            if (hasDiabetes) {
+                const glucose = document.getElementById('glucoseLevel').value;
+                if (!glucose) {
+                    alert('Chỉ số đường huyết (Glucose) là bắt buộc đối với bệnh nhân Tiểu đường.');
+                    return;
+                }
+            }
+            document.getElementById('healthLogForm').submit();
+        }
+    </script>
 </body>
 </html>
