@@ -45,10 +45,6 @@ public class DailyHealthLog {
     private Boolean isOcrValidated = false;
     @Column(name = "alert_level", length = 10)
     private String alertLevel;
-    @Column(name = "is_medication_taken")
-    private Boolean isMedicationTaken;
-    @Column(name = "is_water_intake_done")
-    private Boolean isWaterIntakeDone;
     @Column(name = "patient_notes", length = 500)
     private String patientNotes;
     @Column(name = "is_alert_processed", nullable = false)

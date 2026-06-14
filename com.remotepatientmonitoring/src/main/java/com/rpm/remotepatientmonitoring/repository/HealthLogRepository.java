@@ -11,3 +11,4 @@ public interface HealthLogRepository extends JpaRepository<DailyHealthLog, Integ
     List<DailyHealthLog> findByPatientIdAndLogDate(Integer patientId, LocalDate logDate);
     List<DailyHealthLog> findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate date);
 }
+
