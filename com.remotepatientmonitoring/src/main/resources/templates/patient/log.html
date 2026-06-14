@@ -528,5 +528,175 @@
             document.getElementById('healthLogForm').submit();
         }
     </script>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/patient/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Trang chủ</span>
+        </a>
+        <a href="/patient/adherence" class="nav-item">
+            <i class="fa-solid fa-pills"></i>
+            <span>Thuốc uống</span>
+        </a>
+        <a href="/patient/appointments" class="nav-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Nhật ký</span>
+        </a>
+        <a href="/patient/log" class="nav-item fab-item">
+            <div class="fab-btn">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+        </a>
+        <a href="/patient/nutrition" class="nav-item">
+            <i class="fa-solid fa-utensils"></i>
+            <span>Dinh dưỡng</span>
+        </a>
+        <a href="/patient/exercise" class="nav-item">
+            <i class="fa-solid fa-person-running"></i>
+            <span>Tập luyện</span>
+        </a>
+        <a href="/patient/progress" class="nav-item">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Hồ sơ</span>
+        </a>
+    </div>
+
+    <style>
+        /* Bottom Navigation Bar Styles */
+        body {
+            padding-bottom: 90px !important;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            padding: 0 10px;
+        }
+
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            flex: 1;
+            text-align: center;
+            height: 100%;
+        }
+
+        .bottom-nav .nav-item i {
+            font-size: 1.25rem;
+            margin-bottom: 4px;
+            transition: transform 0.2s ease;
+        }
+
+        .bottom-nav .nav-item span {
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        .bottom-nav .nav-item:hover,
+        .bottom-nav .nav-item.active {
+            color: #2a5298;
+        }
+
+        .bottom-nav .nav-item.active i {
+            transform: translateY(-2px);
+            color: #2a5298;
+        }
+
+        /* Floating Action Button (FAB) for the central plus item */
+        .bottom-nav .fab-item {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        .bottom-nav .fab-btn {
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.4);
+            transform: translateY(-15px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 3px solid #ffffff;
+        }
+
+        .bottom-nav .fab-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0;
+            color: #ffffff;
+            transition: transform 0.3s ease;
+        }
+
+        .bottom-nav .fab-item:hover .fab-btn {
+            transform: translateY(-18px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.5);
+        }
+
+        .bottom-nav .fab-item:hover .fab-btn i {
+            transform: rotate(90deg);
+        }
+
+        .bottom-nav .fab-item.active .fab-btn {
+            background: linear-gradient(135deg, #ff9900 0%, #ff5500 100%);
+            box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+        }
+
+        /* Responsive adjustment for extra small screens */
+        @media (max-width: 480px) {
+            .bottom-nav .nav-item span {
+                display: none;
+            }
+            .bottom-nav .nav-item i {
+                font-size: 1.4rem;
+                margin-bottom: 0;
+            }
+            .bottom-nav .fab-btn {
+                width: 50px;
+                height: 50px;
+                transform: translateY(-12px);
+            }
+            .bottom-nav .fab-item:hover .fab-btn {
+                transform: translateY(-15px) scale(1.05);
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
+                const href = item.getAttribute("href");
+                if (currentPath === href || (href === "/patient/appointments" && currentPath === "/patient/request-change")) {
+                    item.classList.add("active");
+                }
+            });
+        });
+    </script>
 </body>
 </html>
