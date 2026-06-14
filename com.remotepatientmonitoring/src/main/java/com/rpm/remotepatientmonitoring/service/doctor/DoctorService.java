@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Service
+@Service("doctorDashboardService")
 public class DoctorService {
 
     @Autowired
