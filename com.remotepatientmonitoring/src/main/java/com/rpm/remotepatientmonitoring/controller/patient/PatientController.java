@@ -1,15 +1,15 @@
-package com.rpm.remotepatientmonitoring.controller;
+package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
-import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
-import com.rpm.remotepatientmonitoring.repository.MedicationLogRepository;
-import com.rpm.remotepatientmonitoring.repository.PatientMedicationRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.HealthLogRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.MedicationLogRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.PatientMedicationRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
-import com.rpm.remotepatientmonitoring.repository.WaterLogRepository;
-import com.rpm.remotepatientmonitoring.repository.PatientMealRepository;
-import com.rpm.remotepatientmonitoring.repository.PatientExerciseRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.WaterLogRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.PatientMealRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.PatientExerciseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

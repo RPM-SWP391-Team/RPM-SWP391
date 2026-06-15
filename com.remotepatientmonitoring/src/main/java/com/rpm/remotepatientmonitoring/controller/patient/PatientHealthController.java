@@ -1,7 +1,7 @@
-package com.rpm.remotepatientmonitoring.controller;
+package com.rpm.remotepatientmonitoring.controller.patient;
 
-import com.rpm.remotepatientmonitoring.dto.HealthLogRequest;
-import com.rpm.remotepatientmonitoring.service.PatientHealthService;
+import com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest;
+import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.dto;
+package com.rpm.remotepatientmonitoring.dto.patient;
 
 import lombok.Data;
 import java.math.BigDecimal;
