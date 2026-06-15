@@ -1,9 +1,9 @@
-package com.rpm.remotepatientmonitoring.controller;
+package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.WaterLog;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
-import com.rpm.remotepatientmonitoring.repository.WaterLogRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.WaterLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

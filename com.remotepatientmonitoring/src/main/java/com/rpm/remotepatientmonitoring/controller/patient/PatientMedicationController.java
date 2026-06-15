@@ -1,10 +1,10 @@
-package com.rpm.remotepatientmonitoring.controller;
+package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.rpm.remotepatientmonitoring.model.MedicationLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.PatientMedication;
-import com.rpm.remotepatientmonitoring.repository.MedicationLogRepository;
-import com.rpm.remotepatientmonitoring.repository.PatientMedicationRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.MedicationLogRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.PatientMedicationRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
