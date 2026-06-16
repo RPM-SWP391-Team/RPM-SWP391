@@ -3,6 +3,7 @@ package com.rpm.remotepatientmonitoring.controller.doctor;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
+import com.rpm.remotepatientmonitoring.service.doctor.TreatmentPlanWorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,15 @@ public class DoctorViewController {
 
     @Autowired
     private NutritionRuleRepository nutritionRuleRepository;
+
+    @Autowired
+    private TreatmentPlanRepository treatmentPlanRepository;
+
+    @Autowired
+    private PatientMedicationRepository patientMedicationRepository;
+
+    @Autowired
+    private TreatmentPlanWorkflowService treatmentPlanWorkflowService;
 
     // =========================================================
     // 1. Dashboard: Hiển thị, Tìm kiếm, Phân trang
@@ -108,33 +118,64 @@ public class DoctorViewController {
                 .findByPatientIdAndIsCurrent(patient.getId(), true)
                 .orElse(null);
 
+        TreatmentPlan currentPlan = treatmentPlanRepository
+                .findByPatientIdAndIsCurrent(patient.getId(), true)
+                .orElse(null);
+
+        List<PatientMedication> currentMeds = patientMedicationRepository
+                .findByPatientIdAndIsActiveTrue(patient.getId());
+
         model.addAttribute("doctor", doctor);
         model.addAttribute("patient", patient);
         model.addAttribute("allProfiles", allProfiles);
         model.addAttribute("currentRule", currentRule);
+        model.addAttribute("currentPlan", currentPlan);
+        model.addAttribute("currentMeds", currentMeds);
         model.addAttribute("success", success);
 
         return "doctor/patient-detail";
     }
 
     // =========================================================
-    // 4. POST: Lưu Phân loại Bệnh lý + Quy tắc Dinh dưỡng
+    // 4. POST: Lưu Phân loại Bệnh lý + Phác đồ + Dinh dưỡng + Thuốc
     // =========================================================
     @PostMapping("/patient-detail/{id}/update-profile")
     public String updatePatientProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id,
-            @RequestParam("diseaseProfileId")                          Integer    diseaseProfileId,
-            @RequestParam("maxCaloriesPerDay")                         Integer    maxCaloriesPerDay,
-            @RequestParam("maxCarbsG")                                 BigDecimal maxCarbsG,
-            @RequestParam("maxSaltG")                                  BigDecimal maxSaltG,
-            @RequestParam(value = "minFiberG",    defaultValue = "25") BigDecimal minFiberG,
-            @RequestParam(value = "maxFatG",      required = false)    BigDecimal maxFatG,
-            @RequestParam(value = "minProteinG",  required = false)    BigDecimal minProteinG,
-            @RequestParam(value = "dailyWaterMl", defaultValue = "2000") Integer  dailyWaterMl,
-            @RequestParam(value = "additionalNotes", required = false) String     additionalNotes) {
+            @RequestParam("diseaseProfileId") Integer diseaseProfileId,
+            // Baseline measurements
+            @RequestParam(value = "baselineSystolicBp", required = false) Integer baselineSystolicBp,
+            @RequestParam(value = "baselineDiastolicBp", required = false) Integer baselineDiastolicBp,
+            @RequestParam(value = "baselineFastingGlucose", required = false) BigDecimal baselineFastingGlucose,
+            @RequestParam(value = "baselineHba1c", required = false) BigDecimal baselineHba1c,
+            @RequestParam(value = "baselineWeightKg", required = false) BigDecimal baselineWeightKg,
+            // Target measurements
+            @RequestParam(value = "targetSystolicBp", required = false) Integer targetSystolicBp,
+            @RequestParam(value = "targetDiastolicBp", required = false) Integer targetDiastolicBp,
+            @RequestParam(value = "targetFastingGlucose", required = false) BigDecimal targetFastingGlucose,
+            @RequestParam(value = "targetHba1c", required = false) BigDecimal targetHba1c,
+            @RequestParam(value = "targetWeightKg", required = false) BigDecimal targetWeightKg,
+            // Orders & Goals
+            @RequestParam(value = "medicalOrder", required = false) String medicalOrder,
+            @RequestParam(value = "exerciseGoal", required = false) String exerciseGoal,
+            @RequestParam(value = "treatmentNotes", required = false) String treatmentNotes,
+            // Nutrition Rules
+            @RequestParam("maxCaloriesPerDay") Integer maxCaloriesPerDay,
+            @RequestParam("maxCarbsG") BigDecimal maxCarbsG,
+            @RequestParam("maxSaltG") BigDecimal maxSaltG,
+            @RequestParam(value = "minFiberG", defaultValue = "25") BigDecimal minFiberG,
+            @RequestParam(value = "maxFatG", required = false) BigDecimal maxFatG,
+            @RequestParam(value = "minProteinG", required = false) BigDecimal minProteinG,
+            @RequestParam(value = "dailyWaterMl", defaultValue = "2000") Integer dailyWaterMl,
+            @RequestParam(value = "additionalNotes", required = false) String additionalNotes,
+            // Medications
+            @RequestParam(value = "medNames", required = false) List<String> medNames,
+            @RequestParam(value = "medDosages", required = false) List<String> medDosages,
+            @RequestParam(value = "medScheduledTimes", required = false) List<String> medScheduledTimes
+    ) {
 
-        // Xác thực bác sĩ qua Spring Security — không hardcode ID
+        // Xác thực bác sĩ qua Spring Security
         Integer accountId = userDetails.getAccount().getId();
         Doctor doctor = doctorRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ"));
@@ -143,38 +184,41 @@ public class DoctorViewController {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
-        // --- B: Cập nhật phân loại bệnh lý ---
+        // --- Cập nhật phân loại bệnh lý trực tiếp ---
         DiseaseProfile selectedProfile = new DiseaseProfile();
         selectedProfile.setId(diseaseProfileId);
         patient.setDiseaseProfile(selectedProfile);
-        patient.setStatus("TREATING");
         patientRepository.save(patient);
 
-        // --- C: Vô hiệu hóa quy tắc dinh dưỡng cũ nếu tồn tại ---
-        nutritionRuleRepository.findByPatientIdAndIsCurrent(patient.getId(), true)
-                .ifPresent(old -> {
-                    old.setIsCurrent(false);
-                    old.setUpdatedAt(LocalDateTime.now());
-                    nutritionRuleRepository.save(old);
-                });
-
-        // --- C: Tạo quy tắc dinh dưỡng mới ---
-        NutritionRule newRule = new NutritionRule();
-        newRule.setPatient(patient);
-        newRule.setDoctor(doctor);
-        newRule.setMaxCaloriesPerDay(maxCaloriesPerDay);
-        newRule.setMaxCarbsG(maxCarbsG);
-        newRule.setMaxSaltG(maxSaltG);
-        newRule.setMinFiberG(minFiberG);
-        newRule.setMaxFatG(maxFatG);
-        newRule.setMinProteinG(minProteinG);
-        newRule.setDailyWaterMl(dailyWaterMl);
-        newRule.setAdditionalNotes(additionalNotes);
-        newRule.setIsCurrent(true);
-        newRule.setEffectiveFrom(LocalDate.now());
-        newRule.setCreatedAt(LocalDateTime.now());
-        newRule.setUpdatedAt(LocalDateTime.now());
-        nutritionRuleRepository.save(newRule);
+        // --- Gọi workflow service xử lý phác đồ, quy tắc dinh dưỡng, thuốc và gửi thông báo ---
+        treatmentPlanWorkflowService.createNewTreatmentPlan(
+                patient,
+                doctor,
+                baselineSystolicBp,
+                baselineDiastolicBp,
+                baselineFastingGlucose,
+                baselineHba1c,
+                baselineWeightKg,
+                targetSystolicBp,
+                targetDiastolicBp,
+                targetFastingGlucose,
+                targetHba1c,
+                targetWeightKg,
+                medicalOrder != null ? medicalOrder : "",
+                exerciseGoal,
+                treatmentNotes,
+                maxCaloriesPerDay,
+                maxCarbsG,
+                maxSaltG,
+                minFiberG,
+                maxFatG,
+                minProteinG,
+                dailyWaterMl,
+                additionalNotes,
+                medNames,
+                medDosages,
+                medScheduledTimes
+        );
 
         // Redirect về trang chi tiết với flag thành công
         return "redirect:/doctor/patient-detail/" + id + "?success=true";

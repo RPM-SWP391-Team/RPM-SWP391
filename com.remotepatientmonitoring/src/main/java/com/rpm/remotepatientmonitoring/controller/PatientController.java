@@ -10,6 +10,8 @@ import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import com.rpm.remotepatientmonitoring.repository.WaterLogRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientMealRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientExerciseRepository;
+import com.rpm.remotepatientmonitoring.repository.TreatmentPlanRepository;
+import com.rpm.remotepatientmonitoring.repository.NutritionRuleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -47,23 +49,52 @@ public class PatientController {
     @Autowired
     private PatientExerciseRepository patientExerciseRepository;
 
+    @Autowired
+    private TreatmentPlanRepository treatmentPlanRepository;
+
+    @Autowired
+    private NutritionRuleRepository nutritionRuleRepository;
+
     @GetMapping("/dashboard")
     public String getDashboard(Model model) {
-        // Mock Patient data
-        DiseaseProfile profile = DiseaseProfile.builder()
-                .profileName("Đồng mắc (Tiểu đường & Tăng huyết áp)")
-                .build();
+        // Lấy bệnh nhân thực tế từ DB hoặc fallback
+        Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
+        if (patient == null) {
+            DiseaseProfile profile = DiseaseProfile.builder()
+                    .profileName("Đồng mắc (Tiểu đường & Tăng huyết áp)")
+                    .build();
+            patient = Patient.builder()
+                    .fullName("Nguyễn Văn A")
+                    .diseaseProfile(profile)
+                    .build();
+        }
 
-        Patient patient = Patient.builder()
-                .fullName("Nguyễn Văn A")
-                .diseaseProfile(profile)
-                .build();
+        // Lấy phác đồ điều trị hiện hành của bệnh nhân từ DB
+        TreatmentPlan plan = null;
+        if (patient.getId() != null) {
+            plan = treatmentPlanRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+        }
+        if (plan == null) {
+            plan = new TreatmentPlan();
+            plan.setMedicalOrder("Chưa có chỉ định thuốc chính thức từ bác sĩ.");
+            plan.setExerciseGoal("Chưa thiết lập mục tiêu vận động.");
+        }
 
-        // Mock TreatmentPlan data
-        TreatmentPlan plan = new TreatmentPlan();
-        plan.setMedicalOrder("1. Metformin 500mg: Uống 1 viên sau ăn sáng (8:00) và 1 viên sau ăn tối (20:00)\n" +
-                             "2. Amlodipine 5mg: Uống 1 viên vào buổi sáng (8:00)");
-        plan.setExerciseGoal("Đi bộ nhẹ nhàng 30 phút mỗi ngày sau bữa ăn tối");
+        // Lấy giới hạn dinh dưỡng mục tiêu từ NutritionRule hiện hành
+        int targetCalories = 2000;
+        double targetSalt = 5.0;
+        double targetFiber = 25.0;
+        int targetWater = 2000;
+
+        if (patient.getId() != null) {
+            NutritionRule currentRule = nutritionRuleRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+            if (currentRule != null) {
+                targetCalories = currentRule.getMaxCaloriesPerDay() != null ? currentRule.getMaxCaloriesPerDay() : 2000;
+                targetSalt = currentRule.getMaxSaltG() != null ? currentRule.getMaxSaltG().doubleValue() : 5.0;
+                targetFiber = currentRule.getMinFiberG() != null ? currentRule.getMinFiberG().doubleValue() : 25.0;
+                targetWater = currentRule.getDailyWaterMl() != null ? currentRule.getDailyWaterMl() : 2000;
+            }
+        }
 
         // Mock Menu data (Today's meal list)
         List<Map<String, Object>> menuList = List.of(
@@ -94,12 +125,10 @@ public class PatientController {
         int totalMeds = 0;
         int takenMeds = 0;
         int currentWater = 0;
-        int targetWater = 2000; // Default target
         try {
-            Patient dbPatient = patientRepository.findAll().stream().findFirst().orElse(null);
-            if (dbPatient != null) {
+            if (patient.getId() != null) {
                 List<PatientMedication> activeMeds = patientMedicationRepository
-                        .findByPatientIdAndIsActiveTrue(dbPatient.getId());
+                        .findByPatientIdAndIsActiveTrue(patient.getId());
                 LocalDate today = LocalDate.now();
                 totalMeds = activeMeds.size();
                 for (PatientMedication med : activeMeds) {
@@ -111,7 +140,7 @@ public class PatientController {
                         takenMeds++;
                     }
                 }
-                currentWater = waterLogRepository.findByPatientIdAndLogDate(dbPatient.getId(), today)
+                currentWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
                         .map(WaterLog::getAmountMl)
                         .orElse(0);
             }
@@ -127,10 +156,9 @@ public class PatientController {
         double totalSalt = 0.0;
         double totalFiber = 0.0;
         try {
-            Patient dbPatient = patientRepository.findAll().stream().findFirst().orElse(null);
-            if (dbPatient != null) {
+            if (patient.getId() != null) {
                 LocalDate today = LocalDate.now();
-                List<PatientMeal> mealsToday = patientMealRepository.findByPatientIdAndLogDate(dbPatient.getId(), today);
+                List<PatientMeal> mealsToday = patientMealRepository.findByPatientIdAndLogDate(patient.getId(), today);
                 for (PatientMeal m : mealsToday) {
                     totalCalories += m.getCalories();
                     totalSalt += m.getSaltG();
@@ -140,9 +168,9 @@ public class PatientController {
         } catch (Exception ignored) {
         }
 
-        int caloriesPercent = 1400 > 0 ? (totalCalories * 100 / 1400) : 0;
-        int saltPercent = 2.5 > 0 ? (int)(totalSalt * 100 / 2.5) : 0;
-        int fiberPercent = 20.0 > 0 ? (int)(totalFiber * 100 / 20.0) : 0;
+        int caloriesPercent = targetCalories > 0 ? (totalCalories * 100 / targetCalories) : 0;
+        int saltPercent = targetSalt > 0 ? (int)(totalSalt * 100 / targetSalt) : 0;
+        int fiberPercent = targetFiber > 0 ? (int)(totalFiber * 100 / targetFiber) : 0;
 
         if (caloriesPercent > 100) caloriesPercent = 100;
         if (saltPercent > 100) saltPercent = 100;
@@ -151,10 +179,9 @@ public class PatientController {
         int totalExerciseMinutes = 0;
         int targetExerciseMinutes = 30; // Default goal
         try {
-            Patient dbPatient = patientRepository.findAll().stream().findFirst().orElse(null);
-            if (dbPatient != null) {
+            if (patient.getId() != null) {
                 LocalDate today = LocalDate.now();
-                List<PatientExercise> exercisesToday = patientExerciseRepository.findByPatientIdAndLogDate(dbPatient.getId(), today);
+                List<PatientExercise> exercisesToday = patientExerciseRepository.findByPatientIdAndLogDate(patient.getId(), today);
                 for (PatientExercise e : exercisesToday) {
                     totalExerciseMinutes += e.getDurationMinutes();
                 }
@@ -170,9 +197,9 @@ public class PatientController {
         model.addAttribute("patient", patient);
         model.addAttribute("treatmentPlan", plan);
         model.addAttribute("menu", menuList);
-        model.addAttribute("targetCalories", 1400);
-        model.addAttribute("targetSalt", 2.5);
-        model.addAttribute("targetFiber", 20.0);
+        model.addAttribute("targetCalories", targetCalories);
+        model.addAttribute("targetSalt", targetSalt);
+        model.addAttribute("targetFiber", targetFiber);
         model.addAttribute("totalMeds", totalMeds);
         model.addAttribute("takenMeds", takenMeds);
         model.addAttribute("medProgress", medProgress);
