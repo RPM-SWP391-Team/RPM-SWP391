@@ -18,7 +18,7 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     Optional<Patient> findByPhone(String phone);
     List<Patient> findByHospitalId(Integer hospitalId);
 
-    @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND p.hospital.id = :hospitalId AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
+    @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND p.doctor IS NULL AND p.hospital.id = :hospitalId AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
     List<Patient> searchUnassignedPatients(@Param("hospitalId") Integer hospitalId, @Param("keyword") String keyword);
 
     // 1. Sửa thành Page: Tìm bệnh nhân theo bác sĩ (có phân trang)
