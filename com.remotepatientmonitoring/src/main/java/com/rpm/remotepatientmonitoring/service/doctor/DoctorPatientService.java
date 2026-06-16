@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class DoctorService {
+public class DoctorPatientService {
 
     @Autowired
     private PatientRepository patientRepository;
@@ -23,9 +23,9 @@ public class DoctorService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // 1. Chức năng tìm kiếm bệnh nhân chờ tiếp nhận
-    public List<PatientSearchResponseDTO> searchUnassignedPatients(String keyword) {
-        List<Patient> patients = patientRepository.searchUnassignedPatients(keyword);
+    // 1. Tìm kiếm bệnh nhân chờ tiếp nhận (lọc theo bệnh viện của bác sĩ)
+    public List<PatientSearchResponseDTO> searchUnassignedPatients(String keyword, Integer hospitalId) {
+        List<Patient> patients = patientRepository.searchUnassignedPatients(hospitalId, keyword);
         List<PatientSearchResponseDTO> resultList = new ArrayList<>();
 
         for (Patient p : patients) {
@@ -39,9 +39,8 @@ public class DoctorService {
         return resultList;
     }
 
-    // 2. Chức năng tiếp nhận bệnh nhân
+    // 2. Tiếp nhận bệnh nhân qua Stored Procedure
     public String assignPatient(Integer patientId, Integer doctorId, Integer diseaseProfileId) {
-        // Gọi Stored Procedure để gán bác sĩ và kiểm tra số lượng tải bệnh nhân
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("sp_assign_patient_to_doctor");
 
@@ -54,12 +53,10 @@ public class DoctorService {
         Map<String, Object> out = jdbcCall.execute(inParams);
         String resultMessage = (String) out.get("result_message");
 
-        // Nếu Procedure thông báo thành công, ta cập nhật thêm loại bệnh lý vào hồ sơ
         if (resultMessage != null && resultMessage.startsWith("Thành công")) {
             Patient patient = patientRepository.findById(patientId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân"));
 
-            // Xử lý map DiseaseProfile theo đúng cấu trúc Entity của bạn
             DiseaseProfile dp = new DiseaseProfile();
             dp.setId(diseaseProfileId);
             patient.setDiseaseProfile(dp);
