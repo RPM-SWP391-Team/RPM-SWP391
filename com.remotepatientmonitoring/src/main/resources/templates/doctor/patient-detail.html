@@ -597,14 +597,171 @@
                 </div>
             </div>
 
+            <!-- ══════════════════════════════════════════════
+                 PHẦN D — Chỉ số Lâm sàng & Mục tiêu
+                 ══════════════════════════════════════════════ -->
+            <div class="col-lg-6">
+                <div class="card card-custom p-4 h-100">
+                    <div class="section-header">
+                        <div class="section-icon icon-blue"><i class="fa-solid fa-gauge"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Phần D — Chỉ số lâm sàng & Mục tiêu</h5>
+                            <small class="text-muted">Nhập chỉ số đo thực tế và mục tiêu theo dõi</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Chỉ số ban đầu (Baseline) -->
+                        <div class="col-12">
+                            <h6 class="fw-bold text-primary border-bottom pb-2 mb-2">1. Chỉ số Khám lần đầu (Baseline)</h6>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Huyết áp khám (mmHg)</label>
+                            <div class="input-group">
+                                <input type="number" name="baselineSystolicBp" class="form-control" th:value="${currentPlan?.baselineSystolicBp}" placeholder="Tâm thu">
+                                <span class="input-group-text">/</span>
+                                <input type="number" name="baselineDiastolicBp" class="form-control" th:value="${currentPlan?.baselineDiastolicBp}" placeholder="Tâm trương">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Đường huyết đói</label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" name="baselineFastingGlucose" class="form-control" th:value="${currentPlan?.baselineFastingGlucose}" placeholder="mg/dL">
+                                <span class="input-group-text">mg/dL</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Chỉ số HbA1c (%)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="baselineHba1c" class="form-control" th:value="${currentPlan?.baselineHba1c}" placeholder="VD: 7.2">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Cân nặng ban đầu (kg)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" name="baselineWeightKg" class="form-control" th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5">
+                                <span class="input-group-text">kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Chỉ số mục tiêu (Target) -->
+                        <div class="col-12 mt-3">
+                            <h6 class="fw-bold text-success border-bottom pb-2 mb-2">2. Chỉ số Mục tiêu theo dõi (Target)</h6>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Huyết áp mục tiêu (mmHg)</label>
+                            <div class="input-group">
+                                <input type="number" name="targetSystolicBp" class="form-control" th:value="${currentPlan?.targetSystolicBp}" placeholder="Tâm thu">
+                                <span class="input-group-text">/</span>
+                                <input type="number" name="targetDiastolicBp" class="form-control" th:value="${currentPlan?.targetDiastolicBp}" placeholder="Tâm trương">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Đường huyết mục tiêu</label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" name="targetFastingGlucose" class="form-control" th:value="${currentPlan?.targetFastingGlucose}" placeholder="mg/dL">
+                                <span class="input-group-text">mg/dL</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">HbA1c mục tiêu (%)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="targetHba1c" class="form-control" th:value="${currentPlan?.targetHba1c}" placeholder="VD: 6.5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Cân nặng mục tiêu (kg)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.1" name="targetWeightKg" class="form-control" th:value="${currentPlan?.targetWeightKg}" placeholder="VD: 62">
+                                <span class="input-group-text">kg</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════
+                 PHẦN E — Đơn thuốc & Vận động
+                 ══════════════════════════════════════════════ -->
+            <div class="col-lg-6">
+                <div class="card card-custom p-4 h-100">
+                    <div class="section-header">
+                        <div class="section-icon icon-purple"><i class="fa-solid fa-pills"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Phần E — Kế hoạch điều trị & Đơn thuốc</h5>
+                            <small class="text-muted">Kê đơn thuốc điều trị và mục tiêu tập luyện</small>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú y lệnh -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fa-solid fa-clipboard-list me-1 text-primary"></i>Y lệnh / Hướng dẫn điều trị
+                        </label>
+                        <textarea name="medicalOrder" class="form-control" rows="2" placeholder="Nhập y lệnh chung về dùng thuốc..." th:text="${currentPlan?.medicalOrder}"></textarea>
+                    </div>
+
+                    <!-- Danh mục thuốc uống -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0"><i class="fa-solid fa-list-check me-1 text-success"></i>Danh mục thuốc chi tiết</label>
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="addMedicationRow()">
+                                <i class="fa-solid fa-plus me-1"></i>Thêm thuốc
+                            </button>
+                        </div>
+                        <div class="table-responsive border rounded-3" style="max-height:180px; overflow-y:auto;">
+                            <table class="table table-sm table-hover align-middle mb-0" style="font-size:0.88rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tên thuốc</th>
+                                        <th>Liều lượng</th>
+                                        <th style="width: 100px;">Giờ uống</th>
+                                        <th class="text-center" style="width: 50px;">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medicationTbody">
+                                    <tr th:each="med : ${currentMeds}">
+                                        <td><input type="text" name="medNames" class="form-control form-control-sm" th:value="${med.medicineName}" required placeholder="Tên thuốc"></td>
+                                        <td><input type="text" name="medDosages" class="form-control form-control-sm" th:value="${med.dosage}" required placeholder="Liều lượng"></td>
+                                        <td><input type="text" name="medScheduledTimes" class="form-control form-control-sm" th:value="${med.scheduledTime}" required placeholder="08:00"></td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="removeMedicationRow(this)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(currentMeds)}" class="empty-med-row">
+                                        <td colspan="4" class="text-center text-muted py-3 empty-med-msg">Chưa có thuốc nào được kê. Bấm "Thêm thuốc" để bắt đầu.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tập luyện & Ghi chú -->
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label"><i class="fa-solid fa-person-running me-1 text-warning"></i>Mục tiêu vận động</label>
+                            <input type="text" name="exerciseGoal" class="form-control" th:value="${currentPlan?.exerciseGoal}" placeholder="VD: Đi bộ 30 phút/ngày">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label"><i class="fa-solid fa-note-sticky me-1 text-secondary"></i>Ghi chú phác đồ</label>
+                            <input type="text" name="treatmentNotes" class="form-control" th:value="${currentPlan?.additionalNotes}" placeholder="VD: Theo dõi sát đường huyết">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Save / Cancel -->
-            <div class="col-12">
+            <div class="col-12 mt-4">
                 <div class="d-flex justify-content-end align-items-center gap-3">
                     <a href="/doctor/dashboard" class="btn btn-outline-secondary rounded-pill px-4">
                         <i class="fa-solid fa-xmark me-1"></i>Hủy
                     </a>
                     <button type="submit" id="saveBtn" class="btn-save">
-                        <i class="fa-solid fa-floppy-disk me-2"></i>Lưu Cấu hình
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Lưu Phác đồ & Cấu hình
                     </button>
                 </div>
             </div>
@@ -694,9 +851,51 @@
             return;
         }
         const btn = document.getElementById('saveBtn');
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang lưu...';
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk fa-spin me-2"></i>Đang lưu...';
         btn.disabled = true;
     });
+
+    // ===== Dynamic Medication List Operations =====
+    function addMedicationRow(name = '', dosage = '', time = '08:00') {
+        const tbody = document.getElementById('medicationTbody');
+        
+        // Remove empty placeholder row if exists
+        const emptyRow = tbody.querySelector('.empty-med-row');
+        if (emptyRow) {
+            emptyRow.remove();
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" name="medNames" class="form-control form-control-sm" value="${name}" required placeholder="Tên thuốc"></td>
+            <td><input type="text" name="medDosages" class="form-control form-control-sm" value="${dosage}" required placeholder="Liều lượng"></td>
+            <td><input type="text" name="medScheduledTimes" class="form-control form-control-sm" value="${time}" required placeholder="08:00"></td>
+            <td class="text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="removeMedicationRow(this)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    function removeMedicationRow(btn) {
+        const tbody = document.getElementById('medicationTbody');
+        btn.closest('tr').remove();
+        
+        // If no rows left, append the empty placeholder row
+        const activeRows = tbody.querySelectorAll('tr:not(.empty-med-row)');
+        if (activeRows.length === 0) {
+            const emptyTr = document.createElement('tr');
+            emptyTr.className = 'empty-med-row';
+            emptyTr.innerHTML = `
+                <td colspan="4" class="text-center text-muted py-3 empty-med-msg">
+                    Chưa có thuốc nào được kê. Bấm "Thêm thuốc" để bắt đầu.
+                </td>
+            `;
+            tbody.appendChild(emptyTr);
+        }
+    }
 </script>
 </body>
 </html>
