@@ -29,12 +29,12 @@ public class AlertThreshold {
 
     @Column(nullable = false, length = 10)
     @Builder.Default
-    private String scope = "HOSPITAL"; // 'HOSPITAL' or 'PATIENT'
+    private String scope = "HOSPITAL";
 
     @Column(name = "metric_type", nullable = false, length = 50)
-    private String metricType; // 'GLUCOSE', 'BLOOD_PRESSURE', 'HEART_RATE', 'COMBINED'
+    private String metricType;
 
-    // Glucose thresholds
+    // --- Glucose thresholds (Giữ nguyên trường, xóa @NotNull và @DecimalMin) ---
     @Column(name = "glucose_normal_min")
     private BigDecimal glucoseNormalMin;
 
@@ -56,7 +56,7 @@ public class AlertThreshold {
     @Column(name = "glucose_danger_threshold")
     private BigDecimal glucoseDangerThreshold;
 
-    // Systolic Blood Pressure thresholds
+    // --- Systolic Blood Pressure (Giữ nguyên trường, xóa @NotNull và @Min) ---
     @Column(name = "systolic_normal_max")
     private Integer systolicNormalMax;
 
@@ -78,7 +78,7 @@ public class AlertThreshold {
     @Column(name = "systolic_emergency_threshold")
     private Integer systolicEmergencyThreshold;
 
-    // Diastolic Blood Pressure thresholds
+    // --- Diastolic Blood Pressure (Giữ nguyên trường, xóa @NotNull và @Min) ---
     @Column(name = "diastolic_normal_max")
     private Integer diastolicNormalMax;
 

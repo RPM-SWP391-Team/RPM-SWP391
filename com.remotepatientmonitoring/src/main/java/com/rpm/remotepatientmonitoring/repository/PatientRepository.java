@@ -13,4 +13,6 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     Optional<Patient> findByPhone(String phone);
     List<Patient> findByDoctorId(Integer doctorId);
     List<Patient> findByHospitalId(Integer hospitalId);
+    // Tìm kiếm toàn bộ bệnh nhân thực tế đang điều trị của một bác sĩ cụ thể
+    List<Patient> findByDoctorIdAndIsActiveTrue(Integer doctorId);
 }

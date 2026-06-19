@@ -5,8 +5,10 @@ import com.rpm.remotepatientmonitoring.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.rpm.remotepatientmonitoring.dto.DoctorDTO;
 
 import java.util.List;
 
@@ -24,14 +26,26 @@ public class DoctorController {
         List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
         model.addAttribute("doctors", doctors);
         if (!model.containsAttribute("newDoctor")) {
-            model.addAttribute("newDoctor", new DoctorDto());
+            model.addAttribute("newDoctor", new DoctorDTO());
         }
         return "admin/doctors";
     }
 
     @PostMapping("/add")
-    public String addDoctor(@ModelAttribute("newDoctor") DoctorDto doctorDto, 
+    public String addDoctor(@jakarta.validation.Valid @ModelAttribute("newDoctor") DoctorDTO doctorDto,
+                            BindingResult bindingResult,
+                            Model model,
                             RedirectAttributes redirectAttributes) {
+
+        // Bắt lỗi Validation thô (Trống trường, sai độ dài mật khẩu, sai định dạng Regex)
+        if (bindingResult.hasErrors()) {
+            List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
+            model.addAttribute("doctors", doctors);
+            model.addAttribute("newDoctor", doctorDto);
+            model.addAttribute("errorMessage", "Lỗi nhập liệu: Vui lòng kiểm tra lại các trường báo đỏ.");
+            return "admin/doctors";
+        }
+
         try {
             doctorService.createDoctor(
                     HARDCODED_HOSPITAL_ID,
@@ -44,51 +58,42 @@ public class DoctorController {
                     doctorDto.getCapacityLimit()
             );
             redirectAttributes.addFlashAttribute("successMessage", "Thêm bác sĩ mới thành công!");
+            return "redirect:/admin/doctors";
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            redirectAttributes.addFlashAttribute("newDoctor", doctorDto); // Return input to form
+            // Bắt lỗi trùng lặp từ Database và map chính xác vào ô nhập liệu để báo đỏ cục bộ
+            if (e.getMessage().contains("Mã bác sĩ")) {
+                bindingResult.rejectValue("doctorCode", "error.doctorCode", e.getMessage());
+            } else if (e.getMessage().contains("Số điện thoại")) {
+                bindingResult.rejectValue("phone", "error.phone", e.getMessage());
+            } else if (e.getMessage().contains("Email")) {
+                bindingResult.rejectValue("email", "error.email", e.getMessage());
+            } else {
+                model.addAttribute("errorMessage", e.getMessage());
+            }
+
+            List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
+            model.addAttribute("doctors", doctors);
+            model.addAttribute("newDoctor", doctorDto);
+            return "admin/doctors";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi không xác định: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("newDoctor", doctorDto);
+            List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
+            model.addAttribute("doctors", doctors);
+            model.addAttribute("newDoctor", doctorDto);
+            model.addAttribute("errorMessage", "Hệ thống gặp sự cố: " + e.getMessage());
+            return "admin/doctors";
         }
-        return "redirect:/admin/doctors";
     }
 
     @PostMapping("/deactivate/{id}")
     public String deactivateDoctor(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
         try {
             doctorService.deactivateDoctor(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã vô hiệu hóa tài khoản bác sĩ thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã vô hiệu hóa tài khoản và điều chuyển bệnh nhân thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi vô hiệu hóa bác sĩ: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi thực thi: " + e.getMessage());
         }
         return "redirect:/admin/doctors";
     }
 
-    // Helper DTO for form binding
-    public static class DoctorDto {
-        private String doctorCode;
-        private String fullName;
-        private String phone;
-        private String email;
-        private String password;
-        private String specialty;
-        private Integer capacityLimit = 50;
 
-        // Getters and Setters
-        public String getDoctorCode() { return doctorCode; }
-        public void setDoctorCode(String doctorCode) { this.doctorCode = doctorCode; }
-        public String getFullName() { return fullName; }
-        public void setFullName(String fullName) { this.fullName = fullName; }
-        public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        public String getSpecialty() { return specialty; }
-        public void setSpecialty(String specialty) { this.specialty = specialty; }
-        public Integer getCapacityLimit() { return capacityLimit; }
-        public void setCapacityLimit(Integer capacityLimit) { this.capacityLimit = capacityLimit; }
-    }
 }

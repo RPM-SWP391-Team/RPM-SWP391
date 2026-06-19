@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Bác sĩ | Hospital Admin</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -123,224 +120,233 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="/admin/doctors">
-                <i class="fa-solid fa-hospital me-2 fa-lg text-info"></i>
-                <span class="fw-bold tracking-tight">RPM Portal</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto gap-3">
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom active" href="/admin/doctors">
-                            <i class="fa-solid fa-user-doctor me-1"></i> Quản lý Bác sĩ
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom" href="/admin/config">
-                            <i class="fa-solid fa-sliders me-1"></i> Cấu hình Hệ thống
-                        </a>
-                    </li>
-                </ul>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/admin/doctors">
+            <i class="fa-solid fa-hospital me-2 fa-lg text-info"></i>
+            <span class="fw-bold tracking-tight">RPM Portal</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto gap-3">
+                <li class="nav-item">
+                    <a class="nav-link nav-link-custom active" href="/admin/doctors">
+                        <i class="fa-solid fa-user-doctor me-1"></i> Quản lý Bác sĩ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link nav-link-custom" href="/admin/config">
+                        <i class="fa-solid fa-sliders me-1"></i> Cấu hình Hệ thống
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- Main Container -->
-    <div class="container my-5">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-users-medical text-primary me-2"></i>Danh sách Bác sĩ</h2>
+            <p class="text-muted mb-0">Quản lý tài khoản, chuyên khoa và năng lực chịu tải của bác sĩ</p>
+        </div>
+        <button class="btn btn-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+            <i class="fa-solid fa-plus me-2"></i>Thêm Bác sĩ Mới
+        </button>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-circle-check fa-2x me-3 text-success"></i>
             <div>
-                <h2 class="fw-bold mb-1"><i class="fa-solid fa-users-medical text-primary me-2"></i>Danh sách Bác sĩ</h2>
-                <p class="text-muted mb-0">Quản lý tài khoản, chuyên khoa và năng lực chịu tải của bác sĩ</p>
+                <h5 class="alert-heading fw-bold mb-1">Thành công!</h5>
+                <p class="mb-0" th:text="${successMessage}"></p>
             </div>
-            <button class="btn btn-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
-                <i class="fa-solid fa-plus me-2"></i>Thêm Bác sĩ Mới
-            </button>
         </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
-        <!-- Success & Error Alert Banners -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="fa-solid fa-circle-check fa-2x me-3 text-success"></i>
-                <div>
-                    <h5 class="alert-heading fw-bold mb-1">Thành công!</h5>
-                    <p class="mb-0" th:text="${successMessage}"></p>
-                </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-circle-exclamation fa-2x me-3 text-danger"></i>
+            <div>
+                <h5 class="alert-heading fw-bold mb-1">Lỗi thực thi!</h5>
+                <p class="mb-0" th:text="${errorMessage}"></p>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="fa-solid fa-circle-exclamation fa-2x me-3 text-danger"></i>
-                <div>
-                    <h5 class="alert-heading fw-bold mb-1">Lỗi thực thi!</h5>
-                    <p class="mb-0" th:text="${errorMessage}"></p>
-                </div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <!-- Doctors Table Card -->
-        <div class="card card-custom p-4 border-0">
-            <div class="table-responsive">
-                <table class="table table-custom table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Mã Bác Sĩ</th>
-                            <th>Họ và Tên</th>
-                            <th>Thông tin liên hệ</th>
-                            <th>Chuyên Khoa</th>
-                            <th style="width: 250px;">Khối Lượng Công Việc</th>
-                            <th>Trạng Thái</th>
-                            <th class="text-center">Hành Động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Loop over doctors -->
-                        <tr th:each="doc : ${doctors}">
-                            <td class="fw-bold text-secondary" th:text="${doc.doctorCode}">BS001</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-none d-md-block" style="width: 38px; height: 38px; text-align: center;">
-                                        <i class="fa-solid fa-user-md"></i>
-                                    </div>
-                                    <div class="fw-semibold" th:text="${doc.fullName}">Bác sĩ Mẫu</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="small text-muted"><i class="fa-solid fa-phone me-1"></i><span th:text="${doc.phone}">0123</span></div>
-                                <div class="small text-muted"><i class="fa-solid fa-envelope me-1"></i><span th:text="${doc.account.email}">email</span></div>
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded" 
+    <div class="card card-custom p-4 border-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Mã Bác Sĩ</th>
+                    <th>Họ và Tên</th>
+                    <th>Thông tin liên hệ</th>
+                    <th>Chuyên Khoa</th>
+                    <th style="width: 250px;">Khối Lượng Công Việc</th>
+                    <th>Trạng Thái</th>
+                    <th class="text-center">Hành Động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="doc : ${doctors}">
+                    <td class="fw-bold text-secondary" th:text="${doc.doctorCode}">BS001</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-none d-md-block" style="width: 38px; height: 38px; text-align: center;">
+                                <i class="fa-solid fa-user-md"></i>
+                            </div>
+                            <div class="fw-semibold" th:text="${doc.fullName}">Bác sĩ Mẫu</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="small text-muted"><i class="fa-solid fa-phone me-1"></i><span th:text="${doc.phone}">0123</span></div>
+                        <div class="small text-muted"><i class="fa-solid fa-envelope me-1"></i><span th:text="${doc.account.email}">email</span></div>
+                    </td>
+                    <td>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded"
                                       th:text="${doc.specialty != null && !doc.specialty.isEmpty()} ? ${doc.specialty} : 'Đa khoa'">
                                     Tim mạch
                                 </span>
-                            </td>
-                            <!-- Dynamic Workload Calculation & Formatting -->
-                            <td th:with="percent=${doc.capacityLimit > 0 ? (doc.currentPatientCount * 100.0 / doc.capacityLimit) : 0}">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="small fw-semibold text-muted" th:text="${doc.currentPatientCount} + '/' + ${doc.capacityLimit} + ' Bệnh nhân'">0/50</span>
-                                    <span class="small fw-bold" 
-                                          th:classappend="${percent >= 100} ? 'text-danger' : (${percent >= 90} ? 'text-warning' : (${percent >= 70} ? 'text-info' : 'text-success'))"
-                                          th:text="${#numbers.formatDecimal(percent, 1, 1)} + '%'">0%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated progress-bar-custom" 
-                                         role="progressbar" 
-                                         th:style="'width: ' + ${percent} + '%'"
-                                         th:classappend="${percent >= 100} ? 'bg-danger' : (${percent >= 90} ? 'bg-warning' : (${percent >= 70} ? 'bg-info' : 'bg-success'))"
-                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                    </div>
-                                </div>
-                                <small class="d-block mt-1 text-muted fw-bold" style="font-size: 0.7rem;"
-                                       th:text="${percent >= 100} ? 'ĐẦY (FULL)' : (${percent >= 90} ? 'TÌNH TRẠNG NGUY KỊCH' : (${percent >= 70} ? 'TẢI CAO' : 'BÌNH THƯỜNG'))">
-                                </small>
-                            </td>
-                            <td>
-                                <span class="badge badge-status" 
+                    </td>
+                    <td th:with="percent=${doc.capacityLimit > 0 ? (doc.currentPatientCount * 100.0 / doc.capacityLimit) : 0}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-muted" th:text="${doc.currentPatientCount} + '/' + ${doc.capacityLimit} + ' Bệnh nhân'">0/50</span>
+                            <span class="small fw-bold"
+                                  th:classappend="${percent >= 100} ? 'text-danger' : (${percent >= 90} ? 'text-warning' : (${percent >= 70} ? 'text-info' : 'text-success'))"
+                                  th:text="${#numbers.formatDecimal(percent, 1, 1)} + '%'">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated progress-bar-custom"
+                                 role="progressbar"
+                                 th:style="'width: ' + ${percent} + '%'"
+                                 th:classappend="${percent >= 100} ? 'bg-danger' : (${percent >= 90} ? 'bg-warning' : (${percent >= 70} ? 'bg-info' : 'bg-success'))"
+                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="d-block mt-1 text-muted fw-bold" style="font-size: 0.7rem;"
+                               th:text="${percent >= 100} ? 'ĐẦY (FULL)' : (${percent >= 90} ? 'TÌNH TRẠNG NGUY KỊCH' : (${percent >= 70} ? 'TẢI CAO' : 'BÌNH THƯỜNG'))">
+                        </small>
+                    </td>
+                    <td>
+                                <span class="badge badge-status"
                                       th:classappend="${doc.isActive} ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'"
                                       th:text="${doc.isActive} ? 'Đang hoạt động' : 'Vô hiệu hóa'">
                                     Active
                                 </span>
-                            </td>
-                            <td class="text-center">
-                                <form th:if="${doc.isActive}" th:action="@{/admin/doctors/deactivate/{id}(id=${doc.id})}" method="POST" 
-                                      onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Hành động này không thể hoàn tác và tài khoản sẽ không thể đăng nhập hoặc nhận thêm bệnh nhân.')">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                        <i class="fa-solid fa-user-slash me-1"></i> Vô hiệu hóa
-                                    </button>
-                                </form>
-                                <button th:if="${!doc.isActive}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled>
-                                    <i class="fa-solid fa-lock me-1"></i> Đã vô hiệu hóa
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Empty table placeholder -->
-                        <tr th:if="${#lists.isEmpty(doctors)}">
-                            <td colspan="7" class="text-center text-muted py-5">
-                                <i class="fa-solid fa-user-doctor fa-3x mb-3 text-opacity-25 text-secondary"></i>
-                                <p class="mb-0">Chưa có bác sĩ nào thuộc bệnh viện trong hệ thống</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                    </td>
+                    <td class="text-center">
+                        <form th:if="${doc.isActive}" th:action="@{/admin/doctors/deactivate/{id}(id=${doc.id})}" method="POST"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Hành động này không thể hoàn tác và tài khoản sẽ không thể đăng nhập hoặc nhận thêm bệnh nhân.')">
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                <i class="fa-solid fa-user-slash me-1"></i> Vô hiệu hóa
+                            </button>
+                        </form>
+                        <button th:if="${!doc.isActive}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled>
+                            <i class="fa-solid fa-lock me-1"></i> Đã vô hiệu hóa
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(doctors)}">
+                    <td colspan="7" class="text-center text-muted py-5">
+                        <i class="fa-solid fa-user-doctor fa-3x mb-3 text-opacity-25 text-secondary"></i>
+                        <p class="mb-0">Chưa có bác sĩ nào thuộc bệnh viện trong hệ thống</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 
-    <!-- Add Doctor Modal -->
-    <div class="modal fade" id="addDoctorModal" tabindex="-1" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content shadow-lg border-0">
-                <div class="modal-header py-3">
-                    <h5 class="modal-title fw-bold" id="addDoctorModalLabel">
-                        <i class="fa-solid fa-user-plus me-2"></i>Thêm Tài Khoản Bác Sĩ Mới
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form th:action="@{/admin/doctors/add}" th:object="${newDoctor}" method="POST">
-                    <div class="modal-body p-4">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="doctorCode" class="form-label fw-semibold">Mã Bác Sĩ <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="doctorCode" th:field="*{doctorCode}" required placeholder="Ví dụ: BS099">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="fullName" class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="fullName" th:field="*{fullName}" required placeholder="Họ tên đầy đủ">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="phone" class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control" id="phone" th:field="*{phone}" required placeholder="Ví dụ: 0912345678">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="specialty" class="form-label fw-semibold">Chuyên Khoa</label>
-                                <input type="text" class="form-control" id="specialty" th:field="*{specialty}" placeholder="Ví dụ: Nội tiết, Tim mạch">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="email" class="form-label fw-semibold">Email Đăng Nhập <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" id="email" th:field="*{email}" required placeholder="bacsi@benhvien.com">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="password" class="form-label fw-semibold">Mật khẩu ban đầu <span class="text-danger">*</span></label>
-                                <input type="password" class="form-control" id="password" th:field="*{password}" required placeholder="Tối thiểu 6 ký tự">
-                            </div>
-                            <div class="col-md-12">
-                                <label for="capacityLimit" class="form-label fw-semibold">Giới Hạn Bệnh Nhân (Capacity Limit) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="capacityLimit" th:field="*{capacityLimit}" min="1" max="500" required placeholder="Khoảng 1 - 500">
-                                <div class="form-text">Số lượng bệnh nhân tối đa bác sĩ này được phép quản lý tại một thời điểm.</div>
-                            </div>
+<div class="modal fade" id="addDoctorModal" tabindex="-1" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header py-3">
+                <h5 class="modal-title fw-bold" id="addDoctorModalLabel">
+                    <i class="fa-solid fa-user-plus me-2"></i>Thêm Tài Khoản Bác Sĩ Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="addDoctorForm" th:action="@{/admin/doctors/add}" th:object="${newDoctor}" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="hasErrorsField" th:value="${#fields.hasErrors('*')}">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mã Bác Sĩ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{doctorCode}" th:classappend="${#fields.hasErrors('doctorCode')} ? 'is-invalid' : ''" required placeholder="Ví dụ: BS099">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('doctorCode')}" th:errors="*{doctorCode}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:field="*{fullName}"
+                                   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''" required placeholder="Họ tên đầy đủ">
+
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" th:field="*{phone}" th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''" required placeholder="Ví dụ: 0912345678">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chuyên Khoa <span class="text-danger">*</span></label>
+                            <select class="form-select" th:field="*{specialty}" th:classappend="${#fields.hasErrors('specialty')} ? 'is-invalid' : ''" required>
+                                <option value="" disabled selected>-- Chọn chuyên khoa --</option>
+                                <option value="Tiểu đường">Tiểu đường</option>
+                                <option value="Huyết áp">Huyết áp</option>
+                                <option value="Cả tiểu đường và huyết áp">Cả tiểu đường và huyết áp</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('specialty')}" th:errors="*{specialty}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email Đăng Nhập <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" required placeholder="bacsi@benhvien.com">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Mật khẩu ban đầu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" th:field="*{password}" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required placeholder="Tối thiểu 6 ký tự">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Giới Hạn Bệnh Nhân (Capacity Limit) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" th:field="*{capacityLimit}" th:classappend="${#fields.hasErrors('capacityLimit')} ? 'is-invalid' : ''" min="1" max="500" required placeholder="Khoảng 1 - 500">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('capacityLimit')}" th:errors="*{capacityLimit}"></div>
+                            <div class="form-text">Số lượng bệnh nhân tối đa bác sĩ này được phép quản lý tại một thời điểm.</div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-3">
-                        <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-gradient px-4 py-2">
-                            <i class="fa-solid fa-save me-1"></i> Lưu và Tạo Tài Khoản
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-gradient px-4 py-2">
+                        <i class="fa-solid fa-save me-1"></i> Lưu và Tạo Tài Khoản
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Hệ thống RPM Portal: Bootstrap 5 đã nạp thành công.");
-            if (typeof bootstrap === 'undefined') {
-                console.error("Lỗi: Không thể kết nối tới CDN để tải Bootstrap JS.");
-            }
-        });
-    </script>
-</body>
-</html>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var hasErrors = document.getElementById('hasErrorsField');
+        if (hasErrors && hasErrors.value === 'true') {
+            var addModal = new bootstrap.Modal(document.getElementById('addDoctorModal'));
+            addModal.show();
+        }
+    });
+</script>
 </body>
 </html>

@@ -29,7 +29,6 @@ public class HospitalConfigService {
     public AlertThreshold getGlobalThreshold(Integer hospitalId) {
         return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL")
                 .orElseGet(() -> {
-                    // Create default thresholds if not found (Null Pointer security)
                     Hospital hospital = hospitalRepository.findById(hospitalId)
                             .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
 
@@ -68,7 +67,6 @@ public class HospitalConfigService {
     public AlertThreshold updateGlobalThreshold(Integer hospitalId, AlertThreshold updated) {
         AlertThreshold existing = getGlobalThreshold(hospitalId);
 
-        // Apply strict hospital business validation rules
         validateThresholds(updated);
 
         existing.setGlucoseNormalMin(updated.getGlucoseNormalMin());
@@ -99,62 +97,66 @@ public class HospitalConfigService {
     }
 
     private void validateThresholds(AlertThreshold t) {
-        // 1. Glucose validations
         if (t.getGlucoseNormalMin() == null || t.getGlucoseNormalMax() == null ||
-            t.getGlucoseNormalMin().compareTo(BigDecimal.ZERO) <= 0 ||
-            t.getGlucoseNormalMax().compareTo(t.getGlucoseNormalMin()) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng đường huyết bình thường không hợp lệ.");
+                t.getGlucoseNormalMin().compareTo(BigDecimal.ZERO) <= 0 ||
+                t.getGlucoseNormalMax().compareTo(t.getGlucoseNormalMin()) <= 0) {
+            throw new IllegalArgumentException("Ngưỡng đường huyết bình thường không hợp lệ (Cận trên phải lớn hơn cận dưới).");
         }
+
         if (t.getGlucoseWarningMin() == null || t.getGlucoseWarningMax() == null ||
-            t.getGlucoseWarningMin().compareTo(t.getGlucoseNormalMax()) < 0 ||
-            t.getGlucoseWarningMax().compareTo(t.getGlucoseWarningMin()) <= 0) {
+                t.getGlucoseWarningMax().compareTo(t.getGlucoseWarningMin()) <= 0) {
             throw new IllegalArgumentException("Ngưỡng tiền tiểu đường không hợp lệ.");
         }
+
         if (t.getGlucoseTreatingMin() == null || t.getGlucoseTreatingMax() == null ||
-            t.getGlucoseTreatingMax().compareTo(t.getGlucoseTreatingMin()) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng kiểm soát điều trị không hợp lệ.");
-        }
-        if (t.getGlucoseDangerThreshold() == null || t.getGlucoseDangerThreshold().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng nguy hiểm đường huyết phải lớn hơn 0.");
+                t.getGlucoseTreatingMax().compareTo(t.getGlucoseTreatingMin()) <= 0) {
+            throw new IllegalArgumentException("Ngưỡng kiểm soát điều trị tiểu đường không hợp lệ.");
         }
 
-        // 2. Systolic Blood Pressure validations
+        if (t.getGlucoseDangerThreshold() == null ||
+                t.getGlucoseDangerThreshold().compareTo(t.getGlucoseTreatingMax()) <= 0) {
+            throw new IllegalArgumentException("Ngưỡng nguy hiểm đường huyết bắt buộc phải lớn hơn mức điều trị tối đa (> 130 mg/dL).");
+        }
+
         if (t.getSystolicNormalMax() == null || t.getSystolicNormalMax() <= 0) {
-            throw new IllegalArgumentException("Huyết áp tâm thu bình thường không hợp lệ.");
-        }
-        if (t.getSystolicPrehypertensionMin() == null || t.getSystolicPrehypertensionMax() == null ||
-            t.getSystolicPrehypertensionMin() < t.getSystolicNormalMax() ||
-            t.getSystolicPrehypertensionMax() < t.getSystolicPrehypertensionMin()) {
-            throw new IllegalArgumentException("Ngưỡng tiền tăng huyết áp tâm thu không hợp lệ.");
-        }
-        if (t.getSystolicHypertensionMin() == null || t.getSystolicHypertensionMax() == null ||
-            t.getSystolicHypertensionMin() < t.getSystolicPrehypertensionMax() ||
-            t.getSystolicHypertensionMax() < t.getSystolicHypertensionMin()) {
-            throw new IllegalArgumentException("Ngưỡng tăng huyết áp tâm thu không hợp lệ.");
-        }
-        if (t.getSystolicDangerThreshold() == null || t.getSystolicEmergencyThreshold() == null ||
-            t.getSystolicDangerThreshold() < t.getSystolicHypertensionMax() ||
-            t.getSystolicEmergencyThreshold() < t.getSystolicDangerThreshold()) {
-            throw new IllegalArgumentException("Ngưỡng nguy kịch/cấp cứu huyết áp tâm thu không hợp lệ.");
+            throw new IllegalArgumentException("Huyết áp tâm thu bình thường phải là số nguyên dương.");
         }
 
-        // 3. Diastolic Blood Pressure validations
+        if (t.getSystolicPrehypertensionMin() == null || t.getSystolicPrehypertensionMax() == null ||
+                !t.getSystolicPrehypertensionMin().equals(t.getSystolicNormalMax()) ||
+                t.getSystolicPrehypertensionMax() <= t.getSystolicPrehypertensionMin()) {
+            throw new IllegalArgumentException("Cận dưới tiền tăng huyết áp tâm thu phải trùng khít với mức tối đa bình thường (120 mmHg).");
+        }
+
+        if (t.getSystolicHypertensionMin() == null || t.getSystolicHypertensionMax() == null ||
+                !t.getSystolicHypertensionMin().equals(t.getSystolicPrehypertensionMax() + 1) ||
+                t.getSystolicHypertensionMax() <= t.getSystolicHypertensionMin()) {
+            throw new IllegalArgumentException("Ngưỡng tăng huyết áp tâm thu phải tiếp nối liên tục từ mức tiền tăng huyết áp.");
+        }
+
+        if (t.getSystolicDangerThreshold() == null || t.getSystolicEmergencyThreshold() == null ||
+                t.getSystolicDangerThreshold() <= t.getSystolicHypertensionMax() ||
+                t.getSystolicEmergencyThreshold() <= t.getSystolicDangerThreshold()) {
+            throw new IllegalArgumentException("Ngưỡng nguy hiểm và cấp cứu huyết áp tâm thu vi phạm tính tịnh tiến.");
+        }
+
         if (t.getDiastolicNormalMax() == null || t.getDiastolicNormalMax() <= 0) {
-            throw new IllegalArgumentException("Huyết áp tâm trương bình thường không hợp lệ.");
+            throw new IllegalArgumentException("Huyết áp tâm trương bình thường phải là số nguyên dương.");
         }
+
         if (t.getDiastolicHypertensionMin() == null || t.getDiastolicHypertensionMax() == null ||
-            t.getDiastolicHypertensionMin() < t.getDiastolicNormalMax() ||
-            t.getDiastolicHypertensionMax() < t.getDiastolicHypertensionMin()) {
-            throw new IllegalArgumentException("Ngưỡng tăng huyết áp tâm trương không hợp lệ.");
+                !t.getDiastolicHypertensionMin().equals(t.getDiastolicNormalMax()) ||
+                t.getDiastolicHypertensionMax() <= t.getDiastolicHypertensionMin()) {
+            throw new IllegalArgumentException("Ngưỡng tăng huyết áp tâm trương phải bắt đầu từ mức tối đa bình thường (80 mmHg).");
         }
+
         if (t.getDiastolicDangerThreshold() == null || t.getDiastolicEmergencyThreshold() == null ||
-            t.getDiastolicDangerThreshold() < t.getDiastolicHypertensionMax() ||
-            t.getDiastolicEmergencyThreshold() < t.getDiastolicDangerThreshold()) {
-            throw new IllegalArgumentException("Ngưỡng nguy kịch/cấp cứu huyết áp tâm trương không hợp lệ.");
+                t.getDiastolicDangerThreshold() <= t.getDiastolicHypertensionMax() ||
+                t.getDiastolicEmergencyThreshold() <= t.getDiastolicDangerThreshold()) {
+            throw new IllegalArgumentException("Ngưỡng nguy hiểm và cấp cứu huyết áp tâm trương không hợp lệ.");
         }
     }
 
-    // Emergency Guide Management
     public List<EmergencyGuide> getEmergencyGuides(Integer hospitalId) {
         return emergencyGuideRepository.findByHospitalId(hospitalId);
     }
@@ -171,12 +173,16 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nội dung hướng dẫn không được để trống.");
         }
 
+        if (emergencyGuideRepository.existsByHospitalIdAndAlertLevelAndMetricTypeAndIsActiveTrue(hospitalId, alertLevel, metricType)) {
+            throw new IllegalArgumentException("Mức cảnh báo '" + alertLevel + "' của chỉ số '" + metricType + "' đã có hướng dẫn xử lý khẩn cấp. Vui lòng chỉnh sửa bài cũ thay vì tạo mới.");
+        }
+
         EmergencyGuide guide = EmergencyGuide.builder()
                 .hospital(hospital)
                 .alertLevel(alertLevel)
                 .metricType(metricType)
-                .title(title)
-                .instructionContent(instructionContent)
+                .title(title.trim())
+                .instructionContent(instructionContent.trim())
                 .isActive(true)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -194,7 +200,7 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nội dung hướng dẫn không được để trống.");
         }
 
-        guide.setInstructionContent(instructionContent);
+        guide.setInstructionContent(instructionContent.trim());
         guide.setUpdatedAt(LocalDateTime.now());
         return emergencyGuideRepository.save(guide);
     }

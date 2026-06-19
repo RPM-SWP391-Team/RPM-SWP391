@@ -9,4 +9,6 @@ import java.util.List;
 public interface EmergencyGuideRepository extends JpaRepository<EmergencyGuide, Integer> {
     List<EmergencyGuide> findByHospitalId(Integer hospitalId);
     List<EmergencyGuide> findByHospitalIdAndIsActive(Integer hospitalId, Boolean isActive);
+    // Thêm hàm này vào bên trong interface EmergencyGuideRepository
+    boolean existsByHospitalIdAndAlertLevelAndMetricTypeAndIsActiveTrue(Integer hospitalId, String alertLevel, String metricType);
 }
