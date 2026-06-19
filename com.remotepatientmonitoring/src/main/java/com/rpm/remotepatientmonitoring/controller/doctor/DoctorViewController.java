@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Controller
 @RequestMapping("/doctor")
@@ -43,6 +45,12 @@ public class DoctorViewController {
     @Autowired
     private TreatmentPlanWorkflowService treatmentPlanWorkflowService;
 
+    @Autowired
+    private AlertRepository alertRepository;
+
+    @Autowired
+    private HealthLogRepository healthLogRepository;
+
     // =========================================================
     // 1. Dashboard: Hiển thị, Tìm kiếm, Phân trang
     // =========================================================
@@ -67,9 +75,27 @@ public class DoctorViewController {
             patientPage = patientRepository.findByDoctorId(doctor.getId(), pageable);
         }
 
+        // 1. Tính tổng số bệnh nhân thực tế của bác sĩ này
+        long actualPatientCount = patientRepository.countByDoctorId(doctor.getId());
+
+        // 2. Tính số lượng cảnh báo đỏ và vàng chưa xử lý
+        long redAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "RED");
+        long yellowAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "YELLOW");
+
+        // 3. Lấy chỉ số đo mới nhất của từng bệnh nhân trong trang hiện tại
+        Map<Integer, DailyHealthLog> latestLogs = new HashMap<>();
+        for (Patient p : patientPage.getContent()) {
+            healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(p.getId())
+                    .ifPresent(log -> latestLogs.put(p.getId(), log));
+        }
+
         model.addAttribute("doctor", doctor);
         model.addAttribute("patientPage", patientPage);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("actualPatientCount", actualPatientCount);
+        model.addAttribute("redAlertsCount", redAlertsCount);
+        model.addAttribute("yellowAlertsCount", yellowAlertsCount);
+        model.addAttribute("latestLogs", latestLogs);
 
         return "doctor/doctor-dashboard";
     }

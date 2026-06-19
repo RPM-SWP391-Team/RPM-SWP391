@@ -27,4 +27,6 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     // 2. Sửa thành Page: Tìm kiếm kết hợp phân trang
     @Query("SELECT p FROM Patient p WHERE p.doctor.id = :doctorId AND (p.fullName LIKE %:keyword% OR p.phone LIKE %:keyword%)")
     Page<Patient> searchPatientsForDoctor(@Param("doctorId") Integer doctorId, @Param("keyword") String keyword, Pageable pageable);
+
+    long countByDoctorId(Integer doctorId);
 }
