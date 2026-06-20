@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,23 +36,42 @@ public class DoctorService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
+    // --- Hàm sinh mật khẩu ngẫu nhiên bảo mật của bạn ---
+    private String generatePassword() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
+    // --- 1. Lấy danh sách bác sĩ theo bệnh viện ---
     public List<Doctor> getDoctorsByHospital(Integer hospitalId) {
         return doctorRepository.findByHospitalId(hospitalId);
     }
 
+    // --- 2. Hàm tạo bác sĩ tổng hợp toàn bộ logic chặn dữ liệu, Builder và tự động gửi Email ---
     @Transactional
-    public Doctor createDoctor(Integer hospitalId, String doctorCode, String fullName, String phone, String email, String password, String specialty, Integer capacityLimit) {
+    public Doctor createDoctor(Integer hospitalId, String doctorCode, String fullName, String phone,
+                               String email, String password, String specialty, Integer capacityLimit) {
 
-        // CHÈN THÊM LUẬT CHẶN TÊN LẠ VÀO ĐẦU HÀM:
-        String nameRegex = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÂÊÔƠƠƯỨỨỬỮỰẤẤẨẪẬẮẮẲẴẬéèẻẽéêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựýỳỷỹỵ\\s]{2,50}$";
+        // Kiểm tra định dạng họ và tên (Regex tiếng Việt)
+        String nameRegex = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÂÊÔƠƯỨỬỮỰẤẨẪẬẮẲẴẬéèẻẽêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựýỳỷỹỵ\\s]{2,50}$";
         if (fullName == null || !fullName.trim().matches(nameRegex)) {
             throw new IllegalArgumentException("Họ và tên bác sĩ không hợp lệ. Tên chỉ được phép chứa chữ cái và khoảng trắng.");
         }
-        // 1. CHẶN LOGIC CHUYÊN KHOA CHUẨN UNICODE (Đồng bộ khít 100% với DoctorDTO)
+
+        // Kiểm tra chuyên khoa chuẩn Unicode
         if (specialty == null || (!specialty.equals("Tiểu đường") && !specialty.equals("Huyết áp") && !specialty.equals("Cả tiểu đường và huyết áp"))) {
             throw new IllegalArgumentException("Chuyên khoa lâm sàng không hợp lệ. Hệ thống chỉ chấp nhận: 'Tiểu đường', 'Huyết áp' hoặc 'Cả tiểu đường và huyết áp'.");
         }
 
+        // Kiểm tra trùng lặp dữ liệu trong hệ thống
         if (doctorRepository.existsByDoctorCode(doctorCode)) {
             throw new IllegalArgumentException("Mã bác sĩ đã tồn tại trong hệ thống.");
         }
@@ -65,9 +85,13 @@ public class DoctorService {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
 
+        // Nếu tham số mật khẩu từ giao diện trống, kích hoạt cơ chế tự sinh mật khẩu của bạn
+        String finalPassword = (password == null || password.trim().isEmpty()) ? generatePassword() : password;
+
+        // Tạo tài khoản hệ thống (Account)
         Account account = Account.builder()
                 .email(email)
-                .passwordHash(passwordEncoder.encode(password))
+                .passwordHash(passwordEncoder.encode(finalPassword))
                 .role("DOCTOR")
                 .isEmailVerified(true)
                 .isActive(true)
@@ -76,6 +100,7 @@ public class DoctorService {
                 .build();
         account = accountRepository.save(account);
 
+        // Tạo thông tin bác sĩ (Doctor)
         Doctor doctor = Doctor.builder()
                 .account(account)
                 .hospital(hospital)
@@ -89,16 +114,20 @@ public class DoctorService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+        doctor = doctorRepository.save(doctor);
 
-        return doctorRepository.save(doctor);
+        // Gửi email chứa thông tin mật khẩu vừa tạo về cho bác sĩ
+        emailService.sendDoctorPassword(email, fullName, finalPassword);
+
+        return doctor;
     }
 
+    // --- 3. Luồng tự động điều chuyển bệnh nhân khi ẩn/vô hiệu hóa bác sĩ ---
     @Transactional
     public void deactivateDoctor(Integer doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId));
 
-        // 1. Thực hiện luồng phân bổ chuyển giao bệnh nhân tự động
         List<Patient> activePatients = patientRepository.findByDoctorIdAndIsActiveTrue(doctorId);
 
         if (!activePatients.isEmpty()) {
@@ -122,7 +151,6 @@ public class DoctorService {
                 ReplacementDoctorDto targetDto = replacements.get(replacementIndex);
                 Doctor replacementDoctor = targetDto.getDoctor();
 
-                // Đồng bộ chính xác theo JPA Object Mapping của bạn
                 patient.setDoctor(replacementDoctor);
                 patient.setUpdatedAt(LocalDateTime.now());
                 patientRepository.save(patient);
@@ -133,13 +161,13 @@ public class DoctorService {
             }
         }
 
-        // 2. Khóa trạng thái hành chính lâm sàng
+        // Khóa trạng thái hành chính
         doctor.setCurrentPatientCount(0);
         doctor.setIsActive(false);
         doctor.setUpdatedAt(LocalDateTime.now());
         doctorRepository.save(doctor);
 
-        // 3. Khóa đồng bộ tài khoản đăng nhập bảo mật
+        // Khóa đồng bộ tài khoản đăng nhập
         if (doctor.getAccount() != null) {
             Account account = doctor.getAccount();
             account.setIsActive(false);
@@ -155,6 +183,7 @@ public class DoctorService {
                 .collect(Collectors.toList());
     }
 
+    // --- DTO nội bộ phục vụ bàn giao bệnh nhân ---
     private static class ReplacementDoctorDto {
         private final Doctor doctor;
         private int tempCount;

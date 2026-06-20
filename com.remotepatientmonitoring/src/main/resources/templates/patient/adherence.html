@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo Dõi Điều Trị (Thuốc & Nước Uống)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-custom {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .card-custom:hover {
+            transform: translateY(-3px);
+        }
+        .medication-card {
+            background-color: #ffffff;
+            border-left: 5px solid #198754;
+        }
+        .water-card {
+            background-color: #ffffff;
+            border-left: 5px solid #0d6efd;
+        }
+        .med-item {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+        }
+        .med-item.taken {
+            background-color: #e8f5e9;
+            opacity: 0.75;
+        }
+        .med-item.taken .med-title {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        .circle-toggle {
+            cursor: pointer;
+            font-size: 1.4rem;
+            transition: transform 0.1s ease;
+        }
+        .circle-toggle:active {
+            transform: scale(0.9);
+        }
+        .action-icon {
+            cursor: pointer;
+            padding: 5px;
+            color: #6c757d;
+            transition: color 0.2s;
+        }
+        .action-icon:hover {
+            color: #2a5298;
+        }
+        .action-icon.delete:hover {
+            color: #dc3545;
+        }
+        .btn-water {
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-water:hover {
+            transform: translateY(-2px);
+        }
+        .btn-back {
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark navbar-custom py-3">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
+            </span>
+            <div class="d-flex align-items-center text-white">
+                <i class="fa-regular fa-user-circle fa-2x me-2"></i>
+                <div>
+                    <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
+                    <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="mb-4 d-flex align-items-center justify-content-between">
+            <a href="/patient/dashboard" class="btn btn-outline-secondary btn-back">
+                <i class="fa-solid fa-arrow-left me-2"></i>Quay lại Dashboard
+            </a>
+            <h3 class="fw-bold text-dark mb-0">Theo Dõi Uống Thuốc & Uống Nước</h3>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Card: Hộp Thuốc Cá Nhân -->
+            <div class="col-lg-6">
+                <div class="card card-custom medication-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-success mb-0">
+                            <i class="fa-solid fa-box-tissue me-2"></i>Hộp Thuốc Cá Nhân Hôm Nay
+                        </h4>
+                        <button class="btn btn-sm btn-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
+                            <i class="fa-solid fa-plus me-1"></i>Thêm thuốc
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fs-6">
+                            Hôm nay đã uống: <strong id="txtMedsProgress" th:text="${takenMeds} + '/' + ${totalMeds}">0/0</strong> loại thuốc
+                        </span>
+                    </div>
+
+                    <div class="medication-list d-flex flex-column gap-2">
+                        <div th:each="med : ${medications}" class="med-item p-3 border d-flex align-items-center justify-content-between" th:classappend="${med.isTaken} ? 'taken' : ''" th:id="'med-item-' + ${med.id}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="circle-toggle" onclick="toggleMedication(this)" th:id="'toggle-icon-' + ${med.id}" th:data-id="${med.id}" th:data-status="${med.isTaken}">
+                                    <i th:class="${med.isTaken} ? 'fa-solid fa-circle-check text-success' : 'fa-regular fa-circle text-secondary'"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold med-title text-dark" th:text="${med.medicineName}">Tên thuốc</div>
+                                    <small class="text-muted d-block">
+                                        <i class="fa-solid fa-spoon me-1"></i>Liều lượng: <span th:text="${med.dosage}">1 viên</span>
+                                    </small>
+                                    <span class="badge bg-light text-dark border mt-1">
+                                        <i class="fa-regular fa-clock me-1 text-primary"></i><span th:text="${med.scheduledTime}">08:00</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <i class="fa-solid fa-pen action-icon" 
+                                   th:data-id="${med.id}"
+                                   th:data-name="${med.medicineName}"
+                                   th:data-dosage="${med.dosage}"
+                                   th:data-time="${med.scheduledTime}"
+                                   onclick="openEditModal(this)"></i>
+                                <i class="fa-solid fa-trash action-icon delete" 
+                                   th:data-id="${med.id}"
+                                   onclick="deleteMedication(this)"></i>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(medications)}" class="text-center text-muted py-4">
+                            <i class="fa-solid fa-pills fa-2x mb-2 text-black-50"></i>
+                            <p class="mb-0 small">Chưa có lịch uống thuốc nào được tạo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Card: Theo Dõi Nước Uống -->
+            <div class="col-lg-6">
+                <div class="card card-custom water-card p-4 h-100">
+                    <h4 class="fw-bold text-primary mb-3">
+                        <i class="fa-solid fa-glass-water me-2"></i>Theo Dõi Uống Nước
+                    </h4>
+                    
+                    <div class="text-center p-3 mb-4 rounded-3" style="background-color: #f0f7ff;">
+                        <h2 class="fw-bold text-primary mb-0">
+                            <span id="txtCurrent" th:text="${currentWater}">0</span> <span class="fs-5 text-muted">/ <span th:text="${targetWater}">2000</span> ml</span>
+                        </h2>
+                        <span class="badge bg-primary px-3 py-2 rounded-pill mt-2">
+                            Đạt: <span id="txtProgress" th:text="${waterProgress}">0</span>% mục tiêu
+                        </span>
+                    </div>
+
+                    <h6 class="fw-semibold text-secondary mb-3">Ghi nhanh cốc nước đã uống:</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-4">
+                            <button class="btn btn-outline-primary btn-water w-100" onclick="addWater(250)">
+                                <i class="fa-solid fa-glass-water fa-lg d-block mb-1 text-primary"></i>
+                                <small>+250 ml</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-primary btn-water w-100" onclick="addWater(500)">
+                                <i class="fa-solid fa-glass-water-droplet fa-lg d-block mb-1 text-info"></i>
+                                <small>+500 ml</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-primary btn-water w-100" onclick="addWater(750)">
+                                <i class="fa-solid fa-bottle-water fa-lg d-block mb-1 text-dark"></i>
+                                <small>+750 ml</small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="resetWater()">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Đặt lại (0 ml)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: THÊM THUỐC MỚI ==================== -->
+    <div class="modal fade" id="addMedicationModal" tabindex="-1" aria-labelledby="addMedicationLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="addMedicationLabel">
+                        <i class="fa-solid fa-plus-circle me-2"></i>Thêm Thuốc Mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="addMedName" class="form-label fw-semibold">
+                            <i class="fa-solid fa-capsules me-1 text-primary"></i>Tên thuốc
+                        </label>
+                        <input type="text" class="form-control" id="addMedName" placeholder="Ví dụ: Metformin 500mg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addMedDosage" class="form-label fw-semibold">
+                            <i class="fa-solid fa-tablets me-1 text-info"></i>Liều lượng
+                        </label>
+                        <input type="text" class="form-control" id="addMedDosage" placeholder="Ví dụ: 1 viên" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addMedTime" class="form-label fw-semibold">
+                            <i class="fa-regular fa-clock me-1 text-warning"></i>Giờ uống
+                        </label>
+                        <input type="time" class="form-control" id="addMedTime" value="08:00" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" onclick="submitAddForm()">
+                        <i class="fa-solid fa-check me-1"></i>Thêm thuốc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CHỈNH SỬA THUỐC ==================== -->
+    <div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="editMedicationLabel">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Thuốc
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editMedId">
+                    <div class="mb-3">
+                        <label for="editMedName" class="form-label fw-semibold">
+                            <i class="fa-solid fa-capsules me-1 text-primary"></i>Tên thuốc
+                        </label>
+                        <input type="text" class="form-control" id="editMedName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMedDosage" class="form-label fw-semibold">
+                            <i class="fa-solid fa-tablets me-1 text-info"></i>Liều lượng
+                        </label>
+                        <input type="text" class="form-control" id="editMedDosage" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMedTime" class="form-label fw-semibold">
+                            <i class="fa-regular fa-clock me-1 text-warning"></i>Giờ uống
+                        </label>
+                        <input type="time" class="form-control" id="editMedTime" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" onclick="submitEditForm()">
+                        <i class="fa-solid fa-check me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        const targetWater = [[${targetWater}]];
+
+        // ==================== A. HÀM CHUNG & NƯỚC UỐNG ====================
+        function updateWaterUI(amount) {
+            document.getElementById('txtCurrent').innerText = amount;
+            const progress = targetWater > 0 ? Math.round((amount / targetWater) * 100) : 0;
+            document.getElementById('txtProgress').innerText = progress;
+        }
+
+        function addWater(amount) {
+            const params = new URLSearchParams();
+            params.append('amount', amount);
+
+            fetch('/patient/api/water/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateWaterUI(data.currentAmount);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể ghi nhận.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        function resetWater() {
+            if (!confirm('Đặt lại lượng nước đã uống hôm nay về 0ml?')) return;
+
+            fetch('/patient/api/water/reset', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateWaterUI(0);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể đặt lại.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        // ==================== B. HÀM XỬ LÝ THUỐC ====================
+        function toggleMedication(element) {
+            const medicationId = element.getAttribute('data-id');
+            const currentStatus = element.getAttribute('data-status') === 'true';
+            const newStatus = !currentStatus;
+            const toggleIcon = document.getElementById('toggle-icon-' + medicationId);
+            const medItem = document.getElementById('med-item-' + medicationId);
+
+            const params = new URLSearchParams();
+            params.append('medicationId', medicationId);
+            params.append('status', newStatus);
+
+            fetch('/patient/api/medications/toggle-take', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (newStatus) {
+                        medItem.classList.add('taken');
+                        toggleIcon.innerHTML = '<i class="fa-solid fa-circle-check text-success"></i>';
+                    } else {
+                        medItem.classList.remove('taken');
+                        toggleIcon.innerHTML = '<i class="fa-regular fa-circle text-secondary"></i>';
+                    }
+                    element.setAttribute('data-status', newStatus ? 'true' : 'false');
+
+                    // Cập nhật text tổng quan uống thuốc
+                    const allMeds = document.querySelectorAll('.med-item');
+                    const takenMeds = document.querySelectorAll('.med-item.taken');
+                    document.getElementById('txtMedsProgress').innerText = takenMeds.length + '/' + allMeds.length;
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể cập nhật.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        function openEditModal(element) {
+            const id = element.getAttribute('data-id');
+            const name = element.getAttribute('data-name');
+            const dosage = element.getAttribute('data-dosage');
+            const scheduledTime = element.getAttribute('data-time');
+
+            document.getElementById('editMedId').value = id;
+            document.getElementById('editMedName').value = name;
+            document.getElementById('editMedDosage').value = dosage;
+            document.getElementById('editMedTime').value = scheduledTime;
+            const modal = new bootstrap.Modal(document.getElementById('editMedicationModal'));
+            modal.show();
+        }
+
+        function submitAddForm() {
+            const name = document.getElementById('addMedName').value.trim();
+            const dosage = document.getElementById('addMedDosage').value.trim();
+            const time = document.getElementById('addMedTime').value.trim();
+
+            if (!name || !dosage || !time) {
+                alert('Vui lòng nhập đầy đủ thông tin.');
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('medicineName', name);
+            params.append('dosage', dosage);
+            params.append('scheduledTime', time);
+
+            fetch('/patient/api/medications/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addMedicationModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể thêm thuốc.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        function submitEditForm() {
+            const id = document.getElementById('editMedId').value;
+            const name = document.getElementById('editMedName').value.trim();
+            const dosage = document.getElementById('editMedDosage').value.trim();
+            const time = document.getElementById('editMedTime').value.trim();
+
+            if (!name || !dosage || !time) {
+                alert('Vui lòng nhập đầy đủ thông tin.');
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('medicineName', name);
+            params.append('dosage', dosage);
+            params.append('scheduledTime', time);
+
+            fetch('/patient/api/medications/update/' + id, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('editMedicationModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể cập nhật.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        function deleteMedication(element) {
+            const id = element.getAttribute('data-id');
+            if (!confirm('Xóa thuốc này khỏi danh sách?')) return;
+
+            fetch('/patient/api/medications/delete/' + id, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const item = document.getElementById('med-item-' + id);
+                    if (item) {
+                        item.style.transition = 'all 0.3s ease';
+                        item.style.opacity = '0';
+                        item.style.transform = 'translateX(-30px)';
+                        setTimeout(() => item.remove(), 300);
+                    }
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể xóa thuốc.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+    </script>
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/patient/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Trang chủ</span>
+        </a>
+        <a href="/patient/adherence" class="nav-item">
+            <i class="fa-solid fa-pills"></i>
+            <span>Thuốc uống</span>
+        </a>
+        <a href="/patient/appointments" class="nav-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Nhật ký</span>
+        </a>
+        <a href="/patient/log" class="nav-item fab-item">
+            <div class="fab-btn">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+        </a>
+        <a href="/patient/nutrition" class="nav-item">
+            <i class="fa-solid fa-utensils"></i>
+            <span>Dinh dưỡng</span>
+        </a>
+        <a href="/patient/exercise" class="nav-item">
+            <i class="fa-solid fa-person-running"></i>
+            <span>Tập luyện</span>
+        </a>
+        <a href="/patient/progress" class="nav-item">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Hồ sơ</span>
+        </a>
+    </div>
+
+    <style>
+        /* Bottom Navigation Bar Styles */
+        body {
+            padding-bottom: 90px !important;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            padding: 0 10px;
+        }
+
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            flex: 1;
+            text-align: center;
+            height: 100%;
+        }
+
+        .bottom-nav .nav-item i {
+            font-size: 1.25rem;
+            margin-bottom: 4px;
+            transition: transform 0.2s ease;
+        }
+
+        .bottom-nav .nav-item span {
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        .bottom-nav .nav-item:hover,
+        .bottom-nav .nav-item.active {
+            color: #2a5298;
+        }
+
+        .bottom-nav .nav-item.active i {
+            transform: translateY(-2px);
+            color: #2a5298;
+        }
+
+        /* Floating Action Button (FAB) for the central plus item */
+        .bottom-nav .fab-item {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        .bottom-nav .fab-btn {
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.4);
+            transform: translateY(-15px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 3px solid #ffffff;
+        }
+
+        .bottom-nav .fab-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0;
+            color: #ffffff;
+            transition: transform 0.3s ease;
+        }
+
+        .bottom-nav .fab-item:hover .fab-btn {
+            transform: translateY(-18px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.5);
+        }
+
+        .bottom-nav .fab-item:hover .fab-btn i {
+            transform: rotate(90deg);
+        }
+
+        .bottom-nav .fab-item.active .fab-btn {
+            background: linear-gradient(135deg, #ff9900 0%, #ff5500 100%);
+            box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+        }
+
+        /* Responsive adjustment for extra small screens */
+        @media (max-width: 480px) {
+            .bottom-nav .nav-item span {
+                display: none;
+            }
+            .bottom-nav .nav-item i {
+                font-size: 1.4rem;
+                margin-bottom: 0;
+            }
+            .bottom-nav .fab-btn {
+                width: 50px;
+                height: 50px;
+                transform: translateY(-12px);
+            }
+            .bottom-nav .fab-item:hover .fab-btn {
+                transform: translateY(-15px) scale(1.05);
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
+                const href = item.getAttribute("href");
+                if (currentPath === href || (href === "/patient/appointments" && currentPath === "/patient/request-change")) {
+                    item.classList.add("active");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
