@@ -34,6 +34,28 @@ public class PatientMedicationController {
                 .orElseThrow(() -> new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống."));
     }
 
+    private String validateMedicationInput(String medicineName, String dosage, String scheduledTime) {
+        if (medicineName == null || medicineName.trim().isEmpty()) {
+            return "Tên thuốc không được để trống.";
+        }
+        if (medicineName.trim().length() < 2 || medicineName.trim().length() > 100) {
+            return "Tên thuốc phải từ 2 đến 100 ký tự.";
+        }
+        if (dosage == null || dosage.trim().isEmpty()) {
+            return "Liều lượng không được để trống.";
+        }
+        if (dosage.trim().length() < 1 || dosage.trim().length() > 50) {
+            return "Liều lượng phải từ 1 đến 50 ký tự.";
+        }
+        if (scheduledTime == null || scheduledTime.trim().isEmpty()) {
+            return "Giờ uống thuốc không được để trống.";
+        }
+        if (!scheduledTime.trim().matches("^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$")) {
+            return "Giờ uống thuốc không đúng định dạng (HH:mm).";
+        }
+        return null;
+    }
+
     // ===================== 1. Thêm mới thuốc =====================
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addMedication(
@@ -41,13 +63,21 @@ public class PatientMedicationController {
             @RequestParam("dosage") String dosage,
             @RequestParam("scheduledTime") String scheduledTime) {
 
+        String valError = validateMedicationInput(medicineName, dosage, scheduledTime);
+        if (valError != null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", valError
+            ));
+        }
+
         Patient patient = getCurrentPatient();
 
         PatientMedication medication = PatientMedication.builder()
                 .patient(patient)
-                .medicineName(medicineName)
-                .dosage(dosage)
-                .scheduledTime(scheduledTime)
+                .medicineName(medicineName.trim())
+                .dosage(dosage.trim())
+                .scheduledTime(scheduledTime.trim())
                 .build();
 
         PatientMedication saved = medicationRepository.save(medication);
@@ -70,12 +100,20 @@ public class PatientMedicationController {
             @RequestParam("dosage") String dosage,
             @RequestParam("scheduledTime") String scheduledTime) {
 
+        String valError = validateMedicationInput(medicineName, dosage, scheduledTime);
+        if (valError != null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", valError
+            ));
+        }
+
         PatientMedication medication = medicationRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + id));
 
-        medication.setMedicineName(medicineName);
-        medication.setDosage(dosage);
-        medication.setScheduledTime(scheduledTime);
+        medication.setMedicineName(medicineName.trim());
+        medication.setDosage(dosage.trim());
+        medication.setScheduledTime(scheduledTime.trim());
         medication.setUpdatedAt(LocalDateTime.now());
 
         medicationRepository.save(medication);
