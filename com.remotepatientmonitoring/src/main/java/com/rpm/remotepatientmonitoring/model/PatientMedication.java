@@ -23,6 +23,10 @@ public class PatientMedication {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
+    @ManyToOne
+    @JoinColumn(name = "treatment_plan_id")
+    private TreatmentPlan treatmentPlan;
+
     @Column(name = "medicine_name", nullable = false, length = 255)
     private String medicineName;
 

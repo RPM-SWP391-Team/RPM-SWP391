@@ -18,8 +18,8 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     Optional<Patient> findByPhone(String phone);
     List<Patient> findByHospitalId(Integer hospitalId);
 
-    @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
-    List<Patient> searchUnassignedPatients(@Param("keyword") String keyword);
+    @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND p.doctor IS NULL AND p.hospital.id = :hospitalId AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
+    List<Patient> searchUnassignedPatients(@Param("hospitalId") Integer hospitalId, @Param("keyword") String keyword);
 
     // 1. Sửa thành Page: Tìm bệnh nhân theo bác sĩ (có phân trang)
     Page<Patient> findByDoctorId(Integer doctorId, Pageable pageable);
@@ -27,4 +27,6 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     // 2. Sửa thành Page: Tìm kiếm kết hợp phân trang
     @Query("SELECT p FROM Patient p WHERE p.doctor.id = :doctorId AND (p.fullName LIKE %:keyword% OR p.phone LIKE %:keyword%)")
     Page<Patient> searchPatientsForDoctor(@Param("doctorId") Integer doctorId, @Param("keyword") String keyword, Pageable pageable);
+
+    long countByDoctorId(Integer doctorId);
 }
