@@ -47,6 +47,9 @@ public class PatientMedicationController {
         if (dosage.trim().length() < 1 || dosage.trim().length() > 50) {
             return "Liều lượng phải từ 1 đến 50 ký tự.";
         }
+        if (!dosage.trim().matches("^\\d+(\\.\\d+|/\\d+)?\\s*[a-zA-Z\\p{L}]+$")) {
+            return "Liều lượng phải bắt đầu bằng số và đi kèm đơn vị (ví dụ: '1 viên', '10ml', '1/2 viên').";
+        }
         if (scheduledTime == null || scheduledTime.trim().isEmpty()) {
             return "Giờ uống thuốc không được để trống.";
         }
