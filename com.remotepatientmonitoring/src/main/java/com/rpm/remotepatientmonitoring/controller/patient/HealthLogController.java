@@ -2,7 +2,7 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
-import com.rpm.remotepatientmonitoring.repository.patient.HealthLogRepository;
+import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

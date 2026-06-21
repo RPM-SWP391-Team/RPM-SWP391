@@ -2,7 +2,7 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.PatientMeal;
-import com.rpm.remotepatientmonitoring.repository.patient.PatientMealRepository;
+import com.rpm.remotepatientmonitoring.repository.PatientMealRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

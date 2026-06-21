@@ -2,9 +2,6 @@ package com.rpm.remotepatientmonitoring;
 
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
-import com.rpm.remotepatientmonitoring.repository.patient.HealthLogRepository;
-import com.rpm.remotepatientmonitoring.repository.patient.PatientMealRepository;
-import com.rpm.remotepatientmonitoring.repository.patient.PatientExerciseRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
