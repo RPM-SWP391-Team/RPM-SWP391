@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.repository.patient;
+package com.rpm.remotepatientmonitoring.repository;
 
 import com.rpm.remotepatientmonitoring.model.PatientExercise;
 import org.springframework.data.jpa.repository.JpaRepository;

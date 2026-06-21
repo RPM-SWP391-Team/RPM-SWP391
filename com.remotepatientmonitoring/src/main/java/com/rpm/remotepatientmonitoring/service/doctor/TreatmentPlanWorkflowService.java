@@ -2,7 +2,6 @@ package com.rpm.remotepatientmonitoring.service.doctor;
 
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
-import com.rpm.remotepatientmonitoring.repository.patient.PatientMedicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
