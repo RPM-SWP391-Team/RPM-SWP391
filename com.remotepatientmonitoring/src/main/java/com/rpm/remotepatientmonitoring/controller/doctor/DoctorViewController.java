@@ -3,6 +3,8 @@ package com.rpm.remotepatientmonitoring.controller.doctor;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
+import com.rpm.remotepatientmonitoring.repository.patient.PatientMedicationRepository;
+import com.rpm.remotepatientmonitoring.repository.patient.HealthLogRepository;
 import com.rpm.remotepatientmonitoring.service.doctor.TreatmentPlanWorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
