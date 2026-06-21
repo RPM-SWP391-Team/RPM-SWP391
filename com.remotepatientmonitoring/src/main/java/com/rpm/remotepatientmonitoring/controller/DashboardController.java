@@ -14,7 +14,7 @@ public class DashboardController {
         switch (role) {
             case "HOSPITAL_ADMIN": return "redirect:/hospital/dashboard";
             case "DOCTOR": return "redirect:/doctor/dashboard";
-            case "PATIENT": return "redirect:/patient/dashboard";
+            case "PATIENT": return "redirect:/patient/appointments";
             default: return "redirect:/auth/login";
         }
     }
