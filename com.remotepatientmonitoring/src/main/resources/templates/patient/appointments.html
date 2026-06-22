@@ -11,6 +11,13 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/patient.css">
+    <style>
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
@@ -173,6 +180,51 @@
 
         </div>
 
+        <!-- Health Trend Charts -->
+        <div class="row mt-5 mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h2 class="fw-bold mb-0">
+                        <i class="fa-solid fa-chart-line text-primary me-2"></i>Biểu Đồ Xu Hướng Sức Khỏe
+                    </h2>
+                    <span class="badge bg-primary px-3 py-2 rounded-pill">7 ngày gần nhất</span>
+                </div>
+                <p class="text-muted mt-2">Biểu đồ biểu diễn các chỉ số đo huyết áp và đường huyết đã ghi nhận trong tuần qua.</p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <!-- Chart 1: Blood Pressure Chart -->
+            <div class="col-lg-6 mb-4">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex align-items-center">
+                        <i class="fa-solid fa-heartpulse text-danger fa-xl me-2"></i>
+                        <h4 class="mb-0 fw-bold">Biểu Đồ Huyết Áp</h4>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="chart-container">
+                            <canvas id="bpChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 2: Glucose Level Chart -->
+            <div class="col-lg-6 mb-4">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex align-items-center">
+                        <i class="fa-solid fa-droplet text-info fa-xl me-2"></i>
+                        <h4 class="mb-0 fw-bold">Biểu Đồ Đường Huyết</h4>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="chart-container">
+                            <canvas id="glucoseChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->
@@ -205,12 +257,121 @@
             <span>Tập luyện</span>
         </a>
         <a href="/patient/progress" class="nav-item">
-            <i class="fa-solid fa-chart-line"></i>
+            <i class="fa-solid fa-user"></i>
             <span>Hồ sơ</span>
         </a>
     </div>
 
 
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Render Charts Script -->
+    <script th:inline="javascript">
+        // Injecting and parsing Thymeleaf model JSON data directly
+        const dates = [(${datesJson})];
+        const systolic = [(${systolicJson})];
+        const diastolic = [(${diastolicJson})];
+        const glucose = [(${glucoseJson})];
+
+        // 1. Blood Pressure Chart
+        const bpCtx = document.getElementById('bpChart').getContext('2d');
+        new Chart(bpCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Huyết áp tâm thu (Systolic)',
+                        data: systolic,
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Huyết áp tâm trương (Diastolic)',
+                        data: diastolic,
+                        borderColor: '#1e3a8a',
+                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Chỉ số (mmHg)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Ngày đo & Khung giờ'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Glucose Level Chart
+        const glucoseCtx = document.getElementById('glucoseChart').getContext('2d');
+        new Chart(glucoseCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Chỉ số đường huyết (Glucose)',
+                        data: glucose,
+                        borderColor: '#0d9488',
+                        backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Chỉ số (mg/dL)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Ngày đo & Khung giờ'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
