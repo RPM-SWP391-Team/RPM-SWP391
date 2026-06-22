@@ -21,8 +21,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 3rem;
             margin: 0 auto 15px;
             border: 4px solid var(--color-border);
         }
@@ -85,7 +84,7 @@
             <div class="col-lg-5">
                 <div class="card card-custom p-4 text-center mb-4">
                     <div class="profile-avatar-container">
-                        <span th:text="${patient.fullName != null && !patient.fullName.isEmpty() ? patient.fullName.substring(0, 1) : 'P'}">N</span>
+                        <i class="fa-solid fa-user"></i>
                     </div>
                     <h3 class="fw-bold text-dark mb-1" th:text="${patient.fullName}">Nguyễn Văn A</h3>
                     <p class="text-muted mb-3" th:text="'Mã BN: ' + ${patient.patientCode}">PAT-0001</p>
@@ -108,7 +107,10 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="form-label text-muted small mb-1">Ngày sinh</label>
-                            <div class="readonly-field" th:text="${patient.dateOfBirth != null ? #temporals.format(patient.dateOfBirth, 'dd/MM/yyyy') : 'Chưa cập nhật'}">01/01/1970</div>
+                            <div class="readonly-field">
+                                <span th:if="${patient.dateOfBirth != null}" th:text="${#temporals.format(patient.dateOfBirth, 'dd/MM/yyyy')}">01/01/1970</span>
+                                <span th:if="${patient.dateOfBirth == null}">Chưa cập nhật</span>
+                            </div>
                         </div>
                         <div class="col-6">
                             <label class="form-label text-muted small mb-1">Giới tính</label>
@@ -120,7 +122,8 @@
                         <label class="form-label text-muted small mb-1">Bác sĩ phụ trách</label>
                         <div class="readonly-field">
                             <i class="fa-solid fa-user-doctor text-primary me-2"></i>
-                            <span th:text="${patient.doctor != null ? 'BS. ' + patient.doctor?.fullName : 'Chưa phân công'}">BS. Nguyễn Văn B</span>
+                            <span th:if="${patient.doctor != null}" th:text="'BS. ' + ${patient.doctor.fullName}">BS. Nguyễn Văn B</span>
+                            <span th:if="${patient.doctor == null}">Chưa phân công</span>
                         </div>
                     </div>
 
@@ -128,18 +131,25 @@
                         <label class="form-label text-muted small mb-1">Bệnh viện quản lý</label>
                         <div class="readonly-field">
                             <i class="fa-solid fa-hospital text-danger me-2"></i>
-                            <span th:text="${patient.hospital != null ? patient.hospital?.name : 'Chưa phân công'}">Bệnh viện Đa Khoa</span>
+                            <span th:if="${patient.hospital != null}" th:text="${patient.hospital.fullName}">Bệnh viện Đa Khoa</span>
+                            <span th:if="${patient.hospital == null}">Chưa phân công</span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label text-muted small mb-1">Hồ sơ bệnh lý</label>
-                        <div class="readonly-field" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile?.profileName : 'Chưa có'}">Huyết áp cao & Tiểu đường</div>
+                        <div class="readonly-field">
+                            <span th:if="${patient.diseaseProfile != null}" th:text="${patient.diseaseProfile.profileName}">Huyết áp cao & Tiểu đường</span>
+                            <span th:if="${patient.diseaseProfile == null}">Chưa có</span>
+                        </div>
                     </div>
 
                     <div class="mb-0">
                         <label class="form-label text-muted small mb-1">Ngày tham gia hệ thống</label>
-                        <div class="readonly-field" th:text="${patient.onboardedAt != null ? #temporals.format(patient.onboardedAt, 'dd/MM/yyyy HH:mm') : 'Chưa cập nhật'}">01/06/2026 08:00</div>
+                        <div class="readonly-field">
+                            <span th:if="${patient.onboardedAt != null}" th:text="${#temporals.format(patient.onboardedAt, 'dd/MM/yyyy HH:mm')}">01/06/2026 08:00</span>
+                            <span th:if="${patient.onboardedAt == null}">Chưa cập nhật</span>
+                        </div>
                     </div>
                 </div>
             </div>

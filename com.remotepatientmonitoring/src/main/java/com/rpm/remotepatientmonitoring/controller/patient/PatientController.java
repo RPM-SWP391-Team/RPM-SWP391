@@ -404,6 +404,21 @@ public class PatientController {
         Patient patient = patientRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No patient found in the database. Please initialize data first."));
+        
+        // Eagerly initialize proxies to avoid LazyInitializationException in Thymeleaf
+        if (patient.getAccount() != null) {
+            patient.getAccount().getEmail();
+        }
+        if (patient.getDoctor() != null) {
+            patient.getDoctor().getFullName();
+        }
+        if (patient.getHospital() != null) {
+            patient.getHospital().getFullName();
+        }
+        if (patient.getDiseaseProfile() != null) {
+            patient.getDiseaseProfile().getProfileName();
+        }
+
         model.addAttribute("patient", patient);
         return "patient/progress";
     }
