@@ -85,7 +85,7 @@
             <div class="col-lg-5">
                 <div class="card card-custom p-4 text-center mb-4">
                     <div class="profile-avatar-container">
-                        <span th:text="${#strings.substring(patient.fullName, 0, 1)}">N</span>
+                        <span th:text="${patient.fullName != null && !patient.fullName.isEmpty() ? patient.fullName.substring(0, 1) : 'P'}">N</span>
                     </div>
                     <h3 class="fw-bold text-dark mb-1" th:text="${patient.fullName}">Nguyễn Văn A</h3>
                     <p class="text-muted mb-3" th:text="'Mã BN: ' + ${patient.patientCode}">PAT-0001</p>
@@ -120,7 +120,7 @@
                         <label class="form-label text-muted small mb-1">Bác sĩ phụ trách</label>
                         <div class="readonly-field">
                             <i class="fa-solid fa-user-doctor text-primary me-2"></i>
-                            <span th:text="${patient.doctor != null ? 'BS. ' + patient.doctor.fullName : 'Chưa phân công'}">BS. Nguyễn Văn B</span>
+                            <span th:text="${patient.doctor != null ? 'BS. ' + patient.doctor?.fullName : 'Chưa phân công'}">BS. Nguyễn Văn B</span>
                         </div>
                     </div>
 
@@ -128,13 +128,13 @@
                         <label class="form-label text-muted small mb-1">Bệnh viện quản lý</label>
                         <div class="readonly-field">
                             <i class="fa-solid fa-hospital text-danger me-2"></i>
-                            <span th:text="${patient.hospital != null ? patient.hospital.name : 'Chưa phân công'}">Bệnh viện Đa Khoa</span>
+                            <span th:text="${patient.hospital != null ? patient.hospital?.name : 'Chưa phân công'}">Bệnh viện Đa Khoa</span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label text-muted small mb-1">Hồ sơ bệnh lý</label>
-                        <div class="readonly-field" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Chưa có'}">Huyết áp cao & Tiểu đường</div>
+                        <div class="readonly-field" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile?.profileName : 'Chưa có'}">Huyết áp cao & Tiểu đường</div>
                     </div>
 
                     <div class="mb-0">
@@ -155,7 +155,7 @@
                     <div class="mb-3">
                         <label for="email" class="form-label form-label-custom">Địa chỉ Email</label>
                         <input type="email" class="form-control form-control-custom" id="email" name="email" 
-                               th:value="${patient.account != null ? patient.account.email : ''}" required>
+                               th:value="${patient.account?.email}" required>
                     </div>
 
                     <div class="mb-4">
