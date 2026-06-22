@@ -8,7 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDateTime;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,6 +26,12 @@ public class PatientController {
 
     @Autowired
     private HealthLogRepository healthLogRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private PatientRepository patientRepository;
@@ -387,36 +397,47 @@ public class PatientController {
         return "patient/exercise";
     }
 
-    // ==================== Progress Report ====================
+    // ==================== Progress Report (Patient Profile) ====================
 
     @GetMapping("/progress")
-    public String getProgressReport(Model model) throws JsonProcessingException {
+    public String getProgressReport(Model model) {
         Patient patient = patientRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No patient found in the database. Please initialize data first."));
+        model.addAttribute("patient", patient);
+        return "patient/progress";
+    }
 
-        LocalDate startDate = LocalDate.now().minusDays(7);
-        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
+    @PostMapping("/progress/update")
+    public String updateProfile(
+            @RequestParam("phone") String phone,
+            @RequestParam("address") String address,
+            @RequestParam("email") String email,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam("emergencyContactName") String emergencyContactName,
+            @RequestParam("emergencyContactPhone") String emergencyContactPhone
+    ) {
+        Patient patient = patientRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No patient found in the database."));
 
-        List<String> dates = new ArrayList<>();
-        List<Integer> systolicList = new ArrayList<>();
-        List<Integer> diastolicList = new ArrayList<>();
-        List<Double> glucoseList = new ArrayList<>();
+        patient.setPhone(phone);
+        patient.setAddress(address);
+        patient.setEmergencyContactName(emergencyContactName);
+        patient.setEmergencyContactPhone(emergencyContactPhone);
+        patient.setUpdatedAt(LocalDateTime.now());
+        patientRepository.save(patient);
 
-        for (DailyHealthLog log : logs) {
-            dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
-            systolicList.add(log.getSystolicBp() != null ? log.getSystolicBp() : 0);
-            diastolicList.add(log.getDiastolicBp() != null ? log.getDiastolicBp() : 0);
-            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : 0.0);
+        Account account = patient.getAccount();
+        if (account != null) {
+            account.setEmail(email);
+            if (password != null && !password.trim().isEmpty()) {
+                account.setPasswordHash(passwordEncoder.encode(password));
+            }
+            account.setUpdatedAt(LocalDateTime.now());
+            accountRepository.save(account);
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        model.addAttribute("patient", patient);
-        model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
-        model.addAttribute("systolicJson", objectMapper.writeValueAsString(systolicList));
-        model.addAttribute("diastolicJson", objectMapper.writeValueAsString(diastolicList));
-        model.addAttribute("glucoseJson", objectMapper.writeValueAsString(glucoseList));
-
-        return "patient/progress";
+        return "redirect:/patient/progress?updateSuccess=true";
     }
 }
