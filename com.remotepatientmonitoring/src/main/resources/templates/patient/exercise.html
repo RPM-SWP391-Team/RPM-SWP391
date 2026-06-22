@@ -15,12 +15,23 @@
             <span class="navbar-brand mb-0 h1">
                 <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
             </span>
-            <div class="d-flex align-items-center text-white">
-                <i class="fa-regular fa-user-circle fa-2x me-2"></i>
-                <div>
-                    <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
-                    <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+            <div class="dropdown">
+                <div class="d-flex align-items-center text-white" 
+                     id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                    <i class="fa-regular fa-user-circle fa-2x me-2"></i>
+                    <div class="text-start me-2">
+                        <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
+                        <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+                    </div>
+                    <i class="fa-solid fa-chevron-down small text-white-50"></i>
                 </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 150px;">
+                    <li>
+                        <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
+                            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
