@@ -12,7 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin/config")
+@RequestMapping("/hospital")
 public class HospitalConfigController {
 
     private final Integer HARDCODED_HOSPITAL_ID = 1;
@@ -20,7 +20,7 @@ public class HospitalConfigController {
     @Autowired
     private HospitalConfigService configService;
 
-    @GetMapping
+    @GetMapping("/config")
     public String getConfigPage(Model model) {
         AlertThreshold thresholdEntity = configService.getGlobalThreshold(HARDCODED_HOSPITAL_ID);
         List<EmergencyGuide> guides = configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID);
@@ -55,10 +55,10 @@ public class HospitalConfigController {
         if (!model.containsAttribute("newGuide")) {
             model.addAttribute("newGuide", new com.rpm.remotepatientmonitoring.dto.EmergencyGuideDTO());
         }
-        return "admin/config";
+        return "hospital/config";
     }
 
-    @PostMapping("/thresholds/update")
+    @PostMapping("/config/thresholds/update")
     public String updateThresholds(@jakarta.validation.Valid @ModelAttribute("threshold") com.rpm.remotepatientmonitoring.dto.AlertThresholdsDTO thresholdDTO,
                                    org.springframework.validation.BindingResult bindingResult,
                                    Model model,
@@ -72,7 +72,7 @@ public class HospitalConfigController {
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", new com.rpm.remotepatientmonitoring.dto.EmergencyGuideDTO());
             model.addAttribute("errorMessage", "Lỗi định dạng: Ô nhập liệu chứa ký tự chữ hoặc bị bỏ trống. Vui lòng kiểm tra lại.");
-            return "admin/config";
+            return "hospital/config";
         }
 
         // ============================================================
@@ -141,7 +141,7 @@ public class HospitalConfigController {
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", new com.rpm.remotepatientmonitoring.dto.EmergencyGuideDTO());
             model.addAttribute("errorMessage", "Lỗi nghiệp vụ tài liệu: Chỉ số nhập vào vi phạm mốc quy định lâm sàng toàn viện.");
-            return "admin/config";
+            return "hospital/config";
         }
 
         try {
@@ -170,23 +170,23 @@ public class HospitalConfigController {
 
             configService.updateGlobalThreshold(HARDCODED_HOSPITAL_ID, finalEntity);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật ngưỡng cảnh báo hệ thống toàn viện thành công!");
-            return "redirect:/admin/config";
+            return "redirect:/hospital/config";
         } catch (IllegalArgumentException e) {
             model.addAttribute("threshold", thresholdDTO);
             model.addAttribute("errorMessage", "Lỗi logic chéo: " + e.getMessage());
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", new com.rpm.remotepatientmonitoring.dto.EmergencyGuideDTO());
-            return "admin/config";
+            return "hospital/config";
         } catch (Exception e) {
             model.addAttribute("threshold", thresholdDTO);
             model.addAttribute("errorMessage", "Đã xảy ra lỗi hệ thống: " + e.getMessage());
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", new com.rpm.remotepatientmonitoring.dto.EmergencyGuideDTO());
-            return "admin/config";
+            return "hospital/config";
         }
     }
 
-    @PostMapping("/guides/add")
+    @PostMapping("/config/guides/add")
     public String addEmergencyGuide(@jakarta.validation.Valid @ModelAttribute("newGuide") com.rpm.remotepatientmonitoring.dto.EmergencyGuideDTO newGuideDTO,
                                     org.springframework.validation.BindingResult bindingResult,
                                     Model model,
@@ -196,7 +196,7 @@ public class HospitalConfigController {
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", newGuideDTO);
             model.addAttribute("errorMessage", "Dữ liệu hướng dẫn không hợp lệ. Vui lòng kiểm tra lại viền đỏ hoặc độ dài ký tự.");
-            return "admin/config";
+            return "hospital/config";
         }
 
         try {
@@ -208,23 +208,23 @@ public class HospitalConfigController {
                     newGuideDTO.getInstructionContent()
             );
             redirectAttributes.addFlashAttribute("successMessage", "Thêm hướng dẫn xử lý khẩn cấp mới thành công!");
-            return "redirect:/admin/config";
+            return "redirect:/hospital/config";
         } catch (IllegalArgumentException e) {
             model.addAttribute("threshold", configService.getGlobalThreshold(HARDCODED_HOSPITAL_ID));
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", newGuideDTO);
             model.addAttribute("errorMessage", "Lỗi nghiệp vụ: " + e.getMessage());
-            return "admin/config";
+            return "hospital/config";
         } catch (Exception e) {
             model.addAttribute("threshold", configService.getGlobalThreshold(HARDCODED_HOSPITAL_ID));
             model.addAttribute("guides", configService.getEmergencyGuides(HARDCODED_HOSPITAL_ID));
             model.addAttribute("newGuide", newGuideDTO);
             model.addAttribute("errorMessage", "Đã xảy ra lỗi hệ thống: " + e.getMessage());
-            return "admin/config";
+            return "hospital/config";
         }
     }
 
-    @PostMapping("/guides/edit/{id}")
+    @PostMapping("/config/guides/edit/{id}")
     public String editEmergencyGuide(@PathVariable("id") Integer id,
                                      @RequestParam("instructionContent") String instructionContent,
                                      RedirectAttributes redirectAttributes) {
@@ -236,6 +236,6 @@ public class HospitalConfigController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi lưu hướng dẫn: " + e.getMessage());
         }
-        return "redirect:/admin/config";
+        return "redirect:/hospital/config";
     }
 }
