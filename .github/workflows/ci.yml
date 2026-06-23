@@ -17,5 +17,18 @@ jobs:
           distribution: 'temurin'
       - name: Build & Test Backend
         run: |
-          cd com.remotepatientmonitoring
-          mvn clean test -DskipTests
+          cd backend
+          mvn clean test
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
