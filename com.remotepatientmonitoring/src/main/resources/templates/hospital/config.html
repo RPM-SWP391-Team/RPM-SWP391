@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình Hệ thống | Hospital Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1A73E8;
+            --primary-hover: #155cb4;
+            --primary-light: #E8F0FE;
+            --bg-light: #F4F7FE;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --sidebar-width: 260px;
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --accent-color: #00d2ff;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid #E2E8F0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 1.5rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .sidebar-footer {
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #F1F5F9;
+        }
+        
+        /* Main Content Styling */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding: 2rem;
+        }
+        .navbar-top {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Layout elements */
+        .card-custom {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            background: #ffffff;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 20px 24px;
+            font-weight: 600;
+            border-bottom: none;
+        }
+        .btn-gradient {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px 24px;
+            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
+            transition: all 0.3s;
+        }
+        .btn-gradient:hover {
+            color: white;
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.15);
+        }
+        .alert-dismissible {
+            border-radius: 12px;
+        }
+        .badge-level {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .bg-level-green { background-color: #d1e7dd; color: #0f5132; }
+        .bg-level-yellow { background-color: #fff3cd; color: #664d03; }
+        .bg-level-orange { background-color: #ffe8cc; color: #d9480f; }
+        .bg-level-red { background-color: #f8d7da; color: #842029; }
+        .bg-level-critical { background-color: #f5b7b1; color: #78281f; border: 1px dashed #78281f; }
+        
+        .section-title {
+            border-left: 4px solid #2a5298;
+            padding-left: 10px;
+            margin-bottom: 20px;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+        .guide-item {
+            border-left: 3px solid #dee2e6;
+            transition: border-left-color 0.2s;
+        }
+        .guide-item:hover {
+            border-left-color: #2a5298;
+        }
+        
+        /* Mobile responsive toggle */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+        
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-heart-pulse-fill"></i>
+        <span>RPM System</span>
+    </div>
+    <div class="sidebar-menu">
+        <a th:href="@{/hospital/dashboard}" class="menu-item">
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="@{/hospital/doctors}" class="menu-item">
+            <i class="bi bi-person-fill-gear"></i>
+            <span>Quản lý Bác sĩ</span>
+        </a>
+        <a th:href="@{/hospital/config}" class="menu-item active">
+            <i class="bi bi-sliders"></i>
+            <span>Cấu hình ngưỡng &amp; Chỉ dẫn</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Top Navbar -->
+    <div class="navbar-top">
+        <div class="d-flex align-items-center gap-3">
+            <button class="sidebar-toggle" id="toggleSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-none d-md-block">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/hospital/dashboard}" class="text-decoration-none">Trang chủ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Cấu hình Hệ thống</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-end d-none d-sm-block">
+                <h6 class="mb-0 fw-semibold">Quản trị viên</h6>
+                <small class="text-muted">Bệnh viện đa khoa</small>
+            </div>
+            <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-building"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Container -->
+    <div class="container-fluid p-0">
+        <div class="mb-4">
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-sliders text-primary me-2"></i>Cấu hình Ngưỡng &amp; Chỉ dẫn</h2>
+            <p class="text-muted">Cập nhật ngưỡng cảnh báo y tế toàn viện và các chỉ dẫn xử lý khẩn cấp</p>
+        </div>
+
+        <!-- Success & Error Alert Banners -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-check fa-2x me-3 text-success"></i>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">Thành công!</h5>
+                    <p class="mb-0" th:text="${successMessage}"></p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-exclamation fa-2x me-3 text-danger"></i>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">Lỗi dữ liệu!</h5>
+                    <p class="mb-0" th:text="${errorMessage}"></p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row">
+            <!-- COLUMN 1: System Thresholds Config -->
+            <div class="col-lg-7">
+                <div class="card card-custom shadow-sm border-0">
+                    <div class="card-header card-header-custom">
+                        <h5 class="mb-0"><i class="fa-solid fa-heart-pulse me-2"></i>Ngưỡng Cảnh Báo Lâm Sàng Toàn Viện</h5>
+                    </div>
+                    <form th:action="@{/hospital/config/thresholds/update}" th:object="${threshold}" method="POST">
+                        <div class="card-body p-4">
+                            <input type="hidden" th:field="*{id}">
+
+                            <h5 class="section-title"><i class="fa-solid fa-cubes text-primary me-2"></i>Đường Huyết (Tiểu Đường Type 2) - mg/dL</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Đường huyết bình thường (Tối thiểu)</label>
+                                    <input type="text" class="form-control" th:field="*{glucoseNormalMin}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseNormalMin')}" th:errors="*{glucoseNormalMin}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Đường huyết bình thường (Tối đa)</label>
+                                    <input type="text" class="form-control" th:field="*{glucoseNormalMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseNormalMax')}" th:errors="*{glucoseNormalMax}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Tiền tiểu đường (Tối thiểu)</label>
+                                    <input type="text" class="form-control" th:field="*{glucoseWarningMin}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseWarningMin')}" th:errors="*{glucoseWarningMin}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Tiền tiểu đường (Tối đa)</label>
+                                    <input type="text" class="form-control" th:field="*{glucoseWarningMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseWarningMax')}" th:errors="*{glucoseWarningMax}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Trong điều trị (Tối thiểu)</label>
+                                    <input type="text" class="form-control" th:field="*{glucoseTreatingMin}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseTreatingMin')}" th:errors="*{glucoseTreatingMin}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Trong điều trị (Tối đa)</label>
+                                    <input type="text" class="form-control" th:field="*{glucoseTreatingMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseTreatingMax')}" th:errors="*{glucoseTreatingMax}"></div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold text-danger">Ngưỡng nguy hiểm cấp báo (Glucose Danger)</label>
+                                    <input type="text" class="form-control border-danger" th:field="*{glucoseDangerThreshold}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if((this.value.match(/\./g) || []).length > 1) this.value = this.value.replace(/\.+$/, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('glucoseDangerThreshold')}" th:errors="*{glucoseDangerThreshold}"></div>
+                                </div>
+                            </div>
+
+                            <h5 class="section-title"><i class="fa-solid fa-gauge-simple-high text-primary me-2"></i>Huyết Áp &amp; Nhịp Tim - mmHg</h5>
+                            <h6 class="fw-bold text-secondary mb-2 mt-3">Huyết Áp Tâm Thu (Systolic Blood Pressure)</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bình thường (Dưới)</label>
+                                    <input type="text" class="form-control" th:field="*{systolicNormalMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicNormalMax')}" th:errors="*{systolicNormalMax}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tiền THA (Tối thiểu)</label>
+                                    <input type="text" class="form-control" th:field="*{systolicPrehypertensionMin}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicPrehypertensionMin')}" th:errors="*{systolicPrehypertensionMin}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tiền THA (Tối đa)</label>
+                                    <input type="text" class="form-control" th:field="*{systolicPrehypertensionMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicPrehypertensionMax')}" th:errors="*{systolicPrehypertensionMax}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tăng HA (Tối thiểu)</label>
+                                    <input type="text" class="form-control" th:field="*{systolicHypertensionMin}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicHypertensionMin')}" th:errors="*{systolicHypertensionMin}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tăng HA (Tối đa)</label>
+                                    <input type="text" class="form-control" th:field="*{systolicHypertensionMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicHypertensionMax')}" th:errors="*{systolicHypertensionMax}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-warning fw-semibold">Ngưỡng Nguy Hiểm</label>
+                                    <input type="text" class="form-control border-warning" th:field="*{systolicDangerThreshold}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicDangerThreshold')}" th:errors="*{systolicDangerThreshold}"></div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label text-danger fw-bold">Ngưỡng Cấp Cứu Khẩn Cấp (Emergency)</label>
+                                    <input type="text" class="form-control border-danger" th:field="*{systolicEmergencyThreshold}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('systolicEmergencyThreshold')}" th:errors="*{systolicEmergencyThreshold}"></div>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-secondary mb-2">Huyết Áp Tâm Trương (Diastolic Blood Pressure)</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bình thường (Dưới)</label>
+                                    <input type="text" class="form-control" th:field="*{diastolicNormalMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('diastolicNormalMax')}" th:errors="*{diastolicNormalMax}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tăng HA (Tối thiểu)</label>
+                                    <input type="text" class="form-control" th:field="*{diastolicHypertensionMin}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('diastolicHypertensionMin')}" th:errors="*{diastolicHypertensionMin}"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tăng HA (Tối đa)</label>
+                                    <input type="text" class="form-control" th:field="*{diastolicHypertensionMax}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('diastolicHypertensionMax')}" th:errors="*{diastolicHypertensionMax}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-warning fw-semibold">Ngưỡng Nguy Hiểm</label>
+                                    <input type="text" class="form-control border-warning" th:field="*{diastolicDangerThreshold}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('diastolicDangerThreshold')}" th:errors="*{diastolicDangerThreshold}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-danger fw-bold">Ngưỡng Cấp Cứu Khẩn Cấp (Emergency)</label>
+                                    <input type="text" class="form-control border-danger" th:field="*{diastolicEmergencyThreshold}" th:errorclass="is-invalid"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('diastolicEmergencyThreshold')}" th:errors="*{diastolicEmergencyThreshold}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-light p-3 text-end">
+                            <button type="submit" class="btn btn-gradient px-4">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Lưu Cấu Hình Ngưỡng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- COLUMN 2: Emergency Guides Management -->
+            <div class="col-lg-5">
+                <div class="card card-custom shadow-sm border-0">
+                    <div class="card-header card-header-custom">
+                        <h5 class="mb-0"><i class="fa-solid fa-circle-plus me-2"></i>Thêm Chỉ Dẫn Xử Lý Khẩn Cấp</h5>
+                    </div>
+                    <form th:action="@{/hospital/config/guides/add}" th:object="${newGuide}" method="POST">
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Mức Cảnh Báo <span class="text-danger">*</span></label>
+                                    <select class="form-select" th:field="*{alertLevel}" required>
+                                        <option value="GREEN">GREEN (An toàn)</option>
+                                        <option value="YELLOW">YELLOW (Chú ý)</option>
+                                        <option value="ORANGE">ORANGE (Nguy hiểm)</option>
+                                        <option value="RED">RED (Nguy kịch)</option>
+                                        <option value="CRITICAL">CRITICAL (Cấp cứu)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Chỉ số áp dụng <span class="text-danger">*</span></label>
+                                    <select class="form-select" th:field="*{metricType}" required>
+                                        <option value="BLOOD_PRESSURE">Huyết áp (BLOOD_PRESSURE)</option>
+                                        <option value="GLUCOSE">Đường huyết (GLUCOSE)</option>
+                                        <option value="BOTH">Cả hai (BOTH)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Tiêu đề hướng dẫn <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" th:field="*{title}"
+                                           th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''" required placeholder="Tiêu đề hiển thị cho bệnh nhân">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Lỗi tiêu đề</div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Chi tiết chỉ dẫn xử lý (Từng bước) <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" th:field="*{instructionContent}" rows="5"
+                                              th:classappend="${#fields.hasErrors('instructionContent')} ? 'is-invalid' : ''" required placeholder="1. Nằm nghỉ ngơi nơi thoáng mát...&#10;2. Uống 1 cốc nước ấm...&#10;3. Gọi điện ngay cho bác sĩ..."></textarea>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('instructionContent')}" th:errors="*{instructionContent}">Lỗi nội dung</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light p-3 text-end">
+                            <button type="submit" class="btn btn-success rounded-3 px-4">
+                                <i class="fa-solid fa-plus me-1"></i> Thêm Hướng Dẫn
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card card-custom shadow-sm border-0">
+                    <div class="card-header card-header-custom bg-secondary">
+                        <h5 class="mb-0"><i class="fa-solid fa-list-check me-2"></i>Hướng Dẫn Hiện Có</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column gap-4">
+                            <div th:each="guide : ${guides}" class="guide-item p-3 bg-light rounded-3 shadow-sm position-relative">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge badge-level"
+                                          th:classappend="'bg-level-' + ${#strings.toLowerCase(guide.alertLevel)}"
+                                          th:text="${guide.alertLevel}">
+                                        RED
+                                    </span>
+                                    <span class="small text-muted fw-semibold" th:text="${guide.metricType}">GLUCOSE</span>
+                                </div>
+                                <h6 class="fw-bold mb-2 text-dark" th:text="${guide.title}">Huyết áp tăng cao — Hướng dẫn xử lý</h6>
+
+                                <form th:action="@{/hospital/config/guides/edit/{id}(id=${guide.id})}" method="POST" class="mt-2">
+                                    <div class="mb-2">
+                                        <textarea class="form-control bg-white font-monospace text-secondary fs-7"
+                                                  name="instructionContent"
+                                                  rows="4"
+                                                  th:text="${guide.instructionContent}"
+                                                  required></textarea>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i> Lưu thay đổi
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div th:if="${#lists.isEmpty(guides)}" class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-circle-question fa-2x mb-2 text-opacity-50 text-secondary"></i>
+                                <p class="mb-0">Chưa có hướng dẫn xử lý khẩn cấp nào được cấu hình</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle Sidebar Mobile
+        var toggleBtn = document.getElementById('toggleSidebar');
+        var sidebar = document.getElementById('sidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+        }
+    });
+</script>
+</body>
+</html>

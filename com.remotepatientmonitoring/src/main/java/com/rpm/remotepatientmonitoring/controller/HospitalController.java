@@ -20,25 +20,6 @@ public class HospitalController {
 
     @GetMapping("/doctor/create")
     public String createDoctorPage() {
-        return "hospital/create-doctor";
-    }
-
-    @PostMapping("/doctor/create")
-    public String createDoctor(
-            @RequestParam String email,
-            @RequestParam String fullName,
-            @RequestParam String doctorCode,
-            @RequestParam String phone,
-            @RequestParam String specialty,
-            @RequestParam Integer hospitalId,
-            Model model
-    ) {
-        try {
-            doctorService.createDoctor(email, fullName, doctorCode, phone, specialty, hospitalId);
-            model.addAttribute("successMessage", "Tạo tài khoản bác sĩ thành công! Mật khẩu đã được gửi qua email.");
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", "Lỗi: " + e.getMessage());
-        }
-        return "hospital/create-doctor";
+        return "redirect:/hospital/doctors";
     }
 }
