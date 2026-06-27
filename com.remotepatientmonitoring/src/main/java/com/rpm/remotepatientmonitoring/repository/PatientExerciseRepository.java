@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface PatientExerciseRepository extends JpaRepository<PatientExercise, Integer> {
     List<PatientExercise> findByPatientIdAndLogDate(Integer patientId, LocalDate logDate);
+    
+    List<PatientExercise> findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate startDate);
 }

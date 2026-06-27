@@ -419,6 +419,14 @@
                         <hr class="dropdown-divider">
                     </li>
                     <li>
+                        <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
                         <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
                             <button type="submit"
                                 class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
@@ -469,6 +477,24 @@
                 </div>
             </div>
         </div>
+
+        <!-- Tabs Nav -->
+        <ul class="nav nav-pills mb-4" id="patientDetailTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold px-4 rounded-pill" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">
+                    <i class="fa-solid fa-file-medical me-2"></i>Hồ sơ & Phác đồ
+                </button>
+            </li>
+            <li class="nav-item ms-2" role="presentation">
+                <button class="nav-link fw-bold px-4 rounded-pill" id="charts-tab" data-bs-toggle="tab" data-bs-target="#charts" type="button" role="tab" aria-controls="charts" aria-selected="false">
+                    <i class="fa-solid fa-chart-line me-2"></i>Biểu đồ & Tuân thủ
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="patientDetailTabContent">
+            <!-- TAB 1: HỒ SƠ & PHÁC ĐỒ -->
+            <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
 
         <!--
     ╔═════════════════════════════════════════════════════════════╗
@@ -563,7 +589,7 @@
                         <div class="row g-3">
                             <!-- Chỉ số ban đầu (Baseline) -->
                             <div class="col-12">
-                                <h6 class="fw-bold text-primary border-bottom pb-2 mb-2">1. Chỉ số Khám lần đầu
+                                <h6 class="fw-bold text-primary border-bottom pb-2 mb-2">1. Chỉ số Khám tại viện
                                     (Baseline)</h6>
                             </div>
                             <div class="col-sm-6">
@@ -892,68 +918,93 @@
             </div><!-- /row -->
         </form>
 
-        <!-- ══════════════════════════════════════════════
-         PHẦN D — AI Vital Signs Placeholder
-         (Ngoài form — khu vực dành cho nhóm AI)
-         ══════════════════════════════════════════════ -->
-        <div class="row g-4 mt-0">
-            <div class="col-12">
-                <div class="card card-custom p-4">
-                    <div class="section-header">
-                        <div class="section-icon icon-purple"><i class="fa-solid fa-brain"></i></div>
-                        <div>
-                            <h5 class="fw-bold mb-0">Phân tích AI & Biểu đồ Sinh hiệu</h5>
-                            <small class="text-muted">Khu vực dành riêng cho nhóm AI tích hợp</small>
+            </div> <!-- End Tab 1: Profile -->
+
+            <!-- TAB 2: BIỂU ĐỒ & TUÂN THỦ -->
+            <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+                <div class="row g-4 mt-1">
+                    <!-- Biểu đồ Huyết áp -->
+                    <div class="col-lg-6">
+                        <div class="card card-custom p-4 h-100">
+                            <div class="section-header">
+                                <div class="section-icon icon-teal"><i class="fa-solid fa-heart-pulse"></i></div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Huyết áp (7 ngày)</h5>
+                                    <small class="text-muted">Tâm thu & Tâm trương</small>
+                                </div>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="bpChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
-                    <!--
-                ╔══════════════════════════════════════════════════════════╗
-                ║  AI TEAM INJECTION ZONE                                 ║
-                ║  Inject charts & real-time widgets into                 ║
-                ║  div#ai-charts-container below.                         ║
-                ║  Patient ID available via URL: /doctor/patient-detail/{id}
-                ╚══════════════════════════════════════════════════════════╝
-                -->
-                    <div id="ai-charts-container" class="ai-placeholder">
-                        <span class="ai-badge">Sắp ra mắt</span>
-                        <div class="ai-icon-ring">
-                            <i class="fa-solid fa-chart-line"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2" style="color:#2c3e50;">
-                            Biểu đồ Chỉ số Sinh tồn AI (Sắp ra mắt)
-                        </h5>
-                        <p class="text-muted mb-3" style="max-width:500px; font-size:0.9rem; line-height:1.6;">
-                            Khu vực này dành riêng cho nhóm AI. Biểu đồ sinh hiệu thời gian thực,
-                            phân tích xu hướng và cảnh báo thông minh sẽ hiển thị tại đây.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2 justify-content-center">
-                            <span class="badge rounded-pill px-3 py-2"
-                                style="background:rgba(37,117,252,0.12); color:#2575fc;">
-                                <i class="fa-solid fa-heart-pulse me-1"></i>Nhịp tim
-                            </span>
-                            <span class="badge rounded-pill px-3 py-2"
-                                style="background:rgba(37,117,252,0.12); color:#2575fc;">
-                                <i class="fa-solid fa-droplet me-1"></i>Đường huyết
-                            </span>
-                            <span class="badge rounded-pill px-3 py-2"
-                                style="background:rgba(37,117,252,0.12); color:#2575fc;">
-                                <i class="fa-solid fa-gauge me-1"></i>Huyết áp
-                            </span>
-                            <span class="badge rounded-pill px-3 py-2"
-                                style="background:rgba(37,117,252,0.12); color:#2575fc;">
-                                <i class="fa-solid fa-lungs me-1"></i>SpO2
-                            </span>
-                            <span class="badge rounded-pill px-3 py-2"
-                                style="background:rgba(37,117,252,0.12); color:#2575fc;">
-                                <i class="fa-solid fa-temperature-half me-1"></i>Nhiệt độ
-                            </span>
+                    <!-- Biểu đồ Đường huyết -->
+                    <div class="col-lg-6">
+                        <div class="card card-custom p-4 h-100">
+                            <div class="section-header">
+                                <div class="section-icon icon-purple"><i class="fa-solid fa-droplet"></i></div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Đường huyết (7 ngày)</h5>
+                                    <small class="text-muted">mmol/L</small>
+                                </div>
+                            </div>
+                            <div style="height: 250px;">
+                                <canvas id="bgChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <!-- END AI TEAM INJECTION ZONE -->
+
+                    <!-- Thanh tiến trình Tuân thủ -->
+                    <div class="col-12">
+                        <div class="card card-custom p-4">
+                            <div class="section-header mb-4">
+                                <div class="section-icon bg-warning text-white"><i class="fa-solid fa-bullseye"></i></div>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Mức độ tuân thủ (7 ngày)</h5>
+                                    <small class="text-muted">Theo dõi thói quen sinh hoạt và uống thuốc</small>
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <p class="fw-bold mb-1"><i class="fa-solid fa-pills text-primary me-2"></i>Uống thuốc</p>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Tỉ lệ</small>
+                                        <small class="fw-bold" th:text="${medCompliance} + '%'">0%</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px; border-radius: 10px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" th:style="'width: ' + ${medCompliance} + '%'" th:aria-valuenow="${medCompliance}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <p class="fw-bold mb-1"><i class="fa-solid fa-glass-water text-info me-2"></i>Uống nước</p>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Tỉ lệ</small>
+                                        <small class="fw-bold" th:text="${waterCompliance} + '%'">0%</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px; border-radius: 10px;">
+                                        <div class="progress-bar bg-info" role="progressbar" th:style="'width: ' + ${waterCompliance} + '%'" th:aria-valuenow="${waterCompliance}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <p class="fw-bold mb-1"><i class="fa-solid fa-person-running text-success me-2"></i>Vận động</p>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="text-muted">Tỉ lệ</small>
+                                        <small class="fw-bold" th:text="${exerciseCompliance} + '%'">0%</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px; border-radius: 10px;">
+                                        <div class="progress-bar bg-success" role="progressbar" th:style="'width: ' + ${exerciseCompliance} + '%'" th:aria-valuenow="${exerciseCompliance}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </div> <!-- End Tab 2: Charts -->
+        </div> <!-- End Tab Content -->
 
     </div><!-- /container -->
 
@@ -1024,6 +1075,96 @@
                 tbody.appendChild(emptyTr);
             }
         }
+    </script>
+    
+    <!-- ===== Biểu đồ & Chart.js ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const chartDates = /*[[${chartDates}]]*/ [];
+        const sysBpData = /*[[${sysBpData}]]*/ [];
+        const diaBpData = /*[[${diaBpData}]]*/ [];
+        const glucoseData = /*[[${glucoseData}]]*/ [];
+
+        // BP Chart
+        const bpCtx = document.getElementById('bpChart');
+        if (bpCtx) {
+            new Chart(bpCtx, {
+                type: 'line',
+                data: {
+                    labels: chartDates.length ? chartDates : ['Chưa có dữ liệu'],
+                    datasets: [
+                        {
+                            label: 'Tâm thu (mmHg)',
+                            data: sysBpData.length ? sysBpData : [0],
+                            borderColor: '#ff4b2b',
+                            backgroundColor: 'rgba(255, 75, 43, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Tâm trương (mmHg)',
+                            data: diaBpData.length ? diaBpData : [0],
+                            borderColor: '#11998e',
+                            backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: {
+                            min: 40,
+                            suggestedMax: 180
+                        }
+                    }
+                }
+            });
+        }
+
+        // BG Chart
+        const bgCtx = document.getElementById('bgChart');
+        if (bgCtx) {
+            new Chart(bgCtx, {
+                type: 'line',
+                data: {
+                    labels: chartDates.length ? chartDates : ['Chưa có dữ liệu'],
+                    datasets: [
+                        {
+                            label: 'Đường huyết (mmol/L)',
+                            data: glucoseData.length ? glucoseData : [0],
+                            borderColor: '#6a11cb',
+                            backgroundColor: 'rgba(106, 17, 203, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            suggestedMax: 15
+                        }
+                    }
+                }
+            });
+        }
+        /*]]>*/
     </script>
 </body>
 
