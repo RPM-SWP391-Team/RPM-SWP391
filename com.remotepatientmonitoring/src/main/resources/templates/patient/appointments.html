@@ -48,9 +48,9 @@
                 <i class="fa-regular fa-calendar-check text-primary me-2"></i>Tương Tác Với Bác Sĩ
             </h2>
             <div class="d-flex gap-2">
-                <button class="btn btn-primary text-nowrap animate-hover" data-bs-toggle="modal" data-bs-target="#bookAppointmentModal">
+                <a href="/patient/book-appointment" class="btn btn-primary text-nowrap animate-hover">
                     <i class="fa-solid fa-calendar-plus me-2"></i>Đặt Lịch Hẹn Khám
-                </button>
+                </a>
                 <a href="/patient/request-change" class="btn btn-action-outline text-nowrap">
                     <i class="fa-solid fa-paper-plane me-2"></i>Gửi Yêu Cầu Thay Đổi
                 </a>
@@ -235,43 +235,7 @@
         </div>
     </div>
 
-    <!-- Book Appointment Modal -->
-    <div class="modal fade" id="bookAppointmentModal" tabindex="-1" aria-labelledby="bookAppointmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: var(--radius-lg); border: none; box-shadow: var(--shadow-lg);">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold text-dark" id="bookAppointmentModalLabel">
-                        <i class="fa-solid fa-calendar-plus text-primary me-2"></i>Đặt Lịch Hẹn Khám
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="/patient/book-appointment" method="POST">
-                    <div class="modal-body py-3">
-                        <div class="mb-3">
-                            <label for="appointmentTime" class="form-label small fw-semibold text-muted">Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" required style="border-radius: var(--radius-sm);">
-                        </div>
-                        <div class="mb-3">
-                            <label for="appointmentType" class="form-label small fw-semibold text-muted">Loại lịch hẹn <span class="text-danger">*</span></label>
-                            <select class="form-select" id="appointmentType" name="appointmentType" required style="border-radius: var(--radius-sm);">
-                                <option value="CHECKUP" selected>Khám định kỳ (CHECKUP)</option>
-                                <option value="CONSULTATION">Tư vấn y khoa (CONSULTATION)</option>
-                                <option value="EMERGENCY">Khẩn cấp (EMERGENCY)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="patientRequestReason" class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="3" placeholder="Nhập lý do của bạn..." required style="border-radius: var(--radius-sm); resize: none;"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-secondary small" data-bs-dismiss="modal" style="border-radius: var(--radius-sm);">Hủy</button>
-                        <button type="submit" class="btn btn-primary small" style="border-radius: var(--radius-sm);">Gửi yêu cầu</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
@@ -434,49 +398,6 @@
                     item.classList.add("active");
                 }
             });
-        });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const btn = document.querySelector('[data-bs-target="#bookAppointmentModal"]');
-            if (btn) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const modalEl = document.getElementById('bookAppointmentModal');
-                    if (modalEl) {
-                        if (typeof bootstrap !== 'undefined') {
-                            let bsModal = bootstrap.Modal.getInstance(modalEl);
-                            if (!bsModal) {
-                                bsModal = new bootstrap.Modal(modalEl);
-                            }
-                            bsModal.show();
-                        } else {
-                            // Cứu cánh bằng CSS nếu thư viện Bootstrap JS bị lỗi tải
-                            modalEl.style.display = 'block';
-                            modalEl.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-                            modalEl.classList.add('show');
-                            document.body.classList.add('modal-open');
-                            
-                            const closeBtn = modalEl.querySelector('.btn-close');
-                            if (closeBtn) {
-                                closeBtn.onclick = function() {
-                                    modalEl.style.display = 'none';
-                                    modalEl.classList.remove('show');
-                                    document.body.classList.remove('modal-open');
-                                };
-                            }
-                            const cancelBtn = modalEl.querySelector('.btn-secondary');
-                            if (cancelBtn) {
-                                cancelBtn.onclick = function() {
-                                    modalEl.style.display = 'none';
-                                    modalEl.classList.remove('show');
-                                    document.body.classList.remove('modal-open');
-                                };
-                            }
-                        }
-                    }
-                });
-            }
         });
     </script>
     <script src="/js/patient.js"></script>
