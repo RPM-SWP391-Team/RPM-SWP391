@@ -245,6 +245,19 @@ public class AuthService {
         return createOtpRecord(email, otpType);
     }
 
+    // ==================== RESET PASSWORD ====================
+
+    @Transactional
+    public void resetPassword(String email, String newPassword) {
+        log.info("Đặt lại mật khẩu cho email={}", email);
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này!"));
+        account.setPasswordHash(passwordEncoder.encode(newPassword));
+        account.setUpdatedAt(LocalDateTime.now());
+        accountRepository.save(account);
+        log.info("Đặt lại mật khẩu thành công cho Account id={}", account.getId());
+    }
+
     // ==================== HELPER ====================
 
     private String generateOtpCode() {
