@@ -322,101 +322,107 @@
         const glucose = [(${glucoseJson})];
 
         // 1. Blood Pressure Chart
-        const bpCtx = document.getElementById('bpChart').getContext('2d');
-        new Chart(bpCtx, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [
-                    {
-                        label: 'Huyết áp tâm thu (Systolic)',
-                        data: systolic,
-                        borderColor: '#dc2626',
-                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'Huyết áp tâm trương (Diastolic)',
-                        data: diastolic,
-                        borderColor: '#1e3a8a',
-                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
+        const bpCanvas = document.getElementById('bpChart');
+        if (bpCanvas) {
+            const bpCtx = bpCanvas.getContext('2d');
+            new Chart(bpCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Huyết áp tâm thu (Systolic)',
+                            data: systolic,
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Huyết áp tâm trương (Diastolic)',
+                            data: diastolic,
+                            borderColor: '#1e3a8a',
+                            backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Chỉ số (mmHg)'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Ngày đo & Khung giờ'
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Chỉ số (mmHg)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Ngày đo & Khung giờ'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
 
         // 2. Glucose Level Chart
-        const glucoseCtx = document.getElementById('glucoseChart').getContext('2d');
-        new Chart(glucoseCtx, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [
-                    {
-                        label: 'Chỉ số đường huyết (Glucose)',
-                        data: glucose,
-                        borderColor: '#0d9488',
-                        backgroundColor: 'rgba(13, 148, 136, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
+        const glucoseCanvas = document.getElementById('glucoseChart');
+        if (glucoseCanvas) {
+            const glucoseCtx = glucoseCanvas.getContext('2d');
+            new Chart(glucoseCtx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Chỉ số đường huyết (Glucose)',
+                            data: glucose,
+                            borderColor: '#0d9488',
+                            backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Chỉ số (mmol/L)'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Ngày đo & Khung giờ'
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Chỉ số (mmol/L)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Ngày đo & Khung giờ'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     </script>
 
     <script>
