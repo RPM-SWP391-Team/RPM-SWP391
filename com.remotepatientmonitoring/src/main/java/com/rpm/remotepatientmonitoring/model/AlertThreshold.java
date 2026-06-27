@@ -34,62 +34,50 @@ public class AlertThreshold {
     @Column(name = "metric_type", nullable = false, length = 50)
     private String metricType;
 
-    // --- Glucose thresholds (Giữ nguyên trường, xóa @NotNull và @DecimalMin) ---
-    @Column(name = "glucose_normal_min")
-    private BigDecimal glucoseNormalMin;
+    // Glucose thresholds
+    @Column(name = "glucose_hypo_threshold", precision = 4, scale = 2)
+    private BigDecimal glucoseHypoThreshold;
 
-    @Column(name = "glucose_normal_max")
+    @Column(name = "glucose_normal_max", precision = 4, scale = 2)
     private BigDecimal glucoseNormalMax;
 
-    @Column(name = "glucose_warning_min")
-    private BigDecimal glucoseWarningMin;
+    @Column(name = "glucose_high_max", precision = 4, scale = 2)
+    private BigDecimal glucoseHighMax;
 
-    @Column(name = "glucose_warning_max")
-    private BigDecimal glucoseWarningMax;
-
-    @Column(name = "glucose_treating_min")
-    private BigDecimal glucoseTreatingMin;
-
-    @Column(name = "glucose_treating_max")
-    private BigDecimal glucoseTreatingMax;
-
-    @Column(name = "glucose_danger_threshold")
-    private BigDecimal glucoseDangerThreshold;
-
-    // --- Systolic Blood Pressure (Giữ nguyên trường, xóa @NotNull và @Min) ---
+    // Systolic Blood Pressure
     @Column(name = "systolic_normal_max")
     private Integer systolicNormalMax;
 
-    @Column(name = "systolic_prehypertension_min")
-    private Integer systolicPrehypertensionMin;
+    @Column(name = "systolic_warning_min")
+    private Integer systolicWarningMin;
 
-    @Column(name = "systolic_prehypertension_max")
-    private Integer systolicPrehypertensionMax;
+    @Column(name = "systolic_warning_max")
+    private Integer systolicWarningMax;
 
-    @Column(name = "systolic_hypertension_min")
-    private Integer systolicHypertensionMin;
+    @Column(name = "systolic_danger_min")
+    private Integer systolicDangerMin;
 
-    @Column(name = "systolic_hypertension_max")
-    private Integer systolicHypertensionMax;
-
-    @Column(name = "systolic_danger_threshold")
-    private Integer systolicDangerThreshold;
+    @Column(name = "systolic_danger_max")
+    private Integer systolicDangerMax;
 
     @Column(name = "systolic_emergency_threshold")
     private Integer systolicEmergencyThreshold;
 
-    // --- Diastolic Blood Pressure (Giữ nguyên trường, xóa @NotNull và @Min) ---
+    // Diastolic Blood Pressure
     @Column(name = "diastolic_normal_max")
     private Integer diastolicNormalMax;
 
-    @Column(name = "diastolic_hypertension_min")
-    private Integer diastolicHypertensionMin;
+    @Column(name = "diastolic_warning_min")
+    private Integer diastolicWarningMin;
 
-    @Column(name = "diastolic_hypertension_max")
-    private Integer diastolicHypertensionMax;
+    @Column(name = "diastolic_warning_max")
+    private Integer diastolicWarningMax;
 
-    @Column(name = "diastolic_danger_threshold")
-    private Integer diastolicDangerThreshold;
+    @Column(name = "diastolic_danger_min")
+    private Integer diastolicDangerMin;
+
+    @Column(name = "diastolic_danger_max")
+    private Integer diastolicDangerMax;
 
     @Column(name = "diastolic_emergency_threshold")
     private Integer diastolicEmergencyThreshold;

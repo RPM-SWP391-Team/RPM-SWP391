@@ -7,9 +7,15 @@ import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/patient/api/exercise")
@@ -22,45 +28,55 @@ public class PatientExerciseController {
     private PatientRepository patientRepository;
 
     private Patient getCurrentPatient() {
-        return patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.size() > 0) {
+            return all.get(0);
+        }
+        throw new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống.");
     }
 
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addExercise(
             @RequestParam("exerciseType") String exerciseType,
             @RequestParam("durationMinutes") Integer durationMinutes,
-            @RequestParam("caloriesBurned") Integer caloriesBurned,
-            @RequestParam(value = "notes", required = false) String notes) {
+            @RequestParam(value = "stepsCount", required = false) Integer stepsCount) {
 
         Patient patient = getCurrentPatient();
         LocalDate today = LocalDate.now();
 
-        PatientExercise exercise = PatientExercise.builder()
-                .patient(patient)
-                .logDate(today)
-                .exerciseType(exerciseType)
-                .durationMinutes(durationMinutes)
-                .caloriesBurned(caloriesBurned != null ? caloriesBurned : 0)
-                .notes(notes)
-                .build();
+        PatientExercise exercise = new PatientExercise();
+        exercise.setPatient(patient);
+        exercise.setLogDate(today);
+        exercise.setExerciseType(exerciseType);
+        exercise.setDurationMinutes(durationMinutes);
+        exercise.setStepsCount(stepsCount);
 
         PatientExercise saved = patientExerciseRepository.save(exercise);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Ghi nhận bài tập thành công!",
-                "exerciseId", saved.getId()
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Ghi nhận bài tập thành công!");
+        response.put("exerciseId", saved.getId());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/delete/{id}")
     public ResponseEntity<Map<String, Object>> deleteExercise(@PathVariable("id") Integer id) {
         patientExerciseRepository.deleteById(id);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Đã xóa ghi nhận bài tập thành công!"
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Đã xóa ghi nhận bài tập thành công!");
+        return ResponseEntity.ok(response);
     }
 }

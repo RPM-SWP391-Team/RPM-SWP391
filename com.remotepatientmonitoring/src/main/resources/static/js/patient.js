@@ -19,7 +19,42 @@ document.addEventListener("DOMContentLoaded", function() {
             sosBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i><span>SOS</span>';
             document.body.appendChild(sosBtn);
 
-            // 3. Create Emergency Modal element
+            // 3. Build guides HTML from database
+            let guidesHtml = '';
+            if (data.guides && data.guides.length > 0) {
+                data.guides.forEach(g => {
+                    const paragraphs = g.content.split('\n')
+                        .map(p => p.trim())
+                        .filter(p => p.length > 0)
+                        .map(p => `<li>${p}</li>`)
+                        .join('');
+                    guidesHtml += `
+                        <div class="card card-custom border-danger p-3 mb-3 bg-light">
+                            <h6 class="fw-bold text-danger mb-2">
+                                <i class="fa-solid fa-kit-medical me-2"></i>${g.title}
+                            </h6>
+                            <div class="small text-dark lh-base">
+                                <ul class="ps-3 mb-0 text-secondary">
+                                    ${paragraphs}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                guidesHtml = `
+                    <div class="card card-custom border-secondary p-3 mb-3 bg-light">
+                        <h6 class="fw-bold text-secondary mb-2">
+                            <i class="fa-solid fa-circle-info me-2"></i>HƯỚNG DẪN SƠ CỨU TẠI CHỖ
+                        </h6>
+                        <div class="small text-muted lh-base">
+                            Chưa có hướng dẫn sơ cứu từ bệnh viện.
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. Create Emergency Modal element
             const modalHtml = `
                 <div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -32,25 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                             <div class="modal-body modal-body-custom p-4">
                                 <!-- 1. Sơ cứu tạm thời tại chỗ -->
-                                <div class="card card-custom border-danger p-3 mb-4 bg-light">
-                                    <h6 class="fw-bold text-danger mb-2">
-                                        <i class="fa-solid fa-kit-medical me-2"></i>HƯỚNG DẪN SƠ CỨU TẠI CHỖ
-                                    </h6>
-                                    <div class="small text-dark lh-base">
-                                        <p class="mb-1 text-danger"><strong>Huyết áp tăng cao (&ge; 140/90 mmHg):</strong></p>
-                                        <ul class="ps-3 mb-3 text-secondary">
-                                            <li>Nằm nghỉ ngơi ở nơi yên tĩnh, thoáng mát, kê đầu cao khoảng 30 độ.</li>
-                                            <li>Tránh vận động mạnh hoặc thay đổi tư thế đột ngột.</li>
-                                            <li>Uống 1 cốc nước ấm. Dùng thuốc hạ huyết áp khẩn cấp theo chỉ dẫn trước đó của bác sĩ nếu có.</li>
-                                        </ul>
-                                        <p class="mb-1 text-danger"><strong>Đường huyết bất thường (> 130 mg/dL):</strong></p>
-                                        <ul class="ps-3 mb-0 text-secondary">
-                                            <li>Nằm nghỉ ngơi, theo dõi các triệu chứng lơ mơ, mệt mỏi.</li>
-                                            <li>Uống nhiều nước lọc (không ga, không đường).</li>
-                                            <li>Dùng insulin hoặc thuốc hạ đường huyết theo đúng phác đồ khẩn cấp đã chỉ định.</li>
-                                        </ul>
-                                    </div>
-                                </div>
+                                ${guidesHtml}
 
                                 <!-- 2. Gọi khẩn cấp -->
                                 <div class="d-flex flex-column gap-3">
