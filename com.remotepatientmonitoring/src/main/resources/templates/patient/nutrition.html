@@ -164,34 +164,33 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="foodPreset" class="form-label fw-semibold">Chọn món ăn từ thực đơn</label>
+                        <label for="foodPreset" class="form-label fw-semibold">Chọn món ăn từ từ điển</label>
                         <select class="form-select" id="foodPreset" onchange="applyFoodPreset(this.value)">
-                            <option value="custom">-- Khác (Nhập thủ công) --</option>
-                            <option value="chao_yen_mach" data-food="Cháo yến mạch củ quả ức gà" data-calories="380" data-salt="0.5" data-fiber="6.5">Cháo yến mạch củ quả ức gà (380 kcal, 0.5g muối, 6.5g xơ)</option>
-                            <option value="com_gao_lut" data-food="Cơm gạo lứt cá hồi áp chảo" data-calories="550" data-salt="1.2" data-fiber="8.0">Cơm gạo lứt cá hồi áp chảo (550 kcal, 1.2g muối, 8.0g xơ)</option>
-                            <option value="canh_bi_do" data-food="Canh bí đỏ thịt bằm & đậu hũ hấp" data-calories="470" data-salt="0.8" data-fiber="5.5">Canh bí đỏ thịt bằm & đậu hũ hấp (470 kcal, 0.8g muối, 5.5g xơ)</option>
-                            <option value="pho_bo" data-food="Phở bò chín ít béo ít muối" data-calories="450" data-salt="1.5" data-fiber="2.0">Phở bò chín ít béo ít muối (450 kcal, 1.5g muối, 2.0g xơ)</option>
-                            <option value="salad_uc_ga" data-food="Salad ức gà dầu giấm" data-calories="320" data-salt="0.4" data-fiber="5.0">Salad ức gà dầu giấm (320 kcal, 0.4g muối, 5.0g xơ)</option>
-                            <option value="sua_hat" data-food="Sữa hạt không đường" data-calories="120" data-salt="0.1" data-fiber="1.5">Sữa hạt không đường (120 kcal, 0.1g muối, 1.5g xơ)</option>
-                            <option value="tao_chin" data-food="Táo chín (1 quả)" data-calories="80" data-salt="0.0" data-fiber="4.0">Táo chín (1 quả) (80 kcal, 0g muối, 4.0g xơ)</option>
+                            <option value="">-- Chọn món ăn --</option>
+                            <option th:each="food : ${foods}" 
+                                    th:value="${food.id}" 
+                                    th:text="${food.foodName} + ' (' + ${food.energyKcal} + ' kcal)'"
+                                    th:data-calories="${food.energyKcal}" 
+                                    th:data-salt="${food.ashG}" 
+                                    th:data-fiber="${food.cellulozaG}">Món ăn</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="foodName" class="form-label fw-semibold">Chi tiết món ăn</label>
-                        <input type="text" class="form-control" id="foodName" placeholder="Ví dụ: 1 chén cơm gạo lứt, 150g cá hồi" required>
+                        <label for="quantityG" class="form-label fw-semibold">Khối lượng thực phẩm (g)</label>
+                        <input type="number" class="form-control" id="quantityG" value="100" min="1" oninput="recalculateNutrients()" required>
                     </div>
                     <div class="row g-2">
                         <div class="col-4">
-                            <label for="calories" class="form-label fw-semibold small">Calo (kcal)</label>
-                            <input type="number" class="form-control" id="calories" value="300" required>
+                            <label for="calories" class="form-label fw-semibold small">Ước tính Calo (kcal)</label>
+                            <input type="number" class="form-control" id="calories" value="0" readonly>
                         </div>
                         <div class="col-4">
-                            <label for="saltG" class="form-label fw-semibold small">Muối (g)</label>
-                            <input type="number" step="0.1" class="form-control" id="saltG" value="0.5" required>
+                            <label for="saltG" class="form-label fw-semibold small">Ước tính Muối (g)</label>
+                            <input type="number" step="0.01" class="form-control" id="saltG" value="0.0" readonly>
                         </div>
                         <div class="col-4">
-                            <label for="fiberG" class="form-label fw-semibold small">Xơ (g)</label>
-                            <input type="number" step="0.1" class="form-control" id="fiberG" value="5.0" required>
+                            <label for="fiberG" class="form-label fw-semibold small">Ước tính Xơ (g)</label>
+                            <input type="number" step="0.01" class="form-control" id="fiberG" value="0.0" readonly>
                         </div>
                     </div>
                 </div>
@@ -210,24 +209,39 @@
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
+        function recalculateNutrients() {
+            const presetSelect = document.getElementById('foodPreset');
+            const quantity = parseFloat(document.getElementById('quantityG').value) || 0;
+            if (presetSelect.selectedIndex <= 0 || quantity <= 0) {
+                document.getElementById('calories').value = 0;
+                document.getElementById('saltG').value = 0.0;
+                document.getElementById('fiberG').value = 0.0;
+                return;
+            }
+            const selectedOption = presetSelect.options[presetSelect.selectedIndex];
+            const baseCal = parseFloat(selectedOption.getAttribute('data-calories')) || 0;
+            const baseSalt = parseFloat(selectedOption.getAttribute('data-salt')) || 0;
+            const baseFiber = parseFloat(selectedOption.getAttribute('data-fiber')) || 0;
+
+            document.getElementById('calories').value = Math.round((baseCal * quantity) / 100);
+            document.getElementById('saltG').value = (Math.round(((baseSalt * quantity) / 100) * 100) / 100).toFixed(2);
+            document.getElementById('fiberG').value = (Math.round(((baseFiber * quantity) / 100) * 100) / 100).toFixed(2);
+        }
+
         function submitAddMealForm() {
             const mealType = document.getElementById('mealType').value;
-            const foodName = document.getElementById('foodName').value.trim();
-            const calories = document.getElementById('calories').value.trim();
-            const saltG = document.getElementById('saltG').value.trim();
-            const fiberG = document.getElementById('fiberG').value.trim();
+            const foodId = document.getElementById('foodPreset').value;
+            const quantityG = document.getElementById('quantityG').value.trim();
 
-            if (!foodName || !calories || !saltG || !fiberG) {
-                alert('Vui lòng nhập đầy đủ thông tin.');
+            if (!foodId || !quantityG) {
+                alert('Vui lòng chọn món ăn và nhập khối lượng.');
                 return;
             }
 
             const params = new URLSearchParams();
             params.append('mealType', mealType);
-            params.append('foodName', foodName);
-            params.append('calories', calories);
-            params.append('saltG', saltG);
-            params.append('fiberG', fiberG);
+            params.append('foodId', foodId);
+            params.append('quantityG', quantityG);
 
             fetch('/patient/api/nutrition/add', {
                 method: 'POST',
@@ -279,22 +293,7 @@
             });
         }
         function applyFoodPreset(presetValue) {
-            const presetSelect = document.getElementById('foodPreset');
-            const selectedOption = presetSelect.options[presetSelect.selectedIndex];
-            
-            if (presetValue === 'custom') {
-                document.getElementById('foodName').value = '';
-                document.getElementById('calories').value = '300';
-                document.getElementById('saltG').value = '0.5';
-                document.getElementById('fiberG').value = '5.0';
-                document.getElementById('foodName').readOnly = false;
-            } else {
-                document.getElementById('foodName').value = selectedOption.getAttribute('data-food');
-                document.getElementById('calories').value = selectedOption.getAttribute('data-calories');
-                document.getElementById('saltG').value = selectedOption.getAttribute('data-salt');
-                document.getElementById('fiberG').value = selectedOption.getAttribute('data-fiber');
-                document.getElementById('foodName').readOnly = true;
-            }
+            recalculateNutrients();
         }
     </script>
     <!-- Bottom Navigation Bar -->

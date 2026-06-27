@@ -57,6 +57,9 @@ public class PatientController {
     @Autowired
     private NutritionRuleRepository nutritionRuleRepository;
 
+    @Autowired
+    private FoodDictionaryRepository foodDictionaryRepository;
+
     @GetMapping("/dashboard")
     public String getDashboard(Model model) {
         // Lấy bệnh nhân thực tế từ DB hoặc fallback
@@ -348,6 +351,9 @@ public class PatientController {
         model.addAttribute("caloriesPercent", caloriesPercent);
         model.addAttribute("saltPercent", saltPercent);
         model.addAttribute("fiberPercent", fiberPercent);
+        
+        List<FoodDictionary> foods = foodDictionaryRepository.findByIsActiveTrue();
+        model.addAttribute("foods", foods);
 
         return "patient/nutrition";
     }
