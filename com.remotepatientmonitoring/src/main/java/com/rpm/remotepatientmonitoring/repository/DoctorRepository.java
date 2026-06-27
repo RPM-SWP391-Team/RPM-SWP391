@@ -32,4 +32,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
             "AND (d.specialty = :diseaseType OR d.specialty = 'Cả tiểu đường và huyết áp')")
     List<Doctor> findAvailableDoctorsBySpecialty(@Param("hospitalId") Integer hospitalId,
                                                  @Param("diseaseType") String diseaseType);
+
+    // Thêm duy nhất hàm này vào cuối DoctorRepository.java của bạn
+    @Query(value = "SELECT TOP 1 doctor_code FROM doctors WHERE doctor_code LIKE 'BS%' ORDER BY id DESC", nativeQuery = true)
+    String findLatestDoctorCode();
 }
