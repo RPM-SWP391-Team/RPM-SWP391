@@ -85,7 +85,7 @@ public class AuthController {
             return "auth/register";
         }
         // Regex kiểm tra tên tiếng Việt: Chỉ chứa chữ cái và khoảng trắng, không chứa số hay kí tự đặc biệt
-        String namePattern = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÂÊÔƠỨỨỬỮỰẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăâêôơứứửữựấầẩẫậắằẳẵặẹẻẽềềểếệốồổỗộớờởỡợụủũứựỳỵỷỹýÝỲỸỴ\\s]{2,50}$";
+        String namePattern = "^[\\p{L}\\s]{2,50}$";
         if (!fullName.trim().matches(namePattern)) {
             preserveFormData(model, email, fullName, phone, dateOfBirth, gender, address, emergencyContactName,
                     emergencyContactPhone);
