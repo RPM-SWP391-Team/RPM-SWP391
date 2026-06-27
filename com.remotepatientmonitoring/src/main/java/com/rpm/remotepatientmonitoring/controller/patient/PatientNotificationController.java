@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.controller;
+package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.model.Notification;
@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/patient/notifications")
-public class NotificationController {
+public class PatientNotificationController {
 
     @Autowired
     private NotificationRepository notificationRepository;
