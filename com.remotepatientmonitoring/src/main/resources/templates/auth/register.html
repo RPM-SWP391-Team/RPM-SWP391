@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,8 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary-color: #1A73E8;
@@ -18,15 +20,18 @@
             --text-dark: #1E293B;
             --text-muted: #64748B;
         }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-light);
             color: var(--text-dark);
             min-height: 100vh;
         }
+
         .split-container {
             min-height: 100vh;
         }
+
         .hero-section {
             background: linear-gradient(135deg, #1A73E8 0%, #0D4B9C 100%);
             color: white;
@@ -37,6 +42,7 @@
             justify-content: center;
             padding: 4rem;
         }
+
         .hero-section::before {
             content: '';
             position: absolute;
@@ -47,6 +53,7 @@
             top: -50px;
             right: -50px;
         }
+
         .hero-section::after {
             content: '';
             position: absolute;
@@ -57,17 +64,21 @@
             bottom: -150px;
             left: -100px;
         }
+
         .form-section {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             padding: 2.5rem;
             background-color: #ffffff;
+            overflow-y: auto;
         }
+
         .register-card {
             width: 100%;
-            max-width: 440px;
+            max-width: 540px;
         }
+
         .brand-logo {
             font-size: 2rem;
             font-weight: 700;
@@ -77,6 +88,7 @@
             gap: 0.75rem;
             margin-bottom: 2rem;
         }
+
         .brand-logo-dark {
             font-size: 1.75rem;
             font-weight: 700;
@@ -86,6 +98,7 @@
             gap: 0.5rem;
             margin-bottom: 1.5rem;
         }
+
         .pulse-icon {
             display: inline-flex;
             align-items: center;
@@ -96,17 +109,31 @@
             border-radius: 12px;
             animation: pulse-ring 2.5s infinite;
         }
+
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
-            70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 12px rgba(255, 255, 255, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
         }
+
         .feature-item {
             display: flex;
             align-items: flex-start;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+
         .feature-icon-wrapper {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -119,6 +146,7 @@
             flex-shrink: 0;
             font-size: 1.1rem;
         }
+
         .form-control {
             padding: 0.75rem 1rem;
             border-radius: 10px;
@@ -126,10 +154,12 @@
             font-size: 0.95rem;
             transition: all 0.2s ease;
         }
+
         .form-control:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.15);
         }
+
         .btn-submit {
             background-color: var(--primary-color);
             border: none;
@@ -138,151 +168,342 @@
             font-weight: 600;
             transition: all 0.2s ease;
         }
+
         .btn-submit:hover {
             background-color: var(--primary-hover);
             transform: translateY(-1px);
         }
+
         .btn-submit:active {
             transform: translateY(0);
         }
+
         .input-group-text {
             background-color: transparent;
             border-right: none;
             border-color: #E2E8F0;
             color: var(--text-muted);
         }
+
         .input-group .form-control {
             border-left: none;
         }
+
         .input-group:focus-within .input-group-text,
         .input-group:focus-within .form-control {
             border-color: var(--primary-color);
         }
+
         .alert {
             border-radius: 10px;
             font-size: 0.9rem;
             border: none;
         }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .input-group {
+            position: relative;
+        }
+
+        .btn-toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 10;
+            padding: 0;
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .btn-toggle-password:hover {
+            color: var(--primary-color);
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container-fluid p-0">
-    <div class="row g-0 split-container">
-        <!-- Left Side: Visual/Branding (Hidden on mobile) -->
-        <div class="col-lg-6 d-none d-lg-flex hero-section">
-            <div class="brand-logo">
-                <span class="pulse-icon">
-                    <i class="bi bi-heart-pulse-fill"></i>
-                </span>
-                <span>RPM System</span>
-            </div>
-            
-            <h1 class="display-5 fw-bold mb-4">Hệ thống theo dõi bệnh nhân từ xa</h1>
-            <p class="lead text-white-50 mb-5">Giải pháp y tế thông minh kết nối bác sĩ và bệnh nhân mọi lúc, mọi nơi để đảm bảo an toàn sức khỏe tối đa.</p>
-            
-            <div class="features-list mt-3">
-                <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <i class="bi bi-activity"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-1 fw-semibold text-white">Chỉ số sinh tồn thời gian thực</h5>
-                        <p class="text-white-50 small mb-0">Theo dõi liên tục nhịp tim, huyết áp và các dữ liệu sức khỏe quan trọng.</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <i class="bi bi-shield-plus"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-1 fw-semibold text-white">Bảo mật thông tin tối đa</h5>
-                        <p class="text-white-50 small mb-0">Dữ liệu bệnh án của bạn được lưu trữ an toàn và tuân thủ các tiêu chuẩn y tế.</p>
-                    </div>
-                </div>
-                
-                <div class="feature-item">
-                    <div class="feature-icon-wrapper">
-                        <i class="bi bi-telephone-inbound"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-1 fw-semibold text-white">Liên lạc nhanh với bác sĩ</h5>
-                        <p class="text-white-50 small mb-0">Hỗ trợ nhận tư vấn chuyên môn và điều chỉnh phác đồ điều trị kịp thời.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-auto text-white-50 small">
-                &copy; 2026 Remote Patient Monitoring. All rights reserved.
-            </div>
-        </div>
-
-        <!-- Right Side: Registration Form -->
-        <div class="col-lg-6 form-section">
-            <div class="register-card">
-                <!-- Mobile Logo -->
-                <div class="brand-logo-dark d-lg-none">
-                    <span class="text-primary"><i class="bi bi-heart-pulse-fill"></i></span>
+    <div class="container-fluid p-0">
+        <div class="row g-0 split-container">
+            <!-- Left Side: Visual/Branding (Hidden on mobile) -->
+            <div class="col-lg-6 d-none d-lg-flex hero-section">
+                <div class="brand-logo">
+                    <span class="pulse-icon">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </span>
                     <span>RPM System</span>
                 </div>
 
-                <div class="mb-4">
-                    <h2 class="fw-bold text-dark mb-1">Đăng ký tài khoản</h2>
-                    <p class="text-muted">Đăng ký để bắt đầu theo dõi sức khỏe của bạn.</p>
-                </div>
+                <h1 class="display-5 fw-bold mb-4">Hệ thống theo dõi bệnh nhân từ xa</h1>
+                <p class="lead text-white-50 mb-5">Giải pháp y tế thông minh kết nối bác sĩ và bệnh nhân mọi lúc, mọi
+                    nơi để đảm bảo an toàn sức khỏe tối đa.</p>
 
-                <!-- Error Message -->
-                <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-4 shadow-sm" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
-                    <div th:text="${errorMessage}">Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.</div>
-                </div>
-
-                <form th:action="@{/auth/register}" method="post">
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold small">Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input type="email" id="email" name="email" class="form-control"
-                                   placeholder="Nhập email đăng ký" required autocomplete="email"/>
+                <div class="features-list mt-3">
+                    <div class="feature-item">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-activity"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 fw-semibold text-white">Chỉ số sinh tồn thời gian thực</h5>
+                            <p class="text-white-50 small mb-0">Theo dõi liên tục nhịp tim, huyết áp và các dữ liệu sức
+                                khỏe quan trọng.</p>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label fw-semibold small">Mật khẩu</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" id="password" name="password" class="form-control"
-                                   placeholder="Nhập mật khẩu" required autocomplete="new-password"/>
+                    <div class="feature-item">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-shield-plus"></i>
                         </div>
+                        <div>
+                            <h5 class="mb-1 fw-semibold text-white">Bảo mật thông tin tối đa</h5>
+                            <p class="text-white-50 small mb-0">Dữ liệu bệnh án của bạn được lưu trữ an toàn và tuân thủ
+                                các tiêu chuẩn y tế.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-telephone-inbound"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 fw-semibold text-white">Liên lạc nhanh với bác sĩ</h5>
+                            <p class="text-white-50 small mb-0">Hỗ trợ nhận tư vấn chuyên môn và điều chỉnh phác đồ điều
+                                trị kịp thời.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto text-white-50 small">
+                    &copy; 2026 Remote Patient Monitoring. All rights reserved.
+                </div>
+            </div>
+
+            <!-- Right Side: Registration Form -->
+            <div class="col-lg-6 form-section">
+                <div class="register-card">
+                    <!-- Mobile Logo -->
+                    <div class="brand-logo-dark d-lg-none">
+                        <span class="text-primary"><i class="bi bi-heart-pulse-fill"></i></span>
+                        <span>RPM System</span>
                     </div>
 
                     <div class="mb-4">
-                        <label for="confirmPassword" class="form-label fw-semibold small">Xác nhận mật khẩu</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
-                            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
-                                   placeholder="Nhập lại mật khẩu" required autocomplete="new-password"/>
-                        </div>
+                        <h2 class="fw-bold text-dark mb-1">Đăng ký tài khoản</h2>
+                        <p class="text-muted">Đăng ký để bắt đầu theo dõi sức khỏe của bạn.</p>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-submit w-100 text-white mb-4 shadow-sm">
-                        Đăng ký tài khoản
-                    </button>
-                </form>
+                    <!-- Error Message -->
+                    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-4 shadow-sm"
+                        role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        <div th:text="${errorMessage}">Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.</div>
+                    </div>
 
-                <div class="text-center">
-                    <p class="text-muted small mb-0">
-                        Đã có tài khoản? 
-                        <a th:href="@{/auth/login}" class="text-primary fw-bold text-decoration-none">Đăng nhập</a>
-                    </p>
+                    <form th:action="@{/auth/register}" method="post">
+                        <!-- === Thông tin tài khoản === -->
+                        <p class="fw-semibold text-muted small text-uppercase mb-3"><i
+                                class="bi bi-person-lock me-1"></i>Thông tin tài khoản</p>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold small">Email <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" id="email" name="email" class="form-control"
+                                    placeholder="Nhập email đăng ký" required autocomplete="email"
+                                    th:value="${email}" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold small">Mật khẩu <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group password-wrapper">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="password" name="password" class="form-control"
+                                    placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)" required autocomplete="new-password"
+                                    style="padding-right: 40px;" />
+                                <button type="button" class="btn-toggle-password"
+                                    onclick="togglePassword('password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="form-label fw-semibold small">Xác nhận mật khẩu <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group password-wrapper">
+                                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control"
+                                    placeholder="Nhập lại mật khẩu" required autocomplete="new-password"
+                                    style="padding-right: 40px;" />
+                                <button type="button" class="btn-toggle-password"
+                                    onclick="togglePassword('confirmPassword', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- === Thông tin cá nhân === -->
+                        <p class="fw-semibold text-muted small text-uppercase mb-3"><i
+                                class="bi bi-person-vcard me-1"></i>Thông tin cá nhân</p>
+
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label fw-semibold small">Họ và tên <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" id="fullName" name="fullName" class="form-control"
+                                    placeholder="Nhập họ và tên đầy đủ" required 
+                                    minlength="2" maxlength="50"
+                                    pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÂÊÔƠỨỨỬỮỰẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăâêôơứứửữựấầẩẫậắằẳẵặẹẻẽềềểếệốồổỗộớờởỡợụủũứựỳỵỷỹýÝỲỸỴ\s]+$"
+                                    title="Họ và tên chỉ được chứa chữ cái tiếng Việt và khoảng trắng, từ 2 đến 50 ký tự"
+                                    th:value="${fullName}" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label fw-semibold small">Số điện thoại <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" id="phone" name="phone" class="form-control"
+                                    placeholder="Ví dụ: 0901234567" required th:value="${phone}" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="dateOfBirth" class="form-label fw-semibold small">Ngày sinh <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                    <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control"
+                                        required th:value="${dateOfBirth}" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="gender" class="form-label fw-semibold small">Giới tính <span
+                                        class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                    <select id="gender" name="gender" class="form-control" required>
+                                        <option value="" th:selected="${gender == null || gender == ''}">-- Chọn --
+                                        </option>
+                                        <option value="MALE" th:selected="${gender == 'MALE'}">Nam</option>
+                                        <option value="FEMALE" th:selected="${gender == 'FEMALE'}">Nữ</option>
+                                        <option value="OTHER" th:selected="${gender == 'OTHER'}">Khác</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="address" class="form-label fw-semibold small">Địa chỉ</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" id="address" name="address" class="form-control"
+                                    placeholder="Nhập địa chỉ (không bắt buộc)" th:value="${address}" />
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- === Liên hệ khẩn cấp === -->
+                        <p class="fw-semibold text-muted small text-uppercase mb-3"><i
+                                class="bi bi-telephone-forward me-1"></i>Liên hệ khẩn cấp <span
+                                class="fw-normal text-muted">(không bắt buộc)</span></p>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="emergencyContactName" class="form-label fw-semibold small">Tên người liên
+                                    hệ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-lines-fill"></i></span>
+                                    <input type="text" id="emergencyContactName" name="emergencyContactName"
+                                        class="form-control" placeholder="Họ tên người thân"
+                                        th:value="${emergencyContactName}" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emergencyContactPhone" class="form-label fw-semibold small">SĐT liên
+                                    hệ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                    <input type="tel" id="emergencyContactPhone" name="emergencyContactPhone"
+                                        class="form-control" placeholder="SĐT người thân"
+                                        th:value="${emergencyContactPhone}" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit w-100 text-white mb-4 shadow-sm">
+                            Đăng ký tài khoản
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="text-muted small mb-0">
+                            Đã có tài khoản?
+                            <a th:href="@{/auth/login}" class="text-primary fw-bold text-decoration-none">Đăng nhập</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bootstrap 5 Bundle JS CDN -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 Bundle JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePassword(inputId, btn) {
+            var input = document.getElementById(inputId);
+            var icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+
+        // Giới hạn độ tuổi từ 0 đến 120 trên giao diện
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateInput = document.getElementById("dateOfBirth");
+            if (dateInput) {
+                const today = new Date();
+                
+                // Max là hôm nay (0 tuổi)
+                const yyyy = today.getFullYear();
+                let mm = today.getMonth() + 1;
+                let dd = today.getDate();
+                if (mm < 10) mm = '0' + mm;
+                if (dd < 10) dd = '0' + dd;
+                const maxDate = yyyy + '-' + mm + '-' + dd;
+                dateInput.setAttribute("max", maxDate);
+
+                // Min là 120 năm trước
+                const minYear = yyyy - 120;
+                const minDate = minYear + '-' + mm + '-' + dd;
+                dateInput.setAttribute("min", minDate);
+            }
+        });
+    </script>
 </body>
+
 </html>

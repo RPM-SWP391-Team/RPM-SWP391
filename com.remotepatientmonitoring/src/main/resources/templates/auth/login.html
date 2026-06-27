@@ -163,6 +163,30 @@
             font-size: 0.9rem;
             border: none;
         }
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper .input-group {
+            position: relative;
+        }
+        .btn-toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 10;
+            padding: 0;
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+        .btn-toggle-password:hover {
+            color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -238,10 +262,29 @@
                     <div th:text="${errorMessage}">Email hoặc mật khẩu không chính xác.</div>
                 </div>
 
+                <!-- Link xác thực email khi chưa verify -->
+                <div th:if="${emailNotVerified}" class="alert alert-warning d-flex align-items-start mb-4 shadow-sm" role="alert">
+                    <i class="bi bi-envelope-exclamation-fill me-2 fs-5 mt-1"></i>
+                    <div>
+                        <span>Bạn cần xác thực email để đăng nhập.</span>
+                        <a th:href="@{/auth/verify-otp(email=${unverifiedEmail}, type='REGISTRATION', triggerResend='true')}"
+                           class="d-block mt-2 fw-bold text-decoration-none"
+                           style="color: #856404;">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Đi tới trang xác thực OTP
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Logout Message -->
                 <div th:if="${logoutMessage}" class="alert alert-success d-flex align-items-center mb-4 shadow-sm" role="alert">
                     <i class="bi bi-check-circle-fill me-2 fs-5"></i>
                     <div th:text="${logoutMessage}">Đăng xuất thành công.</div>
+                </div>
+
+                <!-- Verified Message -->
+                <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center mb-4 shadow-sm" role="alert">
+                    <i class="bi bi-patch-check-fill me-2 fs-5"></i>
+                    <div th:text="${successMessage}">Xác thực email thành công.</div>
                 </div>
 
                 <form th:action="@{/auth/login}" method="post">
@@ -250,7 +293,8 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                             <input type="email" id="username" name="username" class="form-control"
-                                   placeholder="Nhập email đăng nhập" required autocomplete="email"/>
+                                   placeholder="Nhập email đăng nhập" required autocomplete="email"
+                                   th:value="${username}"/>
                         </div>
                     </div>
 
@@ -258,10 +302,14 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label for="password" class="form-label fw-semibold small mb-0">Mật khẩu</label>
                         </div>
-                        <div class="input-group">
+                        <div class="input-group password-wrapper">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
                             <input type="password" id="password" name="password" class="form-control"
-                                   placeholder="Nhập mật khẩu" required autocomplete="current-password"/>
+                                   placeholder="Nhập mật khẩu" required autocomplete="current-password"
+                                   style="padding-right: 40px;"/>
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword('password', this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -283,5 +331,20 @@
 
 <!-- Bootstrap 5 Bundle JS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function togglePassword(inputId, btn) {
+        var input = document.getElementById(inputId);
+        var icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
 </body>
 </html>
