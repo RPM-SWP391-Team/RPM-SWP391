@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "patient_meals")
+@Table(name = "diet_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,25 +23,52 @@ public class PatientMeal {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
+    @ManyToOne
+    @JoinColumn(name = "food_id", nullable = false)
+    private FoodDictionary food;
+
     @Column(name = "log_date", nullable = false)
     private LocalDate logDate;
 
-    @Column(name = "meal_type", nullable = false, length = 50)
-    private String mealType; // Bữa Sáng, Bữa Trưa, Bữa Tối, Bữa Phụ
+    @Column(name = "meal_type", nullable = false, length = 10)
+    private String mealType; // BREAKFAST, LUNCH, DINNER, SNACK
 
-    @Column(name = "food_name", nullable = false, length = 500)
-    private String foodName;
+    @Column(name = "quantity_g", nullable = false)
+    private Double quantityG; // Lượng thực tế (grams)
 
-    @Column(name = "calories", nullable = false)
-    private Integer calories; // kcal
-
-    @Column(name = "salt_g", nullable = false)
-    private Double saltG; // grams
-
-    @Column(name = "fiber_g", nullable = false)
-    private Double fiberG; // grams
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "logged_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Helper getters to compute values dynamically from FoodDictionary for UI templates
+    public String getFoodName() {
+        if (food != null) {
+            return food.getFoodName();
+        }
+        return "";
+    }
+
+    public Integer getCalories() {
+        if (food != null && food.getEnergyKcal() != null) {
+            double c = (food.getEnergyKcal() * quantityG) / 100.0;
+            return (int) c;
+        }
+        return 0;
+    }
+
+    public Double getSaltG() {
+        if (food != null && food.getAshG() != null) {
+            double s = (food.getAshG().doubleValue() * quantityG) / 100.0;
+            return Math.round(s * 100.0) / 100.0;
+        }
+        return 0.0;
+    }
+
+    public Double getFiberG() {
+        if (food != null && food.getCellulozaG() != null) {
+            double f = (food.getCellulozaG().doubleValue() * quantityG) / 100.0;
+            return Math.round(f * 100.0) / 100.0;
+        }
+        return 0.0;
+    }
 }

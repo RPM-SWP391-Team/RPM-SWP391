@@ -19,10 +19,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.ArrayList;
 
 @Controller
@@ -44,11 +48,31 @@ public class PatientInteractionController {
     @Autowired
     private HealthLogRepository healthLogRepository;
 
+    private Patient getCurrentPatient() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.size() > 0) {
+            return all.get(0);
+        }
+        return null;
+    }
+
     @GetMapping("/appointments")
     public String getAppointments(Model model) throws JsonProcessingException {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in database."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
 
         List<Appointment> appointments = appointmentRepository.findByPatientIdOrderByAppointmentTimeDesc(patient.getId());
         List<ChangeRequest> changeRequests = changeRequestRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
@@ -83,9 +107,10 @@ public class PatientInteractionController {
 
     @GetMapping("/request-change")
     public String requestChangePage(Model model) {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in database."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
 
         ChangeRequest changeRequest = ChangeRequest.builder()
                 .status("PENDING")
@@ -98,15 +123,19 @@ public class PatientInteractionController {
 
     @PostMapping("/request-change")
     public String submitChangeRequest(@ModelAttribute("changeRequest") ChangeRequest changeRequest) {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in database."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
 
         Doctor doctor = patient.getDoctor();
         if (doctor == null) {
-            doctor = doctorRepository.findAll().stream()
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("No doctor found in database to receive requests."));
+            List<Doctor> all = doctorRepository.findAll();
+            if (all.size() > 0) {
+                doctor = all.get(0);
+            } else {
+                throw new IllegalStateException("No doctor found in database to receive requests.");
+            }
         }
 
         changeRequest.setPatient(patient);

@@ -156,11 +156,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="caloriesBurned" class="form-label fw-semibold">Ước tính Calo tiêu hao (kcal)</label>
-                        <input type="number" class="form-control" id="caloriesBurned" value="150" min="0" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label fw-semibold">Ghi chú thêm</label>
-                        <input type="text" class="form-control" id="notes" placeholder="Ví dụ: Tập nhẹ nhàng, cơ thể sảng khoái">
+                        <input type="number" class="form-control" id="caloriesBurned" value="120" readonly>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0 px-4 pb-4">
@@ -181,10 +177,9 @@
         function submitAddExerciseForm() {
             const exerciseType = document.getElementById('exerciseType').value;
             const durationMinutes = document.getElementById('durationMinutes').value.trim();
-            const caloriesBurned = document.getElementById('caloriesBurned').value.trim();
-            const notes = document.getElementById('notes').value.trim();
+            const stepCount = document.getElementById('stepCount').value.trim();
 
-            if (!durationMinutes || !caloriesBurned) {
+            if (!durationMinutes) {
                 alert('Vui lòng nhập đầy đủ thông tin.');
                 return;
             }
@@ -192,8 +187,9 @@
             const params = new URLSearchParams();
             params.append('exerciseType', exerciseType);
             params.append('durationMinutes', durationMinutes);
-            params.append('caloriesBurned', caloriesBurned);
-            params.append('notes', notes);
+            if (exerciseType === 'Đi bộ' || exerciseType === 'Chạy bộ') {
+                params.append('stepsCount', stepCount);
+            }
 
             fetch('/patient/api/exercise/add', {
                 method: 'POST',
