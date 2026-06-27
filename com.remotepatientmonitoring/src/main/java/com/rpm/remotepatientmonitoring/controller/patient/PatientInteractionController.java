@@ -149,16 +149,6 @@ public class PatientInteractionController {
         return "redirect:/patient/appointments?requestSuccess=true";
     }
 
-    @GetMapping("/book-appointment")
-    public String bookAppointmentPage(Model model) {
-        Patient patient = getCurrentPatient();
-        if (patient == null) {
-            return "redirect:/auth/login";
-        }
-        model.addAttribute("patient", patient);
-        return "patient/book-appointment";
-    }
-
     @PostMapping("/book-appointment")
     public String bookAppointment(
             @RequestParam("appointmentTime") String appointmentTimeStr,
