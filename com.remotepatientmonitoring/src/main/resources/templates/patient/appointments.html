@@ -181,7 +181,7 @@
         </div>
 
         <!-- Health Trend Charts -->
-        <div class="row mt-5 mb-4">
+        <div class="row mt-5 mb-4" th:if="${patient.status == 'TREATING'}">
             <div class="col-12">
                 <div class="d-flex align-items-center justify-content-between">
                     <h2 class="fw-bold mb-0">
@@ -193,7 +193,7 @@
             </div>
         </div>
 
-        <div class="row mb-5">
+        <div class="row mb-5" th:if="${patient.status == 'TREATING'}">
             <!-- Chart 1: Blood Pressure Chart -->
             <div class="col-lg-6 mb-4">
                 <div class="card card-custom">
@@ -231,11 +231,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
     <!-- Bottom Navigation Bar -->
     <div class="bottom-nav">
-        <a href="/patient/dashboard" class="nav-item">
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/dashboard" class="nav-item">
             <i class="fa-solid fa-house"></i>
             <span>Trang chủ</span>
         </a>
-        <a href="/patient/adherence" class="nav-item">
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/adherence" class="nav-item">
             <i class="fa-solid fa-pills"></i>
             <span>Thuốc uống</span>
         </a>
@@ -243,20 +243,20 @@
             <i class="fa-solid fa-calendar-check"></i>
             <span>Nhật ký</span>
         </a>
-        <a href="/patient/log" class="nav-item fab-item">
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/log" class="nav-item fab-item">
             <div class="fab-btn">
                 <i class="fa-solid fa-plus"></i>
             </div>
         </a>
-        <a href="/patient/nutrition" class="nav-item">
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/nutrition" class="nav-item">
             <i class="fa-solid fa-utensils"></i>
             <span>Dinh dưỡng</span>
         </a>
-        <a href="/patient/exercise" class="nav-item">
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/exercise" class="nav-item">
             <i class="fa-solid fa-person-running"></i>
             <span>Tập luyện</span>
         </a>
-        <a href="/patient/progress" class="nav-item">
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/progress" class="nav-item">
             <i class="fa-solid fa-user"></i>
             <span>Hồ sơ</span>
         </a>
