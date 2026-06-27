@@ -99,7 +99,35 @@
             <span class="navbar-brand mb-0 h1 fw-bold">
                 <i class="fa-solid fa-user-doctor me-2"></i>DOCTOR PORTAL
             </span>
-        <div class="dropdown">
+        <div class="d-flex align-items-center">
+            <!-- Notification Bell -->
+            <div class="dropdown me-4">
+                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                        0
+                    </span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
+                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
+                    <li th:if="${recentNotifications.isEmpty()}">
+                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
+                    </li>
+                    <li th:each="notif : ${recentNotifications}">
+                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
+                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
+                            </div>
+                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <div class="text-end me-3">
                     <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
@@ -115,6 +143,12 @@
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
+                    <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
                     <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
                         <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
                             <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
@@ -122,6 +156,7 @@
                     </form>
                 </li>
             </ul>
+        </div>
         </div>
     </div>
 </nav>
@@ -186,7 +221,11 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="patient : ${patientPage.content}">
+                        <tr th:each="patient : ${patientPage.content}"
+                            th:classappend="${patientHighestAlerts.get(patient.id) == 'RED' ? 'table-danger border-danger' : 
+                                            patientHighestAlerts.get(patient.id) == 'ORANGE' ? 'table-warning border-warning' : 
+                                            patientHighestAlerts.get(patient.id) == 'YELLOW' ? 'table-warning' : ''}"
+                            style="border-left: 4px solid transparent;">
                             <td>
                                 <div class="fw-bold" th:text="${patient.fullName}">Lê Văn Cường</div>
                                 <small class="text-muted" th:text="${patient.phone}">0934567890</small>
@@ -202,7 +241,7 @@
                                         </div>
                                         <div class="small">Đ.Huyết: 
                                             <span class="fw-bold" th:if="${latestLog.glucoseLevel != null}" 
-                                                  th:text="${latestLog.glucoseLevel}">6.0</span>
+                                                  th:text="${latestLog.glucoseLevel + ' mmol/L'}">6.0 mmol/L</span>
                                             <span class="fw-bold text-muted" th:unless="${latestLog.glucoseLevel != null}">--</span>
                                         </div>
                                     </div>

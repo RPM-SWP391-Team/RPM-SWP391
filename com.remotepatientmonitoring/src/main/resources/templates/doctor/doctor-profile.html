@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ Bác sĩ | RPM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .dropdown-toggle::after { display: none !important; }
+        .dropdown-item { font-weight: 500; transition: all 0.2s; }
+        .dropdown-item:hover { background-color: #ffeef0; }
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-back:hover {
+            background: rgba(255,255,255,0.28);
+            color: white;
+            transform: translateX(-3px);
+        }
+
+        /* Cards */
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+            background: white;
+        }
+
+        /* Doctor hero inside card */
+        .doc-hero-block {
+            background: linear-gradient(135deg, #1e3c72 0%, #2575fc 100%);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .doc-hero-block::after {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+        .doc-avatar {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.18);
+            border: 3px solid rgba(255,255,255,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        .badge-hero {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Section header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+        .section-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3c72, #2575fc);
+            flex-shrink: 0;
+        }
+
+        /* Info rows */
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.88rem;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+        .info-label { font-size: 0.73rem; color: #888; font-weight: 500; margin-bottom: 1px; }
+        .info-value { font-size: 0.93rem; font-weight: 600; color: #2d3748; }
+
+        /* Password form */
+        .input-wrap { position: relative; }
+        .pw-icon {
+            position: absolute;
+            left: 13px; top: 50%;
+            transform: translateY(-50%);
+            color: #999; font-size: 0.88rem; z-index: 5;
+        }
+        .pw-input {
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid #e8ecf0;
+            padding: 11px 42px;
+            font-size: 0.93rem;
+            font-family: 'Outfit', sans-serif;
+            background: #fafbfc;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .pw-input:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 4px rgba(42,82,152,0.1);
+            background: white;
+            outline: none;
+        }
+        .eye-btn {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: #aaa; cursor: pointer; padding: 0;
+            font-size: 0.88rem; z-index: 5;
+            transition: color 0.2s;
+        }
+        .eye-btn:hover { color: #2a5298; }
+
+        .strength-wrap { height: 5px; border-radius: 3px; background: #eee; overflow: hidden; margin-top: 6px; }
+        .strength-fill { height: 100%; border-radius: 3px; width: 0; transition: width 0.4s, background 0.4s; }
+
+        .btn-save-pw {
+            background: linear-gradient(135deg, #1e3c72 0%, #2575fc 100%);
+            color: white; border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            font-weight: 600; font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            transition: opacity 0.25s, transform 0.2s;
+            width: 100%;
+        }
+        .btn-save-pw:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-save-pw:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Flash alert */
+        .alert-flash {
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        /* Mini stats */
+        .mini-stat {
+            text-align: center; padding: 14px 8px;
+            border-radius: 14px;
+        }
+        .mini-stat .num { font-size: 1.8rem; font-weight: 700; margin-bottom: 2px; }
+        .mini-stat .lbl { font-size: 0.76rem; font-weight: 500; opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark navbar-custom py-3 mb-4">
+    <div class="container">
+        <a href="/doctor/dashboard" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
+        </a>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-3"
+               id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="text-end">
+                    <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ</div>
+                    <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa</small>
+                </div>
+                <i class="fa-solid fa-circle-user fa-2x opacity-90"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                aria-labelledby="doctorDropdown"
+                style="border-radius:12px; min-width:180px;">
+                <li>
+                    <span class="dropdown-item-text text-muted small">
+                        <i class="fa-solid fa-id-card me-1"></i> Mã BS:
+                        <span th:text="${doctor.doctorCode}">BS-001</span>
+                    </span>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
+                        <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <strong>Đăng xuất</strong>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="container pb-5">
+
+    <!-- Flash messages -->
+    <div th:if="${successMsg != null}" class="alert-flash alert-success mb-4" role="alert">
+        <i class="fa-solid fa-circle-check fs-5 text-success"></i>
+        <span th:text="${successMsg}">Thành công!</span>
+    </div>
+    <div th:if="${errorMsg != null}" class="alert-flash alert-danger mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+        <span th:text="${errorMsg}">Lỗi!</span>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ===== CỘT TRÁI: Thông tin bác sĩ ===== -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+
+                <!-- Hero block bên trong card -->
+                <div class="doc-hero-block">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="doc-avatar">
+                            <i class="fa-solid fa-user-doctor text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1" th:text="${doctor.fullName}">BS. Nguyễn Văn An</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge-hero">
+                                    <i class="fa-solid fa-stethoscope"></i>
+                                    <span th:text="${doctor.specialty}">Tim mạch</span>
+                                </span>
+                                <span class="badge-hero">
+                                    <i class="fa-solid fa-circle-check"></i> Đang hoạt động
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin chi tiết -->
+                <div class="section-header">
+                    <span class="section-dot"></span>
+                    <i class="fa-solid fa-circle-info text-primary"></i>
+                    Thông tin cá nhân
+                </div>
+
+                <div class="info-row">
+                    <div class="info-icon" style="background:#fce8e8;">
+                        <i class="fa-solid fa-id-card" style="color:#e53935;"></i>
+                    </div>
+                    <div>
+                        <div class="info-label">Mã bác sĩ</div>
+                        <div class="info-value" th:text="${doctor.doctorCode}">BS-001</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-icon" style="background:#e8f5e9;">
+                        <i class="fa-solid fa-phone" style="color:#388e3c;"></i>
+                    </div>
+                    <div>
+                        <div class="info-label">Số điện thoại</div>
+                        <div class="info-value" th:text="${doctor.phone}">0901234567</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-icon" style="background:#fff3e0;">
+                        <i class="fa-solid fa-envelope" style="color:#ef6c00;"></i>
+                    </div>
+                    <div>
+                        <div class="info-label">Email đăng nhập</div>
+                        <div class="info-value" th:text="${doctorEmail}">doctor@rpm.vn</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-icon" style="background:#f3e5f5;">
+                        <i class="fa-solid fa-stethoscope" style="color:#7b1fa2;"></i>
+                    </div>
+                    <div>
+                        <div class="info-label">Chuyên khoa</div>
+                        <div class="info-value" th:text="${doctor.specialty}">Tim mạch</div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-icon" style="background:#e3f2fd;">
+                        <i class="fa-solid fa-hospital" style="color:#1565c0;"></i>
+                    </div>
+                    <div>
+                        <div class="info-label">Bệnh viện</div>
+                        <div class="info-value" th:text="${hospitalName}">Bệnh viện Trung ương</div>
+                    </div>
+                </div>
+
+                <!-- Thống kê nhanh -->
+                <div class="section-header mt-3">
+                    <span class="section-dot"></span>
+                    <i class="fa-solid fa-chart-bar text-primary"></i>
+                    Thống kê
+                </div>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="mini-stat" style="background:linear-gradient(135deg,#11998e,#38ef7d); color:white;">
+                            <div class="num" th:text="${actualPatientCount}">0</div>
+                            <div class="lbl">Đang phụ trách</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mini-stat" style="background:linear-gradient(135deg,#1e3c72,#2575fc); color:white;">
+                            <div class="num" th:text="${doctor.capacityLimit}">50</div>
+                            <div class="lbl">Sức chứa tối đa</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mini-stat" style="background:linear-gradient(135deg,#6a11cb,#2575fc); color:white;">
+                            <div class="num" th:text="${doctor.capacityLimit - actualPatientCount}">50</div>
+                            <div class="lbl">Còn có thể nhận</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===== CỘT PHẢI: Đổi mật khẩu ===== -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+
+                <div class="section-header">
+                    <span class="section-dot"></span>
+                    <i class="fa-solid fa-lock text-primary"></i>
+                    Đổi mật khẩu
+                </div>
+
+                <form id="pwForm" th:action="@{/doctor/profile/change-password}" method="POST">
+
+                    <!-- Mật khẩu hiện tại -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted" for="currentPassword">
+                            Mật khẩu hiện tại
+                        </label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-lock pw-icon"></i>
+                            <input type="password" id="currentPassword" name="currentPassword"
+                                   class="pw-input" placeholder="Nhập mật khẩu hiện tại"
+                                   maxlength="100" required>
+                            <button type="button" class="eye-btn" onclick="togglePw('currentPassword',this)">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mật khẩu mới -->
+                    <div class="mb-1">
+                        <label class="form-label small fw-semibold text-muted" for="newPassword">
+                            Mật khẩu mới
+                        </label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-key pw-icon"></i>
+                            <input type="password" id="newPassword" name="newPassword"
+                                   class="pw-input" placeholder="Tối thiểu 8 ký tự"
+                                   maxlength="128" required
+                                   oninput="checkStrength(this.value); checkMatch()">
+                            <button type="button" class="eye-btn" onclick="togglePw('newPassword',this)">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="strength-wrap mt-2">
+                            <div class="strength-fill" id="sBar"></div>
+                        </div>
+                        <small id="sLabel" class="text-muted" style="font-size:.75rem;"></small>
+                    </div>
+
+                    <!-- Xác nhận mật khẩu mới -->
+                    <div class="mb-3 mt-3">
+                        <label class="form-label small fw-semibold text-muted" for="confirmPassword">
+                            Xác nhận mật khẩu mới
+                        </label>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-shield-check pw-icon"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                   class="pw-input" placeholder="Nhập lại mật khẩu mới"
+                                   maxlength="128" required
+                                   oninput="checkMatch()">
+                            <button type="button" class="eye-btn" onclick="togglePw('confirmPassword',this)">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <small id="matchMsg" class="d-block mt-1" style="font-size:.8rem;"></small>
+                    </div>
+
+                    <!-- Gợi ý yêu cầu -->
+                    <div class="bg-light rounded-3 p-3 mb-4" style="font-size:.83rem; color:#555;">
+                        <div class="fw-bold mb-2 text-dark" style="font-size:.88rem;">
+                            <i class="fa-solid fa-shield-halved me-1 text-primary"></i>
+                            Yêu cầu mật khẩu:
+                        </div>
+                        <ul class="mb-0 ps-3" style="line-height:2;">
+                            <li id="r-len">Ít nhất 8 ký tự</li>
+                            <li id="r-upper">Có chữ hoa (A–Z)</li>
+                            <li id="r-num">Có chữ số (0–9)</li>
+                            <li id="r-special">Có ký tự đặc biệt (!@#$...)</li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" class="btn-save-pw" id="submitBtn">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Lưu mật khẩu mới
+                    </button>
+
+                    <p class="text-center text-muted mt-3 mb-0" style="font-size:.78rem;">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Sau khi đổi, bạn sẽ được yêu cầu đăng nhập lại.
+                    </p>
+
+                </form>
+            </div>
+        </div>
+
+    </div><!-- /row -->
+</div><!-- /container -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function togglePw(id, btn) {
+    const inp = document.getElementById(id);
+    const icon = btn.querySelector('i');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        inp.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+function checkStrength(v) {
+    const bar = document.getElementById('sBar');
+    const label = document.getElementById('sLabel');
+    const ok = {
+        len:     v.length >= 8,
+        upper:   /[A-Z]/.test(v),
+        num:     /[0-9]/.test(v),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(v)
+    };
+    setReq('r-len',     ok.len);
+    setReq('r-upper',   ok.upper);
+    setReq('r-num',     ok.num);
+    setReq('r-special', ok.special);
+    const score = Object.values(ok).filter(Boolean).length;
+    const colors = ['transparent', '#e53935', '#ff9800', '#fdd835', '#43a047'];
+    const labels = ['', 'Rất yếu', 'Trung bình', 'Khá mạnh', 'Rất mạnh 💪'];
+    bar.style.width = (score * 25) + '%';
+    bar.style.background = colors[score];
+    label.textContent = labels[score];
+    label.style.color = colors[score];
+}
+
+function setReq(id, ok) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.color = ok ? '#388e3c' : '#aaa';
+    el.style.fontWeight = ok ? '600' : '400';
+}
+
+function checkMatch() {
+    const pw1 = document.getElementById('newPassword').value;
+    const pw2 = document.getElementById('confirmPassword').value;
+    const msg = document.getElementById('matchMsg');
+    const btn = document.getElementById('submitBtn');
+    if (!pw2) { msg.textContent = ''; btn.disabled = false; return; }
+    if (pw1 === pw2) {
+        msg.textContent = '✓ Mật khẩu khớp';
+        msg.style.color = '#388e3c';
+        btn.disabled = false;
+    } else {
+        msg.textContent = '✗ Mật khẩu chưa khớp';
+        msg.style.color = '#e53935';
+        btn.disabled = true;
+    }
+}
+
+document.getElementById('pwForm').addEventListener('submit', function(e) {
+    const cur = document.getElementById('currentPassword').value.trim();
+    const pw1 = document.getElementById('newPassword').value;
+    const pw2 = document.getElementById('confirmPassword').value;
+    if (!cur)         { e.preventDefault(); alert('Vui lòng nhập mật khẩu hiện tại.'); return; }
+    if (pw1.length < 8) { e.preventDefault(); alert('Mật khẩu mới phải có ít nhất 8 ký tự.'); return; }
+    if (pw1 !== pw2)  { e.preventDefault(); alert('Mật khẩu xác nhận chưa khớp.'); return; }
+});
+</script>
+</body>
+</html>

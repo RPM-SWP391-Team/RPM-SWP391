@@ -19,8 +19,12 @@ public class Notification {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "patient_id")
     private Patient patient;
+
+    @ManyToOne
+    @JoinColumn(name = "doctor_id")
+    private Doctor doctor;
 
     @Column(name = "title", nullable = false, length = 255)
     private String title;
