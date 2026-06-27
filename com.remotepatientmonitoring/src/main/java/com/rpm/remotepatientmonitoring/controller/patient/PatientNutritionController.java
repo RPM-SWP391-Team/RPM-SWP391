@@ -74,7 +74,7 @@ public class PatientNutritionController {
         meal.setLogDate(today);
         meal.setMealType(mealType);
         meal.setFood(food);
-        meal.setQuantityG(java.math.BigDecimal.valueOf(quantityG));
+        meal.setQuantityG(quantityG);
 
         PatientMeal saved = patientMealRepository.save(meal);
 
