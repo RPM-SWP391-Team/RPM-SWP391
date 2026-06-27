@@ -39,26 +39,19 @@ public class PatientExercise {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // Transient fields to keep compatibility with old controller/UI
-    @Transient
-    private Integer caloriesBurned;
-
-    @Transient
-    private String notes;
-
-    // Custom getters to calculate values dynamically
+    // Helper getters to compute values dynamically for UI templates
     public Integer getCaloriesBurned() {
         if (stepsCount != null) {
             double c = stepsCount * 0.04;
             return (int) c;
         }
-        return caloriesBurned;
+        return 0;
     }
 
     public String getNotes() {
         if (stepsCount != null) {
             return exerciseType + " (" + stepsCount + " bước)";
         }
-        return notes;
+        return "";
     }
 }
