@@ -64,7 +64,16 @@ public class SecurityConfig {
                 .usernameParameter("username")  // khớp name="username" trong HTML form
                 .passwordParameter("password")  // khớp name="password" trong HTML form
                 .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/auth/login?error=true")
+                .failureHandler((request, response, exception) -> {
+                    String username = request.getParameter("username");
+                    String encodedUsername = java.net.URLEncoder.encode(
+                            username != null ? username : "", java.nio.charset.StandardCharsets.UTF_8);
+                    if (exception instanceof org.springframework.security.authentication.DisabledException) {
+                        response.sendRedirect("/auth/login?disabled=true&username=" + encodedUsername);
+                    } else {
+                        response.sendRedirect("/auth/login?error=true&username=" + encodedUsername);
+                    }
+                })
                 .permitAll()
             )
             .logout(logout -> logout
