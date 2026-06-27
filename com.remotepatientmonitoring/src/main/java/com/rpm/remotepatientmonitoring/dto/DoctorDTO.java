@@ -16,8 +16,9 @@ public class DoctorDTO {
 
     @NotBlank(message = "Họ và tên bắt buộc phải nhập.")
     @Pattern(
-            regexp = "^(?=.{2,50}$)(?:[\\p{L}]*[aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆiIìÌỉỈĩĨíÍịỊoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰyYỳỲỷỶỹỸýÝỵỴ][\\p{L}]*(?:\\s+|$))+$",
-            message = "Họ và tên không hợp lệ. Mỗi từ trong tên đều phải chứa ít nhất một nguyên âm và chỉ dùng chữ cái."
+            // Cú pháp chuẩn Java: Quét toàn bộ độ dài 2-50 ký tự, sau đó quét từng từ phải chứa nguyên âm tiếng Việt
+            regexp = "^(?=[\\p{L}\\p{M}\\s]{2,50}$)(?:[^\\s]*[aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆiIìÌỉỈĩĨíÍịỊoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰyYỳỲỷỶỹỸýÝỵỴ][^\\s]*(?:\\s+|$))+$",
+            message = "Họ và tên không hợp lệ. Vui lòng nhập đúng định dạng chữ cái tiếng Việt (mỗi từ phải chứa nguyên âm)."
     )
     private String fullName;
 

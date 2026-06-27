@@ -425,8 +425,8 @@
                                    th:field="*{fullName}"
                                    th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''"
                                    required
-                                   pattern="^(?=.{2,50}$)(?:[\p{L}]*[aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆiIìÌỉỈĩĨíÍịỊoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰyYỳỲỷỶỹỸýÝỵỴ][\p{L}]*(?:\s+|$))+$"
-                                   title="Vui lòng nhập tên hợp lệ (Mỗi chữ bắt buộc phải có nguyên âm tiếng Việt, ví dụ: Lê Trung Thắng)"
+                                   minlength="2"
+                                   maxlength="50"
                                    placeholder="Họ tên đầy đủ">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
                         </div>

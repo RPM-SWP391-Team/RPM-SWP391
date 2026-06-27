@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "patient_exercises")
+@Table(name = "exercise_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,18 +27,31 @@ public class PatientExercise {
     private LocalDate logDate;
 
     @Column(name = "exercise_type", nullable = false, length = 100)
-    private String exerciseType; // e.g. Đi bộ, Chạy bộ, Đạp xe, Yoga...
+    private String exerciseType; // e.g. Đi bộ, Chạy bộ...
 
-    @Column(name = "duration_minutes", nullable = false)
+    @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    @Column(name = "calories_burned", nullable = false)
-    private Integer caloriesBurned;
+    @Column(name = "steps_count")
+    private Integer stepsCount; // Số bước chân
 
-    @Column(name = "notes", length = 500)
-    private String notes;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "logged_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Helper getters to compute values dynamically for UI templates
+    public Integer getCaloriesBurned() {
+        if (stepsCount != null) {
+            double c = stepsCount * 0.04;
+            return (int) c;
+        }
+        return 0;
+    }
+
+    public String getNotes() {
+        if (stepsCount != null) {
+            return exerciseType + " (" + stepsCount + " bước)";
+        }
+        return "";
+    }
 }

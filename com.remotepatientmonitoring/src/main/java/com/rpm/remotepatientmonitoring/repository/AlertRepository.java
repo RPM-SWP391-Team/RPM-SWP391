@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface AlertRepository extends JpaRepository<Alert, Integer> {
     @Query("SELECT COUNT(a) FROM Alert a WHERE a.doctor.id = :doctorId AND UPPER(a.alertColor) = UPPER(:alertColor) AND a.isResolved = false")
     long countUnresolvedAlertsByColor(@Param("doctorId") Integer doctorId, @Param("alertColor") String alertColor);
+
+    java.util.List<Alert> findByPatientIdAndIsResolvedFalse(Integer patientId);
 }

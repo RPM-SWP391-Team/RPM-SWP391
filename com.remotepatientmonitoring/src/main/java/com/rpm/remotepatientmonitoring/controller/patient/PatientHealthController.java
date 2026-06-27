@@ -29,6 +29,9 @@ public class PatientHealthController {
     @Autowired
     private HealthLogRepository healthLogRepository;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository emergencyGuideRepository;
+
     @PostMapping("/log")
     public ResponseEntity<?> recordHealthLog(@RequestBody HealthLogRequest request) {
         try {
@@ -84,9 +87,9 @@ public class PatientHealthController {
                 }
                 if (log.getGlucoseLevel() != null) {
                     latestGlucose = log.getGlucoseLevel().doubleValue();
-                    if (latestGlucose > 300.0) {
+                    if (latestGlucose < 4.4 || latestGlucose > 16.0) {
                         level = Math.max(level, 3);
-                    } else if (latestGlucose > 130.0) {
+                    } else if (latestGlucose > 10.0) {
                         level = Math.max(level, 2);
                     }
                 }
@@ -114,9 +117,9 @@ public class PatientHealthController {
                     }
                     if (log.getGlucoseLevel() != null) {
                         latestGlucose = log.getGlucoseLevel().doubleValue();
-                        if (latestGlucose > 300.0) {
+                        if (latestGlucose < 4.4 || latestGlucose > 16.0) {
                             level = Math.max(level, 3);
-                        } else if (latestGlucose > 130.0) {
+                        } else if (latestGlucose > 10.0) {
                             level = Math.max(level, 2);
                         }
                     }
@@ -124,6 +127,20 @@ public class PatientHealthController {
             }
 
             boolean isEmergency = (level >= 2);
+
+            java.util.List<Map<String, Object>> guidesList = new java.util.ArrayList<>();
+            if (patient.getHospital() != null) {
+                java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyGuide> dbGuides = 
+                    emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
+                for (com.rpm.remotepatientmonitoring.model.EmergencyGuide g : dbGuides) {
+                    Map<String, Object> gMap = new HashMap<>();
+                    gMap.put("title", g.getTitle());
+                    gMap.put("content", g.getInstructionContent());
+                    gMap.put("alertLevel", g.getAlertLevel());
+                    gMap.put("metricType", g.getMetricType());
+                    guidesList.add(gMap);
+                }
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("isEmergency", isEmergency);
@@ -133,6 +150,7 @@ public class PatientHealthController {
             response.put("latestGlucose", latestGlucose);
             response.put("emergencyContactName", patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Chưa thiết lập");
             response.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
+            response.put("guides", guidesList);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

@@ -36,25 +36,21 @@ public class HospitalConfigService {
                             .hospital(hospital)
                             .scope("HOSPITAL")
                             .metricType("COMBINED")
-                            .glucoseNormalMin(BigDecimal.valueOf(70))
-                            .glucoseNormalMax(BigDecimal.valueOf(99))
-                            .glucoseWarningMin(BigDecimal.valueOf(100))
-                            .glucoseWarningMax(BigDecimal.valueOf(125))
-                            .glucoseTreatingMin(BigDecimal.valueOf(80))
-                            .glucoseTreatingMax(BigDecimal.valueOf(130))
-                            .glucoseDangerThreshold(BigDecimal.valueOf(130))
+                            .glucoseHypoThreshold(BigDecimal.valueOf(4.4))
+                            .glucoseNormalMax(BigDecimal.valueOf(10.0))
+                            .glucoseHighMax(BigDecimal.valueOf(16.0))
                             .systolicNormalMax(120)
-                            .systolicPrehypertensionMin(120)
-                            .systolicPrehypertensionMax(129)
-                            .systolicHypertensionMin(130)
-                            .systolicHypertensionMax(139)
-                            .systolicDangerThreshold(140)
+                            .systolicWarningMin(130)
+                            .systolicWarningMax(139)
+                            .systolicDangerMin(140)
+                            .systolicDangerMax(179)
                             .systolicEmergencyThreshold(180)
                             .diastolicNormalMax(80)
-                            .diastolicHypertensionMin(80)
-                            .diastolicHypertensionMax(89)
-                            .diastolicDangerThreshold(90)
-                            .diastolicEmergencyThreshold(120)
+                            .diastolicWarningMin(85)
+                            .diastolicWarningMax(89)
+                            .diastolicDangerMin(90)
+                            .diastolicDangerMax(109)
+                            .diastolicEmergencyThreshold(110)
                             .createdAt(LocalDateTime.now())
                             .updatedAt(LocalDateTime.now())
                             .build();
@@ -69,26 +65,22 @@ public class HospitalConfigService {
 
         validateThresholds(updated);
 
-        existing.setGlucoseNormalMin(updated.getGlucoseNormalMin());
+        existing.setGlucoseHypoThreshold(updated.getGlucoseHypoThreshold());
         existing.setGlucoseNormalMax(updated.getGlucoseNormalMax());
-        existing.setGlucoseWarningMin(updated.getGlucoseWarningMin());
-        existing.setGlucoseWarningMax(updated.getGlucoseWarningMax());
-        existing.setGlucoseTreatingMin(updated.getGlucoseTreatingMin());
-        existing.setGlucoseTreatingMax(updated.getGlucoseTreatingMax());
-        existing.setGlucoseDangerThreshold(updated.getGlucoseDangerThreshold());
+        existing.setGlucoseHighMax(updated.getGlucoseHighMax());
 
         existing.setSystolicNormalMax(updated.getSystolicNormalMax());
-        existing.setSystolicPrehypertensionMin(updated.getSystolicPrehypertensionMin());
-        existing.setSystolicPrehypertensionMax(updated.getSystolicPrehypertensionMax());
-        existing.setSystolicHypertensionMin(updated.getSystolicHypertensionMin());
-        existing.setSystolicHypertensionMax(updated.getSystolicHypertensionMax());
-        existing.setSystolicDangerThreshold(updated.getSystolicDangerThreshold());
+        existing.setSystolicWarningMin(updated.getSystolicWarningMin());
+        existing.setSystolicWarningMax(updated.getSystolicWarningMax());
+        existing.setSystolicDangerMin(updated.getSystolicDangerMin());
+        existing.setSystolicDangerMax(updated.getSystolicDangerMax());
         existing.setSystolicEmergencyThreshold(updated.getSystolicEmergencyThreshold());
 
         existing.setDiastolicNormalMax(updated.getDiastolicNormalMax());
-        existing.setDiastolicHypertensionMin(updated.getDiastolicHypertensionMin());
-        existing.setDiastolicHypertensionMax(updated.getDiastolicHypertensionMax());
-        existing.setDiastolicDangerThreshold(updated.getDiastolicDangerThreshold());
+        existing.setDiastolicWarningMin(updated.getDiastolicWarningMin());
+        existing.setDiastolicWarningMax(updated.getDiastolicWarningMax());
+        existing.setDiastolicDangerMin(updated.getDiastolicDangerMin());
+        existing.setDiastolicDangerMax(updated.getDiastolicDangerMax());
         existing.setDiastolicEmergencyThreshold(updated.getDiastolicEmergencyThreshold());
 
         existing.setUpdatedAt(LocalDateTime.now());
@@ -97,63 +89,14 @@ public class HospitalConfigService {
     }
 
     private void validateThresholds(AlertThreshold t) {
-        if (t.getGlucoseNormalMin() == null || t.getGlucoseNormalMax() == null ||
-                t.getGlucoseNormalMin().compareTo(BigDecimal.ZERO) <= 0 ||
-                t.getGlucoseNormalMax().compareTo(t.getGlucoseNormalMin()) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng đường huyết bình thường không hợp lệ (Cận trên phải lớn hơn cận dưới).");
+        if (t.getGlucoseHypoThreshold() == null || t.getGlucoseNormalMax() == null || t.getGlucoseHighMax() == null) {
+            throw new IllegalArgumentException("Các chỉ số đường huyết bắt buộc phải có.");
         }
-
-        if (t.getGlucoseWarningMin() == null || t.getGlucoseWarningMax() == null ||
-                t.getGlucoseWarningMax().compareTo(t.getGlucoseWarningMin()) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng tiền tiểu đường không hợp lệ.");
+        if (t.getSystolicNormalMax() == null || t.getSystolicWarningMin() == null || t.getSystolicWarningMax() == null) {
+            throw new IllegalArgumentException("Các chỉ số huyết áp tâm thu bắt buộc phải có.");
         }
-
-        if (t.getGlucoseTreatingMin() == null || t.getGlucoseTreatingMax() == null ||
-                t.getGlucoseTreatingMax().compareTo(t.getGlucoseTreatingMin()) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng kiểm soát điều trị tiểu đường không hợp lệ.");
-        }
-
-        if (t.getGlucoseDangerThreshold() == null ||
-                t.getGlucoseDangerThreshold().compareTo(t.getGlucoseTreatingMax()) <= 0) {
-            throw new IllegalArgumentException("Ngưỡng nguy hiểm đường huyết bắt buộc phải lớn hơn mức điều trị tối đa (> 130 mg/dL).");
-        }
-
-        if (t.getSystolicNormalMax() == null || t.getSystolicNormalMax() <= 0) {
-            throw new IllegalArgumentException("Huyết áp tâm thu bình thường phải là số nguyên dương.");
-        }
-
-        if (t.getSystolicPrehypertensionMin() == null || t.getSystolicPrehypertensionMax() == null ||
-                !t.getSystolicPrehypertensionMin().equals(t.getSystolicNormalMax()) ||
-                t.getSystolicPrehypertensionMax() <= t.getSystolicPrehypertensionMin()) {
-            throw new IllegalArgumentException("Cận dưới tiền tăng huyết áp tâm thu phải trùng khít với mức tối đa bình thường (120 mmHg).");
-        }
-
-        if (t.getSystolicHypertensionMin() == null || t.getSystolicHypertensionMax() == null ||
-                !t.getSystolicHypertensionMin().equals(t.getSystolicPrehypertensionMax() + 1) ||
-                t.getSystolicHypertensionMax() <= t.getSystolicHypertensionMin()) {
-            throw new IllegalArgumentException("Ngưỡng tăng huyết áp tâm thu phải tiếp nối liên tục từ mức tiền tăng huyết áp.");
-        }
-
-        if (t.getSystolicDangerThreshold() == null || t.getSystolicEmergencyThreshold() == null ||
-                t.getSystolicDangerThreshold() <= t.getSystolicHypertensionMax() ||
-                t.getSystolicEmergencyThreshold() <= t.getSystolicDangerThreshold()) {
-            throw new IllegalArgumentException("Ngưỡng nguy hiểm và cấp cứu huyết áp tâm thu vi phạm tính tịnh tiến.");
-        }
-
-        if (t.getDiastolicNormalMax() == null || t.getDiastolicNormalMax() <= 0) {
-            throw new IllegalArgumentException("Huyết áp tâm trương bình thường phải là số nguyên dương.");
-        }
-
-        if (t.getDiastolicHypertensionMin() == null || t.getDiastolicHypertensionMax() == null ||
-                !t.getDiastolicHypertensionMin().equals(t.getDiastolicNormalMax()) ||
-                t.getDiastolicHypertensionMax() <= t.getDiastolicHypertensionMin()) {
-            throw new IllegalArgumentException("Ngưỡng tăng huyết áp tâm trương phải bắt đầu từ mức tối đa bình thường (80 mmHg).");
-        }
-
-        if (t.getDiastolicDangerThreshold() == null || t.getDiastolicEmergencyThreshold() == null ||
-                t.getDiastolicDangerThreshold() <= t.getDiastolicHypertensionMax() ||
-                t.getDiastolicEmergencyThreshold() <= t.getDiastolicDangerThreshold()) {
-            throw new IllegalArgumentException("Ngưỡng nguy hiểm và cấp cứu huyết áp tâm trương không hợp lệ.");
+        if (t.getDiastolicNormalMax() == null || t.getDiastolicWarningMin() == null || t.getDiastolicWarningMax() == null) {
+            throw new IllegalArgumentException("Các chỉ số huyết áp tâm trương bắt buộc phải có.");
         }
     }
 

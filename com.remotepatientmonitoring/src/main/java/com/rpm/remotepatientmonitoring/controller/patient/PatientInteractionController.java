@@ -19,10 +19,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.ArrayList;
 
 @Controller
@@ -44,11 +49,31 @@ public class PatientInteractionController {
     @Autowired
     private HealthLogRepository healthLogRepository;
 
+    private Patient getCurrentPatient() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.size() > 0) {
+            return all.get(0);
+        }
+        return null;
+    }
+
     @GetMapping("/appointments")
     public String getAppointments(Model model) throws JsonProcessingException {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in database."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
 
         List<Appointment> appointments = appointmentRepository.findByPatientIdOrderByAppointmentTimeDesc(patient.getId());
         List<ChangeRequest> changeRequests = changeRequestRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
@@ -70,7 +95,10 @@ public class PatientInteractionController {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
+        List<Doctor> doctors = doctorRepository.findAvailableDoctorsByHospital(patient.getHospital().getId());
+
         model.addAttribute("patient", patient);
+        model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
@@ -83,9 +111,10 @@ public class PatientInteractionController {
 
     @GetMapping("/request-change")
     public String requestChangePage(Model model) {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in database."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
 
         ChangeRequest changeRequest = ChangeRequest.builder()
                 .status("PENDING")
@@ -98,15 +127,19 @@ public class PatientInteractionController {
 
     @PostMapping("/request-change")
     public String submitChangeRequest(@ModelAttribute("changeRequest") ChangeRequest changeRequest) {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in database."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
 
         Doctor doctor = patient.getDoctor();
         if (doctor == null) {
-            doctor = doctorRepository.findAll().stream()
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("No doctor found in database to receive requests."));
+            List<Doctor> all = doctorRepository.findAll();
+            if (all.size() > 0) {
+                doctor = all.get(0);
+            } else {
+                throw new IllegalStateException("No doctor found in database to receive requests.");
+            }
         }
 
         changeRequest.setPatient(patient);
@@ -117,5 +150,70 @@ public class PatientInteractionController {
 
         changeRequestRepository.save(changeRequest);
         return "redirect:/patient/appointments?requestSuccess=true";
+    }
+
+    @PostMapping("/book-appointment")
+    public String bookAppointment(
+            @RequestParam("appointmentTime") String appointmentTimeStr,
+            @RequestParam("appointmentType") String appointmentType,
+            @RequestParam("patientRequestReason") String patientRequestReason,
+            @RequestParam("doctorId") Integer doctorId) {
+
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid doctor Id: " + doctorId));
+
+        // Validate reason length
+        if (patientRequestReason == null || patientRequestReason.trim().isEmpty()) {
+            return "redirect:/patient/appointments?bookError=emptyReason";
+        }
+        if (patientRequestReason.length() > 500) {
+            return "redirect:/patient/appointments?bookError=reasonTooLong";
+        }
+
+        // Chuyển chuỗi từ datetime-local sang LocalDateTime
+        LocalDateTime apptTime;
+        try {
+            apptTime = LocalDateTime.parse(appointmentTimeStr);
+        } catch (Exception e) {
+            return "redirect:/patient/appointments?bookError=invalidDate";
+        }
+
+        // Validate date is in the future
+        if (apptTime.isBefore(LocalDateTime.now())) {
+            return "redirect:/patient/appointments?bookError=pastDate";
+        }
+
+        // Validate working hours (Monday-Friday, 08:00 to 17:00) if NOT emergency
+        if (!"EMERGENCY".equals(appointmentType)) {
+            java.time.DayOfWeek dayOfWeek = apptTime.getDayOfWeek();
+            int hour = apptTime.getHour();
+            if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+                return "redirect:/patient/appointments?bookError=outsideWorkingHours";
+            }
+            if (hour < 8 || hour >= 17) {
+                return "redirect:/patient/appointments?bookError=outsideWorkingHours";
+            }
+        }
+
+        Appointment appt = Appointment.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .appointmentTime(apptTime)
+                .appointmentType(appointmentType)
+                .patientRequestReason(patientRequestReason)
+                .status("PENDING")
+                .createdBy("PATIENT")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        appointmentRepository.save(appt);
+
+        return "redirect:/patient/appointments?bookSuccess=true";
     }
 }

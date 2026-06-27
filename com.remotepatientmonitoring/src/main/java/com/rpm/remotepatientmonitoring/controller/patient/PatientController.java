@@ -57,18 +57,38 @@ public class PatientController {
     @Autowired
     private NutritionRuleRepository nutritionRuleRepository;
 
+    @Autowired
+    private FoodDictionaryRepository foodDictionaryRepository;
+
+    private Patient getCurrentPatient() {
+        org.springframework.security.core.Authentication auth = 
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
+                com.rpm.remotepatientmonitoring.config.CustomUserDetails userDetails = 
+                    (com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal;
+                java.util.Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.size() > 0) {
+            return all.get(0);
+        }
+        return null;
+    }
+
     @GetMapping("/dashboard")
     public String getDashboard(Model model) {
-        // Lấy bệnh nhân thực tế từ DB hoặc fallback
-        Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
+        Patient patient = getCurrentPatient();
         if (patient == null) {
-            DiseaseProfile profile = DiseaseProfile.builder()
-                    .profileName("Đồng mắc (Tiểu đường & Tăng huyết áp)")
-                    .build();
-            patient = Patient.builder()
-                    .fullName("Nguyễn Văn A")
-                    .diseaseProfile(profile)
-                    .build();
+            return "redirect:/auth/login";
+        }
+        if ("NEW".equals(patient.getStatus())) {
+            return "redirect:/patient/appointments";
         }
 
         // Lấy phác đồ điều trị hiện hành của bệnh nhân từ DB
@@ -223,15 +243,12 @@ public class PatientController {
 
     @GetMapping("/adherence")
     public String getAdherencePage(Model model) {
-        Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
+        Patient patient = getCurrentPatient();
         if (patient == null) {
-            DiseaseProfile profile = DiseaseProfile.builder()
-                    .profileName("Đồng mắc (Tiểu đường & Tăng huyết áp)")
-                    .build();
-            patient = Patient.builder()
-                    .fullName("Nguyễn Văn A")
-                    .diseaseProfile(profile)
-                    .build();
+            return "redirect:/auth/login";
+        }
+        if ("NEW".equals(patient.getStatus())) {
+            return "redirect:/patient/appointments";
         }
 
         List<Map<String, Object>> medicationList = new ArrayList<>();
@@ -297,15 +314,12 @@ public class PatientController {
 
     @GetMapping("/nutrition")
     public String getNutritionPage(Model model) {
-        Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
+        Patient patient = getCurrentPatient();
         if (patient == null) {
-            DiseaseProfile profile = DiseaseProfile.builder()
-                    .profileName("Đồng mắc (Tiểu đường & Tăng huyết áp)")
-                    .build();
-            patient = Patient.builder()
-                    .fullName("Nguyễn Văn A")
-                    .diseaseProfile(profile)
-                    .build();
+            return "redirect:/auth/login";
+        }
+        if ("NEW".equals(patient.getStatus())) {
+            return "redirect:/patient/appointments";
         }
 
         List<PatientMeal> meals = new ArrayList<>();
@@ -348,21 +362,21 @@ public class PatientController {
         model.addAttribute("caloriesPercent", caloriesPercent);
         model.addAttribute("saltPercent", saltPercent);
         model.addAttribute("fiberPercent", fiberPercent);
+        
+        List<FoodDictionary> foods = foodDictionaryRepository.findByIsActiveTrue();
+        model.addAttribute("foods", foods);
 
         return "patient/nutrition";
     }
 
     @GetMapping("/exercise")
     public String getExercisePage(Model model) {
-        Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
+        Patient patient = getCurrentPatient();
         if (patient == null) {
-            DiseaseProfile profile = DiseaseProfile.builder()
-                    .profileName("Đồng mắc (Tiểu đường & Tăng huyết áp)")
-                    .build();
-            patient = Patient.builder()
-                    .fullName("Nguyễn Văn A")
-                    .diseaseProfile(profile)
-                    .build();
+            return "redirect:/auth/login";
+        }
+        if ("NEW".equals(patient.getStatus())) {
+            return "redirect:/patient/appointments";
         }
 
         List<PatientExercise> exercises = new ArrayList<>();
@@ -401,9 +415,13 @@ public class PatientController {
 
     @GetMapping("/progress")
     public String getProgressReport(Model model) {
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in the database. Please initialize data first."));
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+        if ("NEW".equals(patient.getStatus())) {
+            return "redirect:/patient/appointments";
+        }
         
         // Eagerly initialize proxies to avoid LazyInitializationException in Thymeleaf
         if (patient.getAccount() != null) {
@@ -430,8 +448,25 @@ public class PatientController {
             @RequestParam("email") String email,
             @RequestParam(value = "password", required = false) String password,
             @RequestParam("emergencyContactName") String emergencyContactName,
-            @RequestParam("emergencyContactPhone") String emergencyContactPhone
+            @RequestParam("emergencyContactPhone") String emergencyContactPhone,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes
     ) {
+        if (!phone.matches("0[35789][0-9]{8}")) {
+            redirectAttributes.addFlashAttribute("error", "Số điện thoại cá nhân không hợp lệ!");
+            return "redirect:/patient/progress";
+        }
+        if (!emergencyContactPhone.matches("0[35789][0-9]{8}")) {
+            redirectAttributes.addFlashAttribute("error", "Số điện thoại người thân không hợp lệ!");
+            return "redirect:/patient/progress";
+        }
+        if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
+            redirectAttributes.addFlashAttribute("error", "Email không hợp lệ!");
+            return "redirect:/patient/progress";
+        }
+        if (password != null && !password.trim().isEmpty() && (password.length() < 6 || password.length() > 50)) {
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu phải từ 6 đến 50 ký tự!");
+            return "redirect:/patient/progress";
+        }
         Patient patient = patientRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No patient found in the database."));
