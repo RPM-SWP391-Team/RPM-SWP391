@@ -40,25 +40,12 @@ public class PatientMeal {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // Transient fields to keep compatibility with old controller/UI
-    @Transient
-    private String foodName;
-
-    @Transient
-    private Integer calories;
-
-    @Transient
-    private Double saltG;
-
-    @Transient
-    private Double fiberG;
-
-    // Custom getters to calculate values dynamically from FoodDictionary
+    // Helper getters to compute values dynamically from FoodDictionary for UI templates
     public String getFoodName() {
         if (food != null) {
             return food.getFoodName();
         }
-        return foodName;
+        return "";
     }
 
     public Integer getCalories() {
@@ -66,24 +53,22 @@ public class PatientMeal {
             double c = (food.getEnergyKcal() * quantityG) / 100.0;
             return (int) c;
         }
-        return calories;
+        return 0;
     }
 
     public Double getSaltG() {
         if (food != null && food.getAshG() != null) {
             double s = (food.getAshG().doubleValue() * quantityG) / 100.0;
-            // Round to 2 decimal places
             return Math.round(s * 100.0) / 100.0;
         }
-        return saltG;
+        return 0.0;
     }
 
     public Double getFiberG() {
         if (food != null && food.getCellulozaG() != null) {
             double f = (food.getCellulozaG().doubleValue() * quantityG) / 100.0;
-            // Round to 2 decimal places
             return Math.round(f * 100.0) / 100.0;
         }
-        return fiberG;
+        return 0.0;
     }
 }
