@@ -23,10 +23,14 @@ public class PatientMedication {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
+    @ManyToOne
+    @JoinColumn(name = "treatment_plan_id")
+    private TreatmentPlan treatmentPlan;
+
     @Column(name = "medicine_name", nullable = false, length = 255)
     private String medicineName;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "dosage", nullable = false, length = 100)
     private String dosage;
 
     @Column(name = "scheduled_time", nullable = false, length = 10)
