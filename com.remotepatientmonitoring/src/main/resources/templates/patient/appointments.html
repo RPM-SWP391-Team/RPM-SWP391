@@ -79,6 +79,23 @@
             <i class="fa-solid fa-circle-check me-2"></i>Đặt lịch khám thành công! Đang chờ bác sĩ xác nhận.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        
+        <div th:if="${param.bookError != null and param.bookError[0] == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được để trống!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.bookError != null and param.bookError[0] == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được vượt quá 500 ký tự!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.bookError != null and param.bookError[0] == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>Ngày giờ đặt lịch không hợp lệ!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.bookError != null and param.bookError[0] == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>Thời gian khám mong muốn phải lớn hơn ngày hiện tại!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
             <h2 class="fw-bold mb-0">
@@ -285,7 +302,8 @@
                 <div class="py-3 px-4">
                     <div class="mb-3">
                         <label for="appointmentTime" class="form-label small fw-semibold text-muted">Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                        <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" required style="border-radius: var(--radius-sm);">
+                        <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" 
+                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required style="border-radius: var(--radius-sm);">
                     </div>
                     <div class="mb-3">
                         <label for="appointmentType" class="form-label small fw-semibold text-muted">Loại lịch hẹn <span class="text-danger">*</span></label>
@@ -304,7 +322,10 @@
                     </div>
                     <div class="mb-3">
                         <label for="patientRequestReason" class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="3" placeholder="Nhập lý do của bạn..." required style="border-radius: var(--radius-sm); resize: none;"></textarea>
+                        <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="3" 
+                                  placeholder="Nhập lý do của bạn..." required maxlength="500" 
+                                  style="border-radius: var(--radius-sm); resize: none;"></textarea>
+                        <small class="text-muted">Tối đa 500 ký tự.</small>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">

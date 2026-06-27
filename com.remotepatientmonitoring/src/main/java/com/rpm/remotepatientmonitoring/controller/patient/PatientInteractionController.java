@@ -167,8 +167,26 @@ public class PatientInteractionController {
         Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid doctor Id: " + doctorId));
 
+        // Validate reason length
+        if (patientRequestReason == null || patientRequestReason.trim().isEmpty()) {
+            return "redirect:/patient/appointments?bookError=emptyReason";
+        }
+        if (patientRequestReason.length() > 500) {
+            return "redirect:/patient/appointments?bookError=reasonTooLong";
+        }
+
         // Chuyển chuỗi từ datetime-local sang LocalDateTime
-        LocalDateTime apptTime = LocalDateTime.parse(appointmentTimeStr);
+        LocalDateTime apptTime;
+        try {
+            apptTime = LocalDateTime.parse(appointmentTimeStr);
+        } catch (Exception e) {
+            return "redirect:/patient/appointments?bookError=invalidDate";
+        }
+
+        // Validate date is in the future
+        if (apptTime.isBefore(LocalDateTime.now())) {
+            return "redirect:/patient/appointments?bookError=pastDate";
+        }
 
         Appointment appt = Appointment.builder()
                 .patient(patient)
