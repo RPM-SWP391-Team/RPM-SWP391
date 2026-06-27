@@ -6,13 +6,19 @@ import com.rpm.remotepatientmonitoring.model.PatientMedication;
 import com.rpm.remotepatientmonitoring.repository.MedicationLogRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientMedicationRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/patient/api/medications")
@@ -27,11 +33,23 @@ public class PatientMedicationController {
     @Autowired
     private PatientRepository patientRepository;
 
-    // ===================== Lấy Patient mock đầu tiên =====================
     private Patient getCurrentPatient() {
-        return patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.size() > 0) {
+            return all.get(0);
+        }
+        return null;
     }
 
     private String validateMedicationInput(String medicineName, String dosage, String scheduledTime) {
@@ -59,7 +77,6 @@ public class PatientMedicationController {
         return null;
     }
 
-    // ===================== 1. Thêm mới thuốc =====================
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addMedication(
             @RequestParam("medicineName") String medicineName,
@@ -68,13 +85,19 @@ public class PatientMedicationController {
 
         String valError = validateMedicationInput(medicineName, dosage, scheduledTime);
         if (valError != null) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", valError
-            ));
+            Map<String, Object> errRes = new HashMap<>();
+            errRes.put("success", false);
+            errRes.put("message", valError);
+            return ResponseEntity.badRequest().body(errRes);
         }
 
         Patient patient = getCurrentPatient();
+        if (patient == null) {
+            Map<String, Object> errRes = new HashMap<>();
+            errRes.put("success", false);
+            errRes.put("message", "Chưa đăng nhập.");
+            return ResponseEntity.badRequest().body(errRes);
+        }
 
         PatientMedication medication = PatientMedication.builder()
                 .patient(patient)
@@ -85,17 +108,17 @@ public class PatientMedicationController {
 
         PatientMedication saved = medicationRepository.save(medication);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Thêm thuốc thành công!",
-                "medicationId", saved.getId(),
-                "medicineName", saved.getMedicineName(),
-                "dosage", saved.getDosage(),
-                "scheduledTime", saved.getScheduledTime()
-        ));
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("message", "Thêm thuốc thành công!");
+        res.put("medicationId", saved.getId());
+        res.put("medicineName", saved.getMedicineName());
+        res.put("dosage", saved.getDosage());
+        res.put("scheduledTime", saved.getScheduledTime());
+
+        return ResponseEntity.ok(res);
     }
 
-    // ===================== 2. Chỉnh sửa thuốc =====================
     @PostMapping("/update/{id}")
     public ResponseEntity<Map<String, Object>> updateMedication(
             @PathVariable("id") Integer id,
@@ -105,15 +128,21 @@ public class PatientMedicationController {
 
         String valError = validateMedicationInput(medicineName, dosage, scheduledTime);
         if (valError != null) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", valError
-            ));
+            Map<String, Object> errRes = new HashMap<>();
+            errRes.put("success", false);
+            errRes.put("message", valError);
+            return ResponseEntity.badRequest().body(errRes);
         }
 
-        PatientMedication medication = medicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + id));
+        Optional<PatientMedication> optMed = medicationRepository.findById(id);
+        if (!optMed.isPresent()) {
+            Map<String, Object> errRes = new HashMap<>();
+            errRes.put("success", false);
+            errRes.put("message", "Không tìm thấy thuốc với ID: " + id);
+            return ResponseEntity.badRequest().body(errRes);
+        }
 
+        PatientMedication medication = optMed.get();
         medication.setMedicineName(medicineName.trim());
         medication.setDosage(dosage.trim());
         medication.setScheduledTime(scheduledTime.trim());
@@ -121,69 +150,80 @@ public class PatientMedicationController {
 
         medicationRepository.save(medication);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Cập nhật thuốc thành công!",
-                "medicationId", medication.getId(),
-                "medicineName", medication.getMedicineName(),
-                "dosage", medication.getDosage(),
-                "scheduledTime", medication.getScheduledTime()
-        ));
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("message", "Cập nhật thuốc thành công!");
+        res.put("medicationId", medication.getId());
+        res.put("medicineName", medication.getMedicineName());
+        res.put("dosage", medication.getDosage());
+        res.put("scheduledTime", medication.getScheduledTime());
+
+        return ResponseEntity.ok(res);
     }
 
-    // ===================== 3. Xóa thuốc (soft delete) =====================
     @PostMapping("/delete/{id}")
     public ResponseEntity<Map<String, Object>> deleteMedication(@PathVariable("id") Integer id) {
+        Optional<PatientMedication> optMed = medicationRepository.findById(id);
+        if (!optMed.isPresent()) {
+            Map<String, Object> errRes = new HashMap<>();
+            errRes.put("success", false);
+            errRes.put("message", "Không tìm thấy thuốc với ID: " + id);
+            return ResponseEntity.badRequest().body(errRes);
+        }
 
-        PatientMedication medication = medicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + id));
-
+        PatientMedication medication = optMed.get();
         medication.setIsActive(false);
         medication.setUpdatedAt(LocalDateTime.now());
         medicationRepository.save(medication);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Đã xóa thuốc: " + medication.getMedicineName()
-        ));
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("message", "Đã xóa thuốc: " + medication.getMedicineName());
+
+        return ResponseEntity.ok(res);
     }
 
-    // ===================== 4. Toggle uống thuốc hôm nay =====================
     @PostMapping("/toggle-take")
     public ResponseEntity<Map<String, Object>> toggleTakeMedication(
             @RequestParam("medicationId") Integer medicationId,
             @RequestParam("status") boolean status) {
 
-        // Kiểm tra thuốc có tồn tại không
-        PatientMedication medication = medicationRepository.findById(medicationId)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + medicationId));
+        Optional<PatientMedication> optMed = medicationRepository.findById(medicationId);
+        if (!optMed.isPresent()) {
+            Map<String, Object> errRes = new HashMap<>();
+            errRes.put("success", false);
+            errRes.put("message", "Không tìm thấy thuốc với ID: " + medicationId);
+            return ResponseEntity.badRequest().body(errRes);
+        }
 
+        PatientMedication medication = optMed.get();
         LocalDate today = LocalDate.now();
 
-        // Tìm hoặc tạo MedicationLog cho ngày hôm nay
-        MedicationLog log = medicationLogRepository
-                .findByPatientMedicationIdAndLogDate(medicationId, today)
-                .orElseGet(() -> {
-                    MedicationLog newLog = MedicationLog.builder()
-                            .patientMedication(medication)
-                            .logDate(today)
-                            .isTaken(false)
-                            .build();
-                    return medicationLogRepository.save(newLog);
-                });
+        Optional<MedicationLog> optLog = medicationLogRepository.findByPatientMedicationIdAndLogDate(medicationId, today);
+        MedicationLog log;
+        if (optLog.isPresent()) {
+            log = optLog.get();
+        } else {
+            MedicationLog newLog = MedicationLog.builder()
+                    .patientMedication(medication)
+                    .logDate(today)
+                    .isTaken(false)
+                    .build();
+            log = medicationLogRepository.save(newLog);
+        }
 
-        // Cập nhật trạng thái
         log.setIsTaken(status);
         log.setTakenAt(status ? LocalDateTime.now() : null);
         medicationLogRepository.save(log);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", status ? "Đã đánh dấu uống thuốc: " + medication.getMedicineName()
-                                  : "Đã hủy đánh dấu: " + medication.getMedicineName(),
-                "medicationId", medicationId,
-                "status", status,
-                "medicineName", medication.getMedicineName()
-        ));
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("message", status ? "Đã đánh dấu uống thuốc: " + medication.getMedicineName()
+                                  : "Đã hủy đánh dấu: " + medication.getMedicineName());
+        res.put("medicationId", medicationId);
+        res.put("status", status);
+        res.put("medicineName", medication.getMedicineName());
+
+        return ResponseEntity.ok(res);
     }
 }

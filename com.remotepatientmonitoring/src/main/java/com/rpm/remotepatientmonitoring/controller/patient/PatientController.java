@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -154,17 +155,27 @@ public class PatientController {
                 LocalDate today = LocalDate.now();
                 totalMeds = activeMeds.size();
                 for (PatientMedication med : activeMeds) {
-                    boolean taken = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean taken = false;
+                    Optional<MedicationLog> optLog = medicationLogRepository
+                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (optLog.isPresent()) {
+                        MedicationLog mLog = optLog.get();
+                        if (mLog.getIsTaken() != null && mLog.getIsTaken()) {
+                            taken = true;
+                        }
+                    }
                     if (taken) {
                         takenMeds++;
                     }
                 }
-                currentWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
-                        .map(WaterLog::getAmountMl)
-                        .orElse(0);
+                
+                Optional<WaterLog> optWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                if (optWater.isPresent()) {
+                    WaterLog wl = optWater.get();
+                    if (wl.getAmountMl() != null) {
+                        currentWater = wl.getAmountMl();
+                    }
+                }
             }
         } catch (Exception ignored) {
         }
@@ -265,17 +276,26 @@ public class PatientController {
                     item.put("medicineName", med.getMedicineName());
                     item.put("dosage", med.getDosage());
                     item.put("scheduledTime", med.getScheduledTime());
-                    boolean taken = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean taken = false;
+                    Optional<MedicationLog> optLog = medicationLogRepository
+                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (optLog.isPresent()) {
+                        MedicationLog mLog = optLog.get();
+                        if (mLog.getIsTaken() != null && mLog.getIsTaken()) {
+                            taken = true;
+                        }
+                    }
                     item.put("isTaken", taken);
                     medicationList.add(item);
                 }
 
-                currentWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
-                        .map(WaterLog::getAmountMl)
-                        .orElse(0);
+                Optional<WaterLog> optWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                if (optWater.isPresent()) {
+                    WaterLog wl = optWater.get();
+                    if (wl.getAmountMl() != null) {
+                        currentWater = wl.getAmountMl();
+                    }
+                }
             }
         } catch (Exception ignored) {
         }
