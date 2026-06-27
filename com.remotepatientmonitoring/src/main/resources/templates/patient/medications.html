@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Uống Thuốc</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/patient.css">
+</head>
+<body>
+    <nav class="navbar navbar-dark navbar-custom py-3">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
+            </span>
+            <div class="dropdown">
+                <div class="d-flex align-items-center text-white" 
+                     id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                    <i class="fa-regular fa-user-circle fa-2x me-2"></i>
+                    <div class="text-start me-2">
+                        <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
+                        <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+                    </div>
+                    <i class="fa-solid fa-chevron-down small text-white-50"></i>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 150px;">
+                    <li>
+                        <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
+                            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="mb-4 d-flex align-items-center justify-content-between">
+            <a href="/patient/dashboard" class="btn btn-outline-secondary btn-back">
+                <i class="fa-solid fa-arrow-left me-2"></i>Quay lại Dashboard
+            </a>
+            <h3 class="fw-bold text-dark mb-0">Quản Lý Lịch Uống Thuốc</h3>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left panel: Hướng dẫn phác đồ -->
+            <div class="col-lg-4">
+                <div class="card card-custom treatment-card p-4">
+                    <h5 class="fw-bold text-primary mb-3">
+                        <i class="fa-solid fa-file-medical me-2"></i>Phác Đồ & Chỉ Định
+                    </h5>
+                    <p class="text-muted small">
+                        Hãy luôn tuân thủ chỉ định điều trị của bác sĩ để theo dõi sức khỏe đạt hiệu quả tốt nhất.
+                    </p>
+                    <hr class="my-3 text-muted">
+                    <div class="mb-3">
+                        <h6 class="fw-semibold text-secondary">
+                            <i class="fa-solid fa-user-md me-2 text-danger"></i>Ghi chú điều trị
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            Uống đúng liều lượng, đúng thời gian, và không tự ý thay đổi liều lượng khi chưa có chỉ định của bác sĩ.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right panel: Hộp thuốc chi tiết -->
+            <div class="col-lg-8">
+                <div class="card card-custom medication-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-success mb-0">
+                            <i class="fa-solid fa-box-tissue me-2"></i>Danh Sách Thuốc Cá Nhân
+                        </h4>
+                        <button class="btn btn-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
+                            <i class="fa-solid fa-plus me-1"></i>Thêm thuốc mới
+                        </button>
+                    </div>
+
+                    <div class="medication-list d-flex flex-column gap-2">
+                        <div th:each="med : ${medications}" class="med-item p-3 border d-flex align-items-center justify-content-between" th:classappend="${med.isTaken} ? 'taken' : ''" th:id="'med-item-' + ${med.id}">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="circle-toggle" onclick="toggleMedication(this)" th:id="'toggle-icon-' + ${med.id}" th:data-id="${med.id}" th:data-status="${med.isTaken}">
+                                    <i th:class="${med.isTaken} ? 'fa-solid fa-circle-check text-success' : 'fa-regular fa-circle text-secondary'"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold med-title text-dark" th:text="${med.medicineName}">Tên thuốc</div>
+                                    <small class="text-muted d-block">
+                                        <i class="fa-solid fa-spoon me-1"></i>Liều lượng: <span th:text="${med.dosage}">1 viên</span>
+                                    </small>
+                                    <span class="badge bg-light text-dark border mt-1">
+                                        <i class="fa-regular fa-clock me-1 text-primary"></i><span th:text="${med.scheduledTime}">08:00</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <i class="fa-solid fa-pen action-icon" 
+                                   th:data-id="${med.id}"
+                                   th:data-name="${med.medicineName}"
+                                   th:data-dosage="${med.dosage}"
+                                   th:data-time="${med.scheduledTime}"
+                                   onclick="openEditModal(this)"></i>
+                                <i class="fa-solid fa-trash action-icon delete" 
+                                   th:data-id="${med.id}"
+                                   onclick="deleteMedication(this)"></i>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(medications)}" class="text-center text-muted py-4">
+                            <i class="fa-solid fa-pills fa-2x mb-2 text-black-50"></i>
+                            <p class="mb-0 small">Chưa có lịch uống thuốc nào được tạo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: THÊM THUỐC MỚI ==================== -->
+    <div class="modal fade" id="addMedicationModal" tabindex="-1" aria-labelledby="addMedicationLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="addMedicationLabel">
+                        <i class="fa-solid fa-plus-circle me-2"></i>Thêm Thuốc Mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="addMedName" class="form-label fw-semibold">
+                            <i class="fa-solid fa-capsules me-1 text-primary"></i>Tên thuốc
+                        </label>
+                        <input type="text" class="form-control" id="addMedName" placeholder="Ví dụ: Metformin 500mg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addMedDosage" class="form-label fw-semibold">
+                            <i class="fa-solid fa-tablets me-1 text-info"></i>Liều lượng
+                        </label>
+                        <input type="text" class="form-control" id="addMedDosage" placeholder="Ví dụ: 1 viên" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addMedTime" class="form-label fw-semibold">
+                            <i class="fa-regular fa-clock me-1 text-warning"></i>Giờ uống
+                        </label>
+                        <input type="time" class="form-control" id="addMedTime" value="08:00" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" onclick="submitAddForm()">
+                        <i class="fa-solid fa-check me-1"></i>Thêm thuốc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CHỈNH SỬA THUỐC ==================== -->
+    <div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="editMedicationLabel">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Thuốc
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editMedId">
+                    <div class="mb-3">
+                        <label for="editMedName" class="form-label fw-semibold">
+                            <i class="fa-solid fa-capsules me-1 text-primary"></i>Tên thuốc
+                        </label>
+                        <input type="text" class="form-control" id="editMedName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMedDosage" class="form-label fw-semibold">
+                            <i class="fa-solid fa-tablets me-1 text-info"></i>Liều lượng
+                        </label>
+                        <input type="text" class="form-control" id="editMedDosage" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMedTime" class="form-label fw-semibold">
+                            <i class="fa-regular fa-clock me-1 text-warning"></i>Giờ uống
+                        </label>
+                        <input type="time" class="form-control" id="editMedTime" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" onclick="submitEditForm()">
+                        <i class="fa-solid fa-check me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ==================== JAVASCRIPT: Fetch API ==================== -->
+    <script>
+        // ==================== 1. Toggle uống thuốc ====================
+        function toggleMedication(element) {
+            const medicationId = element.getAttribute('data-id');
+            const currentStatus = element.getAttribute('data-status') === 'true';
+            const newStatus = !currentStatus;
+            const toggleIcon = document.getElementById('toggle-icon-' + medicationId);
+            const medItem = document.getElementById('med-item-' + medicationId);
+
+            const params = new URLSearchParams();
+            params.append('medicationId', medicationId);
+            params.append('status', newStatus);
+
+            fetch('/patient/api/medications/toggle-take', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (newStatus) {
+                        medItem.classList.add('taken');
+                        toggleIcon.innerHTML = '<i class="fa-solid fa-circle-check text-success"></i>';
+                    } else {
+                        medItem.classList.remove('taken');
+                        toggleIcon.innerHTML = '<i class="fa-regular fa-circle text-secondary"></i>';
+                    }
+                    element.setAttribute('data-status', newStatus ? 'true' : 'false');
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể cập nhật.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        // ==================== 2. Mở modal Sửa thuốc ====================
+        function openEditModal(element) {
+            const id = element.getAttribute('data-id');
+            const name = element.getAttribute('data-name');
+            const dosage = element.getAttribute('data-dosage');
+            const scheduledTime = element.getAttribute('data-time');
+
+            document.getElementById('editMedId').value = id;
+            document.getElementById('editMedName').value = name;
+            document.getElementById('editMedDosage').value = dosage;
+            document.getElementById('editMedTime').value = scheduledTime;
+            const modal = new bootstrap.Modal(document.getElementById('editMedicationModal'));
+            modal.show();
+        }
+
+        // ==================== 3. Submit Thêm thuốc mới ====================
+        function submitAddForm() {
+            const name = document.getElementById('addMedName').value.trim();
+            const dosage = document.getElementById('addMedDosage').value.trim();
+            const time = document.getElementById('addMedTime').value.trim();
+
+            if (!name || !dosage || !time) {
+                alert('Vui lòng nhập đầy đủ thông tin.');
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('medicineName', name);
+            params.append('dosage', dosage);
+            params.append('scheduledTime', time);
+
+            fetch('/patient/api/medications/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addMedicationModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể thêm thuốc.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        // ==================== 4. Submit Sửa thuốc ====================
+        function submitEditForm() {
+            const id = document.getElementById('editMedId').value;
+            const name = document.getElementById('editMedName').value.trim();
+            const dosage = document.getElementById('editMedDosage').value.trim();
+            const time = document.getElementById('editMedTime').value.trim();
+
+            if (!name || !dosage || !time) {
+                alert('Vui lòng nhập đầy đủ thông tin.');
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('medicineName', name);
+            params.append('dosage', dosage);
+            params.append('scheduledTime', time);
+
+            fetch('/patient/api/medications/update/' + id, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('editMedicationModal')).hide();
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể cập nhật.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+
+        // ==================== 5. Xóa thuốc (soft delete) ====================
+        function deleteMedication(element) {
+            const id = element.getAttribute('data-id');
+            if (!confirm('Bạn có chắc chắn muốn xóa thuốc này khỏi danh sách?')) return;
+
+            fetch('/patient/api/medications/delete/' + id, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const item = document.getElementById('med-item-' + id);
+                    if (item) {
+                        item.style.transition = 'all 0.3s ease';
+                        item.style.opacity = '0';
+                        item.style.transform = 'translateX(-30px)';
+                        setTimeout(() => item.remove(), 300);
+                    }
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể xóa thuốc.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối server.');
+            });
+        }
+    </script>
+</body>
+</html>

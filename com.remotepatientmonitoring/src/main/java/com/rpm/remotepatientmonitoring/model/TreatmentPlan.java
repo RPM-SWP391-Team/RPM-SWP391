@@ -35,6 +35,17 @@ public class TreatmentPlan {
     private BigDecimal targetHba1c;
     @Column(name = "target_weight_kg", precision = 5, scale = 2)
     private BigDecimal targetWeightKg;
+
+    @Column(name = "baseline_systolic_bp")
+    private Integer baselineSystolicBp;
+    @Column(name = "baseline_diastolic_bp")
+    private Integer baselineDiastolicBp;
+    @Column(name = "baseline_fasting_glucose", precision = 6, scale = 2)
+    private BigDecimal baselineFastingGlucose;
+    @Column(name = "baseline_hba1c", precision = 5, scale = 2)
+    private BigDecimal baselineHba1c;
+    @Column(name = "baseline_weight_kg", precision = 5, scale = 2)
+    private BigDecimal baselineWeightKg;
     @Column(name = "medical_order", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String medicalOrder;
     @Column(name = "exercise_goal", length = 500)

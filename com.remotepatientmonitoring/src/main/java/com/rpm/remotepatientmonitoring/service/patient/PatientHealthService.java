@@ -1,6 +1,6 @@
-package com.rpm.remotepatientmonitoring.service;
+package com.rpm.remotepatientmonitoring.service.patient;
 
-import com.rpm.remotepatientmonitoring.dto.HealthLogRequest;
+import com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
