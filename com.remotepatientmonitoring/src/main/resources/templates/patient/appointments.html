@@ -283,12 +283,41 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     const modalEl = document.getElementById('bookAppointmentModal');
-                    if (modalEl && typeof bootstrap !== 'undefined') {
-                        let bsModal = bootstrap.Modal.getInstance(modalEl);
-                        if (!bsModal) {
-                            bsModal = new bootstrap.Modal(modalEl);
+                    if (modalEl) {
+                        if (typeof bootstrap !== 'undefined') {
+                            let bsModal = bootstrap.Modal.getInstance(modalEl);
+                            if (!bsModal) {
+                                bsModal = new bootstrap.Modal(modalEl);
+                            }
+                            bsModal.show();
+                        } else {
+                            // Cứu cánh bằng CSS/JS thuần nếu thư viện Bootstrap bị lỗi tải
+                            modalEl.style.display = 'block';
+                            modalEl.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                            modalEl.classList.add('show');
+                            document.body.classList.add('modal-open');
+                            
+                            // Tạo lớp nền đen mờ (backdrop)
+                            let backdrop = document.querySelector('.modal-backdrop');
+                            if (!backdrop) {
+                                backdrop = document.createElement('div');
+                                backdrop.className = 'modal-backdrop fade show';
+                                document.body.appendChild(backdrop);
+                            }
+
+                            // Gắn sự kiện đóng cho các nút
+                            const closeTriggers = modalEl.querySelectorAll('[data-bs-dismiss="modal"], .btn-close');
+                            closeTriggers.forEach(function(trigger) {
+                                trigger.onclick = function() {
+                                    modalEl.style.display = 'none';
+                                    modalEl.classList.remove('show');
+                                    document.body.classList.remove('modal-open');
+                                    if (backdrop) {
+                                        backdrop.remove();
+                                    }
+                                };
+                            });
                         }
-                        bsModal.show();
                     }
                 });
             }
