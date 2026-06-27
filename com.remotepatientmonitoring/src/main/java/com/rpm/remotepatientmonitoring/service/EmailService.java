@@ -35,6 +35,15 @@ public class EmailService {
                     "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.\n\n" +
                     "Trân trọng,\n" +
                     "Hệ thống RPM";
+        } else if ("PASSWORD_RESET".equals(otpType)) {
+            subject = "Yêu cầu khôi phục mật khẩu - Hệ thống RPM";
+            body = "Xin chào,\n\n" +
+                    "Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản liên kết với email này trên Hệ thống Theo dõi Bệnh nhân Từ xa (RPM).\n\n" +
+                    "Mã xác thực (OTP) để đặt lại mật khẩu của bạn là: " + otp + "\n\n" +
+                    "Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.\n\n" +
+                    "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.\n\n" +
+                    "Trân trọng,\n" +
+                    "Hệ thống RPM";
         } else {
             subject = "Mã xác thực OTP - Hệ thống RPM";
             body = "Xin chào,\n\n" +

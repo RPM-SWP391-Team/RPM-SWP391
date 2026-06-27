@@ -36,6 +36,7 @@ public class AuthController {
             @RequestParam(value = "username", required = false) String username,
             @RequestParam(value = "verified", required = false) String verified,
             @RequestParam(value = "disabled", required = false) String disabled,
+            @RequestParam(value = "resetSuccess", required = false) String resetSuccess,
             Model model) {
         if (disabled != null) {
             model.addAttribute("errorMessage", "Vui lòng xác thực email trước khi đăng nhập.");
@@ -51,6 +52,9 @@ public class AuthController {
         }
         if (verified != null) {
             model.addAttribute("successMessage", "Xác thực email thành công! Bạn có thể đăng nhập.");
+        }
+        if (resetSuccess != null) {
+            model.addAttribute("successMessage", "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập.");
         }
         return "auth/login";
     }
@@ -254,6 +258,13 @@ public class AuthController {
             return "auth/verify-otp";
         }
 
+        if ("PASSWORD_RESET".equals(type)) {
+            HttpSession session = request.getSession(true);
+            session.setAttribute("RESET_PASSWORD_EMAIL", email);
+            log.info("Xác thực OTP thành công để đặt lại mật khẩu cho email={}", email);
+            return "redirect:/auth/reset-password";
+        }
+
         // Xác thực thành công — tự động đăng nhập luôn
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -295,6 +306,95 @@ public class AuthController {
         model.addAttribute("email", email);
         model.addAttribute("otpType", type);
         return "auth/verify-otp";
+    }
+
+    // ==================== FORGOT PASSWORD ====================
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(
+            @RequestParam String email,
+            Model model) {
+        if (email == null || email.trim().isEmpty()) {
+            model.addAttribute("errorMessage", "Email không được để trống!");
+            return "auth/forgot-password";
+        }
+        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            model.addAttribute("errorMessage", "Email không đúng định dạng!");
+            model.addAttribute("email", email);
+            return "auth/forgot-password";
+        }
+        if (!authService.emailExists(email)) {
+            model.addAttribute("errorMessage", "Email này chưa được đăng ký trong hệ thống!");
+            model.addAttribute("email", email);
+            return "auth/forgot-password";
+        }
+
+        try {
+            // Tạo OTP cho forgot password
+            String otp = authService.createOtpRecord(email, "PASSWORD_RESET");
+            // Gửi email OTP
+            authService.sendOtpEmailSafely(email, otp, "PASSWORD_RESET");
+            
+            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+            return "redirect:/auth/verify-otp?email=" + encodedEmail + "&type=PASSWORD_RESET";
+        } catch (Exception ex) {
+            log.error("Lỗi khi xử lý quên mật khẩu cho email={}: {}", email, ex.getMessage(), ex);
+            model.addAttribute("errorMessage", "Đã xảy ra lỗi: " + ex.getMessage());
+            model.addAttribute("email", email);
+            return "auth/forgot-password";
+        }
+    }
+
+    // ==================== RESET PASSWORD ====================
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("RESET_PASSWORD_EMAIL") == null) {
+            return "redirect:/auth/forgot-password";
+        }
+        model.addAttribute("email", session.getAttribute("RESET_PASSWORD_EMAIL"));
+        return "auth/reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+            HttpServletRequest request,
+            Model model) {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("RESET_PASSWORD_EMAIL") == null) {
+            return "redirect:/auth/forgot-password";
+        }
+        String email = (String) session.getAttribute("RESET_PASSWORD_EMAIL");
+
+        if (password.length() < 8) {
+            model.addAttribute("email", email);
+            model.addAttribute("errorMessage", "Mật khẩu phải có ít nhất 8 ký tự!");
+            return "auth/reset-password";
+        }
+        if (!password.equals(confirmPassword)) {
+            model.addAttribute("email", email);
+            model.addAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
+            return "auth/reset-password";
+        }
+
+        try {
+            authService.resetPassword(email, password);
+            session.removeAttribute("RESET_PASSWORD_EMAIL");
+            return "redirect:/auth/login?resetSuccess=true";
+        } catch (Exception ex) {
+            log.error("Lỗi khi đặt lại mật khẩu cho email={}: {}", email, ex.getMessage(), ex);
+            model.addAttribute("email", email);
+            model.addAttribute("errorMessage", "Đã xảy ra lỗi khi đặt lại mật khẩu: " + ex.getMessage());
+            return "auth/reset-password";
+        }
     }
 
     private void preserveFormData(Model model, String email, String fullName, String phone,
