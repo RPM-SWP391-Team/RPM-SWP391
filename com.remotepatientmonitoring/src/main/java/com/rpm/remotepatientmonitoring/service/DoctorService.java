@@ -36,12 +36,12 @@ public class DoctorService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // SỬA CHUẨN: Bỏ hoàn toàn (required = false) để ép hệ thống kiểm tra Bean EmailService chặt chẽ khi startup
     @Autowired
     private EmailService emailService;
 
-    // --- Hàm sinh mật khẩu ngẫu nhiên bảo mật của bạn ---
     private String generatePassword() {
-        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$";
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 10; i++) {
@@ -50,28 +50,43 @@ public class DoctorService {
         return sb.toString();
     }
 
-    // --- 1. Lấy danh sách bác sĩ theo bệnh viện ---
     public List<Doctor> getDoctorsByHospital(Integer hospitalId) {
         return doctorRepository.findByHospitalId(hospitalId);
     }
 
-    // --- 2. Hàm tạo bác sĩ tổng hợp toàn bộ logic chặn dữ liệu, Builder và tự động gửi Email ---
+    @Transactional
+    public void activateDoctor(Integer doctorId) {
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId));
+
+        if (doctor.getIsActive()) {
+            throw new IllegalStateException("Tài khoản bác sĩ này hiện đã ở trạng thái hoạt động.");
+        }
+
+        doctor.setIsActive(true);
+        doctor.setCurrentPatientCount(0);
+        doctor.setUpdatedAt(LocalDateTime.now());
+        doctorRepository.save(doctor);
+
+        if (doctor.getAccount() != null) {
+            Account account = doctor.getAccount();
+            account.setIsActive(true);
+            account.setUpdatedAt(LocalDateTime.now());
+            accountRepository.save(account);
+        }
+    }
+
     @Transactional
     public Doctor createDoctor(Integer hospitalId, String doctorCode, String fullName, String phone,
                                String email, String password, String specialty, Integer capacityLimit) {
 
-        // Kiểm tra định dạng họ và tên (Regex tiếng Việt)
-        String nameRegex = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÂÊÔƠƯỨỬỮỰẤẨẪẬẮẲẴẬéèẻẽêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựýỳỷỹỵ\\s]{2,50}$";
+        // 1. Kiểm tra định dạng họ và tên tầng Service tránh lọt dữ liệu bừa bãi
+        String nameRegex = "^[\\p{L}\\s]{2,50}$";
         if (fullName == null || !fullName.trim().matches(nameRegex)) {
-            throw new IllegalArgumentException("Họ và tên bác sĩ không hợp lệ. Tên chỉ được phép chứa chữ cái và khoảng trắng.");
+            throw new IllegalArgumentException("Họ và tên bác sĩ không hợp lệ. Tên chỉ được phép chứa chữ cái tiếng Việt và khoảng trắng.");
         }
 
-        // Kiểm tra chuyên khoa chuẩn Unicode
-        if (specialty == null || (!specialty.equals("Tiểu đường") && !specialty.equals("Huyết áp") && !specialty.equals("Cả tiểu đường và huyết áp"))) {
-            throw new IllegalArgumentException("Chuyên khoa lâm sàng không hợp lệ. Hệ thống chỉ chấp nhận: 'Tiểu đường', 'Huyết áp' hoặc 'Cả tiểu đường và huyết áp'.");
-        }
-
-        // Kiểm tra trùng lặp dữ liệu trong hệ thống
+        // 2. Kiểm tra trùng lặp dữ liệu hệ thống (Chỉ check định danh độc nhất, không chặn họ tên trùng thực tế)
         if (doctorRepository.existsByDoctorCode(doctorCode)) {
             throw new IllegalArgumentException("Mã bác sĩ đã tồn tại trong hệ thống.");
         }
@@ -85,10 +100,20 @@ public class DoctorService {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
 
-        // Nếu tham số mật khẩu từ giao diện trống, kích hoạt cơ chế tự sinh mật khẩu của bạn
-        String finalPassword = (password == null || password.trim().isEmpty()) ? generatePassword() : password;
+        // Tự động sinh mật khẩu ngẫu nhiên
+        String finalPassword = generatePassword();
 
-        // Tạo tài khoản hệ thống (Account)
+        // 🌟 BƯỚC 3: GỬI MAIL KIỂM TRA ĐỊA CHỈ THỰC TẾ TRƯỚC KHI GHI NHẬN XUỐNG DB
+        try {
+            boolean isMailSent = emailService.sendDoctorPassword(email, fullName, finalPassword);
+            if (!isMailSent) {
+                throw new IllegalArgumentException("Email lỗi: Địa chỉ email không tồn tại hoặc không thể chuyển phát thư.");
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Email lỗi: Địa chỉ email không khả dụng hoặc cấu hình SMTP Google Mail bị từ chối.");
+        }
+
+        // 4. Tạo tài khoản hệ thống (Account)
         Account account = Account.builder()
                 .email(email)
                 .passwordHash(passwordEncoder.encode(finalPassword))
@@ -100,7 +125,7 @@ public class DoctorService {
                 .build();
         account = accountRepository.save(account);
 
-        // Tạo thông tin bác sĩ (Doctor)
+        // 5. Tạo thông tin bác sĩ (Doctor)
         Doctor doctor = Doctor.builder()
                 .account(account)
                 .hospital(hospital)
@@ -116,13 +141,25 @@ public class DoctorService {
                 .build();
         doctor = doctorRepository.save(doctor);
 
-        // Gửi email chứa thông tin mật khẩu vừa tạo về cho bác sĩ
-        emailService.sendDoctorPassword(email, fullName, finalPassword);
-
         return doctor;
     }
 
-    // --- 3. Luồng tự động điều chuyển bệnh nhân khi ẩn/vô hiệu hóa bác sĩ ---
+    // Thêm duy nhất hàm này vào bên trong class DoctorService.java của bạn
+    public String generateNextDoctorCode() {
+        String latestCode = doctorRepository.findLatestDoctorCode();
+        if (latestCode == null || latestCode.trim().isEmpty()) {
+            return "BS001"; // Khởi tạo mã đầu tiên nếu DB trống
+        }
+        try {
+            // "BS005" -> substring(2) cắt bỏ 2 chữ đầu để lấy chuỗi "005"
+            String numberPart = latestCode.substring(2);
+            int nextNumber = Integer.parseInt(numberPart) + 1;
+            return String.format("BS%03d", nextNumber); // Tự động bù số 0 thành: BS006
+        } catch (Exception e) {
+            return "BS" + (int)(Math.random() * 900 + 100); // Dự phòng an toàn nếu parse lỗi
+        }
+    }
+
     @Transactional
     public void deactivateDoctor(Integer doctorId) {
         Doctor doctor = doctorRepository.findById(doctorId)
@@ -134,7 +171,7 @@ public class DoctorService {
             List<ReplacementDoctorDto> replacements = getReplacementCapacityList(doctor.getHospital().getId(), doctorId);
 
             if (replacements.isEmpty()) {
-                throw new IllegalStateException("Không thể vô hiệu hóa! Toàn bộ bác sĩ khác trong viện đều đã QUÁ TẢI, không có ai nhận bàn giao " + activePatients.size() + " bệnh nhân.");
+                throw new IllegalStateException("Không thể vô hiệu hóa! Toàn bộ bác sĩ khác trong viện đều đã QUÁ TẢI.");
             }
 
             int replacementIndex = 0;
@@ -145,7 +182,7 @@ public class DoctorService {
                 }
 
                 if (replacementIndex >= replacements.size()) {
-                    throw new IllegalStateException("Cạn kiệt hạn ngạch tiếp nhận của toàn viện giữa chừng! Vui lòng nâng Capacity Limit của các bác sĩ khác trước.");
+                    throw new IllegalStateException("Cạn kiệt hạn ngạch tiếp nhận!");
                 }
 
                 ReplacementDoctorDto targetDto = replacements.get(replacementIndex);
@@ -161,13 +198,11 @@ public class DoctorService {
             }
         }
 
-        // Khóa trạng thái hành chính
         doctor.setCurrentPatientCount(0);
         doctor.setIsActive(false);
         doctor.setUpdatedAt(LocalDateTime.now());
         doctorRepository.save(doctor);
 
-        // Khóa đồng bộ tài khoản đăng nhập
         if (doctor.getAccount() != null) {
             Account account = doctor.getAccount();
             account.setIsActive(false);
@@ -177,13 +212,12 @@ public class DoctorService {
     }
 
     private List<ReplacementDoctorDto> getReplacementCapacityList(Integer hospitalId, Integer currentDoctorId) {
-        List<Doctor> docs = doctorRepository.findBestReplacementDoctors(hospitalId, currentDoctorId);
+        List<com.rpm.remotepatientmonitoring.model.Doctor> docs = doctorRepository.findBestReplacementDoctors(hospitalId, currentDoctorId);
         return docs.stream()
                 .map(d -> new ReplacementDoctorDto(d, d.getCurrentPatientCount(), d.getCapacityLimit()))
                 .collect(Collectors.toList());
     }
 
-    // --- DTO nội bộ phục vụ bàn giao bệnh nhân ---
     private static class ReplacementDoctorDto {
         private final Doctor doctor;
         private int tempCount;

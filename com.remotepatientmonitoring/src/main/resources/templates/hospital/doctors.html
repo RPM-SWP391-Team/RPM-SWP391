@@ -365,14 +365,18 @@
                         </td>
                         <td class="text-center">
                             <form th:if="${doc.isActive}" th:action="@{/hospital/doctors/deactivate/{id}(id=${doc.id})}" method="POST"
-                                  onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Hành động này không thể hoàn tác và tài khoản sẽ không thể đăng nhập hoặc nhận thêm bệnh nhân.')">
+                                  onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Toàn bộ bệnh nhân thuộc bác sĩ này sẽ được tự động điều chuyển sang bác sĩ khác.')">
                                 <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
                                     <i class="fa-solid fa-user-slash me-1"></i> Vô hiệu hóa
                                 </button>
                             </form>
-                            <button th:if="${!doc.isActive}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" disabled>
-                                <i class="fa-solid fa-lock me-1"></i> Đã vô hiệu hóa
-                            </button>
+
+                            <form th:unless="${doc.isActive}" th:action="@{/hospital/doctors/activate/{id}(id=${doc.id})}" method="POST"
+                                  onsubmit="return confirm('Bạn có muốn tái kích hoạt lại tài khoản cho bác sĩ này không?')">
+                                <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                    <i class="fa-solid fa-user-check me-1"></i> Kích hoạt lại
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(doctors)}">
@@ -406,13 +410,24 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Mã Bác Sĩ <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" th:field="*{doctorCode}" th:classappend="${#fields.hasErrors('doctorCode')} ? 'is-invalid' : ''" required placeholder="Ví dụ: BS099">
+                            <input type="text" class="form-control"
+                                   th:field="*{doctorCode}"
+                                   th:classappend="${#fields.hasErrors('doctorCode')} ? 'is-invalid' : ''"
+                                   required
+                                   pattern="^(BS|bs)\d{3,5}$"
+                                   title="Mã bác sĩ phải bắt đầu bằng BS hoặc bs, đi kèm từ 3 đến 5 chữ số (Ví dụ: BS001)"
+                                   placeholder="Ví dụ: BS099">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('doctorCode')}" th:errors="*{doctorCode}"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" th:field="*{fullName}"
-                                   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''" required placeholder="Họ tên đầy đủ">
+                            <input type="text" class="form-control"
+                                   th:field="*{fullName}"
+                                   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''"
+                                   required
+                                   pattern="^(?=.{2,50}$)(?:[\p{L}]*[aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆiIìÌỉỈĩĨíÍịỊoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰyYỳỲỷỶỹỸýÝỵỴ][\p{L}]*(?:\s+|$))+$"
+                                   title="Vui lòng nhập tên hợp lệ (Mỗi chữ bắt buộc phải có nguyên âm tiếng Việt, ví dụ: Lê Trung Thắng)"
+                                   placeholder="Họ tên đầy đủ">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
                         </div>
                         <div class="col-md-6">
@@ -435,10 +450,9 @@
                             <input type="email" class="form-control" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" required placeholder="bacsi@benhvien.com">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Mật khẩu ban đầu <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" th:field="*{password}" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''" required placeholder="Tối thiểu 6 ký tự">
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                        <div class="col-md-6 d-none">
+                            <label class="form-label fw-semibold">Mật khẩu ban đầu</label>
+                            <input type="password" class="form-control" th:field="*{password}" value="GENERATE_PASS">
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Giới Hạn Bệnh Nhân (Capacity Limit) <span class="text-danger">*</span></label>
