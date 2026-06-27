@@ -95,7 +95,10 @@ public class PatientInteractionController {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
+        List<Doctor> doctors = doctorRepository.findAvailableDoctorsByHospital(patient.getHospital().getId());
+
         model.addAttribute("patient", patient);
+        model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
@@ -153,22 +156,16 @@ public class PatientInteractionController {
     public String bookAppointment(
             @RequestParam("appointmentTime") String appointmentTimeStr,
             @RequestParam("appointmentType") String appointmentType,
-            @RequestParam("patientRequestReason") String patientRequestReason) {
+            @RequestParam("patientRequestReason") String patientRequestReason,
+            @RequestParam("doctorId") Integer doctorId) {
 
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
         }
 
-        Doctor doctor = patient.getDoctor();
-        if (doctor == null) {
-            List<Doctor> all = doctorRepository.findAll();
-            if (all.size() > 0) {
-                doctor = all.get(0);
-            } else {
-                throw new IllegalStateException("No doctor found in database to receive appointments.");
-            }
-        }
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid doctor Id: " + doctorId));
 
         // Chuyển chuỗi từ datetime-local sang LocalDateTime
         LocalDateTime apptTime = LocalDateTime.parse(appointmentTimeStr);
