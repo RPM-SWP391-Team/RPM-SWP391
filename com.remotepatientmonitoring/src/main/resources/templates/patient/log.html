@@ -159,10 +159,10 @@
                                     <div class="section-title">Chỉ số Đường huyết (Glucose)</div>
                                     
                                     <div class="mb-4">
-                                        <label class="form-label-custom"><i class="fa-solid fa-droplet"></i>Chỉ số Glucose</label>
-                                        <input type="number" step="0.1" th:field="*{glucoseLevel}" id="glucoseLevel" class="form-control form-control-custom" placeholder="Ví dụ: 95.5" min="10" max="600" oninput="updateGlucoseSlider(this.value)">
+                                        <label class="form-label-custom"><i class="fa-solid fa-droplet"></i>Chỉ số Glucose (mmol/L)</label>
+                                        <input type="number" step="0.1" th:field="*{glucoseLevel}" id="glucoseLevel" class="form-control form-control-custom" placeholder="Ví dụ: 6.5" min="1.0" max="33.3" oninput="updateGlucoseSlider(this.value)">
 
-                                        <div class="form-text small text-muted mt-2">Bình thường: 70 - 130 mg/dL</div>
+                                        <div class="form-text small text-muted mt-2">Bình thường: 4.4 - 10.0 mmol/L</div>
                                     </div>
                                 </div>
 
@@ -225,7 +225,7 @@
 
                                     <div id="ocr-result-glucose" class="mb-3 d-none">
                                         <small class="text-muted">Đường huyết (Glucose)</small>
-                                        <h3 class="fw-bold text-dark" id="ocr-val-glucose">96.5 <span class="fs-6 fw-normal">mg/dL</span></h3>
+                                        <h3 class="fw-bold text-dark" id="ocr-val-glucose">6.5 <span class="fs-6 fw-normal">mmol/L</span></h3>
                                     </div>
 
                                     <hr>
@@ -333,7 +333,7 @@
             document.getElementById('glucoseLevelVal').innerText = parseFloat(val).toFixed(1);
         }
         function updateGlucoseSlider(val) {
-            if (val >= 10 && val <= 300) {
+            if (val >= 1.0 && val <= 33.3) {
                 document.getElementById('glucoseLevelSlider').value = val;
                 document.getElementById('glucoseLevelVal').innerText = parseFloat(val).toFixed(1);
             }
@@ -364,7 +364,7 @@
                 }
                 if (hasDiabetes) {
                     document.getElementById('ocr-result-glucose').classList.remove('d-none');
-                    document.getElementById('ocr-val-glucose').innerHTML = '95.5 <span class="fs-6 fw-normal">mg/dL</span>';
+                    document.getElementById('ocr-val-glucose').innerHTML = '6.5 <span class="fs-6 fw-normal">mmol/L</span>';
                 }
             }, 1800);
         }
@@ -402,8 +402,8 @@
                 document.getElementById('heartRate').value = 74;
             }
             if (hasDiabetes) {
-                document.getElementById('glucoseLevel').value = 95.5;
-                updateGlucoseSlider(95.5);
+                document.getElementById('glucoseLevel').value = 6.5;
+                updateGlucoseSlider(6.5);
             }
             switchInputMethod('MANUAL');
             document.getElementById('ocr-confirm-area').classList.add('d-none');
@@ -418,7 +418,7 @@
                 document.getElementById('heartRate').value = 74;
             }
             if (hasDiabetes) {
-                document.getElementById('glucoseLevel').value = 95.5;
+                document.getElementById('glucoseLevel').value = 6.5;
             }
             document.getElementById('inputMethodField').value = 'OCR';
             document.getElementById('healthLogForm').submit();
