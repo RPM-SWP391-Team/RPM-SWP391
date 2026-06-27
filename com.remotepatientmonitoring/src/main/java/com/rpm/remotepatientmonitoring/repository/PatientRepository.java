@@ -28,7 +28,14 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND p.doctor IS NULL AND p.hospital.id = :hospitalId AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
     List<Patient> searchUnassignedPatients(@Param("hospitalId") Integer hospitalId, @Param("keyword") String keyword);
 
-    // 1. Sửa thành Page: Tìm bệnh nhân theo bác sĩ (có phân trang)
+    // 1. Sửa thành Page: Tìm bệnh nhân theo bác sĩ (có phân trang) và sắp xếp ưu tiên theo cảnh báo Đỏ -> Cam -> Vàng
+    @Query("SELECT p FROM Patient p LEFT JOIN Alert a ON a.patient = p AND a.isResolved = false " +
+           "WHERE p.doctor.id = :doctorId AND p.isActive = true " +
+           "GROUP BY p " +
+           "ORDER BY MAX(CASE a.alertColor WHEN 'RED' THEN 4 WHEN 'ORANGE' THEN 3 WHEN 'YELLOW' THEN 2 WHEN 'GREEN' THEN 1 ELSE 0 END) DESC, p.updatedAt DESC")
+    Page<Patient> findPatientsSortedByAlerts(@Param("doctorId") Integer doctorId, Pageable pageable);
+
+    // Vẫn giữ lại findByDoctorId cũ nếu cần dùng ở nơi khác
     Page<Patient> findByDoctorId(Integer doctorId, Pageable pageable);
 
     // 2. Sửa thành Page: Tìm kiếm kết hợp phân trang

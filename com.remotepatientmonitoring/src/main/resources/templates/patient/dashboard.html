@@ -16,19 +16,28 @@
                 <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
             </span>
             <div class="d-flex align-items-center text-white">
-                <!-- Quả chuông thông báo -->
-                <div class="notification-dropdown me-3">
-                    <div class="bell-icon-container" id="bellIcon" onclick="toggleNotifDropdown(event)">
+                <!-- Quả chuông thông báo (Thymeleaf) -->
+                <div class="dropdown notif-dropdown-container me-3">
+                    <button class="btn btn-link p-0 position-relative text-white dropdown-toggle" type="button" id="bellIcon" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" style="border: none; text-decoration: none;">
                         <i class="fa-solid fa-bell fa-lg"></i>
-                        <span class="notification-badge d-none" id="notifCount">0</span>
-                    </div>
-                    <div class="notif-dropdown-menu" id="notifMenu">
-                        <div class="notif-header">
+                        <span class="notification-badge" th:classappend="${patientUnreadCount == 0 ? ' d-none' : ''}" th:text="${patientUnreadCount}">0</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow p-0" aria-labelledby="bellIcon" style="width: 330px; border-radius: var(--radius-md); border: none; overflow: hidden;">
+                        <div class="notif-header d-flex justify-content-between align-items-center bg-light">
                             <span>Thông báo</span>
-                            <span class="text-primary small cursor-pointer" onclick="markAllNotificationsAsRead(event)" style="font-weight: normal; cursor: pointer; font-size: 0.8rem;">Đánh dấu đã đọc</span>
+                            <a href="/patient/notifications/read-all-redirect" class="text-primary small text-decoration-none" style="font-weight: normal; font-size: 0.8rem;">Đánh dấu đã đọc</a>
                         </div>
-                        <div id="notifList">
-                            <div class="text-center py-4 text-muted small">Không có thông báo nào.</div>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <div th:if="${#lists.isEmpty(patientNotifications)}" class="text-center py-4 text-muted small">Không có thông báo nào.</div>
+                            
+                            <a th:each="n : ${patientNotifications}" 
+                               th:href="@{/patient/notifications/{id}/read-redirect(id=${n.id})}"
+                               class="text-decoration-none d-block notif-item"
+                               th:classappend="${!n.isRead ? 'unread' : ''}">
+                                <div class="notif-item-title" th:text="${n.title}">Tiêu đề</div>
+                                <div class="text-dark small" th:text="${n.content}">Nội dung</div>
+                                <div class="notif-item-time"><i class="fa-regular fa-clock me-1"></i><span th:text="${#temporals.format(n.createdAt, 'HH:mm - dd/MM/yyyy')}"></span></div>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -302,123 +311,7 @@
                     item.classList.add("active");
                 }
             });
-
-            // Load notifications count immediately & start polling
-            loadNotificationCount();
-            setInterval(loadNotificationCount, 15000);
         });
-
-        function toggleNotifDropdown(event) {
-            event.stopPropagation();
-            const menu = document.getElementById("notifMenu");
-            const isShown = menu.classList.contains("show");
-            
-            // Close all dropdowns
-            document.querySelectorAll(".notif-dropdown-menu").forEach(m => m.classList.remove("show"));
-            
-            if (!isShown) {
-                menu.classList.add("show");
-                loadNotifications();
-            }
-        }
-
-        // Hide notification dropdown when clicking outside
-        document.addEventListener("click", function(e) {
-            const menu = document.getElementById("notifMenu");
-            if (menu && !menu.contains(e.target)) {
-                menu.classList.remove("show");
-            }
-        });
-
-        function loadNotificationCount() {
-            fetch('/api/patient/notifications/unread-count')
-                .then(res => res.json())
-                .then(count => {
-                    const badge = document.getElementById("notifCount");
-                    if (count > 0) {
-                        badge.innerText = count;
-                        badge.classList.remove("d-none");
-                    } else {
-                        badge.classList.add("d-none");
-                    }
-                })
-                .catch(err => console.error("Error loading notification count:", err));
-        }
-
-        function loadNotifications() {
-            const notifList = document.getElementById("notifList");
-            notifList.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
-            
-            fetch('/api/patient/notifications')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.length === 0) {
-                        notifList.innerHTML = '<div class="text-center py-4 text-muted small">Không có thông báo nào.</div>';
-                        return;
-                    }
-                    let html = '';
-                    data.forEach(n => {
-                        const unreadClass = n.isRead ? '' : 'unread';
-                        const timeStr = formatTime(n.createdAt);
-                        html += `
-                            <div class="notif-item ${unreadClass}" onclick="readNotification(${n.id}, event)">
-                                <div class="notif-item-title">${n.title}</div>
-                                <div>${n.content}</div>
-                                <div class="notif-item-time"><i class="fa-regular fa-clock me-1"></i>${timeStr}</div>
-                            </div>
-                        `;
-                    });
-                    notifList.innerHTML = html;
-                })
-                .catch(err => {
-                    console.error("Error loading notifications:", err);
-                    notifList.innerHTML = '<div class="text-center py-4 text-danger small">Lỗi tải thông báo.</div>';
-                });
-        }
-
-        function readNotification(id, event) {
-            event.stopPropagation();
-            fetch(`/api/patient/notifications/${id}/read`, { method: 'POST' })
-                .then(() => {
-                    loadNotificationCount();
-                    // Close dropdown
-                    document.getElementById("notifMenu").classList.remove("show");
-                    // Refresh page to see new plan/medications if applicable
-                    window.location.reload();
-                })
-                .catch(err => console.error("Error reading notification:", err));
-        }
-
-        function markAllNotificationsAsRead(event) {
-            event.stopPropagation();
-            fetch('/api/patient/notifications')
-                .then(res => res.json())
-                .then(data => {
-                    const unread = data.filter(n => !n.isRead);
-                    if (unread.length === 0) return;
-                    
-                    const promises = unread.map(n => fetch(`/api/patient/notifications/${n.id}/read`, { method: 'POST' }));
-                    Promise.all(promises).then(() => {
-                        loadNotificationCount();
-                        loadNotifications();
-                    });
-                })
-                .catch(err => console.error("Error marking all read:", err));
-        }
-
-        function formatTime(dateTimeStr) {
-            if (!dateTimeStr) return '';
-            try {
-                const date = new Date(dateTimeStr);
-                const hrs = String(date.getHours()).padStart(2, '0');
-                const mins = String(date.getMinutes()).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const mth = String(date.getMonth() + 1).padStart(2, '0');
-                return `${hrs}:${mins} - ${day}/${mth}`;
-            } catch (e) {
-                return dateTimeStr;
-            }
-        }
     </script>
 
     <!-- Bootstrap 5 JS Bundle -->

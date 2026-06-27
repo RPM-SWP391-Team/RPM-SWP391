@@ -8,46 +8,31 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "doctors")
+@Table(name = "emergency_protocols")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Doctor {
+public class EmergencyProtocol {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @OneToOne
-    @JoinColumn(name = "account_id", nullable = false, unique = true)
-    private Account account;
 
     @ManyToOne
     @JoinColumn(name = "hospital_id", nullable = false)
     private Hospital hospital;
 
-    @Column(name = "doctor_code", nullable = false, unique = true, length = 50)
-    private String doctorCode;
+    @Column(name = "condition_type", nullable = false, length = 30)
+    private String conditionType; // HYPERTENSIVE_CRISIS, HYPOGLYCEMIA, HYPERGLYCEMIA
 
-    @Column(name = "full_name", nullable = false, length = 255)
-    private String fullName;
+    @Column(nullable = false, length = 255)
+    private String title;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String phone;
+    @Column(name = "warning_signs", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    private String warningSigns;
 
-    @Column(length = 255)
-    private String specialty;
-
-    @Column(length = 10)
-    private String gender;
-
-    @Column(name = "capacity_limit", nullable = false)
-    @Builder.Default
-    private Integer capacityLimit = 50;
-
-    @Column(name = "current_patient_count", nullable = false)
-    @Builder.Default
-    private Integer currentPatientCount = 0;
+    @Column(name = "instruction_content", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    private String instructionContent;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default

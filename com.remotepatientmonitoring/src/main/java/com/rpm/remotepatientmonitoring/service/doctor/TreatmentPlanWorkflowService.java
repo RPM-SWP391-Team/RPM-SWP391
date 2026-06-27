@@ -112,12 +112,6 @@ public class TreatmentPlanWorkflowService {
         newPlan.setPatient(patient);
         newPlan.setDoctor(doctor);
         newPlan.setNutritionRule(newRule);
-        // baseline
-        newPlan.setBaselineSystolicBp(baselineSystolicBp);
-        newPlan.setBaselineDiastolicBp(baselineDiastolicBp);
-        newPlan.setBaselineFastingGlucose(baselineFastingGlucose);
-        newPlan.setBaselineHba1c(baselineHba1c);
-        newPlan.setBaselineWeightKg(baselineWeightKg);
         // target
         newPlan.setTargetSystolicBp(targetSystolicBp);
         newPlan.setTargetDiastolicBp(targetDiastolicBp);

@@ -118,3 +118,28 @@ h3 {
 .register-link a:hover {
     text-decoration: underline;
 }
+
+/* Password toggle eye icon */
+.password-wrapper {
+    position: relative;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #64748B;
+    cursor: pointer;
+    z-index: 10;
+    padding: 0;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.btn-toggle-password:hover {
+    color: #2c7be5;
+}

@@ -8,33 +8,31 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "otp_codes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
+public class OtpCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "patient_id")
-    private Patient patient;
+    @Column(nullable = false, length = 255)
+    private String email;
 
-    @ManyToOne
-    @JoinColumn(name = "doctor_id")
-    private Doctor doctor;
+    @Column(name = "otp_code", nullable = false, length = 255)
+    private String otpCode;
 
-    @Column(name = "title", nullable = false, length = 255)
-    private String title;
+    @Column(name = "otp_type", nullable = false, length = 255)
+    private String otpType;
 
-    @Column(name = "content", nullable = false, length = 1000)
-    private String content;
+    @Column(name = "expires_at", nullable = false)
+    private LocalDateTime expiresAt;
 
-    @Column(name = "is_read", nullable = false)
+    @Column(name = "is_used", nullable = false)
     @Builder.Default
-    private Boolean isRead = false;
+    private Boolean isUsed = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
