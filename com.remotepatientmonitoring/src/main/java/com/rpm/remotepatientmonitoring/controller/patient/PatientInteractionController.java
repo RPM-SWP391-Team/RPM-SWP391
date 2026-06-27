@@ -188,6 +188,18 @@ public class PatientInteractionController {
             return "redirect:/patient/appointments?bookError=pastDate";
         }
 
+        // Validate working hours (Monday-Friday, 08:00 to 17:00) if NOT emergency
+        if (!"EMERGENCY".equals(appointmentType)) {
+            java.time.DayOfWeek dayOfWeek = apptTime.getDayOfWeek();
+            int hour = apptTime.getHour();
+            if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+                return "redirect:/patient/appointments?bookError=outsideWorkingHours";
+            }
+            if (hour < 8 || hour >= 17) {
+                return "redirect:/patient/appointments?bookError=outsideWorkingHours";
+            }
+        }
+
         Appointment appt = Appointment.builder()
                 .patient(patient)
                 .doctor(doctor)
