@@ -259,6 +259,13 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label for="doctorId" class="form-label small fw-semibold text-muted">Bác sĩ khám <span class="text-danger">*</span></label>
+                        <select class="form-select" id="doctorId" name="doctorId" required style="border-radius: var(--radius-sm);">
+                            <option value="" disabled selected>-- Chọn bác sĩ --</option>
+                            <option th:each="doc : ${doctors}" th:value="${doc.id}" th:text="${doc.fullName + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="patientRequestReason" class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="3" placeholder="Nhập lý do của bạn..." required style="border-radius: var(--radius-sm); resize: none;"></textarea>
                     </div>
