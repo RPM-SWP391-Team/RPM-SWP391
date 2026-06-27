@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
@@ -146,5 +147,46 @@ public class PatientInteractionController {
 
         changeRequestRepository.save(changeRequest);
         return "redirect:/patient/appointments?requestSuccess=true";
+    }
+
+    @PostMapping("/book-appointment")
+    public String bookAppointment(
+            @RequestParam("appointmentTime") String appointmentTimeStr,
+            @RequestParam("appointmentType") String appointmentType,
+            @RequestParam("patientRequestReason") String patientRequestReason) {
+
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        Doctor doctor = patient.getDoctor();
+        if (doctor == null) {
+            List<Doctor> all = doctorRepository.findAll();
+            if (all.size() > 0) {
+                doctor = all.get(0);
+            } else {
+                throw new IllegalStateException("No doctor found in database to receive appointments.");
+            }
+        }
+
+        // Chuyển chuỗi từ datetime-local sang LocalDateTime
+        LocalDateTime apptTime = LocalDateTime.parse(appointmentTimeStr);
+
+        Appointment appt = Appointment.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .appointmentTime(apptTime)
+                .appointmentType(appointmentType)
+                .patientRequestReason(patientRequestReason)
+                .status("PENDING")
+                .createdBy("PATIENT")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        appointmentRepository.save(appt);
+
+        return "redirect:/patient/appointments?bookSuccess=true";
     }
 }

@@ -38,14 +38,23 @@
             <i class="fa-solid fa-circle-check me-2"></i>Gửi yêu cầu thay đổi thành công! Bác sĩ sẽ phản hồi sớm nhất.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        <div th:if="${param.bookSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>Đặt lịch khám thành công! Đang chờ bác sĩ xác nhận.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
 
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
             <h2 class="fw-bold mb-0">
                 <i class="fa-regular fa-calendar-check text-primary me-2"></i>Tương Tác Với Bác Sĩ
             </h2>
-            <a href="/patient/request-change" class="btn btn-action-outline text-nowrap">
-                <i class="fa-solid fa-paper-plane me-2"></i>Gửi Yêu Cầu Thay Đổi
-            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary text-nowrap animate-hover" data-bs-toggle="modal" data-bs-target="#bookAppointmentModal">
+                    <i class="fa-solid fa-calendar-plus me-2"></i>Đặt Lịch Hẹn Khám
+                </button>
+                <a href="/patient/request-change" class="btn btn-action-outline text-nowrap">
+                    <i class="fa-solid fa-paper-plane me-2"></i>Gửi Yêu Cầu Thay Đổi
+                </a>
+            </div>
         </div>
 
         <div class="card card-custom p-3">
@@ -225,6 +234,42 @@
             </div>
         </div>
 
+    <!-- Book Appointment Modal -->
+    <div class="modal fade" id="bookAppointmentModal" tabindex="-1" aria-labelledby="bookAppointmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: var(--radius-lg); border: none; box-shadow: var(--shadow-lg);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark" id="bookAppointmentModalLabel">
+                        <i class="fa-solid fa-calendar-plus text-primary me-2"></i>Đặt Lịch Hẹn Khám
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/patient/book-appointment" method="POST">
+                    <div class="modal-body py-3">
+                        <div class="mb-3">
+                            <label for="appointmentTime" class="form-label small fw-semibold text-muted">Thời gian khám mong muốn <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" required style="border-radius: var(--radius-sm);">
+                        </div>
+                        <div class="mb-3">
+                            <label for="appointmentType" class="form-label small fw-semibold text-muted">Loại lịch hẹn <span class="text-danger">*</span></label>
+                            <select class="form-select" id="appointmentType" name="appointmentType" required style="border-radius: var(--radius-sm);">
+                                <option value="CHECKUP" selected>Khám định kỳ (CHECKUP)</option>
+                                <option value="CONSULTATION">Tư vấn y khoa (CONSULTATION)</option>
+                                <option value="EMERGENCY">Khẩn cấp (EMERGENCY)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientRequestReason" class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="3" placeholder="Nhập lý do của bạn..." required style="border-radius: var(--radius-sm); resize: none;"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary small" data-bs-dismiss="modal" style="border-radius: var(--radius-sm);">Hủy</button>
+                        <button type="submit" class="btn btn-primary small" style="border-radius: var(--radius-sm);">Gửi yêu cầu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->
