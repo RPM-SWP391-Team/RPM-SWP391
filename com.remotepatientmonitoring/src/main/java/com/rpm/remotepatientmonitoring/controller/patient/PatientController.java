@@ -448,8 +448,25 @@ public class PatientController {
             @RequestParam("email") String email,
             @RequestParam(value = "password", required = false) String password,
             @RequestParam("emergencyContactName") String emergencyContactName,
-            @RequestParam("emergencyContactPhone") String emergencyContactPhone
+            @RequestParam("emergencyContactPhone") String emergencyContactPhone,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes
     ) {
+        if (!phone.matches("0[35789][0-9]{8}")) {
+            redirectAttributes.addFlashAttribute("error", "Số điện thoại cá nhân không hợp lệ!");
+            return "redirect:/patient/progress";
+        }
+        if (!emergencyContactPhone.matches("0[35789][0-9]{8}")) {
+            redirectAttributes.addFlashAttribute("error", "Số điện thoại người thân không hợp lệ!");
+            return "redirect:/patient/progress";
+        }
+        if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
+            redirectAttributes.addFlashAttribute("error", "Email không hợp lệ!");
+            return "redirect:/patient/progress";
+        }
+        if (password != null && !password.trim().isEmpty() && (password.length() < 6 || password.length() > 50)) {
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu phải từ 6 đến 50 ký tự!");
+            return "redirect:/patient/progress";
+        }
         Patient patient = patientRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No patient found in the database."));
