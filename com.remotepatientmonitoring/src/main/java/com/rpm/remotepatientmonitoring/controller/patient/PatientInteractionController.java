@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
@@ -94,7 +95,10 @@ public class PatientInteractionController {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
+        List<Doctor> doctors = doctorRepository.findAvailableDoctorsByHospital(patient.getHospital().getId());
+
         model.addAttribute("patient", patient);
+        model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
@@ -146,5 +150,40 @@ public class PatientInteractionController {
 
         changeRequestRepository.save(changeRequest);
         return "redirect:/patient/appointments?requestSuccess=true";
+    }
+
+    @PostMapping("/book-appointment")
+    public String bookAppointment(
+            @RequestParam("appointmentTime") String appointmentTimeStr,
+            @RequestParam("appointmentType") String appointmentType,
+            @RequestParam("patientRequestReason") String patientRequestReason,
+            @RequestParam("doctorId") Integer doctorId) {
+
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid doctor Id: " + doctorId));
+
+        // Chuyển chuỗi từ datetime-local sang LocalDateTime
+        LocalDateTime apptTime = LocalDateTime.parse(appointmentTimeStr);
+
+        Appointment appt = Appointment.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .appointmentTime(apptTime)
+                .appointmentType(appointmentType)
+                .patientRequestReason(patientRequestReason)
+                .status("PENDING")
+                .createdBy("PATIENT")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        appointmentRepository.save(appt);
+
+        return "redirect:/patient/appointments?bookSuccess=true";
     }
 }
