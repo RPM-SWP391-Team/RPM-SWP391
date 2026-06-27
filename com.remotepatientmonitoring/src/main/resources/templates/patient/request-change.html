@@ -15,23 +15,47 @@
 <body>
 
     <!-- Header Navigation -->
-    <nav class="navbar navbar-dark navbar-custom py-3 mb-4">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a href="/patient/appointments" class="navbar-brand mb-0 h1 text-decoration-none">
-                <i class="fa-solid fa-chevron-left me-2 small"></i>Lịch hẹn & Yêu cầu
-            </a>
-            
-            <div class="d-flex align-items-center gap-3 text-white">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fa-regular fa-user-circle fs-5"></i>
-                    <span class="fw-semibold" th:text="${patient.fullName}">Tên bệnh nhân</span>
+    <nav class="navbar navbar-dark navbar-custom py-3 mb-5">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
+            </span>
+            <div class="d-flex align-items-center text-white">
+                <!-- Quả chuông thông báo -->
+                <div class="notification-dropdown me-3">
+                    <div class="bell-icon-container" id="bellIcon" onclick="toggleNotifDropdown(event)">
+                        <i class="fa-solid fa-bell fa-lg"></i>
+                        <span class="notification-badge d-none" id="notifCount">0</span>
+                    </div>
+                    <div class="notif-dropdown-menu" id="notifMenu">
+                        <div class="notif-header">
+                            <span>Thông báo</span>
+                            <span class="text-primary small cursor-pointer" onclick="markAllNotificationsAsRead(event)" style="font-weight: normal; cursor: pointer; font-size: 0.8rem;">Đánh dấu đã đọc</span>
+                        </div>
+                        <div id="notifList">
+                            <div class="text-center py-4 text-muted small">Không có thông báo nào.</div>
+                        </div>
+                    </div>
                 </div>
-                <form th:action="@{/auth/logout}" method="post" class="m-0 p-0">
-                    <button type="submit" class="btn btn-sm btn-outline-light d-flex align-items-center gap-2" style="border-radius: var(--radius-sm); border: none; background: rgba(255,255,255,0.1);">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                        <span class="d-none d-sm-inline">Đăng xuất</span>
-                    </button>
-                </form>
+
+                <div class="dropdown">
+                    <div class="d-flex align-items-center text-white" 
+                         id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                        <i class="fa-regular fa-user-circle fa-2x me-2"></i>
+                        <div class="text-start me-2 d-none d-sm-block">
+                            <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
+                            <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-down small text-white-50"></i>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 150px;">
+                        <li>
+                            <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
