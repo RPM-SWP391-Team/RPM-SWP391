@@ -38,6 +38,9 @@ public class Doctor {
     @Column(length = 255)
     private String specialty;
 
+    @Column(length = 10)
+    private String gender;
+
     @Column(name = "capacity_limit", nullable = false)
     @Builder.Default
     private Integer capacityLimit = 50;

@@ -33,8 +33,8 @@ public class PatientMeal {
     @Column(name = "meal_type", nullable = false, length = 10)
     private String mealType; // BREAKFAST, LUNCH, DINNER, SNACK
 
-    @Column(name = "quantity_g", nullable = false)
-    private Double quantityG; // Lượng thực tế (grams)
+    @Column(name = "quantity_g", nullable = false, columnDefinition = "DECIMAL(5,2)")
+    private Double quantityG; // Lượng thực tế (grams) - Dùng Double cho đơn giản và quen thuộc
 
     @Column(name = "logged_at", nullable = false, updatable = false)
     @Builder.Default
@@ -49,7 +49,7 @@ public class PatientMeal {
     }
 
     public Integer getCalories() {
-        if (food != null && food.getEnergyKcal() != null) {
+        if (food != null && food.getEnergyKcal() != null && quantityG != null) {
             double c = (food.getEnergyKcal() * quantityG) / 100.0;
             return (int) c;
         }
@@ -57,7 +57,7 @@ public class PatientMeal {
     }
 
     public Double getSaltG() {
-        if (food != null && food.getAshG() != null) {
+        if (food != null && food.getAshG() != null && quantityG != null) {
             double s = (food.getAshG().doubleValue() * quantityG) / 100.0;
             return Math.round(s * 100.0) / 100.0;
         }
@@ -65,7 +65,7 @@ public class PatientMeal {
     }
 
     public Double getFiberG() {
-        if (food != null && food.getCellulozaG() != null) {
+        if (food != null && food.getCellulozaG() != null && quantityG != null) {
             double f = (food.getCellulozaG().doubleValue() * quantityG) / 100.0;
             return Math.round(f * 100.0) / 100.0;
         }
