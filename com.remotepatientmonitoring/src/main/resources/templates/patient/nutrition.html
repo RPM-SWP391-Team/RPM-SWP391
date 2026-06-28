@@ -183,6 +183,59 @@
                 </div>
             </div>
         </div>
+
+        <!-- Từ điển thực phẩm gợi ý tham khảo -->
+        <div class="card card-custom p-4 mt-4 bg-white shadow-sm" style="border-radius: 16px; border: none;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="fa-solid fa-book-open me-2 text-warning"></i>Từ Điển Dinh Dưỡng Thực Phẩm
+                    </h5>
+                    <p class="small text-muted mb-0">Tra cứu giá trị dinh dưỡng có trong 100g thực phẩm gợi ý tham khảo.</p>
+                </div>
+                <div class="input-group" style="max-width: 350px;">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius: 20px 0 0 20px; border-color: #dee2e6;"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" id="foodSearchInput" class="form-control bg-light border-start-0" placeholder="Tìm kiếm món ăn, thực phẩm..." onkeyup="filterFoodDictionary()" style="border-radius: 0 20px 20px 0; border-color: #dee2e6;">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="foodDictTable">
+                    <thead class="table-light text-secondary small text-uppercase" style="border-radius: 8px;">
+                        <tr>
+                            <th>Tên thực phẩm</th>
+                            <th class="text-center">Năng lượng</th>
+                            <th class="text-center">Đường bột</th>
+                            <th class="text-center">Chất đạm</th>
+                            <th class="text-center">Chất béo</th>
+                            <th class="text-center">Chất xơ</th>
+                            <th class="text-center">Muối/Tro</th>
+                            <th class="text-center">Nước</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="food : ${foods}" class="food-row">
+                            <td class="fw-bold text-dark food-name-cell" th:text="${food.foodName}">Cơm trắng</td>
+                            <td class="text-center fw-semibold text-danger"><span th:text="${food.energyKcal}">130</span> kcal</td>
+                            <td class="text-center text-info fw-semibold"><span th:text="${food.glucidG != null ? food.glucidG : 0.0}">28.0</span> g</td>
+                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${food.proteinG != null ? food.proteinG : 0.0}">2.7</span> g</td>
+                            <td class="text-center text-secondary fw-semibold"><span th:text="${food.lipidG != null ? food.lipidG : 0.0}">0.3</span> g</td>
+                            <td class="text-center text-success fw-semibold"><span th:text="${food.cellulozaG != null ? food.cellulozaG : 0.0}">0.4</span> g</td>
+                            <td class="text-center text-primary fw-semibold"><span th:text="${food.ashG != null ? food.ashG : 0.0}">0.1</span> g</td>
+                            <td class="text-center text-muted"><span th:text="${food.waterG != null ? food.waterG : 0.0}">68.0</span> g</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold" 
+                                        th:data-id="${food.id}"
+                                        th:data-name="${food.foodName}"
+                                        onclick="quickSelectFood(this)">
+                                    <i class="fa-solid fa-plus me-1"></i>Chọn
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- ==================== MODAL: GHI NHẬN BỮA ĂN ==================== -->
@@ -362,6 +415,30 @@
         }
         function applyFoodPreset(presetValue) {
             recalculateNutrients();
+        }
+
+        function filterFoodDictionary() {
+            const query = document.getElementById('foodSearchInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#foodDictTable .food-row');
+            rows.forEach(row => {
+                const name = row.querySelector('.food-name-cell').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function quickSelectFood(element) {
+            const foodId = element.getAttribute('data-id');
+            const selectPreset = document.getElementById('foodPreset');
+            selectPreset.value = foodId;
+            applyFoodPreset(foodId);
+            
+            // Open the bootstrap modal
+            const myModal = new bootstrap.Modal(document.getElementById('addMealModal'));
+            myModal.show();
         }
     </script>
     <!-- Bottom Navigation Bar -->
