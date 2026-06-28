@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,12 +19,14 @@
             --text-dark: #1E293B;
             --text-muted: #64748B;
             --sidebar-width: 260px;
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-light);
             color: var(--text-dark);
             overflow-x: hidden;
+            min-height: 100vh;
         }
         
         /* Sidebar Styling */
@@ -233,8 +235,8 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <div class="text-end d-none d-sm-block">
-                <h6 class="mb-0 fw-semibold">Quản trị viên</h6>
-                <small class="text-muted">Bệnh viện đa khoa</small>
+                <h6 class="mb-0 fw-semibold" th:text="${overview.hospitalName}">Tên Bệnh viện</h6>
+                <small class="text-muted">Hospital Admin</small>
             </div>
             <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-building"></i>
@@ -245,159 +247,166 @@
     <!-- Title Header -->
     <div class="mb-4">
         <h2 class="fw-bold mb-1">Dashboard Quản trị Bệnh viện</h2>
-        <p class="text-muted">Hệ thống giám sát và quản lý dữ liệu theo dõi sức khỏe bệnh nhân từ xa.</p>
+        <p class="text-muted">Giám sát tổng hợp chỉ số hiệu năng và tuân thủ của bệnh viện từ xa.</p>
     </div>
 
-    <!-- Metric Cards Grid -->
+    <!-- Metric Cards Grid (From Stored Procedure) -->
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-xl-3">
-            <div class="metric-card">
-                <div>
-                    <span class="text-muted small fw-medium">Bác sĩ hoạt động</span>
-                    <h3 class="fw-bold mt-1 mb-0">12</h3>
+            <a th:href="@{/hospital/admin/doctors/active}" class="text-decoration-none d-block">
+                <div class="metric-card" style="cursor: pointer;">
+                    <div>
+                        <span class="text-muted small fw-medium">Bác sĩ hoạt động</span>
+                        <h3 class="fw-bold mt-1 mb-0" th:text="${overview.activeDoctorsCount}">0</h3>
+                    </div>
+                    <div class="metric-icon blue">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
                 </div>
-                <div class="metric-icon blue">
-                    <i class="bi bi-person-badge"></i>
-                </div>
-            </div>
+            </a>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <div class="metric-card">
-                <div>
-                    <span class="text-muted small fw-medium">Bệnh nhân giám sát</span>
-                    <h3 class="fw-bold mt-1 mb-0">148</h3>
+            <a th:href="@{/hospital/admin/patients/treating}" class="text-decoration-none d-block">
+                <div class="metric-card" style="cursor: pointer;">
+                    <div>
+                        <span class="text-muted small fw-medium">Bệnh nhân đang điều trị</span>
+                        <h3 class="fw-bold mt-1 mb-0 text-success" th:text="${overview.totalTreatingPatients}">0</h3>
+                    </div>
+                    <div class="metric-icon green">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
                 </div>
-                <div class="metric-icon green">
-                    <i class="bi bi-people-fill"></i>
-                </div>
-            </div>
+            </a>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <div class="metric-card">
-                <div>
-                    <span class="text-muted small fw-medium">Cảnh báo bất thường</span>
-                    <h3 class="fw-bold mt-1 mb-0 text-danger">3</h3>
+            <a th:href="@{/hospital/admin/patients/new}" class="text-decoration-none d-block">
+                <div class="metric-card" style="cursor: pointer;">
+                    <div>
+                        <span class="text-muted small fw-medium">Bệnh nhân đăng ký mới</span>
+                        <h3 class="fw-bold mt-1 mb-0 text-info" th:text="${overview.totalNewPatients}">0</h3>
+                    </div>
+                    <div class="metric-icon yellow">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
                 </div>
-                <div class="metric-icon red">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
-            </div>
+            </a>
         </div>
         <div class="col-sm-6 col-xl-3">
-            <div class="metric-card">
-                <div>
-                    <span class="text-muted small fw-medium">Trạng thái hệ thống</span>
-                    <h3 class="fw-bold mt-1 mb-0 text-success">98.5%</h3>
+            <a th:href="@{/hospital/admin/alerts/red-pending}" class="text-decoration-none d-block">
+                <div class="metric-card" style="cursor: pointer;">
+                    <div>
+                        <span class="text-muted small fw-medium">Cảnh báo Đỏ chưa giải quyết</span>
+                        <h3 class="fw-bold mt-1 mb-0 text-danger" th:text="${overview.redUnresolvedAlerts}">0</h3>
+                    </div>
+                    <div class="metric-icon red">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
                 </div>
-                <div class="metric-icon yellow">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Section Tables & Actions -->
+    <!-- Section Statistics & Trends -->
     <div class="row">
-        <!-- Monitoring Table -->
+        <!-- Compliance & Reports Column (Aggregated Data) -->
         <div class="col-lg-8">
             <div class="card card-custom">
                 <div class="card-custom-header">
-                    <span>Hoạt động giám sát gần đây</span>
-                    <span class="badge bg-primary-light text-primary fw-semibold">Thời gian thực</span>
+                    <span><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Báo Cáo Hiệu Năng &amp; Tuân Thủ Điều Trị</span>
+                    <span class="badge bg-primary-light text-primary fw-semibold">Thống Kê Tổng Hợp</span>
                 </div>
-                <div class="card-custom-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">Bệnh nhân</th>
-                                    <th>Mã bệnh nhân</th>
-                                    <th>Bác sĩ phụ trách</th>
-                                    <th>Trạng thái</th>
-                                    <th class="pe-4 text-end">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                <i class="bi bi-person"></i>
-                                            </div>
-                                            <span class="fw-medium">Nguyễn Văn A</span>
-                                        </div>
-                                    </td>
-                                    <td>BN-2026-001</td>
-                                    <td>BS. Lê Minh Hoàng</td>
-                                    <td><span class="badge bg-success-subtle text-success text-success-emphasis">Bình thường</span></td>
-                                    <td class="pe-4 text-end">
-                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                <i class="bi bi-person"></i>
-                                            </div>
-                                            <span class="fw-medium">Trần Thị B</span>
-                                        </div>
-                                    </td>
-                                    <td>BN-2026-002</td>
-                                    <td>BS. Nguyễn Thị Lan</td>
-                                    <td><span class="badge bg-danger-subtle text-danger text-danger-emphasis">Nhịp tim cao</span></td>
-                                    <td class="pe-4 text-end">
-                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                <i class="bi bi-person"></i>
-                                            </div>
-                                            <span class="fw-medium">Phạm Văn C</span>
-                                        </div>
-                                    </td>
-                                    <td>BN-2026-003</td>
-                                    <td>BS. Lê Minh Hoàng</td>
-                                    <td><span class="badge bg-warning-subtle text-warning text-warning-emphasis">Huyết áp thấp</span></td>
-                                    <td class="pe-4 text-end">
-                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Chi tiết</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="card-custom-body">
+                    <!-- Progress 1: Medication Compliance -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-1"><i class="bi bi-capsule text-primary me-1"></i>Tỷ lệ tuân thủ uống thuốc (Tuần qua)</h6>
+                                <small class="text-muted">Tổng số liều thuốc đã uống thực tế / Số liều được kê lịch</small>
+                            </div>
+                            <span class="fw-bold fs-5 text-primary" th:text="${#numbers.formatDecimal(medicationCompliance, 1, 1)} + '%'">0.0%</span>
+                        </div>
+                        <div class="progress" style="height: 16px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                 role="progressbar" 
+                                 th:style="'width: ' + ${medicationCompliance} + '%'" 
+                                 th:aria-valuenow="${medicationCompliance}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <span class="small text-muted" th:text="'Chi tiết: Ghi nhận uống ' + ${takenMeds} + ' trên tổng số ' + ${totalMeds} + ' lịch kê'">Chi tiết</span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Progress 2: Daily Health Log Compliance -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="fw-bold mb-1"><i class="bi bi-clipboard2-pulse text-success me-1"></i>Tỷ lệ nhập chỉ số sức khỏe đầy đủ (Hôm nay)</h6>
+                                <small class="text-muted">Bệnh nhân TREATING có log sinh tồn trong ngày / Tổng số bệnh nhân TREATING</small>
+                            </div>
+                            <span class="fw-bold fs-5 text-success" th:text="${#numbers.formatDecimal(healthLogCompliance, 1, 1)} + '%'">0.0%</span>
+                        </div>
+                        <div class="progress" style="height: 16px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                                 role="progressbar" 
+                                 th:style="'width: ' + ${healthLogCompliance} + '%'" 
+                                 th:aria-valuenow="${healthLogCompliance}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="mt-2 text-end">
+                            <span class="small text-muted" th:text="'Chi tiết: Đã nhập log ' + ${loggedPatients} + ' trên tổng số ' + ${totalTreating} + ' bệnh nhân đang điều trị'">Chi tiết</span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Level 3 Monthly Alerts Widget -->
+                    <div class="card border-warning bg-warning bg-opacity-10 p-4 rounded-3 text-center">
+                        <h1 class="display-3 fw-bold text-warning-emphasis" th:text="${level3Alerts}">0</h1>
+                        <h5 class="fw-bold text-warning-emphasis"><i class="bi bi-exclamation-octagon-fill me-2"></i>Cảnh báo Cấp độ 3 (Màu Cam) Trong Tháng</h5>
+                        <p class="text-muted small mb-0 mt-2">
+                            Tổng số ca có chỉ số vượt ngưỡng nguy kịch Level 3 phát sinh trong tháng hiện tại trên toàn hệ thống bệnh viện.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Quick actions / Sidebar cards -->
+        <!-- Right Column actions & safety info -->
         <div class="col-lg-4">
+            <!-- Quick Actions -->
             <div class="card card-custom">
                 <div class="card-custom-header">
                     <span>Thao tác nhanh</span>
                 </div>
                 <div class="card-custom-body d-flex flex-column gap-3">
-                    <a th:href="@{/hospital/doctor/create}" class="btn btn-primary w-100 text-white d-flex align-items-center justify-content-center gap-2 py-2 shadow-sm rounded-3">
-                        <i class="bi bi-person-plus-fill"></i>
-                        Tạo tài khoản bác sĩ
+                    <a th:href="@{/hospital/doctors}" class="btn btn-primary w-100 text-white d-flex align-items-center justify-content-center gap-2 py-2 shadow-sm rounded-3">
+                        <i class="bi bi-person-fill-gear"></i>
+                        Quản lý bác sĩ
                     </a>
                     
-                    <button class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3">
+                    <button class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3" onclick="alert('Đang kết xuất báo cáo tổng hợp hệ thống dạng PDF...')">
                         <i class="bi bi-file-earmark-bar-graph"></i>
                         Xuất báo cáo hoạt động
                     </button>
                     
                     <hr class="my-2 text-muted">
                     
+                    <!-- Data Safety Info -->
                     <div class="p-3 bg-light rounded-3">
                         <h6 class="fw-semibold mb-2 d-flex align-items-center gap-2 text-primary">
-                            <i class="bi bi-shield-check"></i>
-                            An toàn dữ liệu
+                            <i class="bi bi-shield-lock-fill"></i>
+                            Bảo mật dữ liệu HIPAA
                         </h6>
-                        <p class="text-muted small mb-0">Hệ thống đang hoạt động ở chế độ bảo mật cao nhất, mã hóa đầu-cuối mọi thông số sinh tồn.</p>
+                        <p class="text-muted small mb-0 text-justify">
+                            Tài khoản Hospital Admin được áp dụng bộ lọc dữ liệu an toàn. Hệ thống chỉ cung cấp các số liệu thống kê tổng hợp (aggregated metrics) và ngăn chặn xem chi tiết hồ sơ bệnh án cá nhân để tuân thủ quy tắc bảo mật y tế quốc tế.
+                        </p>
                     </div>
                 </div>
             </div>

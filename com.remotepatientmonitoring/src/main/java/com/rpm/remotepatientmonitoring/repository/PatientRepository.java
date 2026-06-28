@@ -43,4 +43,9 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     Page<Patient> searchPatientsForDoctor(@Param("doctorId") Integer doctorId, @Param("keyword") String keyword, Pageable pageable);
 
     long countByDoctorId(Integer doctorId);
+
+    @Query("SELECT COUNT(p) FROM Patient p WHERE p.hospital.id = :hospitalId AND p.status = 'TREATING'")
+    long countTotalTreatingPatients(@Param("hospitalId") Integer hospitalId);
+
+    List<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status);
 }
