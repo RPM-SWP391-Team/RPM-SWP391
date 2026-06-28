@@ -580,18 +580,40 @@ public class PatientController {
         int totalCalories = 0;
         double totalSalt = 0.0;
         double totalFiber = 0.0;
+        double totalCarbs = 0.0;
+        double totalFat = 0.0;
+        double totalProtein = 0.0;
+
         int targetCalories = 1400;
         double targetSalt = 2.5;
         double targetFiber = 20.0;
+        double targetCarbs = 150.0;
+        double targetFat = 50.0;
+        double targetProtein = 60.0;
+
+        if (patient.getId() != null) {
+            NutritionRule currentRule = nutritionRuleRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+            if (currentRule != null) {
+                if (currentRule.getMaxCaloriesPerDay() != null) targetCalories = currentRule.getMaxCaloriesPerDay();
+                if (currentRule.getMaxSaltG() != null) targetSalt = currentRule.getMaxSaltG().doubleValue();
+                if (currentRule.getMinFiberG() != null) targetFiber = currentRule.getMinFiberG().doubleValue();
+                if (currentRule.getMaxCarbsG() != null) targetCarbs = currentRule.getMaxCarbsG().doubleValue();
+                if (currentRule.getMaxFatG() != null) targetFat = currentRule.getMaxFatG().doubleValue();
+                if (currentRule.getMinProteinG() != null) targetProtein = currentRule.getMinProteinG().doubleValue();
+            }
+        }
 
         try {
             if (patient.getId() != null) {
                 LocalDate today = LocalDate.now();
                 meals = patientMealRepository.findByPatientIdAndLogDate(patient.getId(), today);
                 for (PatientMeal m : meals) {
-                    totalCalories += m.getCalories();
-                    totalSalt += m.getSaltG();
-                    totalFiber += m.getFiberG();
+                    if (m.getCalories() != null) totalCalories += m.getCalories();
+                    if (m.getSaltG() != null) totalSalt += m.getSaltG();
+                    if (m.getFiberG() != null) totalFiber += m.getFiberG();
+                    if (m.getGlucidG() != null) totalCarbs += m.getGlucidG();
+                    if (m.getLipidG() != null) totalFat += m.getLipidG();
+                    if (m.getProteinG() != null) totalProtein += m.getProteinG();
                 }
             }
         } catch (Exception ignored) {
@@ -600,22 +622,39 @@ public class PatientController {
         int caloriesPercent = targetCalories > 0 ? (totalCalories * 100 / targetCalories) : 0;
         int saltPercent = targetSalt > 0 ? (int)(totalSalt * 100 / targetSalt) : 0;
         int fiberPercent = targetFiber > 0 ? (int)(totalFiber * 100 / targetFiber) : 0;
+        int carbsPercent = targetCarbs > 0 ? (int)(totalCarbs * 100 / targetCarbs) : 0;
+        int fatPercent = targetFat > 0 ? (int)(totalFat * 100 / targetFat) : 0;
+        int proteinPercent = targetProtein > 0 ? (int)(totalProtein * 100 / targetProtein) : 0;
 
         if (caloriesPercent > 100) caloriesPercent = 100;
         if (saltPercent > 100) saltPercent = 100;
         if (fiberPercent > 100) fiberPercent = 100;
+        if (carbsPercent > 100) carbsPercent = 100;
+        if (fatPercent > 100) fatPercent = 100;
+        if (proteinPercent > 100) proteinPercent = 100;
 
         model.addAttribute("patient", patient);
         model.addAttribute("meals", meals);
         model.addAttribute("totalCalories", totalCalories);
         model.addAttribute("totalSalt", Math.round(totalSalt * 10.0) / 10.0);
         model.addAttribute("totalFiber", Math.round(totalFiber * 10.0) / 10.0);
+        model.addAttribute("totalCarbs", Math.round(totalCarbs * 10.0) / 10.0);
+        model.addAttribute("totalFat", Math.round(totalFat * 10.0) / 10.0);
+        model.addAttribute("totalProtein", Math.round(totalProtein * 10.0) / 10.0);
+
         model.addAttribute("targetCalories", targetCalories);
         model.addAttribute("targetSalt", targetSalt);
         model.addAttribute("targetFiber", targetFiber);
+        model.addAttribute("targetCarbs", targetCarbs);
+        model.addAttribute("targetFat", targetFat);
+        model.addAttribute("targetProtein", targetProtein);
+
         model.addAttribute("caloriesPercent", caloriesPercent);
         model.addAttribute("saltPercent", saltPercent);
         model.addAttribute("fiberPercent", fiberPercent);
+        model.addAttribute("carbsPercent", carbsPercent);
+        model.addAttribute("fatPercent", fatPercent);
+        model.addAttribute("proteinPercent", proteinPercent);
         
         List<FoodDictionary> foods = foodDictionaryRepository.findByIsActiveTrue();
         model.addAttribute("foods", foods);
