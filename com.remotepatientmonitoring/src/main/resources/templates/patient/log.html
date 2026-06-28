@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhập Liệu Sức Khỏe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/patient.css">
+    <style>
+        body { background: #f5f7fb; }
+
+        .log-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
+            padding: 20px 0 18px; position: sticky; top: 0; z-index: 10;
+        }
+
+        /* Steps bar */
+        .steps-bar { display: flex; gap: 4px; margin-top: 14px; }
+        .step-bar {
+            flex: 1; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.2);
+            transition: background 0.4s;
+        }
+        .step-bar.active { background: #f59e0b; }
+        .step-bar.done { background: #22c55e; }
+
+        /* Wizard panels */
+        .wizard-panel { display: none; animation: fadeIn 0.3s ease; }
+        .wizard-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Category cards (Huyết áp / Đường huyết) on home panel */
+        .cat-card {
+            border: 2px solid #e5e7eb; border-radius: 16px; padding: 20px;
+            cursor: pointer; transition: all 0.2s; background: #fff; text-align: center;
+        }
+        .cat-card:hover { border-color: #93b5d6; box-shadow: 0 6px 20px rgba(0,0,0,0.06); transform: translateY(-2px); }
+        .cat-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin: 0 auto 12px;
+        }
+        .cat-icon.bp { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
+        .cat-icon.gl { background: linear-gradient(135deg, #cffafe, #a5f3fc); color: #0891b2; }
+        .cat-card h6 { font-weight: 700; margin-bottom: 4px; }
+        .cat-card p { font-size: 0.75rem; color: #6b7280; margin: 0; }
+
+        /* Milestone cards */
+        .ms-card {
+            border: 2px solid #e5e7eb; border-radius: 14px; padding: 14px 16px;
+            cursor: pointer; transition: all 0.2s; background: #fff;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .ms-card:hover { border-color: #93b5d6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .ms-card.picked { border-color: #2a5298; background: #eff6ff; box-shadow: 0 2px 12px rgba(42,82,152,0.12); }
+        .ms-card.picked-cyan { border-color: #0891b2; background: #ecfeff; }
+        .ms-card.picked-gray { border-color: #6b7280; background: #f9fafb; }
+        .ms-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;
+        }
+        .ms-icon.i-bp { background: #dbeafe; color: #2563eb; }
+        .ms-icon.i-gl { background: #cffafe; color: #0891b2; }
+        .ms-icon.i-free { background: #f3f4f6; color: #6b7280; }
+        .ms-card .ms-name { font-weight: 700; font-size: 0.95rem; color: #111827; }
+        .ms-card .ms-hint { font-size: 0.76rem; color: #6b7280; }
+        .ms-card .ms-tick {
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid #d1d5db;
+            display: flex; align-items: center; justify-content: center; margin-left: auto; flex-shrink: 0;
+            transition: all 0.2s; font-size: 0.65rem;
+        }
+        .ms-card.picked .ms-tick, .ms-card.picked-cyan .ms-tick, .ms-card.picked-gray .ms-tick {
+            border-color: #22c55e; background: #22c55e; color: #fff;
+        }
+
+        /* Input section */
+        .input-box {
+            background: #fff; border-radius: 16px; padding: 22px 20px;
+            border: 1px solid #e5e7eb; box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .input-box label { font-size: 0.82rem; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        .input-box .form-control {
+            border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 12px 14px;
+            font-size: 1.05rem; font-weight: 600; background: #fafbfc;
+        }
+        .input-box .form-control:focus { border-color: #2a5298; box-shadow: 0 0 0 3px rgba(42,82,152,0.08); background: #fff; }
+        .input-box .form-control::placeholder { font-weight: 400; color: #9ca3af; }
+        .unit-text { font-size: 0.72rem; color: #9ca3af; margin-top: 3px; }
+        .range-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.7rem; padding: 3px 10px; background: #f0fdf4; color: #16a34a;
+            border-radius: 50px; margin-top: 6px;
+        }
+
+        /* Buttons */
+        .btn-next {
+            background: linear-gradient(135deg, #2a5298, #3b6ec7); color: #fff;
+            border: none; border-radius: 14px; padding: 14px; font-weight: 700;
+            width: 100%; font-size: 1rem; transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(42,82,152,0.25);
+        }
+        .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(42,82,152,0.3); color: #fff; }
+        .btn-back { background: none; border: none; color: #6b7280; font-weight: 600; font-size: 0.9rem; padding: 10px 0; }
+        .btn-back:hover { color: #2a5298; }
+
+        /* OCR */
+        .ocr-upload-box {
+            border: 2px dashed #cbd5e1; border-radius: 16px; padding: 36px 20px;
+            text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s;
+        }
+        .ocr-upload-box:hover { border-color: #2a5298; background: #eff6ff; }
+        .scanner-line {
+            width: 100%; height: 4px; background: #3b82f6; position: relative;
+            animation: scan 1.5s infinite linear; box-shadow: 0 0 8px #3b82f6;
+        }
+        @keyframes scan { 0% { top: 0; } 50% { top: 180px; } 100% { top: 0; } }
+
+        /* Method toggle */
+        .method-toggle {
+            display: flex; background: rgba(255,255,255,0.12); border-radius: 50px; padding: 3px;
+            margin-top: 12px;
+        }
+        .method-toggle-btn {
+            flex: 1; text-align: center; padding: 7px 10px; border-radius: 50px;
+            font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.6);
+            cursor: pointer; transition: all 0.2s; border: none; background: none;
+        }
+        .method-toggle-btn.active { background: #fff; color: #2a5298; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="log-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="/patient/dashboard" class="text-white text-decoration-none" style="font-size: 0.88rem;">
+                    <i class="fa-solid fa-chevron-left me-1"></i> Quay lại
+                </a>
+                <span class="text-white fw-bold" style="font-size: 0.95rem;">
+                    <i class="fa-solid fa-heart-pulse me-1" style="color: #f59e0b;"></i> Nhập sức khỏe
+                </span>
+                <span style="width: 60px;"></span>
+            </div>
+            <div class="method-toggle">
+                <button class="method-toggle-btn active" id="tab-manual" onclick="switchInputMethod('MANUAL')">
+                    <i class="fa-solid fa-keyboard me-1"></i>Nhập tay
+                </button>
+                <button class="method-toggle-btn" id="tab-ocr" onclick="switchInputMethod('OCR')">
+                    <i class="fa-solid fa-camera me-1"></i>Chụp ảnh AI
+                </button>
+            </div>
+            <div class="steps-bar" id="stepsBar">
+                <div class="step-bar active" id="bar1"></div>
+                <div class="step-bar" id="bar2"></div>
+                <div class="step-bar" id="bar3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="container" style="padding-top: 20px; padding-bottom: 120px;">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+
+                <form th:action="@{/patient/log}" th:object="${healthLog}" method="POST" id="healthLogForm">
+                    <input type="hidden" th:field="*{inputMethod}" id="inputMethodField" value="MANUAL">
+                    <input type="hidden" th:field="*{logType}" id="logTypeField">
+
+                    <!-- ========== PANEL 0: Chọn loại chỉ số (cho Đồng mắc) ========== -->
+                    <div class="wizard-panel active" id="panel0">
+                        <p class="text-center text-muted small mb-3">Bạn muốn nhập chỉ số gì?</p>
+                        <div class="row g-3" id="categoryRow">
+                            <div class="col-6" id="cat-bp-col" style="display:none;">
+                                <div class="cat-card" onclick="goToBpMilestones()">
+                                    <div class="cat-icon bp"><i class="fa-solid fa-heart-pulse"></i></div>
+                                    <h6>Huyết áp</h6>
+                                    <p>Tâm thu, tâm trương, nhịp tim</p>
+                                </div>
+                            </div>
+                            <div class="col-6" id="cat-gl-col" style="display:none;">
+                                <div class="cat-card" onclick="goToGlucoseMilestones()">
+                                    <div class="cat-icon gl"><i class="fa-solid fa-droplet"></i></div>
+                                    <h6>Đường huyết</h6>
+                                    <p>Chỉ số Glucose mmol/L</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== PANEL 1A: Mốc huyết áp ========== -->
+                    <div class="wizard-panel" id="panelBpMilestone">
+                        <button type="button" class="btn-back" onclick="goHome()">
+                            <i class="fa-solid fa-chevron-left me-1"></i> Quay lại
+                        </button>
+                        <p class="text-muted small mb-3">Chọn thời điểm đo <strong>huyết áp</strong></p>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="ms-card" onclick="pickAndGo(this, 'MORNING', 'bp')">
+                                <div class="ms-icon i-bp"><i class="fa-solid fa-sun"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="ms-name">Buổi sáng</div>
+                                    <div class="ms-hint">Sau thức dậy, trước ăn & uống thuốc</div>
+                                </div>
+                                <div class="ms-tick"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                            <div class="ms-card" onclick="pickAndGo(this, 'EVENING', 'bp')">
+                                <div class="ms-icon i-bp"><i class="fa-solid fa-moon"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="ms-name">Buổi tối</div>
+                                    <div class="ms-hint">Trước đi ngủ hoặc trước ăn tối</div>
+                                </div>
+                                <div class="ms-tick"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                            <div class="ms-card" onclick="pickAndGo(this, 'RANDOM', 'bp')">
+                                <div class="ms-icon i-free"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="ms-name">Nhập tự do</div>
+                                    <div class="ms-hint">Đo thêm khi cần (không bắt buộc)</div>
+                                </div>
+                                <div class="ms-tick"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== PANEL 1B: Mốc đường huyết ========== -->
+                    <div class="wizard-panel" id="panelGlMilestone">
+                        <button type="button" class="btn-back" onclick="goHome()">
+                            <i class="fa-solid fa-chevron-left me-1"></i> Quay lại
+                        </button>
+                        <p class="text-muted small mb-3">Chọn thời điểm đo <strong>đường huyết</strong></p>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="ms-card" onclick="pickAndGo(this, 'MORNING', 'glucose')">
+                                <div class="ms-icon i-gl"><i class="fa-solid fa-mug-saucer"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="ms-name">Mốc 1 — Trước ăn sáng</div>
+                                    <div class="ms-hint">Đo khi bụng đói buổi sáng</div>
+                                </div>
+                                <div class="ms-tick"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                            <div class="ms-card" onclick="pickAndGo(this, 'EVENING', 'glucose')">
+                                <div class="ms-icon i-gl"><i class="fa-solid fa-utensils"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="ms-name">Mốc 2 — Sau ăn tối 2h</div>
+                                    <div class="ms-hint">Đúng 2 tiếng sau bữa tối</div>
+                                </div>
+                                <div class="ms-tick"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                            <div class="ms-card" onclick="pickAndGo(this, 'RANDOM', 'glucose')">
+                                <div class="ms-icon i-free"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                                <div class="flex-grow-1">
+                                    <div class="ms-name">Nhập tự do</div>
+                                    <div class="ms-hint">Đo thêm khi cần (không bắt buộc)</div>
+                                </div>
+                                <div class="ms-tick"><i class="fa-solid fa-check"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========== PANEL 2A: Nhập huyết áp ========== -->
+                    <div class="wizard-panel" id="panelBpInput">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <button type="button" class="btn-back" onclick="goToBpMilestones()">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Đổi mốc
+                            </button>
+                            <span class="fw-bold small" style="color: #dc2626;" id="labelBp"></span>
+                        </div>
+                        <div class="input-box mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="fa-solid fa-heart-pulse" style="color: #ef4444;"></i>
+                                <span class="fw-bold" style="font-size: 0.92rem;">Huyết áp & Nhịp tim</span>
+                            </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <label>Tâm thu</label>
+                                    <input type="number" th:field="*{systolicBp}" id="systolicBp" class="form-control" placeholder="120" min="50" max="300">
+                                    <div class="unit-text">mmHg</div>
+                                </div>
+                                <div class="col-6">
+                                    <label>Tâm trương</label>
+                                    <input type="number" th:field="*{diastolicBp}" id="diastolicBp" class="form-control" placeholder="80" min="30" max="200">
+                                    <div class="unit-text">mmHg</div>
+                                </div>
+                            </div>
+                            <label>Nhịp tim</label>
+                            <input type="number" th:field="*{heartRate}" id="heartRate" class="form-control" placeholder="75" min="20" max="300">
+                            <div class="unit-text">lần/phút</div>
+                            <div class="range-badge"><i class="fa-solid fa-circle-info"></i> Bình thường: 90–140 / 60–90</div>
+                        </div>
+                        <!-- Notes inline -->
+                        <div class="input-box mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-comment-medical" style="color: #8b5cf6;"></i>
+                                <span class="fw-bold" style="font-size: 0.88rem;">Ghi chú</span>
+                                <span class="text-muted small">(tùy chọn)</span>
+                            </div>
+                            <textarea th:field="*{patientNotes}" class="form-control" rows="2" placeholder="Triệu chứng, cảm nhận..." style="resize: none;" id="notesBp"></textarea>
+                        </div>
+                        <button type="button" class="btn-next" onclick="submitBp()">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>Lưu Huyết áp
+                        </button>
+                    </div>
+
+                    <!-- ========== PANEL 2B: Nhập đường huyết ========== -->
+                    <div class="wizard-panel" id="panelGlInput">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <button type="button" class="btn-back" onclick="goToGlucoseMilestones()">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Đổi mốc
+                            </button>
+                            <span class="fw-bold small" style="color: #0891b2;" id="labelGl"></span>
+                        </div>
+                        <div class="input-box mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="fa-solid fa-droplet" style="color: #06b6d4;"></i>
+                                <span class="fw-bold" style="font-size: 0.92rem;">Đường huyết (Glucose)</span>
+                            </div>
+                            <label>Chỉ số Glucose</label>
+                            <input type="number" step="0.1" th:field="*{glucoseLevel}" id="glucoseLevel" class="form-control" placeholder="6.5" min="1.0" max="33.3">
+                            <div class="unit-text">mmol/L</div>
+                            <div class="range-badge"><i class="fa-solid fa-circle-info"></i> Bình thường: 4.4 – 10.0</div>
+                        </div>
+                        <!-- Notes inline -->
+                        <div class="input-box mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-comment-medical" style="color: #8b5cf6;"></i>
+                                <span class="fw-bold" style="font-size: 0.88rem;">Ghi chú</span>
+                                <span class="text-muted small">(tùy chọn)</span>
+                            </div>
+                            <textarea class="form-control" rows="2" placeholder="Triệu chứng, cảm nhận..." style="resize: none;" id="notesGl"></textarea>
+                        </div>
+                        <button type="button" class="btn-next" onclick="submitGl()">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>Lưu Đường huyết
+                        </button>
+                    </div>
+
+                    <!-- ========== OCR PANEL ========== -->
+                    <div class="wizard-panel" id="panelOCR">
+                        <p class="text-muted small text-center mb-3">Chụp ảnh màn hình máy đo huyết áp / đường huyết</p>
+                        <div class="ocr-upload-box mb-4" id="upload-box" onclick="triggerPhotoUpload()">
+                            <i class="fa-solid fa-cloud-arrow-up fa-3x mb-3" style="color:#94a3b8;"></i>
+                            <h6 class="fw-bold">Chụp ảnh hoặc chọn tệp</h6>
+                            <p class="text-muted small mb-0">JPG, PNG từ máy đo</p>
+                            <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="simulateOCR()">
+                        </div>
+                        <div id="ocr-loading-area" class="text-center py-4 border rounded-3 bg-light mb-4 d-none">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <h6 class="fw-bold">Đang phân tích bằng AI...</h6>
+                            <div class="mx-auto mt-3 border bg-white" style="height:160px;width:160px;overflow:hidden;position:relative;">
+                                <div class="scanner-line"></div>
+                            </div>
+                        </div>
+                        <div id="ocr-error-area" class="alert alert-danger d-none"><i class="fa-solid fa-triangle-exclamation me-2"></i><strong>Không đọc được — vui lòng nhập tay.</strong></div>
+                        <div id="ocr-confirm-area" class="p-3 border rounded-4 bg-light mb-3 d-none">
+                            <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-circle-check me-2"></i>Kết quả AI</h6>
+                            <div id="ocr-result-bp" class="mb-2 d-none">
+                                <div class="row text-center">
+                                    <div class="col-4"><small class="text-muted">Tâm thu</small><h4 class="fw-bold" id="ocr-val-systolic">122</h4></div>
+                                    <div class="col-4"><small class="text-muted">Tâm trương</small><h4 class="fw-bold" id="ocr-val-diastolic">80</h4></div>
+                                    <div class="col-4"><small class="text-muted">Nhịp tim</small><h4 class="fw-bold" id="ocr-val-heartrate">74</h4></div>
+                                </div>
+                            </div>
+                            <div id="ocr-result-glucose" class="mb-2 d-none">
+                                <small class="text-muted">Glucose</small><h4 class="fw-bold" id="ocr-val-glucose">6.5 mmol/L</h4>
+                            </div>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill flex-grow-1 btn-sm" onclick="ocrEditManual()">Sửa tay</button>
+                                <button type="button" class="btn btn-success text-white rounded-pill flex-grow-1 btn-sm" onclick="ocrConfirmSubmit()">Xác nhận</button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="simulateSuccessfulPhotoUpload()"><i class="fa-solid fa-vial me-1"></i>Thử thành công</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="simulateFailedPhotoUpload()"><i class="fa-solid fa-bug me-1"></i>Thử lỗi</button>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*[# th:if="${patient != null && patient.diseaseProfile != null}"]*/
+        const profileId = [[${patient.diseaseProfile.id}]];
+        /*[/]*/
+        /*[# th:if="${patient == null || patient.diseaseProfile == null}"]*/
+        const profileId = 3;
+        /*[/]*/
+
+        const hasHypertension = (profileId === 1 || profileId === 3);
+        const hasDiabetes = (profileId === 2 || profileId === 3);
+        const isBothGroups = hasHypertension && hasDiabetes;
+
+        const bpLabels = { 'MORNING': '🌅 Buổi sáng', 'EVENING': '🌙 Buổi tối', 'RANDOM': '📋 Nhập tự do' };
+        const glLabels = { 'MORNING': '☀️ Mốc 1', 'EVENING': '🍽️ Mốc 2', 'RANDOM': '📋 Nhập tự do' };
+
+        // ---- Navigation helpers ----
+        function showPanel(id) {
+            document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            // Re-enable all inputs when changing panels to allow correct user input
+            const sys = document.getElementById('systolicBp');
+            const dia = document.getElementById('diastolicBp');
+            const hr = document.getElementById('heartRate');
+            const gl = document.getElementById('glucoseLevel');
+            if (sys) sys.disabled = false;
+            if (dia) dia.disabled = false;
+            if (hr) hr.disabled = false;
+            if (gl) gl.disabled = false;
+        }
+        function setBars(s1, s2, s3) {
+            ['bar1','bar2','bar3'].forEach((b,i) => {
+                const el = document.getElementById(b);
+                const st = [s1,s2,s3][i];
+                el.classList.remove('active','done');
+                if (st) el.classList.add(st);
+            });
+        }
+
+        function goHome() {
+            if (isBothGroups) {
+                showPanel('panel0'); setBars('active', null, null);
+            } else if (hasHypertension) {
+                showPanel('panelBpMilestone'); setBars('active', null, null);
+            } else {
+                showPanel('panelGlMilestone'); setBars('active', null, null);
+            }
+        }
+
+        function goToBpMilestones() {
+            showPanel('panelBpMilestone');
+            if (isBothGroups) setBars('done', 'active', null);
+            else setBars('active', null, null);
+            // Reset selection
+            document.querySelectorAll('#panelBpMilestone .ms-card').forEach(c => c.classList.remove('picked','picked-gray'));
+        }
+
+        function goToGlucoseMilestones() {
+            showPanel('panelGlMilestone');
+            if (isBothGroups) setBars('done', 'active', null);
+            else setBars('active', null, null);
+            document.querySelectorAll('#panelGlMilestone .ms-card').forEach(c => c.classList.remove('picked-cyan','picked-gray'));
+        }
+
+        function pickAndGo(card, value, type) {
+            document.getElementById('logTypeField').value = value;
+
+            // Visual feedback — highlight briefly
+            const panel = card.closest('.wizard-panel');
+            panel.querySelectorAll('.ms-card').forEach(c => c.classList.remove('picked','picked-cyan','picked-gray'));
+            if (type === 'bp') card.classList.add(value === 'RANDOM' ? 'picked-gray' : 'picked');
+            else card.classList.add(value === 'RANDOM' ? 'picked-gray' : 'picked-cyan');
+
+            // Transition after brief pause for visual feedback
+            setTimeout(() => {
+                if (type === 'bp') {
+                    document.getElementById('labelBp').textContent = bpLabels[value] || value;
+                    showPanel('panelBpInput');
+                    if (isBothGroups) setBars('done', 'done', 'active');
+                    else setBars('done', 'active', null);
+                } else {
+                    document.getElementById('labelGl').textContent = glLabels[value] || value;
+                    showPanel('panelGlInput');
+                    if (isBothGroups) setBars('done', 'done', 'active');
+                    else setBars('done', 'active', null);
+                }
+            }, 200);
+        }
+
+        // ---- Submit handlers ----
+        function submitBp() {
+            const logType = document.getElementById('logTypeField').value;
+            const sysVal = document.getElementById('systolicBp').value;
+            const diaVal = document.getElementById('diastolicBp').value;
+            const hrVal = document.getElementById('heartRate').value;
+
+            if (!sysVal || !diaVal) {
+                alert('Vui lòng nhập chỉ số Huyết áp (Tâm thu và Tâm trương).');
+                return;
+            }
+
+            if (sysVal) {
+                const sys = parseInt(sysVal);
+                if (sys < 50 || sys > 300) {
+                    alert('Chỉ số tâm thu phải từ 50 đến 300 mmHg.');
+                    return;
+                }
+            }
+            if (diaVal) {
+                const dia = parseInt(diaVal);
+                if (dia < 30 || dia > 200) {
+                    alert('Chỉ số tâm trương phải từ 30 đến 200 mmHg.');
+                    return;
+                }
+            }
+            if (hrVal) {
+                const hr = parseInt(hrVal);
+                if (hr < 20 || hr > 300) {
+                    alert('Nhịp tim phải từ 20 đến 300 lần/phút.');
+                    return;
+                }
+            }
+
+            // Disable glucose input to prevent Spring Boot binding errors on empty values
+            const glInput = document.getElementById('glucoseLevel');
+            if (glInput) glInput.disabled = true;
+
+            document.getElementById('healthLogForm').submit();
+        }
+
+        function submitGl() {
+            const logType = document.getElementById('logTypeField').value;
+            const glVal = document.getElementById('glucoseLevel').value;
+
+            if (!glVal) {
+                alert('Vui lòng nhập chỉ số Đường huyết.');
+                return;
+            }
+
+            if (glVal) {
+                const gl = parseFloat(glVal);
+                if (gl < 1.0 || gl > 33.3) {
+                    alert('Chỉ số Đường huyết phải từ 1.0 đến 33.3 mmol/L.');
+                    return;
+                }
+            }
+
+            // Disable BP inputs to prevent Spring Boot binding errors on empty values
+            const sysInput = document.getElementById('systolicBp');
+            const diaInput = document.getElementById('diastolicBp');
+            const hrInput = document.getElementById('heartRate');
+            if (sysInput) sysInput.disabled = true;
+            if (diaInput) diaInput.disabled = true;
+            if (hrInput) hrInput.disabled = true;
+
+            // Copy notes from GL to the patientNotes hidden field
+            const notesGlVal = document.getElementById('notesGl').value;
+            const mainNotes = document.querySelector('[name="patientNotes"]');
+            if (mainNotes) mainNotes.value = notesGlVal;
+            document.getElementById('healthLogForm').submit();
+        }
+
+        // ---- Init ----
+        document.addEventListener("DOMContentLoaded", function () {
+            if (isBothGroups) {
+                // Show category picker
+                document.getElementById('cat-bp-col').style.display = 'block';
+                document.getElementById('cat-gl-col').style.display = 'block';
+                showPanel('panel0');
+                // 3 steps
+            } else if (hasHypertension) {
+                // Skip category, go straight to BP milestones
+                showPanel('panelBpMilestone');
+                setBars('active', null, null);
+                // Hide bar3 since only 2 steps
+                document.getElementById('bar3').style.display = 'none';
+            } else if (hasDiabetes) {
+                showPanel('panelGlMilestone');
+                setBars('active', null, null);
+                document.getElementById('bar3').style.display = 'none';
+            }
+        });
+
+        // ---- Input method switch ----
+        function switchInputMethod(method) {
+            document.getElementById('inputMethodField').value = method;
+            document.getElementById('tab-manual').classList.toggle('active', method === 'MANUAL');
+            document.getElementById('tab-ocr').classList.toggle('active', method === 'OCR');
+            if (method === 'MANUAL') {
+                goHome();
+            } else {
+                showPanel('panelOCR');
+                setBars('active', null, null);
+            }
+        }
+
+        // ---- OCR functions ----
+        function triggerPhotoUpload() { document.getElementById('file-input').click(); }
+        function simulateOCR() { simulateSuccessfulPhotoUpload(); }
+
+        function simulateSuccessfulPhotoUpload() {
+            switchInputMethod('OCR');
+            document.getElementById('upload-box').classList.add('d-none');
+            document.getElementById('ocr-loading-area').classList.remove('d-none');
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('ocr-error-area').classList.add('d-none');
+            setTimeout(() => {
+                document.getElementById('ocr-loading-area').classList.add('d-none');
+                document.getElementById('ocr-confirm-area').classList.remove('d-none');
+                if (hasHypertension) document.getElementById('ocr-result-bp').classList.remove('d-none');
+                if (hasDiabetes) document.getElementById('ocr-result-glucose').classList.remove('d-none');
+            }, 1800);
+        }
+
+        function simulateFailedPhotoUpload() {
+            switchInputMethod('OCR');
+            document.getElementById('upload-box').classList.add('d-none');
+            document.getElementById('ocr-loading-area').classList.remove('d-none');
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('ocr-error-area').classList.add('d-none');
+            setTimeout(() => {
+                document.getElementById('ocr-loading-area').classList.add('d-none');
+                document.getElementById('ocr-error-area').classList.remove('d-none');
+                setTimeout(() => {
+                    alert("Không đọc được — vui lòng nhập tay");
+                    switchInputMethod('MANUAL');
+                    document.getElementById('ocr-error-area').classList.add('d-none');
+                    document.getElementById('upload-box').classList.remove('d-none');
+                }, 1500);
+            }, 1800);
+        }
+
+        function ocrEditManual() {
+            if (hasHypertension) {
+                document.getElementById('systolicBp').value = 122;
+                document.getElementById('diastolicBp').value = 80;
+                document.getElementById('heartRate').value = 74;
+                document.getElementById('logTypeField').value = 'MORNING';
+                document.getElementById('labelBp').textContent = '🌅 Buổi sáng';
+                switchInputMethod('MANUAL');
+                showPanel('panelBpInput');
+                if (isBothGroups) setBars('done', 'done', 'active');
+                else setBars('done', 'active', null);
+            } else if (hasDiabetes) {
+                document.getElementById('glucoseLevel').value = 6.5;
+                document.getElementById('logTypeField').value = 'MORNING';
+                document.getElementById('labelGl').textContent = '☀️ Mốc 1';
+                switchInputMethod('MANUAL');
+                showPanel('panelGlInput');
+                if (isBothGroups) setBars('done', 'done', 'active');
+                else setBars('done', 'active', null);
+            }
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('upload-box').classList.remove('d-none');
+        }
+
+        function ocrConfirmSubmit() {
+            if (hasHypertension) {
+                document.getElementById('systolicBp').value = 122;
+                document.getElementById('diastolicBp').value = 80;
+                document.getElementById('heartRate').value = 74;
+            } else {
+                const sys = document.getElementById('systolicBp');
+                const dia = document.getElementById('diastolicBp');
+                const hr = document.getElementById('heartRate');
+                if (sys) sys.disabled = true;
+                if (dia) dia.disabled = true;
+                if (hr) hr.disabled = true;
+            }
+            if (hasDiabetes) {
+                document.getElementById('glucoseLevel').value = 6.5;
+            } else {
+                const gl = document.getElementById('glucoseLevel');
+                if (gl) gl.disabled = true;
+            }
+            const f = document.getElementById('logTypeField');
+            if (!f.value) f.value = 'MORNING';
+            document.getElementById('inputMethodField').value = 'OCR';
+            document.getElementById('healthLogForm').submit();
+        }
+    </script>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+        <a href="/patient/dashboard" class="nav-item"><i class="fa-solid fa-house"></i><span>Trang chủ</span></a>
+        <a href="/patient/appointments" class="nav-item"><i class="fa-solid fa-calendar-check"></i><span>Nhật ký</span></a>
+        <a href="/patient/adherence" class="nav-item"><i class="fa-solid fa-pills"></i><span>Thuốc uống</span></a>
+        <a href="/patient/log" class="nav-item fab-item"><div class="fab-btn"><i class="fa-solid fa-plus"></i></div></a>
+        <a href="/patient/nutrition" class="nav-item"><i class="fa-solid fa-utensils"></i><span>Dinh dưỡng</span></a>
+        <a href="/patient/exercise" class="nav-item"><i class="fa-solid fa-person-running"></i><span>Tập luyện</span></a>
+        <a href="/patient/progress" class="nav-item"><i class="fa-solid fa-user"></i><span>Hồ sơ</span></a>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const p = window.location.pathname;
+            document.querySelectorAll(".bottom-nav .nav-item").forEach(i => {
+                if (p === i.getAttribute("href")) i.classList.add("active");
+            });
+        });
+    </script>
+    <script src="/js/patient.js"></script>
+</body>
+</html>

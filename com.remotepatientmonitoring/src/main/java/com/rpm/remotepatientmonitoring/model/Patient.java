@@ -2,6 +2,7 @@ package com.rpm.remotepatientmonitoring.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,20 +60,25 @@ public class Patient {
     private String emergencyContactPhone;
 
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private String status = "NEW";
 
     @Column(name = "registration_source", nullable = false, length = 20)
+    @Builder.Default
     private String registrationSource = "ONLINE";
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "onboarded_at")
     private LocalDateTime onboardedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at", nullable = false)
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }
