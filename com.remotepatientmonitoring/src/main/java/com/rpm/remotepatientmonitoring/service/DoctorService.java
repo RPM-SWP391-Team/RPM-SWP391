@@ -1,5 +1,6 @@
 package com.rpm.remotepatientmonitoring.service;
 
+import com.rpm.remotepatientmonitoring.dto.DoctorEditDTO;
 import com.rpm.remotepatientmonitoring.model.Account;
 import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Hospital;
@@ -78,7 +79,7 @@ public class DoctorService {
 
     @Transactional
     public Doctor createDoctor(Integer hospitalId, String doctorCode, String fullName, String phone,
-                               String email, String password, String specialty, Integer capacityLimit) {
+                               String email,String gender, String password, String specialty, Integer capacityLimit) {
 
         // 1. Kiểm tra định dạng họ và tên tầng Service tránh lọt dữ liệu bừa bãi
         String nameRegex = "^[\\p{L}\\s]{2,50}$";
@@ -132,6 +133,7 @@ public class DoctorService {
                 .doctorCode(doctorCode)
                 .fullName(fullName)
                 .phone(phone)
+                .gender(gender)
                 .specialty(specialty)
                 .capacityLimit(capacityLimit)
                 .currentPatientCount(0)
@@ -209,6 +211,61 @@ public class DoctorService {
             account.setUpdatedAt(LocalDateTime.now());
             accountRepository.save(account);
         }
+    }
+
+    /// Hàm xử lý nghiệp vụ bộ lọc kép: Làm sạch dữ liệu đầu vào và gọi Repository
+    public List<Doctor> searchAndFilterAllDoctors(String keyword, String specialty) {
+        String cleanKeyword = (keyword != null) ? keyword.trim() : "";
+        String cleanSpecialty = (specialty != null) ? specialty.trim() : "";
+
+        // Giới hạn độ dài chuỗi tìm kiếm tối đa 100 ký tự để bảo vệ hiệu năng hệ thống
+        if (cleanKeyword.length() > 100) {
+            cleanKeyword = cleanKeyword.substring(0, 100);
+        }
+
+        // Đẩy xuống Database xử lý lọc phân tầng kèm sắp xếp tự động chuẩn chỉ
+        return doctorRepository.searchAndFilterDoctors(cleanKeyword, cleanSpecialty);
+    }
+
+    public Doctor getDoctorById(int id) {
+        return doctorRepository.findById(Integer.valueOf(id))
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id));
+    }
+
+    public List<Patient> getPatientsByDoctorId(int doctorId) {
+        return patientRepository.findByDoctorIdAndIsActiveTrue(doctorId);
+    }
+
+    @Transactional
+    public void updateDoctor(int id, DoctorEditDTO dto) {
+        Doctor doctor = doctorRepository.findById(Integer.valueOf(id))
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id));
+
+        // Bẫy trùng SĐT: loại trừ ID của chính bác sĩ đang sửa
+        if (doctorRepository.existsByPhoneAndIdNot(dto.getPhone(), id)) {
+            throw new IllegalArgumentException("Số điện thoại đã được đăng ký bởi một bác sĩ khác.");
+        }
+
+        // Bẫy Giới hạn tải (capacity_limit): Giới hạn mới không được nhỏ hơn số lượng bệnh nhân thực tế hiện tại
+        if (dto.getCapacityLimit() < doctor.getCurrentPatientCount()) {
+            throw new IllegalArgumentException("Giới hạn tải không thể nhỏ hơn số lượng bệnh nhân hiện tại bác sĩ đang phụ trách (" + doctor.getCurrentPatientCount() + " bệnh nhân).");
+        }
+
+        // Kiểm tra định dạng họ và tên bác sĩ tầng Service
+        String nameRegex = "^[\\p{L}\\s]{2,50}$";
+        if (dto.getFullName() == null || !dto.getFullName().trim().matches(nameRegex)) {
+            throw new IllegalArgumentException("Họ và tên bác sĩ không hợp lệ. Tên chỉ được phép chứa chữ cái tiếng Việt và khoảng trắng.");
+        }
+
+        // Gán dữ liệu sửa đổi
+        doctor.setFullName(dto.getFullName().trim());
+        doctor.setPhone(dto.getPhone().trim());
+        doctor.setGender(dto.getGender());
+        doctor.setSpecialty(dto.getSpecialty());
+        doctor.setCapacityLimit(dto.getCapacityLimit());
+        doctor.setUpdatedAt(LocalDateTime.now());
+
+        doctorRepository.save(doctor);
     }
 
     private List<ReplacementDoctorDto> getReplacementCapacityList(Integer hospitalId, Integer currentDoctorId) {

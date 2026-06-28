@@ -275,6 +275,38 @@
                 <h2 class="fw-bold mb-1"><i class="fa-solid fa-users-medical text-primary me-2"></i>Danh sách Bác sĩ</h2>
                 <p class="text-muted mb-0">Quản lý tài khoản, chuyên khoa và năng lực chịu tải của bác sĩ</p>
             </div>
+
+            <form th:action="@{/hospital/doctors}" method="GET" class="d-flex gap-2 ms-md-auto flex-wrap" style="max-width: 650px; width: 100%;">
+
+                <div class="input-group" style="flex: 1; min-width: 200px;">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0"
+                           th:value="${searchKeyword}"
+                           placeholder="Tìm theo ID, Tên hoặc Mã BS...">
+                </div>
+
+                <div style="min-width: 180px;">
+                    <select name="specialty" class="form-select" onchange="this.form.submit()">
+                        <option value="" th:selected="${selectedSpecialty == null || selectedSpecialty == ''}">-- Tất cả bác sĩ --</option>
+                        <option value="Tiểu đường" th:selected="${selectedSpecialty == 'Tiểu đường'}">Tiểu đường</option>
+                        <option value="Huyết áp" th:selected="${selectedSpecialty == 'Huyết áp'}">Huyết áp</option>
+                        <option value="Cả tiểu đường và huyết áp" th:selected="${selectedSpecialty == 'Cả tiểu đường và huyết áp'}">Cả hai bệnh</option>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-1">
+                    <button type="submit" class="btn btn-primary fw-semibold px-3">Lọc</button>
+                    <a th:if="${(searchKeyword != null && !searchKeyword.trim().isEmpty()) || (selectedSpecialty != null && !selectedSpecialty.trim().isEmpty())}"
+                       th:href="@{/hospital/doctors(search='', specialty='')}"
+                       class="btn btn-outline-danger"
+                       title="Xóa tất cả bộ lọc và hoàn tác">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </a>
+                </div>
+            </form>
+
             <button class="btn btn-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
                 <i class="fa-solid fa-plus me-2"></i>Thêm Bác sĩ Mới
             </button>
@@ -364,25 +396,37 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            <form th:if="${doc.isActive}" th:action="@{/hospital/doctors/deactivate/{id}(id=${doc.id})}" method="POST"
-                                  onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Toàn bộ bệnh nhân thuộc bác sĩ này sẽ được tự động điều chuyển sang bác sĩ khác.')">
-                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                    <i class="fa-solid fa-user-slash me-1"></i> Vô hiệu hóa
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" th:onclick="'viewDetail(' + ${doc.id} + ')'">
+                                    <i class="fa-solid fa-eye me-1"></i> Chi tiết
                                 </button>
-                            </form>
-
-                            <form th:unless="${doc.isActive}" th:action="@{/hospital/doctors/activate/{id}(id=${doc.id})}" method="POST"
-                                  onsubmit="return confirm('Bạn có muốn tái kích hoạt lại tài khoản cho bác sĩ này không?')">
-                                <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
-                                    <i class="fa-solid fa-user-check me-1"></i> Kích hoạt lại
+                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" th:onclick="'openEditModal(' + ${doc.id} + ')'">
+                                    <i class="fa-solid fa-user-pen me-1"></i> Sửa
                                 </button>
-                            </form>
+                                <form th:if="${doc.isActive}" th:action="@{/hospital/doctors/deactivate/{id}(id=${doc.id})}" method="POST"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Toàn bộ bệnh nhân thuộc bác sĩ này sẽ được tự động điều chuyển sang bác sĩ khác.')" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                        <i class="fa-solid fa-user-slash me-1"></i> Vô hiệu hóa
+                                    </button>
+                                </form>
+                                <form th:unless="${doc.isActive}" th:action="@{/hospital/doctors/activate/{id}(id=${doc.id})}" method="POST"
+                                      onsubmit="return confirm('Bạn có muốn tái kích hoạt lại tài khoản cho bác sĩ này không?')" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                        <i class="fa-solid fa-user-check me-1"></i> Kích hoạt
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(doctors)}">
                         <td colspan="7" class="text-center text-muted py-5">
-                            <i class="fa-solid fa-user-doctor fa-3x mb-3 text-opacity-25 text-secondary"></i>
-                            <p class="mb-0">Chưa có bác sĩ nào thuộc bệnh viện trong hệ thống</p>
+                            <div class="mb-3">
+                                <i class="fa-solid fa-user-magnifying-glass fa-3x text-secondary text-opacity-25"></i>
+                            </div>
+                            <h5 class="fw-bold text-secondary">Không tìm thấy bác sĩ phù hợp</h5>
+                            <p class="small mb-0 text-muted">
+                                Không có dữ liệu bác sĩ nào thỏa mãn các điều kiện tìm kiếm hoặc bộ lọc hiện tại.
+                            </p>
                         </td>
                     </tr>
                     </tbody>
@@ -414,9 +458,7 @@
                                    th:field="*{doctorCode}"
                                    th:classappend="${#fields.hasErrors('doctorCode')} ? 'is-invalid' : ''"
                                    required
-                                   pattern="^(BS|bs)\d{3,5}$"
-                                   title="Mã bác sĩ phải bắt đầu bằng BS hoặc bs, đi kèm từ 3 đến 5 chữ số (Ví dụ: BS001)"
-                                   placeholder="Ví dụ: BS099">
+                                   placeholder="Ví dụ: BS020">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('doctorCode')}" th:errors="*{doctorCode}"></div>
                         </div>
                         <div class="col-md-6">
@@ -427,9 +469,21 @@
                                    required
                                    minlength="2"
                                    maxlength="50"
-                                   placeholder="Họ tên đầy đủ">
+                                   placeholder="Họ tên đầy đủ (Ví dụ: Võ Tiến Đạt)">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
                         </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giới Tính <span class="text-danger">*</span></label>
+                            <select class="form-select" th:field="*{gender}" th:classappend="${#fields.hasErrors('gender')} ? 'is-invalid' : ''" required>
+                                <option value="" disabled selected>-- Chọn giới tính --</option>
+                                <option value="MALE">Nam</option>
+                                <option value="FEMALE">Nữ</option>
+                                <option value="OTHER">Khác</option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}"></div>
+                        </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" th:field="*{phone}" th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''" required placeholder="Ví dụ: 0912345678">
@@ -473,6 +527,177 @@
     </div>
 </div>
 
+<!-- Detail Doctor Modal -->
+<div class="modal fade" id="detailDoctorModal" tabindex="-1" aria-labelledby="detailDoctorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header py-3">
+                <h5 class="modal-title fw-bold" id="detailDoctorModalLabel">
+                    <i class="fa-solid fa-user-doctor me-2"></i>Chi Tiết Tài Khoản Bác Sĩ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Mã Bác Sĩ</small>
+                            <span class="fw-bold fs-5 text-primary" id="detailDoctorCode">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Họ và Tên</small>
+                            <span class="fw-bold fs-5 text-dark" id="detailFullName">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Email Đăng Nhập</small>
+                            <span class="fw-semibold text-dark" id="detailEmail">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Số Điện Thoại</small>
+                            <span class="fw-semibold text-dark" id="detailPhone">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Giới Tính</small>
+                            <span class="fw-semibold text-dark" id="detailGender">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Chuyên Khoa</small>
+                            <span class="fw-semibold text-dark" id="detailSpecialty">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Tải lượng (Hiện tại/Giới hạn)</small>
+                            <span class="fw-semibold text-dark" id="detailLoad">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Ngày Tạo Tài Khoản</small>
+                            <span class="fw-semibold text-dark" id="detailCreatedAt">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Trạng Thái Hoạt Động</small>
+                            <span class="badge" id="detailStatus">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-hospital-user text-primary me-2"></i>Danh Sách Bệnh Nhân Đang Phụ Trách</h5>
+                <div class="table-responsive border rounded-3" style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Mã BN</th>
+                            <th>Họ và Tên</th>
+                            <th>Số Điện Thoại</th>
+                            <th>Giới Tính</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                        </thead>
+                        <tbody id="detailPatientsTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Đang tải danh sách...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light p-3">
+                <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Doctor Modal -->
+<div class="modal fade" id="editDoctorModal" tabindex="-1" aria-labelledby="editDoctorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header py-3">
+                <h5 class="modal-title fw-bold" id="editDoctorModalLabel">
+                    <i class="fa-solid fa-user-pen me-2"></i>Chỉnh Sửa Tài Khoản Bác Sĩ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="editDoctorForm" th:action="@{/hospital/doctors/edit/0}" th:object="${doctorEditDto}" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" th:field="*{id}" id="editDoctorId">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted">Mã Bác Sĩ (Khóa sửa)</label>
+                            <input type="text" class="form-control bg-light text-muted fw-bold" id="editDoctorCode" readonly disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted">Email Đăng Nhập (Khóa sửa)</label>
+                            <input type="email" class="form-control bg-light text-muted" id="editEmail" readonly disabled>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control"
+                                   th:field="*{fullName}"
+                                   id="editFullName"
+                                   required
+                                   minlength="2"
+                                   maxlength="50"
+                                   placeholder="Họ tên đầy đủ (Ví dụ: Võ Tiến Đạt)">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giới Tính <span class="text-danger">*</span></label>
+                            <select class="form-select" th:field="*{gender}" id="editGender" required>
+                                <option value="MALE">Nam</option>
+                                <option value="FEMALE">Nữ</option>
+                                <option value="OTHER">Khác</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" th:field="*{phone}" id="editPhone" required placeholder="Ví dụ: 0912345678">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chuyên Khoa <span class="text-danger">*</span></label>
+                            <select class="form-select" th:field="*{specialty}" id="editSpecialty" required>
+                                <option value="Tiểu đường">Tiểu đường</option>
+                                <option value="Huyết áp">Huyết áp</option>
+                                <option value="Cả tiểu đường và huyết áp">Cả tiểu đường và huyết áp</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Giới Hạn Bệnh Nhân (Capacity Limit) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" th:field="*{capacityLimit}" id="editCapacityLimit" min="1" max="500" required placeholder="Khoảng 1 - 500">
+                            <div class="form-text text-danger fw-semibold mt-2" id="editCapacityWarning">Giới hạn tải mới không được nhỏ hơn số lượng bệnh nhân thực tế hiện tại.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="fa-solid fa-save me-1"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -493,6 +718,116 @@
             addModal.show();
         }
     });
+
+    // Hàm gọi AJAX lấy chi tiết bác sĩ và danh sách bệnh nhân đang phụ trách
+    function viewDetail(id) {
+        fetch('/hospital/doctors/detail/' + id)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Không thể lấy thông tin chi tiết bác sĩ.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Điền dữ liệu bác sĩ vào modal
+                document.getElementById('detailDoctorCode').innerText = data.doctorCode;
+                document.getElementById('detailFullName').innerText = data.fullName;
+                document.getElementById('detailEmail').innerText = data.email;
+                document.getElementById('detailPhone').innerText = data.phone;
+                
+                let genderText = 'Khác';
+                if (data.gender === 'MALE') genderText = 'Nam';
+                else if (data.gender === 'FEMALE') genderText = 'Nữ';
+                document.getElementById('detailGender').innerText = genderText;
+                
+                document.getElementById('detailSpecialty').innerText = data.specialty || 'Đa khoa';
+                document.getElementById('detailLoad').innerText = data.currentPatientCount + ' / ' + data.capacityLimit;
+                
+                // Định dạng ngày tạo dễ nhìn
+                try {
+                    const date = new Date(data.createdAt);
+                    document.getElementById('detailCreatedAt').innerText = date.toLocaleString('vi-VN');
+                } catch(e) {
+                    document.getElementById('detailCreatedAt').innerText = data.createdAt;
+                }
+                
+                const statusBadge = document.getElementById('detailStatus');
+                if (data.isActive) {
+                    statusBadge.innerText = 'Đang hoạt động';
+                    statusBadge.className = 'badge bg-success bg-opacity-10 text-success';
+                } else {
+                    statusBadge.innerText = 'Vô hiệu hóa';
+                    statusBadge.className = 'badge bg-danger bg-opacity-10 text-danger';
+                }
+
+                // Điền danh sách bệnh nhân
+                const tbody = document.getElementById('detailPatientsTableBody');
+                tbody.innerHTML = '';
+                if (data.patients && data.patients.length > 0) {
+                    data.patients.forEach(p => {
+                        const tr = document.createElement('tr');
+                        
+                        let pGender = 'Khác';
+                        if (p.gender === 'MALE') pGender = 'Nam';
+                        else if (p.gender === 'FEMALE') pGender = 'Nữ';
+                        
+                        tr.innerHTML = `
+                            <td class="fw-semibold text-secondary">${p.patientCode || '-'}</td>
+                            <td class="fw-semibold text-dark">${p.fullName}</td>
+                            <td>${p.phone}</td>
+                            <td>${pGender}</td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary">${p.status}</span></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Bác sĩ hiện không phụ trách bệnh nhân nào.</td></tr>`;
+                }
+
+                // Hiển thị modal
+                var detailModal = new bootstrap.Modal(document.getElementById('detailDoctorModal'));
+                detailModal.show();
+            })
+            .catch(error => {
+                alert('Lỗi: ' + error.message);
+            });
+    }
+
+    // Hàm gọi AJAX lấy dữ liệu nạp vào Form Edit
+    function openEditModal(id) {
+        fetch('/hospital/doctors/detail/' + id)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Không thể tải thông tin bác sĩ.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Điền dữ liệu vào form edit
+                document.getElementById('editDoctorId').value = data.id;
+                document.getElementById('editDoctorCode').value = data.doctorCode;
+                document.getElementById('editEmail').value = data.email;
+                document.getElementById('editFullName').value = data.fullName;
+                document.getElementById('editGender').value = data.gender;
+                document.getElementById('editPhone').value = data.phone;
+                document.getElementById('editSpecialty').value = data.specialty;
+                document.getElementById('editCapacityLimit').value = data.capacityLimit;
+                
+                // Cảnh báo nghiệp vụ giới hạn tải
+                document.getElementById('editCapacityWarning').innerHTML = `Giới hạn tải mới không được nhỏ hơn số bệnh nhân thực tế hiện tại đang phụ trách: <strong class="text-danger">${data.currentPatientCount}</strong> bệnh nhân.`;
+                document.getElementById('editCapacityLimit').min = data.currentPatientCount; // Gán hạn chế min trực tiếp ở phía giao diện
+
+                // Cập nhật action URL của Form đúng ID bác sĩ đang sửa
+                document.getElementById('editDoctorForm').action = '/hospital/doctors/edit/' + data.id;
+
+                // Hiển thị modal
+                var editModal = new bootstrap.Modal(document.getElementById('editDoctorModal'));
+                editModal.show();
+            })
+            .catch(error => {
+                alert('Lỗi: ' + error.message);
+            });
+    }
 </script>
 </body>
 </html>
