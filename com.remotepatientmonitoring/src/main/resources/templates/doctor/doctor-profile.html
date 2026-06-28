@@ -206,40 +206,69 @@
         <a href="/doctor/dashboard" class="btn-back">
             <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
         </a>
-        <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-3"
-               id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="text-end">
-                    <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ</div>
-                    <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa</small>
-                </div>
-                <i class="fa-solid fa-circle-user fa-2x opacity-90"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                aria-labelledby="doctorDropdown"
-                style="border-radius:12px; min-width:180px;">
-                <li>
-                    <span class="dropdown-item-text text-muted small">
-                        <i class="fa-solid fa-id-card me-1"></i> Mã BS:
-                        <span th:text="${doctor.doctorCode}">BS-001</span>
+        <div class="d-flex align-items-center">
+            <!-- Notification Bell -->
+            <div class="dropdown me-4">
+                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                        0
                     </span>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                        <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
-                        <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                            <strong>Đăng xuất</strong>
-                        </button>
-                    </form>
-                </li>
-            </ul>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
+                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
+                    <li th:if="${recentNotifications.isEmpty()}">
+                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
+                    </li>
+                    <li th:each="notif : ${recentNotifications}">
+                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
+                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
+                            </div>
+                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="text-end me-3">
+                        <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
+                        <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa Tim mạch</small>
+                    </div>
+                    <i class="fa-solid fa-circle-user fa-2x"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown" style="border-radius: 12px; min-width: 180px;">
+                    <li>
+                        <span class="dropdown-item-text text-muted small">
+                            <i class="fa-solid fa-id-card me-1"></i> Mã BS: <span th:text="${doctor.doctorCode}">BS-001</span>
+                        </span>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/doctor/change-requests" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-envelope-open-text text-warning"></i> Quản lý yêu cầu
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
+                            <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </nav>
