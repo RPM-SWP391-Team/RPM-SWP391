@@ -12,4 +12,6 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
     Optional<MedicationLog> findByPatientMedicationIdAndLogDate(Integer medicationId, LocalDate date);
     
     List<MedicationLog> findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate startDate);
+    
+    List<MedicationLog> findByPatientMedicationPatientIdOrderByLogDateAsc(Integer patientId);
 }

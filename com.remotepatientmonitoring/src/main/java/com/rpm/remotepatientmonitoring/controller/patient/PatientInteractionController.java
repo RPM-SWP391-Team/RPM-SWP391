@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
@@ -29,6 +30,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 @Controller
 @RequestMapping("/patient")
@@ -78,20 +81,34 @@ public class PatientInteractionController {
         List<Appointment> appointments = appointmentRepository.findByPatientIdOrderByAppointmentTimeDesc(patient.getId());
         List<ChangeRequest> changeRequests = changeRequestRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
 
+        // Fetch logs for the last 7 days for the chart
         LocalDate startDate = LocalDate.now().minusDays(7);
-        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
+        List<DailyHealthLog> chartLogs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
+
+        // Group and keep only the latest log per day and milestone for the chart
+        Map<String, DailyHealthLog> latestLogsMap = new LinkedHashMap<>();
+        for (DailyHealthLog log : chartLogs) {
+            String key = log.getLogDate().toString() + "_" + log.getLogType();
+            DailyHealthLog existing = latestLogsMap.get(key);
+            if (existing == null || log.getLogTime().isAfter(existing.getLogTime())) {
+                latestLogsMap.put(key, log);
+            }
+        }
 
         List<String> dates = new ArrayList<>();
         List<Integer> systolicList = new ArrayList<>();
         List<Integer> diastolicList = new ArrayList<>();
         List<Double> glucoseList = new ArrayList<>();
 
-        for (DailyHealthLog log : logs) {
+        for (DailyHealthLog log : latestLogsMap.values()) {
             dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
             systolicList.add(log.getSystolicBp() != null ? log.getSystolicBp() : 0);
             diastolicList.add(log.getDiastolicBp() != null ? log.getDiastolicBp() : 0);
             glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : 0.0);
         }
+
+        // Fetch all raw logs ordered by time desc for the history list
+        List<DailyHealthLog> rawHistoryLogs = healthLogRepository.findByPatientIdOrderByLogTimeDesc(patient.getId());
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -101,6 +118,7 @@ public class PatientInteractionController {
         model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
+        model.addAttribute("healthLogs", rawHistoryLogs); // Full raw logs list
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
         model.addAttribute("systolicJson", objectMapper.writeValueAsString(systolicList));
         model.addAttribute("diastolicJson", objectMapper.writeValueAsString(diastolicList));
@@ -215,5 +233,41 @@ public class PatientInteractionController {
         appointmentRepository.save(appt);
 
         return "redirect:/patient/appointments?bookSuccess=true";
+    }
+
+    @PostMapping("/appointments/delete/{id}")
+    public String deleteAppointment(@PathVariable("id") Integer id) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+        
+        appointmentRepository.findById(id).ifPresent(appt -> {
+            if (appt.getPatient() != null && appt.getPatient().getId().equals(patient.getId())) {
+                if ("PENDING".equals(appt.getStatus())) {
+                    appointmentRepository.delete(appt);
+                }
+            }
+        });
+        
+        return "redirect:/patient/appointments?deleteSuccess=true";
+    }
+
+    @PostMapping("/request-change/delete/{id}")
+    public String deleteChangeRequest(@PathVariable("id") Integer id) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+        
+        changeRequestRepository.findById(id).ifPresent(req -> {
+            if (req.getPatient() != null && req.getPatient().getId().equals(patient.getId())) {
+                if ("PENDING".equals(req.getStatus())) {
+                    changeRequestRepository.delete(req);
+                }
+            }
+        });
+        
+        return "redirect:/patient/appointments?deleteRequestSuccess=true";
     }
 }
