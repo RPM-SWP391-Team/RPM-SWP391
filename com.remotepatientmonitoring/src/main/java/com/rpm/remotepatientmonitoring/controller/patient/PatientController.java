@@ -567,13 +567,22 @@ public class PatientController {
     }
 
     @GetMapping("/nutrition")
-    public String getNutritionPage(Model model) {
+    public String getNutritionPage(
+            @RequestParam(value = "date", required = false) String dateStr,
+            Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
         }
         if ("NEW".equals(patient.getStatus())) {
             return "redirect:/patient/appointments";
+        }
+
+        LocalDate targetDate = LocalDate.now();
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            try {
+                targetDate = LocalDate.parse(dateStr);
+            } catch (Exception ignored) {}
         }
 
         List<PatientMeal> meals = new ArrayList<>();
@@ -605,8 +614,7 @@ public class PatientController {
 
         try {
             if (patient.getId() != null) {
-                LocalDate today = LocalDate.now();
-                meals = patientMealRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                meals = patientMealRepository.findByPatientIdAndLogDate(patient.getId(), targetDate);
                 for (PatientMeal m : meals) {
                     if (m.getCalories() != null) totalCalories += m.getCalories();
                     if (m.getSaltG() != null) totalSalt += m.getSaltG();
@@ -635,6 +643,7 @@ public class PatientController {
 
         model.addAttribute("patient", patient);
         model.addAttribute("meals", meals);
+        model.addAttribute("currentDate", targetDate.toString());
         model.addAttribute("totalCalories", totalCalories);
         model.addAttribute("totalSalt", Math.round(totalSalt * 10.0) / 10.0);
         model.addAttribute("totalFiber", Math.round(totalFiber * 10.0) / 10.0);
