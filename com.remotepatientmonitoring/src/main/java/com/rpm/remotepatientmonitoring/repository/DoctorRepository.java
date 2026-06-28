@@ -36,4 +36,23 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
     // Thêm duy nhất hàm này vào cuối DoctorRepository.java của bạn
     @Query(value = "SELECT TOP 1 doctor_code FROM doctors WHERE doctor_code LIKE 'BS%' ORDER BY id DESC", nativeQuery = true)
     String findLatestDoctorCode();
+
+    // Bộ lọc kép kết hợp Tìm kiếm từ khóa + Lọc Chuyên khoa + Sắp xếp ID giảm dần (mới nhất lên đầu)
+    @Query("SELECT d FROM Doctor d WHERE " +
+            "(:specialty IS NULL OR :specialty = '' OR d.specialty = :specialty) AND " +
+            "(:keyword IS NULL OR :keyword = '' OR " +
+            "LOWER(d.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "LOWER(d.doctorCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "CAST(d.id AS string) LIKE CONCAT('%', :keyword, '%')) " +
+            "ORDER BY d.id DESC")
+    List<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty);
+
+    // Tìm kiếm chính xác theo ID (Dùng làm cơ chế dự phòng an toàn)
+    List<Doctor> findById(int id);
+
+    // Kiểm tra số điện thoại đã tồn tại ở một bác sĩ khác chưa (loại trừ chính bác sĩ đang sửa)
+    @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM Doctor d WHERE d.phone = :phone AND d.id <> :id")
+    boolean existsByPhoneAndIdNot(@Param("phone") String phone, @Param("id") Integer id);
+
+    List<Doctor> findByHospitalIdAndIsActiveTrue(Integer hospitalId);
 }
