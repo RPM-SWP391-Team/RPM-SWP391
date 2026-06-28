@@ -26,6 +26,26 @@ public class Notification {
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
 
+    @Column(name = "recipient_type", nullable = false)
+    @Builder.Default
+    private String recipientType = "PATIENT";
+
+    @Column(name = "recipient_id", nullable = false)
+    @Builder.Default
+    private Integer recipientId = 0;
+
+    @Column(name = "notification_type", nullable = false)
+    @Builder.Default
+    private String notificationType = "SYSTEM";
+
+    @Column(name = "channel", nullable = false)
+    @Builder.Default
+    private String channel = "IN_APP";
+
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private String status = "SENT";
+
     @Column(name = "title", nullable = false, length = 255)
     private String title;
 
