@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Yêu cầu | Bác sĩ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f4f7fb;
+            color: #333;
+        }
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-back {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s;
+        }
+        .btn-back:hover {
+            color: #fff;
+        }
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            background: white;
+        }
+        .table-custom thead {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+        }
+        .table-custom th {
+            font-weight: 600;
+            color: #555;
+            border: none;
+            padding: 15px;
+        }
+        .table-custom td {
+            vertical-align: middle;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .badge-pending {
+            background-color: #ffeeba;
+            color: #856404;
+            padding: 8px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        .badge-approved {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 8px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        .badge-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 8px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        .btn-action {
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-custom py-3 mb-4">
+    <div class="container">
+        <a href="/doctor/dashboard" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
+        </a>
+        <div class="d-flex align-items-center">
+            <!-- Notification Bell -->
+            <div class="dropdown me-4">
+                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                        0
+                    </span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
+                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
+                    <li th:if="${recentNotifications.isEmpty()}">
+                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
+                    </li>
+                    <li th:each="notif : ${recentNotifications}">
+                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
+                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
+                            </div>
+                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="text-end me-3">
+                        <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
+                        <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa Tim mạch</small>
+                    </div>
+                    <i class="fa-solid fa-circle-user fa-2x"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown" style="border-radius: 12px; min-width: 180px;">
+                    <li>
+                        <span class="dropdown-item-text text-muted small">
+                            <i class="fa-solid fa-id-card me-1"></i> Mã BS: <span th:text="${doctor.doctorCode}">BS-001</span>
+                        </span>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/doctor/change-requests" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-envelope-open-text text-warning"></i> Quản lý yêu cầu
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
+                            <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container pb-5">
+    
+    <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i><span th:text="${successMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    
+    <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-xmark me-2"></i><span th:text="${errorMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1 text-dark">Quản lý Yêu cầu (Change Requests)</h3>
+            <p class="text-muted mb-0">Xem và xử lý các yêu cầu đổi lịch / đổi phác đồ từ bệnh nhân.</p>
+        </div>
+        <div class="bg-white px-4 py-2 rounded-pill shadow-sm border">
+            <span class="text-muted fw-bold me-2">Đang chờ xử lý:</span>
+            <span class="badge bg-warning text-dark fs-6" th:text="${pendingCount}">0</span>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'pending' ? 'active' : 'bg-white border text-dark'}" href="/doctor/change-requests?tab=pending">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Chờ xử lý
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}" href="/doctor/change-requests?tab=history">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử (Đã xử lý)
+            </a>
+        </li>
+    </ul>
+
+    <div class="card card-custom p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 15%">Ngày tạo</th>
+                        <th style="width: 20%">Bệnh nhân</th>
+                        <th style="width: 15%">Loại yêu cầu</th>
+                        <th style="width: 25%">Lý do (Từ BN)</th>
+                        <th style="width: 10%">Trạng thái</th>
+                        <th style="width: 15%" class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${changeRequests.isEmpty()}">
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-inbox fa-3x mb-3 opacity-50"></i>
+                            <h5>Không có yêu cầu nào</h5>
+                        </td>
+                    </tr>
+                    <tr th:each="req : ${changeRequests}">
+                        <td>
+                            <div class="fw-bold text-dark" th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy')}">12/10/2023</div>
+                            <small class="text-muted" th:text="${#temporals.format(req.createdAt, 'HH:mm')}">14:30</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-primary" th:text="${req.patient.fullName}">Nguyễn Văn A</div>
+                            <small class="text-muted"><i class="fa-solid fa-id-card me-1"></i><span th:text="${req.patient.patientCode}">BN-001</span></small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" th:if="${req.requestType == 'RESCHEDULE'}"><i class="fa-solid fa-calendar-alt me-1"></i>Đổi lịch</span>
+                            <span class="badge bg-info text-dark" th:if="${req.requestType == 'TREATMENT_CHANGE'}"><i class="fa-solid fa-pills me-1"></i>Đổi phác đồ</span>
+                            <span class="badge border text-dark" th:if="${req.requestType != 'RESCHEDULE' and req.requestType != 'TREATMENT_CHANGE'}" th:text="${req.requestType}">Khác</span>
+                        </td>
+                        <td>
+                            <div class="text-wrap" style="max-width: 300px; font-size: 0.9rem;" th:text="${req.patientReason}">Lý do gì đó...</div>
+                        </td>
+                        <td>
+                            <span class="badge-pending" th:if="${req.status == 'PENDING'}">Chờ duyệt</span>
+                            <span class="badge-approved" th:if="${req.status == 'APPROVED'}">Đã duyệt</span>
+                            <span class="badge-rejected" th:if="${req.status == 'REJECTED'}">Từ chối</span>
+                        </td>
+                        <td class="text-center">
+                            <button th:if="${req.status == 'PENDING'}" type="button" class="btn btn-primary btn-action" 
+                                    data-bs-toggle="modal" th:data-bs-target="'#processModal' + ${req.id}">
+                                Xử lý
+                            </button>
+                            
+                            <button th:if="${req.status != 'PENDING'}" type="button" class="btn btn-light border btn-action text-secondary" 
+                                    data-bs-toggle="modal" th:data-bs-target="'#viewModal' + ${req.id}">
+                                <i class="fa-solid fa-eye me-1"></i>Xem
+                            </button>
+
+                            <!-- Modal Xử lý (PENDING) -->
+                            <div th:if="${req.status == 'PENDING'}" class="modal fade text-start" th:id="'processModal' + ${req.id}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content" style="border-radius: 16px; border: none;">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title fw-bold">Xử lý yêu cầu</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3 p-3 rounded" style="background-color: #f8f9fa;">
+                                                <small class="text-muted d-block mb-1">Bệnh nhân:</small>
+                                                <div class="fw-bold" th:text="${req.patient.fullName}">Nguyễn Văn A</div>
+                                                <hr class="my-2">
+                                                <small class="text-muted d-block mb-1">Lý do yêu cầu:</small>
+                                                <div th:text="${req.patientReason}">Tôi muốn đổi lịch khám...</div>
+                                            </div>
+                                            <form th:action="@{'/doctor/change-requests/' + ${req.id} + '/process'}" method="post">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-bold">Lời nhắn phản hồi cho Bệnh nhân <span class="text-danger">*</span></label>
+                                                    <textarea class="form-control" name="doctorResponse" rows="3" required placeholder="Nhập lời nhắn... VD: Đồng ý đổi lịch sang thứ 6..."></textarea>
+                                                </div>
+                                                <div class="d-flex gap-2 justify-content-end mt-4">
+                                                    <button type="submit" name="action" value="REJECT" class="btn btn-outline-danger px-4 rounded-pill fw-bold">Từ chối</button>
+                                                    <button type="submit" name="action" value="APPROVE" class="btn btn-success px-4 rounded-pill fw-bold">Duyệt Yêu cầu</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modal Xem (APPROVED/REJECTED) -->
+                            <div th:if="${req.status != 'PENDING'}" class="modal fade text-start" th:id="'viewModal' + ${req.id}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content" style="border-radius: 16px; border: none;">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title fw-bold">Chi tiết yêu cầu</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3 p-3 rounded border">
+                                                <small class="text-muted d-block mb-1">Lý do yêu cầu (Từ BN):</small>
+                                                <div th:text="${req.patientReason}">...</div>
+                                            </div>
+                                            <div class="mb-3 p-3 rounded" th:classappend="${req.status == 'APPROVED' ? 'bg-success text-white' : 'bg-danger text-white'}" style="opacity: 0.9;">
+                                                <small class="d-block mb-1 opacity-75">Phản hồi của Bác sĩ (<span th:text="${#temporals.format(req.processedAt, 'dd/MM/yyyy HH:mm')}"></span>):</small>
+                                                <div class="fw-bold" th:text="${req.doctorResponse}">...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

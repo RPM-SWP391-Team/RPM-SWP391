@@ -108,6 +108,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     console.error("Bootstrap is not loaded yet.");
                 }
             });
+
+            // 5. Removed notification polling as requested by user
         })
         .catch(err => console.error("Error loading emergency status:", err));
 });
+

@@ -9,52 +9,104 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Outfit', sans-serif; background-color: #f0f2f5; }
-        .navbar-custom { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
         .card-custom { border: none; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         .search-container { background: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
         .btn-assign { background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; border: none; }
         .btn-assign:hover { transform: scale(1.05); color: white; }
-        .dropdown-toggle::after {
-            display: none !important;
+        .dropdown-toggle::after { display: none !important; }
+        .dropdown-item { font-weight: 500; transition: all 0.2s; }
+        .dropdown-item:hover { background-color: #ffeef0; }
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        .dropdown-item {
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .dropdown-item:hover {
-            background-color: #ffeef0;
-        }
+        .btn-back:hover { background: rgba(255,255,255,0.28); color: white; transform: translateX(-3px); }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-dark navbar-custom py-3 mb-4">
     <div class="container">
-        <a href="/doctor/dashboard" class="navbar-brand mb-0 h1 fw-bold text-decoration-none">
-            <i class="fa-solid fa-arrow-left me-2"></i>Quay lại Dashboard
+        <a href="/doctor/dashboard" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
         </a>
-        <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-2" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="text-end me-2">
-                    <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ</div>
-                </div>
-                <i class="fa-solid fa-circle-user fa-lg"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown" style="border-radius: 12px; min-width: 180px;">
-                <li>
-                    <span class="dropdown-item-text text-muted small">
-                        <i class="fa-solid fa-id-card me-1"></i> Mã BS: <span th:text="${doctor.doctorCode}">BS-001</span>
+        <div class="d-flex align-items-center">
+            <!-- Notification Bell -->
+            <div class="dropdown me-4">
+                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                        0
                     </span>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
-                        <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
-                            <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
-                        </button>
-                    </form>
-                </li>
-            </ul>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
+                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
+                    <li th:if="${recentNotifications.isEmpty()}">
+                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
+                    </li>
+                    <li th:each="notif : ${recentNotifications}">
+                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
+                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
+                            </div>
+                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Profile Dropdown -->
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="text-end me-3">
+                        <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
+                        <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa Tim mạch</small>
+                    </div>
+                    <i class="fa-solid fa-circle-user fa-2x"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown" style="border-radius: 12px; min-width: 180px;">
+                    <li>
+                        <span class="dropdown-item-text text-muted small">
+                            <i class="fa-solid fa-id-card me-1"></i> Mã BS: <span th:text="${doctor.doctorCode}">BS-001</span>
+                        </span>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/doctor/change-requests" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-envelope-open-text text-warning"></i> Quản lý yêu cầu
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
+                            <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </nav>
