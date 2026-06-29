@@ -52,6 +52,9 @@ public class PatientInteractionController {
     @Autowired
     private HealthLogRepository healthLogRepository;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
@@ -167,6 +170,19 @@ public class PatientInteractionController {
         changeRequest.setUpdatedAt(LocalDateTime.now());
 
         changeRequestRepository.save(changeRequest);
+
+        // Notify Doctor
+        if (doctor != null) {
+            com.rpm.remotepatientmonitoring.model.Notification notif = com.rpm.remotepatientmonitoring.model.Notification.builder()
+                    .doctor(doctor)
+                    .title("Yêu cầu thay đổi mới")
+                    .content("Bệnh nhân " + patient.getFullName() + " vừa gửi một yêu cầu " + 
+                            (changeRequest.getRequestType().equals("RESCHEDULE") ? "đổi lịch khám" : "thay đổi phác đồ") + ".")
+                    .isRead(false)
+                    .build();
+            notificationRepository.save(notif);
+        }
+
         return "redirect:/patient/appointments?requestSuccess=true";
     }
 
