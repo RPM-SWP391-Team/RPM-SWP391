@@ -8,11 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DoctorDTO {
+public class DoctorEditDTO {
 
-    @NotBlank(message = "Mã bác sĩ bắt buộc phải nhập.")
-    @Pattern(regexp = "^(BS|bs)\\d{3,5}$", message = "Mã bác sĩ sai định dạng. Phải bắt đầu bằng 'BS' hoặc 'bs' (Ví dụ: BS001).")
-    private String doctorCode;
+    @NotNull(message = "ID bác sĩ không được để trống.")
+    private Integer id;
 
     @NotBlank(message = "Họ và tên bắt buộc phải nhập.")
     @Size(min = 2, max = 50, message = "Họ và tên phải từ 2 đến 50 ký tự.")
@@ -20,7 +19,7 @@ public class DoctorDTO {
 
     // Hàm Java thuần tự động chạy để kiểm tra rác - CHÍNH XÁC 100%
     @jakarta.validation.constraints.AssertTrue(message = "Họ và tên không hợp lệ. Vui lòng nhập đúng chuẩn tên Tiếng Việt (Mỗi từ phải chứa nguyên âm, không gõ bừa phụ âm hoặc dùng chữ F, J, W, Z).")
-    public boolean isFullNameValid() {
+    private boolean isFullNameValid() {
         if (fullName == null || fullName.trim().isEmpty()) return false;
 
         // 1. Chuyển về chữ thường để dễ xử lý
@@ -65,12 +64,6 @@ public class DoctorDTO {
     @NotBlank(message = "Số điện thoại bắt buộc phải nhập.")
     @Pattern(regexp = "^(0[35789])[0-9]{8}$", message = "Số điện thoại không đúng định dạng mạng viễn thông Việt Nam (phải gồm 10 chữ số và bắt đầu bằng 03, 05, 07, 08, 09).")
     private String phone;
-
-    @NotBlank(message = "Email không được để trống.")
-    @Email(message = "Địa chỉ email không đúng định dạng.")
-    private String email;
-
-    private String password;
 
     @NotBlank(message = "Chuyên khoa bắt buộc phải chọn.")
     @Pattern(

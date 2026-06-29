@@ -150,6 +150,11 @@ public class TreatmentPlanWorkflowService {
         // 7. Tạo thông báo mới cho bệnh nhân
         Notification notification = new Notification();
         notification.setPatient(patient);
+        notification.setRecipientType("PATIENT");
+        notification.setRecipientId(patient.getId());
+        notification.setNotificationType("SYSTEM");
+        notification.setChannel("IN_APP");
+        notification.setStatus("SENT");
         notification.setTitle("Cập nhật phác đồ điều trị mới");
         notification.setContent("Bác sĩ " + doctor.getFullName() + " vừa cập nhật phác đồ điều trị & danh mục thuốc của bạn. Vui lòng kiểm tra.");
         notification.setIsRead(false);

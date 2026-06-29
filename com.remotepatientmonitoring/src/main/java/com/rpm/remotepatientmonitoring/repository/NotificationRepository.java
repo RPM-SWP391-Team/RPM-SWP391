@@ -10,4 +10,7 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
     List<Notification> findByPatientIdOrderByCreatedAtDesc(Integer patientId);
     long countByPatientIdAndIsReadFalse(Integer patientId);
+
+    List<Notification> findTop5ByDoctorIdOrderByCreatedAtDesc(Integer doctorId);
+    long countByDoctorIdAndIsReadFalse(Integer doctorId);
 }
