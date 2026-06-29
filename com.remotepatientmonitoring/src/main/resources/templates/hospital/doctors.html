@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Bác sĩ | Hospital Admin</title>
-    <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -31,7 +27,7 @@
             overflow-x: hidden;
             min-height: 100vh;
         }
-        
+
         /* Sidebar Styling */
         .sidebar {
             width: var(--sidebar-width);
@@ -82,7 +78,7 @@
             padding: 1.5rem 1rem;
             border-top: 1px solid #F1F5F9;
         }
-        
+
         /* Main Content Styling */
         .main-content {
             margin-left: var(--sidebar-width);
@@ -100,7 +96,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         /* List and Table Custom styles */
         .card-custom {
             border: none;
@@ -113,6 +109,12 @@
             border-radius: 12px;
             overflow: hidden;
         }
+
+        /* Ép cố định cấu hình layout để tránh lệch nhảy bảng khi tăng nhân sự */
+        .table-custom {
+            table-layout: fixed;
+            width: 100%;
+        }
         .table-custom thead {
             background: var(--primary-gradient);
             color: white;
@@ -124,10 +126,30 @@
             letter-spacing: 0.5px;
             padding: 16px;
         }
+
+        /* ĐÃ SỬA: Phân bổ đủ 100% không gian cho cả 7 cột */
+        .table-custom th:nth-child(1), .table-custom td:nth-child(1) { width: 10%; } /* Mã BS */
+        .table-custom th:nth-child(2), .table-custom td:nth-child(2) { width: 18%; } /* Họ và tên */
+        .table-custom th:nth-child(3), .table-custom td:nth-child(3) { width: 22%; } /* Liên hệ */
+        .table-custom th:nth-child(4), .table-custom td:nth-child(4) { width: 12%; } /* Chuyên khoa */
+        .table-custom th:nth-child(5), .table-custom td:nth-child(5) { width: 15%; } /* Khối lượng tải */
+        .table-custom th:nth-child(6), .table-custom td:nth-child(6) { width: 10%; } /* Trạng thái */
+        .table-custom th:nth-child(7), .table-custom td:nth-child(7) { width: 13%; } /* Hành động */
+
         .table-custom td {
             padding: 16px;
             vertical-align: middle;
         }
+
+        /* ĐÃ SỬA: Đổi display thành inline-block */
+        .text-ellipsis {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            max-width: 100%;
+        }
+
         .progress {
             height: 12px;
             border-radius: 10px;
@@ -182,7 +204,37 @@
         .alert-dismissible {
             border-radius: 12px;
         }
-        
+
+        /* CSS Tối ưu trực quan cho thanh phân trang */
+        .pagination {
+            gap: 2px;
+        }
+        .page-link {
+            color: var(--text-dark);
+            border: 1px solid #E2E8F0;
+            background-color: #ffffff;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: 6px !important;
+        }
+        .page-link:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border-color: #ced4da;
+        }
+        .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2);
+        }
+        .page-item.disabled .page-link {
+            background-color: #F8FAFC;
+            color: #94A3B8;
+            border-color: #E2E8F0;
+            cursor: not-allowed;
+        }
+
         /* Mobile responsive toggle */
         .sidebar-toggle {
             display: none;
@@ -192,7 +244,7 @@
             color: var(--text-dark);
             cursor: pointer;
         }
-        
+
         @media (max-width: 991.98px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -212,7 +264,6 @@
 </head>
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <i class="bi bi-heart-pulse-fill"></i>
@@ -240,9 +291,7 @@
     </div>
 </div>
 
-<!-- Main Content -->
 <div class="main-content">
-    <!-- Top Navbar -->
     <div class="navbar-top">
         <div class="d-flex align-items-center gap-3">
             <button class="sidebar-toggle" id="toggleSidebar">
@@ -268,7 +317,6 @@
         </div>
     </div>
 
-    <!-- Doctor List Container -->
     <div class="container-fluid p-0">
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
@@ -299,7 +347,7 @@
                 <div class="d-flex gap-1">
                     <button type="submit" class="btn btn-primary fw-semibold px-3">Lọc</button>
                     <a th:if="${(searchKeyword != null && !searchKeyword.trim().isEmpty()) || (selectedSpecialty != null && !selectedSpecialty.trim().isEmpty())}"
-                       th:href="@{/hospital/doctors(search='', specialty='')}"
+                       th:href="@{/hospital/doctors(search='', specialty='', page=0)}"
                        class="btn btn-outline-danger"
                        title="Xóa tất cả bộ lọc và hoàn tác">
                         <i class="fa-solid fa-trash-can"></i>
@@ -343,28 +391,28 @@
                         <th>Họ và Tên</th>
                         <th>Thông tin liên hệ</th>
                         <th>Chuyên Khoa</th>
-                        <th style="width: 250px;">Khối Lượng Công Việc</th>
+                        <th>Khối Lượng Công Việc</th>
                         <th>Trạng Thái</th>
                         <th class="text-center">Hành Động</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="doc : ${doctors}">
-                        <td class="fw-bold text-secondary" th:text="${doc.doctorCode}">BS001</td>
+                        <td><span class="fw-bold text-secondary text-ellipsis" th:text="${doc.doctorCode}">BS001</span></td>
                         <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-none d-md-block" style="width: 38px; height: 38px; text-align: center;">
+                            <div class="d-flex align-items-center text-ellipsis">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-none d-md-block" style="width: 38px; height: 38px; text-align: center; flex-shrink: 0;">
                                     <i class="fa-solid fa-user-md"></i>
                                 </div>
-                                <div class="fw-semibold" th:text="${doc.fullName}">Bác sĩ Mẫu</div>
+                                <span class="fw-semibold text-ellipsis" th:text="${doc.fullName}">Bác sĩ Mẫu</span>
                             </div>
                         </td>
                         <td>
-                            <div class="small text-muted"><i class="fa-solid fa-phone me-1"></i><span th:text="${doc.phone}">0123</span></div>
-                            <div class="small text-muted"><i class="fa-solid fa-envelope me-1"></i><span th:text="${doc.account.email}">email</span></div>
+                            <div class="small text-muted text-ellipsis"><i class="fa-solid fa-phone me-1"></i><span th:text="${doc.phone}">0123</span></div>
+                            <div class="small text-muted text-ellipsis"><i class="fa-solid fa-envelope me-1"></i><span th:text="${doc.account.email}">email</span></div>
                         </td>
                         <td>
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded"
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1 rounded text-ellipsis d-inline-block text-center"
                                   th:text="${doc.specialty != null && !doc.specialty.isEmpty()} ? ${doc.specialty} : 'Đa khoa'">
                                 Tim mạch
                             </span>
@@ -389,30 +437,30 @@
                             </small>
                         </td>
                         <td>
-                            <span class="badge badge-status"
+                            <span class="badge badge-status text-ellipsis d-inline-block text-center"
                                   th:classappend="${doc.isActive} ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'"
                                   th:text="${doc.isActive} ? 'Đang hoạt động' : 'Vô hiệu hóa'">
                                 Active
                             </span>
                         </td>
                         <td class="text-center">
-                            <div class="d-flex justify-content-center gap-1 flex-wrap">
-                                <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" th:onclick="'viewDetail(' + ${doc.id} + ')'">
-                                    <i class="fa-solid fa-eye me-1"></i> Chi tiết
+                            <div class="d-flex justify-content-center gap-1" style="flex-wrap: nowrap;">
+                                <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-2" style="font-size: 0.8rem; white-space: nowrap;" th:onclick="'viewDetail(' + ${doc.id} + ')'">
+                                    <i class="fa-solid fa-eye"></i> Xem
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" th:onclick="'openEditModal(' + ${doc.id} + ')'">
-                                    <i class="fa-solid fa-user-pen me-1"></i> Sửa
+                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2" style="font-size: 0.8rem; white-space: nowrap;" th:onclick="'openEditModal(' + ${doc.id} + ')'">
+                                    <i class="fa-solid fa-user-pen"></i> Sửa
                                 </button>
                                 <form th:if="${doc.isActive}" th:action="@{/hospital/doctors/deactivate/{id}(id=${doc.id})}" method="POST"
                                       onsubmit="return confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản bác sĩ này? Toàn bộ bệnh nhân thuộc bác sĩ này sẽ được tự động điều chuyển sang bác sĩ khác.')" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-                                        <i class="fa-solid fa-user-slash me-1"></i> Vô hiệu hóa
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2" style="font-size: 0.8rem; white-space: nowrap;">
+                                        <i class="fa-solid fa-user-slash"></i> Tắt
                                     </button>
                                 </form>
                                 <form th:unless="${doc.isActive}" th:action="@{/hospital/doctors/activate/{id}(id=${doc.id})}" method="POST"
                                       onsubmit="return confirm('Bạn có muốn tái kích hoạt lại tài khoản cho bác sĩ này không?')" class="d-inline">
-                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">
-                                        <i class="fa-solid fa-user-check me-1"></i> Kích hoạt
+                                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-2" style="font-size: 0.8rem; white-space: nowrap;">
+                                        <i class="fa-solid fa-user-check"></i> Bật
                                     </button>
                                 </form>
                             </div>
@@ -432,11 +480,41 @@
                     </tbody>
                 </table>
             </div>
+
+            <div th:if="${totalPages > 0}" class="d-flex justify-content-between align-items-center mt-4 px-2 flex-wrap gap-3">
+                <span class="text-muted small">
+                    Hiển thị <span class="fw-bold text-dark" th:text="${doctorPage.numberOfElements}">0</span>
+                    trên tổng số <span class="fw-bold text-dark" th:text="${totalItems}">0</span> bác sĩ
+                </span>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0 shadow-sm">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link rounded-start py-2 px-3"
+                               th:href="@{/hospital/doctors(page=${currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty})}">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${currentPage == i} ? 'active'">
+                            <a class="page-link py-2 px-3"
+                               th:href="@{/hospital/doctors(page=${i}, search=${searchKeyword}, specialty=${selectedSpecialty})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link rounded-end py-2 px-3"
+                               th:href="@{/hospital/doctors(page=${currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty})}">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Form -->
 <div class="modal fade" id="addDoctorModal" tabindex="-1" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
@@ -527,7 +605,6 @@
     </div>
 </div>
 
-<!-- Detail Doctor Modal -->
 <div class="modal fade" id="detailDoctorModal" tabindex="-1" aria-labelledby="detailDoctorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
@@ -622,7 +699,6 @@
     </div>
 </div>
 
-<!-- Edit Doctor Modal -->
 <div class="modal fade" id="editDoctorModal" tabindex="-1" aria-labelledby="editDoctorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg border-0">
@@ -636,7 +712,7 @@
             <form id="editDoctorForm" th:action="@{/hospital/doctors/edit/0}" th:object="${doctorEditDto}" method="POST">
                 <div class="modal-body p-4">
                     <input type="hidden" th:field="*{id}" id="editDoctorId">
-                    
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-muted">Mã Bác Sĩ (Khóa sửa)</label>
@@ -670,7 +746,7 @@
                             <label class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" th:field="*{phone}" id="editPhone" required placeholder="Ví dụ: 0912345678">
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Chuyên Khoa <span class="text-danger">*</span></label>
                             <select class="form-select" th:field="*{specialty}" id="editSpecialty" required>
@@ -679,7 +755,7 @@
                                 <option value="Cả tiểu đường và huyết áp">Cả tiểu đường và huyết áp</option>
                             </select>
                         </div>
-                        
+
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Giới Hạn Bệnh Nhân (Capacity Limit) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" th:field="*{capacityLimit}" id="editCapacityLimit" min="1" max="500" required placeholder="Khoảng 1 - 500">
@@ -698,11 +774,9 @@
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Toggle Sidebar Mobile
         var toggleBtn = document.getElementById('toggleSidebar');
         var sidebar = document.getElementById('sidebar');
         if (toggleBtn && sidebar) {
@@ -710,8 +784,7 @@
                 sidebar.classList.toggle('show');
             });
         }
-        
-        // Auto-show modal on validation error
+
         var hasErrors = document.getElementById('hasErrorsField');
         if (hasErrors && hasErrors.value === 'true') {
             var addModal = new bootstrap.Modal(document.getElementById('addDoctorModal'));
@@ -719,7 +792,6 @@
         }
     });
 
-    // Hàm gọi AJAX lấy chi tiết bác sĩ và danh sách bệnh nhân đang phụ trách
     function viewDetail(id) {
         fetch('/hospital/doctors/detail/' + id)
             .then(response => {
@@ -729,28 +801,26 @@
                 return response.json();
             })
             .then(data => {
-                // Điền dữ liệu bác sĩ vào modal
                 document.getElementById('detailDoctorCode').innerText = data.doctorCode;
                 document.getElementById('detailFullName').innerText = data.fullName;
                 document.getElementById('detailEmail').innerText = data.email;
                 document.getElementById('detailPhone').innerText = data.phone;
-                
+
                 let genderText = 'Khác';
                 if (data.gender === 'MALE') genderText = 'Nam';
                 else if (data.gender === 'FEMALE') genderText = 'Nữ';
                 document.getElementById('detailGender').innerText = genderText;
-                
+
                 document.getElementById('detailSpecialty').innerText = data.specialty || 'Đa khoa';
                 document.getElementById('detailLoad').innerText = data.currentPatientCount + ' / ' + data.capacityLimit;
-                
-                // Định dạng ngày tạo dễ nhìn
+
                 try {
                     const date = new Date(data.createdAt);
                     document.getElementById('detailCreatedAt').innerText = date.toLocaleString('vi-VN');
                 } catch(e) {
                     document.getElementById('detailCreatedAt').innerText = data.createdAt;
                 }
-                
+
                 const statusBadge = document.getElementById('detailStatus');
                 if (data.isActive) {
                     statusBadge.innerText = 'Đang hoạt động';
@@ -760,17 +830,16 @@
                     statusBadge.className = 'badge bg-danger bg-opacity-10 text-danger';
                 }
 
-                // Điền danh sách bệnh nhân
                 const tbody = document.getElementById('detailPatientsTableBody');
                 tbody.innerHTML = '';
                 if (data.patients && data.patients.length > 0) {
                     data.patients.forEach(p => {
                         const tr = document.createElement('tr');
-                        
+
                         let pGender = 'Khác';
                         if (p.gender === 'MALE') pGender = 'Nam';
                         else if (p.gender === 'FEMALE') pGender = 'Nữ';
-                        
+
                         tr.innerHTML = `
                             <td class="fw-semibold text-secondary">${p.patientCode || '-'}</td>
                             <td class="fw-semibold text-dark">${p.fullName}</td>
@@ -784,7 +853,6 @@
                     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">Bác sĩ hiện không phụ trách bệnh nhân nào.</td></tr>`;
                 }
 
-                // Hiển thị modal
                 var detailModal = new bootstrap.Modal(document.getElementById('detailDoctorModal'));
                 detailModal.show();
             })
@@ -793,7 +861,6 @@
             });
     }
 
-    // Hàm gọi AJAX lấy dữ liệu nạp vào Form Edit
     function openEditModal(id) {
         fetch('/hospital/doctors/detail/' + id)
             .then(response => {
@@ -803,7 +870,6 @@
                 return response.json();
             })
             .then(data => {
-                // Điền dữ liệu vào form edit
                 document.getElementById('editDoctorId').value = data.id;
                 document.getElementById('editDoctorCode').value = data.doctorCode;
                 document.getElementById('editEmail').value = data.email;
@@ -812,15 +878,12 @@
                 document.getElementById('editPhone').value = data.phone;
                 document.getElementById('editSpecialty').value = data.specialty;
                 document.getElementById('editCapacityLimit').value = data.capacityLimit;
-                
-                // Cảnh báo nghiệp vụ giới hạn tải
-                document.getElementById('editCapacityWarning').innerHTML = `Giới hạn tải mới không được nhỏ hơn số bệnh nhân thực tế hiện tại đang phụ trách: <strong class="text-danger">${data.currentPatientCount}</strong> bệnh nhân.`;
-                document.getElementById('editCapacityLimit').min = data.currentPatientCount; // Gán hạn chế min trực tiếp ở phía giao diện
 
-                // Cập nhật action URL của Form đúng ID bác sĩ đang sửa
+                document.getElementById('editCapacityWarning').innerHTML = `Giới hạn tải mới không được nhỏ hơn số bệnh nhân thực tế hiện tại đang phụ trách: <strong class="text-danger">${data.currentPatientCount}</strong> bệnh nhân.`;
+                document.getElementById('editCapacityLimit').min = data.currentPatientCount;
+
                 document.getElementById('editDoctorForm').action = '/hospital/doctors/edit/' + data.id;
 
-                // Hiển thị modal
                 var editModal = new bootstrap.Modal(document.getElementById('editDoctorModal'));
                 editModal.show();
             })

@@ -7,10 +7,12 @@ import com.rpm.remotepatientmonitoring.model.Alert;
 import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,11 +46,22 @@ public class HospitalController {
     private final Integer HARDCODED_HOSPITAL_ID = 1;
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        // 1. Lấy thông tin tổng quan từ Stored Procedure thông qua HospitalRepository
+    public String dashboard(
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Model model) {
+
+        // 1. Mặc định lấy 7 ngày qua nếu không có tham số truyền vào
+        if (startDate == null) startDate = LocalDate.now().minusDays(7);
+        if (endDate == null) endDate = LocalDate.now();
+
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+
+        // 2. Lấy Overview từ Stored Procedure (giữ nguyên)
         List<Object[]> rawOverview = hospitalRepository.getHospitalOverviewRaw(HARDCODED_HOSPITAL_ID);
         HospitalOverviewDTO overview = new HospitalOverviewDTO();
-        
+
         if (rawOverview != null && !rawOverview.isEmpty()) {
             Object[] row = rawOverview.get(0);
             overview.setHospitalName(row[0] != null ? row[0].toString() : "Bệnh viện");
@@ -65,27 +78,26 @@ public class HospitalController {
         }
         model.addAttribute("overview", overview);
 
-        // 2. Tính toán tỷ lệ tuân thủ thuốc (%) trong tuần qua
-        LocalDate oneWeekAgo = LocalDate.now().minusDays(7);
-        long takenMeds = medicationLogRepository.countTakenMedicationLogs(HARDCODED_HOSPITAL_ID, oneWeekAgo);
-        long totalMeds = medicationLogRepository.countTotalMedicationLogs(HARDCODED_HOSPITAL_ID, oneWeekAgo);
+        // 3. Tính tỷ lệ tuân thủ thuốc
+        long takenMeds = medicationLogRepository.countTakenMedicationLogs(HARDCODED_HOSPITAL_ID, startDate, endDate);
+        long totalMeds = medicationLogRepository.countTotalMedicationLogs(HARDCODED_HOSPITAL_ID, startDate, endDate);
         double medicationCompliance = totalMeds > 0 ? ((double) takenMeds * 100.0 / totalMeds) : 0.0;
         model.addAttribute("medicationCompliance", medicationCompliance);
         model.addAttribute("takenMeds", takenMeds);
         model.addAttribute("totalMeds", totalMeds);
 
-        // 3. Tính toán tỷ lệ nhập liệu đủ (%) hôm nay
-        LocalDate today = LocalDate.now();
-        long loggedPatients = healthLogRepository.countPatientsWithLogsToday(HARDCODED_HOSPITAL_ID, today);
+        // 4. Tính tỷ lệ nhập liệu đủ
+        long loggedPatients = healthLogRepository.countPatientsWithLogsInRange(HARDCODED_HOSPITAL_ID, startDate, endDate);
         long totalTreating = patientRepository.countTotalTreatingPatients(HARDCODED_HOSPITAL_ID);
         double healthLogCompliance = totalTreating > 0 ? ((double) loggedPatients * 100.0 / totalTreating) : 0.0;
         model.addAttribute("healthLogCompliance", healthLogCompliance);
         model.addAttribute("loggedPatients", loggedPatients);
         model.addAttribute("totalTreating", totalTreating);
 
-        // 4. Số ca cảnh báo Level 3 trong tháng hiện tại
-        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        long level3Alerts = alertRepository.countLevel3AlertsInMonth(HARDCODED_HOSPITAL_ID, startOfMonth);
+        // 5. Cảnh báo cấp độ 3 (Ép về 00:00:00 của startDate và 23:59:59 của endDate)
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        long level3Alerts = alertRepository.countLevel3AlertsInRange(HARDCODED_HOSPITAL_ID, startDateTime, endDateTime);
         model.addAttribute("level3Alerts", level3Alerts);
 
         return "hospital/dashboard";

@@ -1,6 +1,8 @@
 package com.rpm.remotepatientmonitoring.repository;
 
 import com.rpm.remotepatientmonitoring.model.Doctor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,15 +40,15 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
     String findLatestDoctorCode();
 
     // Bộ lọc kép kết hợp Tìm kiếm từ khóa + Lọc Chuyên khoa + Sắp xếp ID giảm dần (mới nhất lên đầu)
+    // Bộ lọc kép kết hợp Tìm kiếm từ khóa + Lọc Chuyên khoa + Phân trang
+    // SỬA TẠI ĐÂY: Chuyển sang Page và đón nhận Pageable từ Service
     @Query("SELECT d FROM Doctor d WHERE " +
             "(:specialty IS NULL OR :specialty = '' OR d.specialty = :specialty) AND " +
             "(:keyword IS NULL OR :keyword = '' OR " +
             "LOWER(d.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(d.doctorCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "CAST(d.id AS string) LIKE CONCAT('%', :keyword, '%')) " +
-            "ORDER BY d.id DESC")
-    List<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty);
-
+            "CAST(d.id AS string) LIKE CONCAT('%', :keyword, '%'))")
+    Page<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty, Pageable pageable);
     // Tìm kiếm chính xác theo ID (Dùng làm cơ chế dự phòng an toàn)
     List<Doctor> findById(int id);
 

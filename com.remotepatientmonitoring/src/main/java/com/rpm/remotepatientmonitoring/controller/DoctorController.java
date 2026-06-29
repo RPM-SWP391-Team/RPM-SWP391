@@ -15,6 +15,11 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -32,23 +37,29 @@ public class DoctorController {
     @GetMapping
     public String listDoctors(@RequestParam(value = "search", required = false) String search,
                               @RequestParam(value = "specialty", required = false) String specialty,
+                              @RequestParam(value = "page", defaultValue = "0") int page,
                               Model model) {
 
-        // 1. Thực hiện lọc và tìm kiếm từ Service (Đã tối ưu làm sạch chuỗi rác)
-        List<Doctor> doctors = doctorService.searchAndFilterAllDoctors(search, specialty);
-        model.addAttribute("doctors", doctors);
+        int pageSize = 10; // Số bác sĩ trên 1 trang
+        // Tạo phân trang và KÈM THEO sắp xếp ID giảm dần (mới nhất lên đầu)
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "id"));
 
-        // 2. Giữ lại giá trị trên thanh Tìm kiếm và Dropdown chuyên khoa để không bị reset mất chữ
+        Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(search, specialty, pageable);
+
+        model.addAttribute("doctors", doctorPage.getContent());
+        model.addAttribute("doctorPage", doctorPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", doctorPage.getTotalPages());
+        model.addAttribute("totalItems", doctorPage.getTotalElements());
+
         model.addAttribute("searchKeyword", search != null ? search : "");
         model.addAttribute("selectedSpecialty", specialty != null ? specialty : "");
 
-        // 3. KIỂM TRA KỸ: Chỉ tạo mới DTO nếu Model chưa có (tránh ghi đè dữ liệu lỗi Validation khi thêm mới)
         if (!model.containsAttribute("doctorDto")) {
             DoctorDTO newDto = new DoctorDTO();
-            newDto.setDoctorCode(doctorService.generateNextDoctorCode()); // Tự sinh mã tăng tiến
+            newDto.setDoctorCode(doctorService.generateNextDoctorCode());
             model.addAttribute("doctorDto", newDto);
         }
-
         if (!model.containsAttribute("doctorEditDto")) {
             model.addAttribute("doctorEditDto", new DoctorEditDTO());
         }
@@ -70,8 +81,17 @@ public class DoctorController {
 
         // Chặn đứng chữ rác: Nếu DTO dính lỗi Regex, dừng luồng dữ liệu lập tức và trả về giao diện kèm thông báo
         if (bindingResult.hasErrors()) {
-            List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
-            model.addAttribute("doctors", doctors);
+            // SỬA CHUẨN: Đồng bộ phân trang khi trả về lỗi Validation tránh crash giao diện
+            Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "id"));
+            Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(null, null, pageable);
+            model.addAttribute("doctors", doctorPage.getContent());
+            model.addAttribute("doctorPage", doctorPage);
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", doctorPage.getTotalPages());
+            model.addAttribute("totalItems", doctorPage.getTotalElements());
+
+            model.addAttribute("searchKeyword", "");
+            model.addAttribute("selectedSpecialty", "");
             model.addAttribute("doctorDto", doctorDto);
             model.addAttribute("doctorEditDto", new DoctorEditDTO());
             model.addAttribute("errorMessage", "Đăng ký thất bại: Biểu mẫu chứa thông tin rác hoặc sai định dạng chữ cái Tiếng Việt!");
