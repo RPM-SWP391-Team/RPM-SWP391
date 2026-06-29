@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
 
 import java.time.LocalDate;
@@ -58,13 +61,11 @@ public class PatientController {
     private FoodDictionaryRepository foodDictionaryRepository;
 
     private Patient getCurrentPatient() {
-        org.springframework.security.core.Authentication auth = 
-            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principal = auth.getPrincipal();
-            if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
-                com.rpm.remotepatientmonitoring.config.CustomUserDetails userDetails = 
-                    (com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal;
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
                 java.util.Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
                 if (opt.isPresent()) {
                     return opt.get();
@@ -155,17 +156,24 @@ public class PatientController {
                 LocalDate today = LocalDate.now();
                 totalMeds = activeMeds.size();
                 for (PatientMedication med : activeMeds) {
-                    boolean taken = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean taken = false;
+                    Optional<MedicationLog> medLogOpt = medicationLogRepository
+                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (medLogOpt.isPresent()) {
+                        MedicationLog log = medLogOpt.get();
+                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                            taken = true;
+                        }
+                    }
                     if (taken) {
                         takenMeds++;
                     }
                 }
-                currentWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
-                        .map(WaterLog::getAmountMl)
-                        .orElse(null);
+                
+                Optional<WaterLog> waterLogOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                if (waterLogOpt.isPresent()) {
+                    currentWater = waterLogOpt.get().getAmountMl();
+                }
             }
         } catch (Exception ignored) {
         }
@@ -308,10 +316,15 @@ public class PatientController {
                     item.put("medicineName", med.getMedicineName());
                     item.put("dosage", med.getDosage());
                     item.put("scheduledTime", med.getScheduledTime());
-                    boolean taken = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean taken = false;
+                    Optional<MedicationLog> medLogOpt = medicationLogRepository
+                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (medLogOpt.isPresent()) {
+                        MedicationLog log = medLogOpt.get();
+                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                            taken = true;
+                        }
+                    }
                     item.put("isTaken", taken);
 
                     boolean isOverdue = false;
@@ -769,9 +782,11 @@ public class PatientController {
             redirectAttributes.addFlashAttribute("error", "Mật khẩu phải từ 6 đến 50 ký tự!");
             return "redirect:/patient/progress";
         }
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in the database."));
+        List<Patient> allPatients = patientRepository.findAll();
+        if (allPatients.isEmpty()) {
+            throw new IllegalStateException("No patient found in the database.");
+        }
+        Patient patient = allPatients.get(0);
 
         patient.setPhone(phone);
         patient.setAddress(address);

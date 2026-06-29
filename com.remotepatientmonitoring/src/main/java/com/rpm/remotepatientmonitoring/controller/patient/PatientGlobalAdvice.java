@@ -5,23 +5,27 @@ import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.PatientMedication;
 import com.rpm.remotepatientmonitoring.model.MedicationLog;
 import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
+import com.rpm.remotepatientmonitoring.model.Notification;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.repository.NotificationRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientMedicationRepository;
 import com.rpm.remotepatientmonitoring.repository.MedicationLogRepository;
 import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
+import com.rpm.remotepatientmonitoring.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.ui.Model;
-import com.rpm.remotepatientmonitoring.model.Notification;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 
 @ControllerAdvice(basePackages = "com.rpm.remotepatientmonitoring.controller.patient")
 public class PatientGlobalAdvice {
@@ -33,7 +37,7 @@ public class PatientGlobalAdvice {
     private NotificationRepository notificationRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
     private PatientMedicationRepository patientMedicationRepository;
@@ -48,10 +52,9 @@ public class PatientGlobalAdvice {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principal = auth.getPrincipal();
-            if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
-                com.rpm.remotepatientmonitoring.config.CustomUserDetails userDetails = 
-                    (com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal;
-                java.util.Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
                 if (opt.isPresent()) {
                     return opt.get();
                 }
@@ -68,38 +71,33 @@ public class PatientGlobalAdvice {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         
-        // Fetch all patient notifications for today to prevent duplicates
-        List<Notification> existingNotifications = notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
-        
-        // Helper to check if a specific notification type was already created today
-        java.util.Set<String> todayNotifKeys = new java.util.HashSet<>();
-        for (Notification n : existingNotifications) {
+        // Fetch all of today's notification types/keys to avoid duplicate creation
+        List<Notification> todayNotifications = notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
+        List<String> todayNotifKeys = new ArrayList<>();
+        for (int i = 0; i < todayNotifications.size(); i++) {
+            Notification n = todayNotifications.get(i);
             if (n.getCreatedAt().toLocalDate().isEqual(today)) {
-                String type = n.getNotificationType();
-                if (type != null) {
-                    todayNotifKeys.add(type);
-                }
+                todayNotifKeys.add(n.getNotificationType());
             }
         }
 
-        // Fetch patient medications
         List<PatientMedication> activeMeds = patientMedicationRepository.findByPatientIdAndIsActiveTrue(patient.getId());
         
-        for (PatientMedication med : activeMeds) {
-            String schedStr = med.getScheduledTime();
-            if (schedStr == null || !schedStr.matches("^\\d{2}:\\d{2}$")) {
-                continue;
-            }
-            
+        for (int i = 0; i < activeMeds.size(); i++) {
+            PatientMedication med = activeMeds.get(i);
             try {
+                String schedStr = med.getScheduledTime();
+                if (schedStr == null || !schedStr.matches("^\\d{2}:\\d{2}$")) {
+                    continue;
+                }
                 LocalTime scheduledTime = LocalTime.parse(schedStr);
                 
-                // 1. Check upcoming medication: within 30 minutes before scheduledTime
-                long minutesUntil = java.time.Duration.between(now, scheduledTime).toMinutes();
-                if (minutesUntil >= 0 && minutesUntil <= 30) {
+                // 1. Check upcoming medication reminder: scheduledTime - 30 minutes <= now <= scheduledTime
+                LocalTime reminderStart = scheduledTime.minusMinutes(30);
+                if (now.isAfter(reminderStart) && now.isBefore(scheduledTime)) {
                     String upcomingTypeKey = "UPCOMING_MED_REMINDER_" + med.getId();
                     if (!todayNotifKeys.contains(upcomingTypeKey)) {
-                        String content = "Sắp đến giờ uống thuốc: " + med.getMedicineName() + " (" + med.getDosage() + ") lúc " + schedStr + ".";
+                        String content = "Bạn có lịch hẹn uống thuốc: " + med.getMedicineName() + " (" + med.getDosage() + ") lúc " + schedStr + ". Vui lòng chuẩn bị và ghi nhận kết quả.";
                         Notification notif = Notification.builder()
                                 .patient(patient)
                                 .recipientType("PATIENT")
@@ -119,9 +117,15 @@ public class PatientGlobalAdvice {
                 
                 // 2. Check overdue logging: past scheduledTime and not logged taken
                 if (now.isAfter(scheduledTime)) {
-                    boolean logged = medicationLogRepository.findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean logged = false;
+                    Optional<MedicationLog> logOpt = 
+                        medicationLogRepository.findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (logOpt.isPresent()) {
+                        MedicationLog log = logOpt.get();
+                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                            logged = true;
+                        }
+                    }
                     
                     if (!logged) {
                         String overdueTypeKey = "OVERDUE_MED_REMINDER_" + med.getId();

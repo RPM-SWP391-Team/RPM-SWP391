@@ -82,10 +82,12 @@ public class AuthService {
         log.info("Đã tạo Account id={} cho email={}", savedAccount.getId(), email);
 
         // 2. Tìm Hospital
-        Hospital hospital = hospitalRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "Chưa có bệnh viện nào trong hệ thống! Vui lòng liên hệ quản trị viên."));
+        java.util.List<Hospital> allHospitals = hospitalRepository.findAll();
+        if (allHospitals.isEmpty()) {
+            throw new IllegalStateException(
+                    "Chưa có bệnh viện nào trong hệ thống! Vui lòng liên hệ quản trị viên.");
+        }
+        Hospital hospital = allHospitals.get(0);
 
         // 3. Parse ngày sinh nếu có
         LocalDate dob = null;
@@ -250,8 +252,11 @@ public class AuthService {
     @Transactional
     public void resetPassword(String email, String newPassword) {
         log.info("Đặt lại mật khẩu cho email={}", email);
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này!"));
+        Optional<Account> accountOpt = accountRepository.findByEmail(email);
+        if (accountOpt.isPresent() == false) {
+            throw new IllegalArgumentException("Không tìm thấy tài khoản với email này!");
+        }
+        Account account = accountOpt.get();
         account.setPasswordHash(passwordEncoder.encode(newPassword));
         account.setUpdatedAt(LocalDateTime.now());
         accountRepository.save(account);
