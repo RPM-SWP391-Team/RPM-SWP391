@@ -3,16 +3,23 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 import com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest;
 import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
+import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository;
 import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,7 +37,22 @@ public class PatientHealthController {
     private HealthLogRepository healthLogRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository emergencyGuideRepository;
+    private EmergencyGuideRepository emergencyGuideRepository;
+
+    private Patient getCurrentPatient() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        return null;
+    }
 
     @PostMapping("/log")
     public ResponseEntity<?> recordHealthLog(@RequestBody HealthLogRequest request) {
@@ -52,7 +74,14 @@ public class PatientHealthController {
     @GetMapping("/emergency-status")
     public ResponseEntity<?> getEmergencyStatus() {
         try {
-            Patient patient = patientRepository.findAll().stream().findFirst().orElse(null);
+            Patient patient = getCurrentPatient();
+            if (patient == null) {
+                // Fallback to first patient if no session (e.g. testing)
+                List<Patient> allPatients = patientRepository.findAll();
+                if (allPatients.isEmpty() == false) {
+                    patient = allPatients.get(0);
+                }
+            }
             if (patient == null) {
                 return ResponseEntity.ok(Map.of(
                     "isEmergency", false,
@@ -62,77 +91,51 @@ public class PatientHealthController {
                 ));
             }
 
-            List<DailyHealthLog> todayLogs = healthLogRepository.findByPatientIdAndLogDate(patient.getId(), LocalDate.now());
-            int level = 1; // 1 = Green/Yellow, 2 = Orange, 3 = Red
+            int level = 1; // 1 = Green, 2 = Yellow, 3 = Orange, 4 = Red
             Integer latestSystolic = null;
             Integer latestDiastolic = null;
             Double latestGlucose = null;
 
-            for (DailyHealthLog log : todayLogs) {
+            Optional<DailyHealthLog> latestLogOpt = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(patient.getId());
+            if (latestLogOpt.isPresent()) {
+                DailyHealthLog log = latestLogOpt.get();
                 if (log.getSystolicBp() != null) {
                     latestSystolic = log.getSystolicBp();
                     if (latestSystolic >= 180) {
-                        level = Math.max(level, 3);
+                        level = Math.max(level, 4);
                     } else if (latestSystolic >= 140) {
+                        level = Math.max(level, 3);
+                    } else if (latestSystolic >= 130) {
                         level = Math.max(level, 2);
                     }
                 }
                 if (log.getDiastolicBp() != null) {
                     latestDiastolic = log.getDiastolicBp();
-                    if (latestDiastolic >= 120) {
-                        level = Math.max(level, 3);
+                    if (latestDiastolic >= 110) {
+                        level = Math.max(level, 4);
                     } else if (latestDiastolic >= 90) {
+                        level = Math.max(level, 3);
+                    } else if (latestDiastolic >= 85) {
                         level = Math.max(level, 2);
                     }
                 }
                 if (log.getGlucoseLevel() != null) {
                     latestGlucose = log.getGlucoseLevel().doubleValue();
                     if (latestGlucose < 4.4 || latestGlucose > 16.0) {
-                        level = Math.max(level, 3);
+                        level = Math.max(level, 4);
                     } else if (latestGlucose > 10.0) {
-                        level = Math.max(level, 2);
+                        level = Math.max(level, 3);
                     }
                 }
             }
 
-            if (todayLogs.isEmpty()) {
-                Optional<DailyHealthLog> latestLogOpt = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(patient.getId());
-                if (latestLogOpt.isPresent()) {
-                    DailyHealthLog log = latestLogOpt.get();
-                    if (log.getSystolicBp() != null) {
-                        latestSystolic = log.getSystolicBp();
-                        if (latestSystolic >= 180) {
-                            level = Math.max(level, 3);
-                        } else if (latestSystolic >= 140) {
-                            level = Math.max(level, 2);
-                        }
-                    }
-                    if (log.getDiastolicBp() != null) {
-                        latestDiastolic = log.getDiastolicBp();
-                        if (latestDiastolic >= 120) {
-                            level = Math.max(level, 3);
-                        } else if (latestDiastolic >= 90) {
-                            level = Math.max(level, 2);
-                        }
-                    }
-                    if (log.getGlucoseLevel() != null) {
-                        latestGlucose = log.getGlucoseLevel().doubleValue();
-                        if (latestGlucose < 4.4 || latestGlucose > 16.0) {
-                            level = Math.max(level, 3);
-                        } else if (latestGlucose > 10.0) {
-                            level = Math.max(level, 2);
-                        }
-                    }
-                }
-            }
+            boolean isEmergency = (level >= 3);
 
-            boolean isEmergency = (level >= 2);
-
-            java.util.List<Map<String, Object>> guidesList = new java.util.ArrayList<>();
+            List<Map<String, Object>> guidesList = new ArrayList<>();
             if (patient.getHospital() != null) {
-                java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyGuide> dbGuides = 
+                List<EmergencyGuide> dbGuides = 
                     emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
-                for (com.rpm.remotepatientmonitoring.model.EmergencyGuide g : dbGuides) {
+                for (EmergencyGuide g : dbGuides) {
                     Map<String, Object> gMap = new HashMap<>();
                     gMap.put("title", g.getTitle());
                     gMap.put("content", g.getInstructionContent());

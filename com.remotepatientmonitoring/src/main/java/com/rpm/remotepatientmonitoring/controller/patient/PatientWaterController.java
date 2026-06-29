@@ -2,14 +2,19 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.WaterLog;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import com.rpm.remotepatientmonitoring.repository.WaterLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/patient/api/water")
@@ -22,9 +27,22 @@ public class PatientWaterController {
     private PatientRepository patientRepository;
 
     private Patient getCurrentPatient() {
-        return patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.isEmpty() == false) {
+            return all.get(0);
+        }
+        throw new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống.");
     }
 
     @PostMapping("/add")
@@ -32,12 +50,17 @@ public class PatientWaterController {
         Patient patient = getCurrentPatient();
         LocalDate today = LocalDate.now();
 
-        WaterLog log = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
-                .orElseGet(() -> WaterLog.builder()
-                        .patient(patient)
-                        .logDate(today)
-                        .amountMl(0)
-                        .build());
+        Optional<WaterLog> logOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+        WaterLog log;
+        if (logOpt.isPresent()) {
+            log = logOpt.get();
+        } else {
+            log = WaterLog.builder()
+                    .patient(patient)
+                    .logDate(today)
+                    .amountMl(0)
+                    .build();
+        }
 
         log.setAmountMl(log.getAmountMl() + amount);
         if (log.getAmountMl() < 0) {
@@ -57,8 +80,11 @@ public class PatientWaterController {
         Patient patient = getCurrentPatient();
         LocalDate today = LocalDate.now();
 
-        WaterLog log = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
-                .orElse(null);
+        Optional<WaterLog> logOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+        WaterLog log = null;
+        if (logOpt.isPresent()) {
+            log = logOpt.get();
+        }
 
         if (log != null) {
             log.setAmountMl(0);

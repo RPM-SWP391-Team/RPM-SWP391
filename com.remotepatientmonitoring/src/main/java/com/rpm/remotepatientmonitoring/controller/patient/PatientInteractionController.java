@@ -182,8 +182,11 @@ public class PatientInteractionController {
             return "redirect:/auth/login";
         }
 
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid doctor Id: " + doctorId));
+        Optional<Doctor> doctorOpt = doctorRepository.findById(doctorId);
+        if (doctorOpt.isPresent() == false) {
+            throw new IllegalArgumentException("Invalid doctor Id: " + doctorId);
+        }
+        Doctor doctor = doctorOpt.get();
 
         // Validate reason length
         if (patientRequestReason == null || patientRequestReason.trim().isEmpty()) {
@@ -242,13 +245,15 @@ public class PatientInteractionController {
             return "redirect:/auth/login";
         }
         
-        appointmentRepository.findById(id).ifPresent(appt -> {
+        Optional<Appointment> apptOpt = appointmentRepository.findById(id);
+        if (apptOpt.isPresent()) {
+            Appointment appt = apptOpt.get();
             if (appt.getPatient() != null && appt.getPatient().getId().equals(patient.getId())) {
                 if ("PENDING".equals(appt.getStatus())) {
                     appointmentRepository.delete(appt);
                 }
             }
-        });
+        }
         
         return "redirect:/patient/appointments?deleteSuccess=true";
     }
@@ -260,13 +265,15 @@ public class PatientInteractionController {
             return "redirect:/auth/login";
         }
         
-        changeRequestRepository.findById(id).ifPresent(req -> {
+        Optional<ChangeRequest> reqOpt = changeRequestRepository.findById(id);
+        if (reqOpt.isPresent()) {
+            ChangeRequest req = reqOpt.get();
             if (req.getPatient() != null && req.getPatient().getId().equals(patient.getId())) {
                 if ("PENDING".equals(req.getStatus())) {
                     changeRequestRepository.delete(req);
                 }
             }
-        });
+        }
         
         return "redirect:/patient/appointments?deleteRequestSuccess=true";
     }
