@@ -17,6 +17,39 @@
             height: 350px;
             width: 100%;
         }
+        .bg-orange { background-color: #f97316 !important; color: #fff !important; }
+        .text-orange { color: #f97316 !important; }
+        .text-yellow-dark { color: #eab308 !important; }
+        .bg-yellow-dark { background-color: #eab308 !important; color: #fff !important; }
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        .legend-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 0.78rem;
+        }
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 18px;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +121,10 @@
             <i class="fa-solid fa-circle-check me-2"></i>Đặt lịch khám thành công! Đang chờ bác sĩ xác nhận.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        <div th:if="${param.deleteSuccess}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i>Xóa lịch khám thành công!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         
         <div th:if="${param.bookError != null and param.bookError[0] == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được để trống!
@@ -118,7 +155,7 @@
                 <a href="#bookAppointmentCssModal" class="btn btn-primary text-nowrap animate-hover">
                     <i class="fa-solid fa-calendar-plus me-2"></i>Đặt Lịch Hẹn Khám
                 </a>
-                <a href="/patient/request-change" class="btn btn-action-outline text-nowrap">
+                <a href="#requestChangeCssModal" class="btn btn-action-outline text-nowrap animate-hover">
                     <i class="fa-solid fa-paper-plane me-2"></i>Gửi Yêu Cầu Thay Đổi
                 </a>
             </div>
@@ -156,6 +193,7 @@
                                     <th>Loại lịch hẹn</th>
                                     <th>Lý do của bạn</th>
                                     <th>Trạng thái</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,9 +209,17 @@
                                               th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
                                               th:text="${appt.status}">PENDING</span>
                                     </td>
+                                    <td>
+                                        <form th:if="${appt.status == 'PENDING'}" th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fa-solid fa-trash me-1"></i>Xóa
+                                            </button>
+                                        </form>
+                                        <span th:if="${appt.status != 'PENDING'}" class="text-muted small">-</span>
+                                    </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(appointments)}">
-                                    <td colspan="5" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
+                                    <td colspan="6" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -190,7 +236,14 @@
                             </div>
                             <h6 class="fw-bold mb-1" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                             <p class="mb-1 text-muted small">Bác sĩ phụ trách: <span th:text="${appt.doctor.fullName}">Bác sĩ B</span></p>
-                            <p class="mb-0 text-muted small" th:text="'Lý do: ' + ${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}"></p>
+                            <p class="mb-1 text-muted small" th:text="'Lý do: ' + ${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}"></p>
+                            <div th:if="${appt.status == 'PENDING'}" class="mt-2 text-end">
+                                <form th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                        <i class="fa-solid fa-trash me-1"></i>Xóa lịch khám
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                         <div th:if="${#lists.isEmpty(appointments)}" class="text-center text-muted py-4">Không có lịch hẹn nào</div>
                     </div>
@@ -210,6 +263,7 @@
                                     <th>Lý do yêu cầu</th>
                                     <th>Phản hồi của bác sĩ</th>
                                     <th>Trạng thái</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -223,9 +277,19 @@
                                               th:classappend="${req.status == 'PENDING' ? 'bg-warning text-dark' : (req.status == 'APPROVED' ? 'bg-success text-white' : 'bg-danger text-white')}"
                                               th:text="${req.status}">PENDING</span>
                                     </td>
+                                    <td>
+                                        <div th:if="${req.status == 'PENDING'}">
+                                            <form th:action="@{/patient/request-change/delete/{id}(id=${req.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu thay đổi này không?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fa-solid fa-trash me-1"></i>Xóa
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div th:if="${req.status != 'PENDING'}" class="text-muted small">-</div>
+                                    </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(changeRequests)}">
-                                    <td colspan="5" class="text-center text-muted py-4">Không có yêu cầu thay đổi nào</td>
+                                    <td colspan="6" class="text-center text-muted py-4">Không có yêu cầu thay đổi nào</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -245,6 +309,13 @@
                             <div class="mt-2 pt-2 border-top small text-muted">
                                 <strong>Bác sĩ phản hồi:</strong>
                                 <span th:text="${req.doctorResponse != null ? req.doctorResponse : 'Đang chờ...'}">Phản hồi</span>
+                            </div>
+                            <div th:if="${req.status == 'PENDING'}" class="mt-2 text-end">
+                                <form th:action="@{/patient/request-change/delete/{id}(id=${req.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu thay đổi này không?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                        <i class="fa-solid fa-trash me-1"></i>Xóa yêu cầu
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         <div th:if="${#lists.isEmpty(changeRequests)}" class="text-center text-muted py-4">Không có yêu cầu thay đổi nào</div>
@@ -300,6 +371,209 @@
                 </div>
             </div>
         </div>
+
+        <!-- Health Log History Section (At the very bottom) -->
+        <div class="row mt-4 mb-5" th:if="${patient.status == 'TREATING'}">
+            <div class="col-12">
+                <div class="card card-custom p-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom pb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-clock-rotate-left text-primary fa-xl me-2"></i>
+                            <h4 class="mb-0 fw-bold">Nhật Ký Nhập Liệu Gần Đây</h4>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <!-- Date Search Picker -->
+                            <div class="d-flex align-items-center gap-1">
+                                <label for="historyDateInput" class="small text-muted fw-semibold" style="font-size: 11px; white-space: nowrap;">Chọn ngày:</label>
+                                <div class="input-group input-group-sm" style="max-width: 180px;">
+                                    <input type="date" id="historyDateInput" class="form-control rounded-start-pill px-2 border-primary text-center" 
+                                           style="font-size: 12px; height: 30px;">
+                                    <button class="btn btn-primary rounded-end-pill px-2" type="button" onclick="filterHistoryByDate()" style="height: 30px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Button Filters -->
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc lịch sử">
+                                <button type="button" class="btn btn-outline-primary px-3 rounded-start-pill filter-btn active" onclick="filterHistoryRange('all', this)">Tất cả</button>
+                                <button type="button" class="btn btn-outline-primary px-3 filter-btn" onclick="filterHistoryRange('today', this)">Hôm nay</button>
+                                <button type="button" class="btn btn-outline-primary px-3 filter-btn" onclick="filterHistoryRange('week', this)">Tuần</button>
+                                <button type="button" class="btn btn-outline-primary px-3 rounded-end-pill filter-btn" onclick="filterHistoryRange('month', this)">Tháng</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sub-pills for separating BP and Glucose -->
+                    <ul class="nav nav-pills mb-3" id="logHistoryTabs" role="tablist">
+                        <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 1 or patient.diseaseProfile.id == 3)}">
+                            <button class="nav-link active me-2" id="bp-history-tab" data-bs-toggle="pill" data-bs-target="#bp-history-pane" type="button" role="tab" aria-controls="bp-history-pane" aria-selected="true" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
+                                <i class="fa-solid fa-heart-pulse me-1"></i> Lịch Sử Huyết Áp
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 2 or patient.diseaseProfile.id == 3)}">
+                            <button class="nav-link me-2" id="glucose-history-tab" data-bs-toggle="pill" data-bs-target="#glucose-history-pane" type="button" role="tab" aria-controls="glucose-history-pane" aria-selected="false" th:classappend="${patient.diseaseProfile.id == 2 ? ' active' : ''}" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
+                                <i class="fa-solid fa-droplet me-1"></i> Lịch Sử Đường Huyết
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="logHistoryTabsContent">
+                        <!-- Pane 1: BP Logs -->
+                        <div class="tab-pane fade show active" id="bp-history-pane" role="tabpanel" aria-labelledby="bp-history-tab" tabindex="0" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 1 or patient.diseaseProfile.id == 3)}">
+                            
+                            <!-- Legend for BP -->
+                            <div class="legend-box d-flex flex-wrap align-items-center">
+                                <span class="fw-bold me-3">Mức cảnh báo Huyết áp:</span>
+                                <div class="legend-item"><span class="legend-dot bg-success"></span><span>Bình thường (&lt; 120/80 mmHg)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-warning-yellow" style="background-color: #eab308; width: 10px; height: 10px; border-radius: 50%; display: inline-block;"></span><span>Cần theo dõi (120-139 / 80-89)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-orange"></span><span>Nguy cơ cao (140-179 / 90-109)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-danger"></span><span>Nguy hiểm (&ge; 180 / 110 mmHg)</span></div>
+                            </div>
+
+                            <!-- Table BP -->
+                            <div class="d-none d-md-block table-responsive table-responsive-custom">
+                                <table class="table table-hover align-middle mb-0 bg-white">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Thời gian nhập</th>
+                                            <th>Mốc đo</th>
+                                            <th>Tâm thu (Systolic)</th>
+                                            <th>Tâm trương (Diastolic)</th>
+                                            <th>Nhịp tim</th>
+                                            <th>Ghi chú</th>
+                                            <th>Phương thức</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Only show logs where systolic/diastolic are not null -->
+                                        <tr th:each="log : ${healthLogs}" th:if="${log.systolicBp != null}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-row" th:with="bpLevel=${(log.systolicBp >= 180 or log.diastolicBp >= 110) ? 'RED' : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
+                                            <td class="fw-bold text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</td>
+                                            <td>
+                                                <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Buổi sáng</span>
+                                                <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Buổi tối</span>
+                                                <span class="badge bg-secondary text-white" th:if="${log.logType == 'RANDOM'}">📋 Nhập tự do</span>
+                                            </td>
+                                            <td class="fw-bold" 
+                                                th:classappend="${bpLevel == 'GREEN' ? 'text-success' : (bpLevel == 'YELLOW' ? 'text-yellow-dark' : (bpLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
+                                                th:text="${log.systolicBp + ' mmHg'}">120 mmHg</td>
+                                            <td class="fw-bold" 
+                                                th:classappend="${bpLevel == 'GREEN' ? 'text-success' : (bpLevel == 'YELLOW' ? 'text-yellow-dark' : (bpLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
+                                                th:text="${log.diastolicBp + ' mmHg'}">80 mmHg</td>
+                                            <td th:text="${log.heartRate != null ? log.heartRate + ' bpm' : '-'}">75 bpm</td>
+                                            <td th:text="${log.patientNotes != null ? log.patientNotes : 'Không có'}">Ghi chú</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border" th:text="${log.inputMethod}">MANUAL</span>
+                                            </td>
+                                        </tr>
+                                        <!-- Placeholder if empty -->
+                                        <tr id="bp-empty-row" th:if="${#lists.isEmpty(healthLogs) or healthLogs.?[systolicBp != null].isEmpty()}">
+                                            <td colspan="7" class="text-center text-muted py-4">Chưa có lịch sử đo huyết áp nào</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile BP View -->
+                            <div class="d-md-none">
+                                <div th:each="log : ${healthLogs}" th:if="${log.systolicBp != null}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="bpLevel=${(log.systolicBp >= 180 or log.diastolicBp >= 110) ? 'RED' : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Buổi sáng</span>
+                                        <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Buổi tối</span>
+                                        <span class="badge bg-secondary text-white" th:if="${log.logType == 'RANDOM'}">📋 Nhập tự do</span>
+                                        <span class="badge bg-light text-dark border small" th:text="${log.inputMethod}">MANUAL</span>
+                                    </div>
+                                    <h6 class="fw-bold mb-2 text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
+                                    <div class="row g-2 mb-2 text-center bg-light p-2 rounded mx-0">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block" style="font-size:0.72rem;">Huyết áp</small>
+                                            <strong class="fw-bold" style="font-size:0.88rem;"
+                                                    th:classappend="${bpLevel == 'GREEN' ? 'text-success' : (bpLevel == 'YELLOW' ? 'text-yellow-dark' : (bpLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
+                                                    th:text="${log.systolicBp + '/' + log.diastolicBp + ' mmHg'}">120/80 mmHg</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block" style="font-size:0.72rem;">Nhịp tim</small>
+                                            <strong style="font-size:0.88rem;" th:text="${log.heartRate != null ? log.heartRate + ' bpm' : '-'}">75 bpm</strong>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0 small text-muted" th:text="'Ghi chú: ' + ${log.patientNotes != null ? log.patientNotes : 'Không có'}"></p>
+                                </div>
+                                <div id="bp-empty-card" th:if="${#lists.isEmpty(healthLogs) or healthLogs.?[systolicBp != null].isEmpty()}" class="text-center text-muted py-4">Chưa có lịch sử đo huyết áp nào</div>
+                            </div>
+                        </div>
+
+                        <!-- Pane 2: Glucose Logs -->
+                        <div class="tab-pane fade" id="glucose-history-pane" role="tabpanel" aria-labelledby="glucose-history-tab" tabindex="0" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 2 or patient.diseaseProfile.id == 3)}" th:classappend="${patient.diseaseProfile.id == 2 ? ' show active' : ''}">
+                            
+                            <!-- Legend for Glucose -->
+                            <div class="legend-box d-flex flex-wrap align-items-center">
+                                <span class="fw-bold me-3">Mức cảnh báo Đường huyết:</span>
+                                <div class="legend-item"><span class="legend-dot bg-danger"></span><span>Hạ đường huyết (&lt; 4.4 mmol/L)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-success"></span><span>Bình thường (4.4 - 10.0 mmol/L)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-orange"></span><span>Đường huyết cao (10.1 - 16.0)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-danger"></span><span>Nguy hiểm (&gt; 16.0 mmol/L)</span></div>
+                            </div>
+
+                            <!-- Table Glucose -->
+                            <div class="d-none d-md-block table-responsive table-responsive-custom">
+                                <table class="table table-hover align-middle mb-0 bg-white">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Thời gian nhập</th>
+                                            <th>Mốc đo</th>
+                                            <th>Chỉ số Glucose</th>
+                                            <th>Ghi chú</th>
+                                            <th>Phương thức</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Only show logs where glucose is not null -->
+                                        <tr th:each="log : ${healthLogs}" th:if="${log.glucoseLevel != null}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="glucose-log-row" th:with="glLevel=${(log.glucoseLevel < 4.4 or log.glucoseLevel > 16.0) ? 'RED' : (log.glucoseLevel > 10.0 ? 'ORANGE' : 'GREEN')}">
+                                            <td class="fw-bold text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</td>
+                                            <td>
+                                                <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Trước ăn sáng</span>
+                                                <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Sau ăn tối 2h</span>
+                                                <span class="badge bg-secondary text-white" th:if="${log.logType == 'RANDOM'}">📋 Nhập tự do</span>
+                                            </td>
+                                            <td class="fw-bold" 
+                                                th:classappend="${glLevel == 'GREEN' ? 'text-success' : (glLevel == 'YELLOW' ? 'text-yellow-dark' : (glLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
+                                                th:text="${log.glucoseLevel + ' mmol/L'}">6.5 mmol/L</td>
+                                            <td th:text="${log.patientNotes != null ? log.patientNotes : 'Không có'}">Ghi chú</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border" th:text="${log.inputMethod}">MANUAL</span>
+                                            </td>
+                                        </tr>
+                                        <tr id="gl-empty-row" th:if="${#lists.isEmpty(healthLogs) or healthLogs.?[glucoseLevel != null].isEmpty()}">
+                                            <td colspan="5" class="text-center text-muted py-4">Chưa có lịch sử đo đường huyết nào</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Mobile Glucose View -->
+                            <div class="d-md-none">
+                                <div th:each="log : ${healthLogs}" th:if="${log.glucoseLevel != null}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="glucose-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="glLevel=${(log.glucoseLevel < 4.4 or log.glucoseLevel > 16.0) ? 'RED' : (log.glucoseLevel > 10.0 ? 'ORANGE' : 'GREEN')}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Trước ăn sáng</span>
+                                        <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Sau ăn tối 2h</span>
+                                        <span class="badge bg-secondary text-white" th:if="${log.logType == 'RANDOM'}">📋 Nhập tự do</span>
+                                        <span class="badge bg-light text-dark border small" th:text="${log.inputMethod}">MANUAL</span>
+                                    </div>
+                                    <h6 class="fw-bold mb-2 text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
+                                    <div class="bg-light p-2 rounded text-center mb-2">
+                                        <small class="text-muted d-block" style="font-size:0.72rem;">Đường huyết</small>
+                                        <strong class="fw-bold" style="font-size:0.88rem;"
+                                                th:classappend="${glLevel == 'GREEN' ? 'text-success' : (glLevel == 'YELLOW' ? 'text-yellow-dark' : (glLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
+                                                th:text="${log.glucoseLevel + ' mmol/L'}">6.5 mmol/L</strong>
+                                    </div>
+                                    <p class="mb-0 small text-muted" th:text="'Ghi chú: ' + ${log.patientNotes != null ? log.patientNotes : 'Không có'}"></p>
+                                </div>
+                                <div id="gl-empty-card" th:if="${#lists.isEmpty(healthLogs) or healthLogs.?[glucoseLevel != null].isEmpty()}" class="text-center text-muted py-4">Chưa có lịch sử đo đường huyết nào</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Book Appointment Modal (Pure CSS - Zero JS) -->
@@ -350,6 +624,41 @@
         </div>
     </div>
     
+    <!-- Request Change Modal (Pure CSS - Zero JS) -->
+    <div id="requestChangeCssModal" class="css-modal-overlay">
+        <div class="css-modal-dialog card card-custom p-0">
+            <div class="d-flex justify-content-between align-items-center border-0 pb-0 pt-3 px-4">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-paper-plane text-warning me-2"></i>Gửi Yêu Cầu Thay Đổi
+                </h5>
+                <a href="#!" class="btn-close text-decoration-none" aria-label="Close"></a>
+            </div>
+            <form th:action="@{/patient/request-change}" method="POST">
+                <div class="py-3 px-4">
+                    <div class="mb-3">
+                        <label for="requestType" class="form-label small fw-semibold text-muted">Loại yêu cầu thay đổi <span class="text-danger">*</span></label>
+                        <select class="form-select" id="requestType" name="requestType" required style="border-radius: var(--radius-sm);">
+                            <option value="TREATMENT_PLAN">Thay đổi phác đồ điều trị (Treatment Plan)</option>
+                            <option value="SCHEDULE">Thay đổi lịch sinh hoạt (Schedule)</option>
+                            <option value="DIET">Thay đổi quy tắc dinh dưỡng (Diet)</option>
+                            <option value="APPOINTMENT">Thay đổi lịch hẹn khám (Appointment)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="patientReason" class="form-label small fw-semibold text-muted">Mô tả lý do thay đổi <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="patientReason" name="patientReason" rows="5" 
+                                  placeholder="Mô tả cụ thể lý do tại sao bạn muốn thay đổi (Ví dụ: thuốc gây mệt mỏi, muốn dời giờ đi bộ, thức ăn không phù hợp...)" required maxlength="1000" 
+                                  style="border-radius: var(--radius-sm); resize: none;"></textarea>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
+                    <a href="#!" class="btn btn-secondary small" style="border-radius: var(--radius-sm);">Hủy</a>
+                    <button type="submit" class="btn btn-primary small" style="border-radius: var(--radius-sm);">Gửi yêu cầu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <style>
         /* Pure CSS Modal Styles - No Javascript Required */
         .css-modal-overlay {
@@ -384,13 +693,13 @@
             <i class="fa-solid fa-house"></i>
             <span>Trang chủ</span>
         </a>
-        <a th:if="${patient.status == 'TREATING'}" href="/patient/adherence" class="nav-item">
-            <i class="fa-solid fa-pills"></i>
-            <span>Thuốc uống</span>
-        </a>
         <a href="/patient/appointments" class="nav-item">
             <i class="fa-solid fa-calendar-check"></i>
             <span>Nhật ký</span>
+        </a>
+        <a th:if="${patient.status == 'TREATING'}" href="/patient/adherence" class="nav-item">
+            <i class="fa-solid fa-pills"></i>
+            <span>Thuốc uống</span>
         </a>
         <a th:if="${patient.status == 'TREATING'}" href="/patient/log" class="nav-item fab-item">
             <div class="fab-btn">
@@ -574,6 +883,135 @@
                 e.preventDefault(); // Ngăn form gửi đi nếu không hợp lệ
             }
         });
+    </script>
+
+    <!-- Health Log History Filtering Logic -->
+    <script>
+        function filterHistoryByDate() {
+            const inputVal = document.getElementById('historyDateInput').value; // format: YYYY-MM-DD
+            if (!inputVal) return;
+            
+            // Clear range active state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+            
+            applyFilter(rowDate => rowDate === inputVal);
+        }
+
+        function filterHistoryRange(range, element) {
+            // Update active button state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+            element.classList.add('active', 'btn-primary');
+            element.classList.remove('btn-outline-primary');
+            
+            // Reset date input
+            document.getElementById('historyDateInput').value = '';
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            if (range === 'all') {
+                applyFilter(() => true);
+            } else if (range === 'today') {
+                const todayStr = getISODateString(today);
+                applyFilter(rowDate => rowDate === todayStr);
+            } else if (range === 'week') {
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(today.getDate() - 7);
+                applyFilter(rowDate => {
+                    const d = new Date(rowDate);
+                    return d >= oneWeekAgo && d <= today;
+                });
+            } else if (range === 'month') {
+                const oneMonthAgo = new Date();
+                oneMonthAgo.setDate(today.getDate() - 30);
+                applyFilter(rowDate => {
+                    const d = new Date(rowDate);
+                    return d >= oneMonthAgo && d <= today;
+                });
+            }
+        }
+
+        function getISODateString(date) {
+            const offset = date.getTimezoneOffset();
+            const localDate = new Date(date.getTime() - (offset*60*1000));
+            return localDate.toISOString().split('T')[0];
+        }
+
+        function applyFilter(matchFn) {
+            let visibleBpRows = 0;
+            let visibleBpCards = 0;
+            let visibleGlRows = 0;
+            let visibleGlCards = 0;
+            
+            // BP Desktop Rows
+            document.querySelectorAll('.bp-log-row').forEach(row => {
+                const dateStr = row.getAttribute('data-date');
+                if (matchFn(dateStr)) {
+                    row.style.setProperty('display', '', 'important');
+                    visibleBpRows++;
+                } else {
+                    row.style.setProperty('display', 'none', 'important');
+                }
+            });
+            
+            // BP Mobile Cards
+            document.querySelectorAll('.bp-log-card').forEach(card => {
+                const dateStr = card.getAttribute('data-date');
+                if (matchFn(dateStr)) {
+                    card.style.setProperty('display', '', 'important');
+                    visibleBpCards++;
+                } else {
+                    card.style.setProperty('display', 'none', 'important');
+                }
+            });
+
+            // Glucose Desktop Rows
+            document.querySelectorAll('.glucose-log-row').forEach(row => {
+                const dateStr = row.getAttribute('data-date');
+                if (matchFn(dateStr)) {
+                    row.style.setProperty('display', '', 'important');
+                    visibleGlRows++;
+                } else {
+                    row.style.setProperty('display', 'none', 'important');
+                }
+            });
+            
+            // Glucose Mobile Cards
+            document.querySelectorAll('.glucose-log-card').forEach(card => {
+                const dateStr = card.getAttribute('data-date');
+                if (matchFn(dateStr)) {
+                    card.style.setProperty('display', '', 'important');
+                    visibleGlCards++;
+                } else {
+                    card.style.setProperty('display', 'none', 'important');
+                }
+            });
+            
+            // Toggle Empty placeholders
+            const bpEmptyRow = document.getElementById('bp-empty-row');
+            if (bpEmptyRow) {
+                bpEmptyRow.style.setProperty('display', visibleBpRows === 0 ? '' : 'none', 'important');
+            }
+            const bpEmptyCard = document.getElementById('bp-empty-card');
+            if (bpEmptyCard) {
+                bpEmptyCard.style.setProperty('display', visibleBpCards === 0 ? '' : 'none', 'important');
+            }
+            
+            const glEmptyRow = document.getElementById('gl-empty-row');
+            if (glEmptyRow) {
+                glEmptyRow.style.setProperty('display', visibleGlRows === 0 ? '' : 'none', 'important');
+            }
+            const glEmptyCard = document.getElementById('gl-empty-card');
+            if (glEmptyCard) {
+                glEmptyCard.style.setProperty('display', visibleGlCards === 0 ? '' : 'none', 'important');
+            }
+        }
     </script>
     <script src="/js/patient.js"></script>
 </body>

@@ -373,7 +373,7 @@
                 <!-- Resend OTP -->
                 <div class="text-center mb-4">
                     <p class="text-muted small mb-2">Không nhận được mã?</p>
-                    <form th:action="@{/auth/resend-otp}" method="post" style="display: inline;">
+                    <form th:action="@{/auth/resend-otp}" method="post" style="display: inline;" id="resendForm"><!-- CHANGED -->
                         <input type="hidden" name="email" th:value="${email}"/>
                         <input type="hidden" name="type" th:value="${otpType}"/>
                         <button type="submit" class="resend-link btn btn-link p-0" id="resendBtn">
@@ -434,6 +434,12 @@
             // Tự động submit nếu đã gõ đủ 6 ký tự
             if (val.length === 6) {
                 otpRealInput.setAttribute('readonly', 'true');
+                // CHANGED: Show spinner on auto-submit
+                const verifyBtn = document.getElementById('verifyBtn');
+                if (verifyBtn) {
+                    verifyBtn.disabled = true;
+                    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang xác thực...';
+                }
                 otpForm.submit();
             }
         });
@@ -448,7 +454,27 @@
         // Khóa input khi submit thủ công bằng nút bấm
         otpForm.addEventListener('submit', function() {
             otpRealInput.setAttribute('readonly', 'true');
+            // CHANGED: Show spinner on submit
+            const verifyBtn = document.getElementById('verifyBtn');
+            if (verifyBtn) {
+                setTimeout(function() {
+                    verifyBtn.disabled = true;
+                    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang xác thực...';
+                }, 0);
+            }
         });
+
+        // CHANGED: Show spinner on resend
+        const resendForm = document.getElementById('resendForm');
+        const resendBtn = document.getElementById('resendBtn');
+        if (resendForm && resendBtn) {
+            resendForm.addEventListener('submit', function() {
+                setTimeout(function() {
+                    resendBtn.disabled = true;
+                    resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang gửi lại...';
+                }, 0);
+            });
+        }
 
         // ==================== COUNTDOWN ====================
         var totalSeconds = 5 * 60; // 5 minutes

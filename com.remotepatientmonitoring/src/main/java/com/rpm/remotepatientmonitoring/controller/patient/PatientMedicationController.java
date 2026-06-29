@@ -27,6 +27,9 @@ public class PatientMedicationController {
     @Autowired
     private PatientRepository patientRepository;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+
     // ===================== Lấy Patient mock đầu tiên =====================
     private Patient getCurrentPatient() {
         return patientRepository.findAll().stream()
@@ -176,6 +179,20 @@ public class PatientMedicationController {
         log.setIsTaken(status);
         log.setTakenAt(status ? LocalDateTime.now() : null);
         medicationLogRepository.save(log);
+
+        // Nếu bệnh nhân đã uống thuốc (status = true), tự động xóa thông báo nhắc quá giờ (nếu có)
+        if (status) {
+            try {
+                String overdueTypeKey = "OVERDUE_MED_REMINDER_" + medicationId;
+                Patient patient = medication.getPatient();
+                if (patient != null) {
+                    notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId()).stream()
+                            .filter(n -> overdueTypeKey.equals(n.getNotificationType()) 
+                                    && n.getCreatedAt().toLocalDate().isEqual(today))
+                            .forEach(n -> notificationRepository.delete(n));
+                }
+            } catch (Exception ignored) {}
+        }
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
