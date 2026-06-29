@@ -79,7 +79,7 @@
                     </div>
 
                     <!-- Chất xơ -->
-                    <div class="mb-2">
+                    <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="small fw-semibold text-muted">Lượng Chất xơ tiêu thụ</span>
                             <span class="badge bg-success-subtle text-success" th:text="${totalFiber} + ' / ' + ${targetFiber} + ' g'">0 / 20 g</span>
@@ -88,6 +88,45 @@
                             <div class="progress-bar bg-success" role="progressbar" 
                                  th:style="'width: ' + ${fiberPercent} + '%'" 
                                  th:aria-valuenow="${fiberPercent}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Đường bột (Carbs) -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-muted">Đường bột (Carbs)</span>
+                            <span class="badge bg-info-subtle text-info" th:text="${totalCarbs} + ' / ' + ${targetCarbs} + ' g'">0 / 150 g</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 th:style="'width: ' + ${carbsPercent} + '%'" 
+                                 th:aria-valuenow="${carbsPercent}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Chất đạm (Protein) -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-muted">Chất đạm (Protein)</span>
+                            <span class="badge" style="color: #b45309 !important; background-color: #fef3c7 !important;" th:text="${totalProtein} + ' / ' + ${targetProtein} + ' g'">0 / 60 g</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 th:style="'width: ' + ${proteinPercent} + '%'" 
+                                 th:aria-valuenow="${proteinPercent}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Chất béo (Lipid) -->
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-semibold text-muted">Chất béo (Lipid)</span>
+                            <span class="badge bg-secondary-subtle text-secondary" th:text="${totalFat} + ' / ' + ${targetFat} + ' g'">0 / 50 g</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-secondary" role="progressbar" 
+                                 th:style="'width: ' + ${fatPercent} + '%'" 
+                                 th:aria-valuenow="${fatPercent}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                 </div>
@@ -120,10 +159,13 @@
                                 <div>
                                     <span class="badge bg-secondary mb-1" th:text="${meal.mealType}">Bữa Sáng</span>
                                     <div class="fw-bold text-dark" th:text="${meal.foodName}">Tên món ăn</div>
-                                    <div class="mt-1 d-flex gap-2">
+                                    <div class="mt-1 d-flex gap-2 flex-wrap">
                                         <span class="badge bg-danger-subtle text-danger small"><i class="fa-solid fa-fire me-1"></i><span th:text="${meal.calories}">350</span> kcal</span>
                                         <span class="badge bg-primary-subtle text-primary small"><i class="fa-solid fa-cubes-stack me-1"></i><span th:text="${meal.saltG}">0.5</span> g muối</span>
                                         <span class="badge bg-success-subtle text-success small"><i class="fa-solid fa-leaf me-1"></i><span th:text="${meal.fiberG}">5.0</span> g xơ</span>
+                                        <span class="badge bg-info-subtle text-info small"><i class="fa-solid fa-cookie me-1"></i><span th:text="${meal.glucidG != null ? meal.glucidG : 0}">25.0</span> g bột</span>
+                                        <span class="badge bg-warning-subtle text-warning small" style="color: #b45309 !important; background-color: #fef3c7 !important;"><i class="fa-solid fa-egg me-1"></i><span th:text="${meal.proteinG != null ? meal.proteinG : 0}">15.0</span> g đạm</span>
+                                        <span class="badge bg-secondary-subtle text-secondary small"><i class="fa-solid fa-bacon me-1"></i><span th:text="${meal.lipidG != null ? meal.lipidG : 0}">8.0</span> g béo</span>
                                     </div>
                                 </div>
                             </div>
@@ -139,6 +181,59 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Từ điển thực phẩm gợi ý tham khảo -->
+        <div class="card card-custom p-4 mt-4 bg-white shadow-sm" style="border-radius: 16px; border: none;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="fa-solid fa-book-open me-2 text-warning"></i>Từ Điển Dinh Dưỡng Thực Phẩm
+                    </h5>
+                    <p class="small text-muted mb-0">Tra cứu giá trị dinh dưỡng có trong 100g thực phẩm gợi ý tham khảo.</p>
+                </div>
+                <div class="input-group" style="max-width: 350px;">
+                    <span class="input-group-text bg-light border-end-0" style="border-radius: 20px 0 0 20px; border-color: #dee2e6;"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="text" id="foodSearchInput" class="form-control bg-light border-start-0" placeholder="Tìm kiếm món ăn, thực phẩm..." onkeyup="filterFoodDictionary()" style="border-radius: 0 20px 20px 0; border-color: #dee2e6;">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="foodDictTable">
+                    <thead class="table-light text-secondary small text-uppercase" style="border-radius: 8px;">
+                        <tr>
+                            <th>Tên thực phẩm</th>
+                            <th class="text-center">Năng lượng</th>
+                            <th class="text-center">Đường bột</th>
+                            <th class="text-center">Chất đạm</th>
+                            <th class="text-center">Chất béo</th>
+                            <th class="text-center">Chất xơ</th>
+                            <th class="text-center">Muối/Tro</th>
+                            <th class="text-center">Nước</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="food : ${foods}" class="food-row">
+                            <td class="fw-bold text-dark food-name-cell" th:text="${food.foodName}">Cơm trắng</td>
+                            <td class="text-center fw-semibold text-danger"><span th:text="${food.energyKcal}">130</span> kcal</td>
+                            <td class="text-center text-info fw-semibold"><span th:text="${food.glucidG != null ? food.glucidG : 0.0}">28.0</span> g</td>
+                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${food.proteinG != null ? food.proteinG : 0.0}">2.7</span> g</td>
+                            <td class="text-center text-secondary fw-semibold"><span th:text="${food.lipidG != null ? food.lipidG : 0.0}">0.3</span> g</td>
+                            <td class="text-center text-success fw-semibold"><span th:text="${food.cellulozaG != null ? food.cellulozaG : 0.0}">0.4</span> g</td>
+                            <td class="text-center text-primary fw-semibold"><span th:text="${food.ashG != null ? food.ashG : 0.0}">0.1</span> g</td>
+                            <td class="text-center text-muted"><span th:text="${food.waterG != null ? food.waterG : 0.0}">68.0</span> g</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold" 
+                                        th:data-id="${food.id}"
+                                        th:data-name="${food.foodName}"
+                                        onclick="quickSelectFood(this)">
+                                    <i class="fa-solid fa-plus me-1"></i>Chọn
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -172,14 +267,17 @@
                                     th:text="${food.foodName} + ' (' + ${food.energyKcal} + ' kcal)'"
                                     th:data-calories="${food.energyKcal}" 
                                     th:data-salt="${food.ashG}" 
-                                    th:data-fiber="${food.cellulozaG}">Món ăn</option>
+                                    th:data-fiber="${food.cellulozaG}"
+                                    th:data-carbs="${food.glucidG}"
+                                    th:data-protein="${food.proteinG}"
+                                    th:data-fat="${food.lipidG}">Món ăn</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="quantityG" class="form-label fw-semibold">Khối lượng thực phẩm (g)</label>
                         <input type="number" class="form-control" id="quantityG" value="100" min="1" oninput="recalculateNutrients()" required>
                     </div>
-                    <div class="row g-2">
+                    <div class="row g-2 mb-3">
                         <div class="col-4">
                             <label for="calories" class="form-label fw-semibold small">Ước tính Calo (kcal)</label>
                             <input type="number" class="form-control" id="calories" value="0" readonly>
@@ -191,6 +289,20 @@
                         <div class="col-4">
                             <label for="fiberG" class="form-label fw-semibold small">Ước tính Xơ (g)</label>
                             <input type="number" step="0.01" class="form-control" id="fiberG" value="0.0" readonly>
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label for="carbs" class="form-label fw-semibold small">Ước tính Bột (g)</label>
+                            <input type="number" step="0.01" class="form-control" id="carbs" value="0.0" readonly>
+                        </div>
+                        <div class="col-4">
+                            <label for="protein" class="form-label fw-semibold small">Ước tính Đạm (g)</label>
+                            <input type="number" step="0.01" class="form-control" id="protein" value="0.0" readonly>
+                        </div>
+                        <div class="col-4">
+                            <label for="fat" class="form-label fw-semibold small">Ước tính Béo (g)</label>
+                            <input type="number" step="0.01" class="form-control" id="fat" value="0.0" readonly>
                         </div>
                     </div>
                 </div>
@@ -216,16 +328,25 @@
                 document.getElementById('calories').value = 0;
                 document.getElementById('saltG').value = 0.0;
                 document.getElementById('fiberG').value = 0.0;
+                document.getElementById('carbs').value = 0.0;
+                document.getElementById('protein').value = 0.0;
+                document.getElementById('fat').value = 0.0;
                 return;
             }
             const selectedOption = presetSelect.options[presetSelect.selectedIndex];
             const baseCal = parseFloat(selectedOption.getAttribute('data-calories')) || 0;
             const baseSalt = parseFloat(selectedOption.getAttribute('data-salt')) || 0;
             const baseFiber = parseFloat(selectedOption.getAttribute('data-fiber')) || 0;
+            const baseCarbs = parseFloat(selectedOption.getAttribute('data-carbs')) || 0;
+            const baseProtein = parseFloat(selectedOption.getAttribute('data-protein')) || 0;
+            const baseFat = parseFloat(selectedOption.getAttribute('data-fat')) || 0;
 
             document.getElementById('calories').value = Math.round((baseCal * quantity) / 100);
             document.getElementById('saltG').value = (Math.round(((baseSalt * quantity) / 100) * 100) / 100).toFixed(2);
             document.getElementById('fiberG').value = (Math.round(((baseFiber * quantity) / 100) * 100) / 100).toFixed(2);
+            document.getElementById('carbs').value = (Math.round(((baseCarbs * quantity) / 100) * 100) / 100).toFixed(2);
+            document.getElementById('protein').value = (Math.round(((baseProtein * quantity) / 100) * 100) / 100).toFixed(2);
+            document.getElementById('fat').value = (Math.round(((baseFat * quantity) / 100) * 100) / 100).toFixed(2);
         }
 
         function submitAddMealForm() {
@@ -295,6 +416,30 @@
         function applyFoodPreset(presetValue) {
             recalculateNutrients();
         }
+
+        function filterFoodDictionary() {
+            const query = document.getElementById('foodSearchInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#foodDictTable .food-row');
+            rows.forEach(row => {
+                const name = row.querySelector('.food-name-cell').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function quickSelectFood(element) {
+            const foodId = element.getAttribute('data-id');
+            const selectPreset = document.getElementById('foodPreset');
+            selectPreset.value = foodId;
+            applyFoodPreset(foodId);
+            
+            // Open the bootstrap modal
+            const myModal = new bootstrap.Modal(document.getElementById('addMealModal'));
+            myModal.show();
+        }
     </script>
     <!-- Bottom Navigation Bar -->
     <div class="bottom-nav">
@@ -302,13 +447,13 @@
             <i class="fa-solid fa-house"></i>
             <span>Trang chủ</span>
         </a>
-        <a href="/patient/adherence" class="nav-item">
-            <i class="fa-solid fa-pills"></i>
-            <span>Thuốc uống</span>
-        </a>
         <a href="/patient/appointments" class="nav-item">
             <i class="fa-solid fa-calendar-check"></i>
             <span>Nhật ký</span>
+        </a>
+        <a href="/patient/adherence" class="nav-item">
+            <i class="fa-solid fa-pills"></i>
+            <span>Thuốc uống</span>
         </a>
         <a href="/patient/log" class="nav-item fab-item">
             <div class="fab-btn">
