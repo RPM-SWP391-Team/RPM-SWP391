@@ -8,4 +8,7 @@ import java.util.List;
 @Repository
 public interface ChangeRequestRepository extends JpaRepository<ChangeRequest, Integer> {
     List<ChangeRequest> findByPatientIdOrderByCreatedAtDesc(Integer patientId);
+    List<ChangeRequest> findByDoctorIdOrderByCreatedAtDesc(Integer doctorId);
+    List<ChangeRequest> findByDoctorIdAndStatusOrderByCreatedAtDesc(Integer doctorId, String status);
+    List<ChangeRequest> findByDoctorIdAndStatusNotOrderByCreatedAtDesc(Integer doctorId, String status);
 }
