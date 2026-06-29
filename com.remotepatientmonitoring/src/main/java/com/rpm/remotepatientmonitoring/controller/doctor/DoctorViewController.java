@@ -71,6 +71,9 @@ public class DoctorViewController {
     @Autowired
     private WaterLogRepository waterLogRepository;
 
+    @Autowired
+    private ChangeRequestRepository changeRequestRepository;
+
     @ModelAttribute
     public void addNotificationAttributes(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         if (userDetails != null) {
@@ -421,5 +424,81 @@ public class DoctorViewController {
 
         redirectAttributes.addFlashAttribute("successMsg", "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
         return "redirect:/doctor/profile";
+    }
+
+    // =========================================================
+    // 7. Quản lý Yêu cầu (Change Requests)
+    // =========================================================
+    @GetMapping("/change-requests")
+    public String viewChangeRequests(
+            @AuthenticationPrincipal CustomUserDetails userDetails, 
+            @RequestParam(value = "tab", defaultValue = "pending") String tab,
+            Model model) {
+        
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return "redirect:/auth/login";
+        }
+
+        List<ChangeRequest> changeRequests;
+        if ("history".equals(tab)) {
+            changeRequests = changeRequestRepository.findByDoctorIdAndStatusNotOrderByCreatedAtDesc(doctor.getId(), "PENDING");
+        } else {
+            changeRequests = changeRequestRepository.findByDoctorIdAndStatusOrderByCreatedAtDesc(doctor.getId(), "PENDING");
+        }
+        
+        long pendingCount = changeRequestRepository.findByDoctorIdAndStatusOrderByCreatedAtDesc(doctor.getId(), "PENDING").size();
+
+        model.addAttribute("doctor", doctor);
+        model.addAttribute("changeRequests", changeRequests);
+        model.addAttribute("pendingCount", pendingCount);
+        model.addAttribute("activeTab", tab);
+
+        return "doctor/change-requests";
+    }
+
+    @PostMapping("/change-requests/{id}/process")
+    public String processChangeRequest(
+            @PathVariable("id") Integer id,
+            @RequestParam("action") String action,
+            @RequestParam("doctorResponse") String doctorResponse,
+            RedirectAttributes redirectAttributes) {
+        
+        ChangeRequest request = changeRequestRepository.findById(id).orElse(null);
+        if (request != null) {
+            if ("APPROVE".equalsIgnoreCase(action)) {
+                request.setStatus("APPROVED");
+            } else if ("REJECT".equalsIgnoreCase(action)) {
+                request.setStatus("REJECTED");
+            }
+            request.setDoctorResponse(doctorResponse);
+            request.setProcessedAt(LocalDateTime.now());
+            request.setUpdatedAt(LocalDateTime.now());
+            changeRequestRepository.save(request);
+
+            // Optional: send notification back to patient
+            try {
+                String reqTypeStr = request.getRequestType() != null ? request.getRequestType() : "";
+                String title = "Phản hồi yêu cầu " + ("RESCHEDULE".equals(reqTypeStr) ? "đổi lịch" : "đổi phác đồ");
+                String content = "Bác sĩ đã " + ("APPROVED".equals(request.getStatus()) ? "duyệt" : "từ chối") + " yêu cầu của bạn: " + (doctorResponse != null ? doctorResponse : "");
+                
+                Notification notif = Notification.builder()
+                        .patient(request.getPatient())
+                        .doctor(request.getDoctor())
+                        .title(title)
+                        .content(content)
+                        .isRead(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                notificationRepository.save(notif);
+            } catch (Exception e) {
+                System.out.println("Error saving notification: " + e.getMessage());
+            }
+
+            redirectAttributes.addFlashAttribute("successMsg", "Đã xử lý yêu cầu thành công!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMsg", "Không tìm thấy yêu cầu này.");
+        }
+        return "redirect:/doctor/change-requests";
     }
 }
