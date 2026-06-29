@@ -16,10 +16,10 @@ public interface MedicationLogRepository extends JpaRepository<MedicationLog, In
     List<MedicationLog> findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate startDate);
 
     List<MedicationLog> findByPatientMedicationPatientIdOrderByLogDateAsc(Integer patientId);
-
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(ml) FROM MedicationLog ml WHERE ml.patientMedication.patient.hospital.id = :hospitalId AND ml.isTaken = true AND ml.logDate >= :startDate")
-    long countTakenMedicationLogs(@org.springframework.data.repository.query.Param("hospitalId") Integer hospitalId, @org.springframework.data.repository.query.Param("startDate") java.time.LocalDate startDate);
-    List<MedicationLog> findByPatientMedicationPatientIdOrderByLogDateAsc(Integer patientId);
+//
+//    @org.springframework.data.jpa.repository.Query("SELECT COUNT(ml) FROM MedicationLog ml WHERE ml.patientMedication.patient.hospital.id = :hospitalId AND ml.isTaken = true AND ml.logDate >= :startDate")
+//    long countTakenMedicationLogs(@org.springframework.data.repository.query.Param("hospitalId") Integer hospitalId, @org.springframework.data.repository.query.Param("startDate") java.time.LocalDate startDate);
+//    List<MedicationLog> findByPatientMedicationPatientIdOrderByLogDateAsc(Integer patientId);
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(ml) FROM MedicationLog ml WHERE ml.patientMedication.patient.hospital.id = :hospitalId AND ml.isTaken = true AND ml.logDate BETWEEN :startDate AND :endDate")
     long countTakenMedicationLogs(@org.springframework.data.repository.query.Param("hospitalId") Integer hospitalId, @org.springframework.data.repository.query.Param("startDate") java.time.LocalDate startDate, @org.springframework.data.repository.query.Param("endDate") java.time.LocalDate endDate);
