@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async; // CHANGED
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +19,7 @@ public class EmailService {
     /**
      * Gửi email chứa mã OTP xác thực.
      */
+    @Async("emailTaskExecutor") // CHANGED
     public void sendOtpEmail(String toEmail, String otp, String otpType) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
