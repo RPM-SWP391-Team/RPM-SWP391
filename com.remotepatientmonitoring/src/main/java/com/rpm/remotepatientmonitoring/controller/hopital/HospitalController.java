@@ -1,11 +1,11 @@
-package com.rpm.remotepatientmonitoring.controller;
+package com.rpm.remotepatientmonitoring.controller.hopital;
 
-import com.rpm.remotepatientmonitoring.dto.HospitalOverviewDTO;
+import com.rpm.remotepatientmonitoring.dto.hopital.HospitalOverviewDTO;
 import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.Alert;
 import com.rpm.remotepatientmonitoring.repository.*;
-import com.rpm.remotepatientmonitoring.service.DoctorService;
+import com.rpm.remotepatientmonitoring.service.hopital.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;

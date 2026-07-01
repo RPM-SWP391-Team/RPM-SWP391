@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.dto;
+package com.rpm.remotepatientmonitoring.dto.hopital;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
