@@ -1,6 +1,6 @@
-package com.rpm.remotepatientmonitoring.service;
+package com.rpm.remotepatientmonitoring.service.hopital;
 
-import com.rpm.remotepatientmonitoring.dto.DoctorEditDTO;
+import com.rpm.remotepatientmonitoring.dto.hopital.DoctorEditDTO;
 import com.rpm.remotepatientmonitoring.model.Account;
 import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Hospital;
@@ -9,7 +9,10 @@ import com.rpm.remotepatientmonitoring.repository.AccountRepository;
 import com.rpm.remotepatientmonitoring.repository.DoctorRepository;
 import com.rpm.remotepatientmonitoring.repository.HospitalRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import com.rpm.remotepatientmonitoring.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -214,17 +217,17 @@ public class DoctorService {
     }
 
     /// Hàm xử lý nghiệp vụ bộ lọc kép: Làm sạch dữ liệu đầu vào và gọi Repository
-    public List<Doctor> searchAndFilterAllDoctors(String keyword, String specialty) {
+    public Page<Doctor> searchAndFilterAllDoctors(String keyword, String specialty, Pageable pageable) {
         String cleanKeyword = (keyword != null) ? keyword.trim() : "";
         String cleanSpecialty = (specialty != null) ? specialty.trim() : "";
 
-        // Giới hạn độ dài chuỗi tìm kiếm tối đa 100 ký tự để bảo vệ hiệu năng hệ thống
+        // Giới hạn độ dài chuỗi tìm kiếm tối đa 100 ký tự
         if (cleanKeyword.length() > 100) {
             cleanKeyword = cleanKeyword.substring(0, 100);
         }
 
-        // Đẩy xuống Database xử lý lọc phân tầng kèm sắp xếp tự động chuẩn chỉ
-        return doctorRepository.searchAndFilterDoctors(cleanKeyword, cleanSpecialty);
+        // Truyền Pageable xuống DB
+        return doctorRepository.searchAndFilterDoctors(cleanKeyword, cleanSpecialty, pageable);
     }
 
     public Doctor getDoctorById(int id) {
