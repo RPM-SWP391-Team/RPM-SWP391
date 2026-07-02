@@ -225,19 +225,25 @@ public class AuthController {
             @RequestParam(defaultValue = "REGISTRATION") String type,
             @RequestParam(required = false) Boolean triggerResend,
             Model model) {
+        String trimmedEmail = (email != null) ? email.trim() : "";
         if (Boolean.TRUE.equals(triggerResend)) {
             try {
-                // Tạo OTP mới trong DB (transactional)
-                String otp = authService.resendOtp(email, type);
-                // Gửi email ngoài transaction
-                authService.sendOtpEmailSafely(email, otp, type);
+                if (!"PASSWORD_RESET".equals(type) || authService.emailExists(trimmedEmail)) {
+                    // Tạo OTP mới trong DB (transactional)
+                    String otp = authService.resendOtp(trimmedEmail, type);
+                    // Gửi email ngoài transaction
+                    authService.sendOtpEmailSafely(trimmedEmail, otp, type);
+                }
                 model.addAttribute("successMessage", "Mã OTP mới đã được gửi tới email của bạn!");
             } catch (Exception ex) {
-                log.error("Lỗi tự động gửi lại OTP cho email={}: {}", email, ex.getMessage(), ex);
+                log.error("Lỗi tự động gửi lại OTP cho email={}: {}", trimmedEmail, ex.getMessage(), ex);
                 model.addAttribute("errorMessage", "Không thể tự động gửi mã OTP mới: " + ex.getMessage());
             }
         }
-        model.addAttribute("email", email);
+        if ("PASSWORD_RESET".equals(type) && !model.containsAttribute("successMessage") && !model.containsAttribute("errorMessage")) {
+            model.addAttribute("successMessage", "Nếu email tồn tại trong hệ thống, mã OTP đã được gửi tới email đó.");
+        }
+        model.addAttribute("email", trimmedEmail);
         model.addAttribute("otpType", type);
         return "auth/verify-otp";
     }
@@ -249,10 +255,11 @@ public class AuthController {
             @RequestParam(defaultValue = "REGISTRATION") String type,
             HttpServletRequest request,
             Model model) {
-        String error = authService.verifyOtp(email, otp, type);
+        String trimmedEmail = (email != null) ? email.trim() : "";
+        String error = authService.verifyOtp(trimmedEmail, otp, type);
 
         if (error != null) {
-            model.addAttribute("email", email);
+            model.addAttribute("email", trimmedEmail);
             model.addAttribute("otpType", type);
             model.addAttribute("errorMessage", error);
             return "auth/verify-otp";
@@ -260,14 +267,14 @@ public class AuthController {
 
         if ("PASSWORD_RESET".equals(type)) {
             HttpSession session = request.getSession(true);
-            session.setAttribute("RESET_PASSWORD_EMAIL", email);
-            log.info("Xác thực OTP thành công để đặt lại mật khẩu cho email={}", email);
+            session.setAttribute("RESET_PASSWORD_EMAIL", trimmedEmail);
+            log.info("Xác thực OTP thành công để đặt lại mật khẩu cho email={}", trimmedEmail);
             return "redirect:/auth/reset-password";
         }
 
         // Xác thực thành công — tự động đăng nhập luôn
         try {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(trimmedEmail);
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -276,7 +283,7 @@ public class AuthController {
             HttpSession session = request.getSession(true);
             session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
-            log.info("Auto-login thành công sau xác thực OTP cho email={}", email);
+            log.info("Auto-login thành công sau xác thực OTP cho email={}", trimmedEmail);
             return "redirect:/dashboard";
         } catch (Exception e) {
             log.error("Không thể auto-login sau xác thực OTP cho email={}: {}", email, e.getMessage());
@@ -291,19 +298,22 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam(defaultValue = "REGISTRATION") String type,
             Model model) {
+        String trimmedEmail = (email != null) ? email.trim() : "";
         try {
-            // BƯỚC 1: Tạo OTP mới trong DB (transactional)
-            String otp = authService.resendOtp(email, type);
+            if (!"PASSWORD_RESET".equals(type) || authService.emailExists(trimmedEmail)) {
+                // BƯỚC 1: Tạo OTP mới trong DB (transactional)
+                String otp = authService.resendOtp(trimmedEmail, type);
 
-            // BƯỚC 2: Gửi email (ngoài transaction, sau khi DB đã commit)
-            authService.sendOtpEmailSafely(email, otp, type);
+                // BƯỚC 2: Gửi email (ngoài transaction, sau khi DB đã commit)
+                authService.sendOtpEmailSafely(trimmedEmail, otp, type);
+            }
 
             model.addAttribute("successMessage", "Mã OTP mới đã được gửi tới email của bạn!");
         } catch (Exception ex) {
-            log.error("Lỗi gửi lại OTP cho email={}: {}", email, ex.getMessage(), ex);
+            log.error("Lỗi gửi lại OTP cho email={}: {}", trimmedEmail, ex.getMessage(), ex);
             model.addAttribute("errorMessage", "Không thể gửi lại mã OTP: " + ex.getMessage());
         }
-        model.addAttribute("email", email);
+        model.addAttribute("email", trimmedEmail);
         model.addAttribute("otpType", type);
         return "auth/verify-otp";
     }
@@ -323,29 +333,29 @@ public class AuthController {
             model.addAttribute("errorMessage", "Email không được để trống!");
             return "auth/forgot-password";
         }
-        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+        String trimmedEmail = email.trim();
+        if (!trimmedEmail.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             model.addAttribute("errorMessage", "Email không đúng định dạng!");
-            model.addAttribute("email", email);
-            return "auth/forgot-password";
-        }
-        if (!authService.emailExists(email)) {
-            model.addAttribute("errorMessage", "Email này chưa được đăng ký trong hệ thống!");
             model.addAttribute("email", email);
             return "auth/forgot-password";
         }
 
         try {
-            // Tạo OTP cho forgot password
-            String otp = authService.createOtpRecord(email, "PASSWORD_RESET");
-            // Gửi email OTP
-            authService.sendOtpEmailSafely(email, otp, "PASSWORD_RESET");
+            if (authService.emailExists(trimmedEmail)) {
+                // Tạo OTP cho forgot password
+                String otp = authService.createOtpRecord(trimmedEmail, "PASSWORD_RESET");
+                // Gửi email OTP
+                authService.sendOtpEmailSafely(trimmedEmail, otp, "PASSWORD_RESET");
+            } else {
+                log.info("Yêu cầu quên mật khẩu cho email không tồn tại: {}", trimmedEmail);
+            }
             
-            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+            String encodedEmail = URLEncoder.encode(trimmedEmail, StandardCharsets.UTF_8);
             return "redirect:/auth/verify-otp?email=" + encodedEmail + "&type=PASSWORD_RESET";
         } catch (Exception ex) {
-            log.error("Lỗi khi xử lý quên mật khẩu cho email={}: {}", email, ex.getMessage(), ex);
+            log.error("Lỗi khi xử lý quên mật khẩu cho email={}: {}", trimmedEmail, ex.getMessage(), ex);
             model.addAttribute("errorMessage", "Đã xảy ra lỗi: " + ex.getMessage());
-            model.addAttribute("email", email);
+            model.addAttribute("email", trimmedEmail);
             return "auth/forgot-password";
         }
     }
