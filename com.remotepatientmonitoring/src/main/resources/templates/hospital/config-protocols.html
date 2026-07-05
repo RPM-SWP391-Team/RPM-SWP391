@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* GIỮ NGUYÊN CSS GỐC CỦA BẠN */
         :root {
             --primary-color: #1A73E8; --primary-light: #E8F0FE; --bg-light: #F4F7FE; --text-dark: #1E293B; --text-muted: #64748B;
             --sidebar-width: 260px; --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -26,14 +27,26 @@
         .card-header-custom { background: var(--primary-gradient); color: white; padding: 20px 24px; font-weight: 600; border-bottom: none; border-radius: 16px 16px 0 0;}
         .form-control, .form-select { border-radius: 8px; padding: 10px 12px; }
         .badge-level { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
+
         .bg-level-green { background-color: #d1e7dd; color: #0f5132; }
         .bg-level-yellow { background-color: #fff3cd; color: #664d03; }
         .bg-level-orange { background-color: #ffe8cc; color: #d9480f; }
         .bg-level-red { background-color: #f8d7da; color: #842029; }
+
         .scrollable-list { max-height: 500px; overflow-y: auto; padding-right: 10px;}
-        /* Tùy chỉnh thanh cuộn cho đẹp */
         .scrollable-list::-webkit-scrollbar { width: 6px; }
         .scrollable-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+
+        /* BỔ SUNG CSS CHO BỘ LỌC VÀ ACCORDION (CHUẨN LIGHT MODE) */
+        .badge-filter { cursor: pointer; border: 1px solid #dee2e6; background-color: #ffffff; color: var(--text-muted); transition: all 0.2s; padding: 6px 14px; font-weight: 500; }
+        .badge-filter:hover { background-color: #f8f9fa; color: var(--text-dark); border-color: #ced4da; }
+        .badge-filter.active-blue { background-color: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; }
+        .badge-filter.active-green { background-color: #198754 !important; color: white !important; border-color: #198754 !important; }
+
+        .accordion-item { border: 1px solid #e2e8f0; border-radius: 10px !important; margin-bottom: 10px; overflow: hidden; background: #fff; }
+        .accordion-button { background-color: #ffffff; color: var(--text-dark); box-shadow: none !important; padding: 1rem; font-weight: 600; }
+        .accordion-button:not(.collapsed) { background-color: var(--primary-light); color: var(--primary-color); }
+        .accordion-body { background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -63,104 +76,351 @@
     </div>
 
     <div class="container-fluid p-0">
-        <div class="mb-4">
-            <h2 class="fw-bold mb-1"><i class="fa-solid fa-book-medical text-primary me-2"></i>Quản lý Cẩm nang Y tế</h2>
-            <p class="text-muted">Soạn thảo các hướng dẫn sơ cứu khẩn cấp hiển thị trực tiếp trên App của Bệnh nhân.</p>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1"><i class="fa-solid fa-book-medical text-primary me-2"></i>Quản lý Cẩm nang Y tế</h2>
+                <p class="text-muted">Soạn thảo các hướng dẫn sơ cứu khẩn cấp hiển thị trực tiếp trên App của Bệnh nhân.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary rounded-pill px-3 fw-medium" data-bs-toggle="collapse" data-bs-target="#collapseGuideForm">
+                    <i class="bi bi-plus-lg"></i> Hiện form Chỉ dẫn
+                </button>
+                <button class="btn btn-outline-success rounded-pill px-3 fw-medium" data-bs-toggle="collapse" data-bs-target="#collapseProtocolForm">
+                    <i class="bi bi-plus-lg"></i> Hiện form Cẩm nang
+                </button>
+            </div>
         </div>
 
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show p-3" role="alert" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show p-3" role="alert" th:text="${errorMessage}"></div>
 
         <div class="row">
+            <!-- ========================================== -->
+            <!-- CỘT 1: CHỈ DẪN XỬ LÝ THEO CẤP ĐỘ MÀU -->
+            <!-- ========================================== -->
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
-                    <div class="card-header card-header-custom bg-secondary">
+                    <div class="card-header card-header-custom bg-secondary d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fa-solid fa-list-check me-2"></i>Chỉ Dẫn Xử Lý Theo Cấp Độ Màu</h5>
+                        <span class="badge bg-light text-secondary rounded-pill"><span th:text="${#lists.size(guides)}">0</span> Phác đồ</span>
                     </div>
                     <div class="card-body p-4">
-                        <form th:action="@{/hospital/config/guide/add}" th:object="${newGuide}" method="POST" class="p-3 bg-light rounded-3 mb-4 border">
-                            <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Chỉ Dẫn Mới</h6>
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <select class="form-select form-select-sm" th:field="*{alertLevel}" required>
-                                        <option value="GREEN">GREEN (An toàn)</option><option value="YELLOW">YELLOW (Chú ý)</option>
-                                        <option value="ORANGE">ORANGE (Nguy hiểm)</option><option value="RED">RED (Nguy kịch)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <select class="form-select form-select-sm" th:field="*{metricType}" required>
-                                        <option value="BLOOD_PRESSURE">Huyết áp</option><option value="GLUCOSE">Đường huyết</option><option value="BOTH">Cả hai</option>
-                                    </select>
-                                </div>
-                                <div class="col-12"><input type="text" class="form-control form-control-sm" th:field="*{title}" required placeholder="Tiêu đề hiển thị..."></div>
-                                <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="3" required placeholder="Nội dung từng bước..."></textarea></div>
-                                <div class="col-12 text-end"><button type="submit" class="btn btn-primary btn-sm px-4">Lưu Chỉ Dẫn</button></div>
-                            </div>
-                        </form>
 
+                        <!-- FORM SOẠN CHỈ DẪN (Gập/mở) -->
+                        <div class="collapse mb-4" id="collapseGuideForm">
+                            <form th:action="@{/hospital/config/guide/add}" th:object="${newGuide}" method="POST" class="p-4 bg-light rounded-3 border">
+                                <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Chỉ Dẫn Mới</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <select class="form-select form-select-sm" th:field="*{alertLevel}" required>
+                                            <option value="GREEN">GREEN (An toàn)</option>
+                                            <option value="YELLOW">YELLOW (Chú ý)</option>
+                                            <option value="ORANGE">ORANGE (Nguy hiểm)</option>
+                                            <option value="RED">RED (Nguy kịch)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-select form-select-sm" th:field="*{metricType}" required>
+                                            <option value="BLOOD_PRESSURE">Huyết áp</option>
+                                            <option value="GLUCOSE">Đường huyết</option>
+                                            <option value="BOTH">Cả hai</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12"><input type="text" class="form-control form-control-sm" th:field="*{title}" required placeholder="Tiêu đề hiển thị..."></div>
+                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="4" required placeholder="Nội dung từng bước..."></textarea></div>
+                                    <div class="col-12 text-end">
+                                        <button type="button" class="btn btn-secondary btn-sm px-3 me-2" data-bs-toggle="collapse" data-bs-target="#collapseGuideForm">Hủy</button>
+                                        <button type="submit" class="btn btn-primary btn-sm px-4">Lưu Chỉ Dẫn</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- HỘP BỘ LỌC CHỈ SỐ -->
+                        <div class="mb-4">
+                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC CHỈ SỐ</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-blue" onclick="filterGuides('METRIC', 'ALL', this)">Tất cả (All)</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('METRIC', 'BLOOD_PRESSURE', this)">Huyết áp</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('METRIC', 'GLUCOSE', this)">Đường huyết</button>
+                                <div class="vr mx-1 text-muted"></div>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'RED', this)">Mức Đỏ (Khẩn cấp)</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'ORANGE', this)">Mức Cam</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'YELLOW', this)">Mức Vàng</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'GREEN', this)">Mức Xanh</button>
+                            </div>
+                        </div>
+
+                        <!-- DANH SÁCH ĐÃ SOẠN (ACCORDION) -->
                         <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
                         <div class="scrollable-list">
-                            <div th:each="guide : ${guides}" class="p-3 bg-white border rounded-3 mb-3 shadow-sm">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="badge badge-level" th:classappend="'bg-level-' + ${#strings.toLowerCase(guide.alertLevel)}" th:text="${guide.alertLevel}">RED</span>
-                                    <span class="small text-muted fw-semibold" th:text="${guide.metricType}">GLUCOSE</span>
+                            <div class="accordion" id="accordionGuides">
+                                <div th:each="guide : ${guides}" class="accordion-item guide-record shadow-sm" th:data-metric="${guide.metricType}" th:data-level="${guide.alertLevel}">
+
+                                    <h2 class="accordion-header" th:id="'headingGuide-' + ${guide.id}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapseGuide-' + ${guide.id}">
+                                            <div class="w-100 pe-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="badge badge-level" th:classappend="'bg-level-' + ${#strings.toLowerCase(guide.alertLevel)}" th:text="${guide.alertLevel}">RED</span>
+                                                    <span class="small text-muted fw-bold" th:text="${guide.metricType}">GLUCOSE</span>
+                                                </div>
+                                                <div th:text="${guide.title}">Tiêu đề hiển thị</div>
+                                            </div>
+                                        </button>
+                                    </h2>
+
+                                    <div th:id="'collapseGuide-' + ${guide.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordionGuides'">
+                                        <div class="accordion-body p-3">
+                                            <!-- Chế độ xem -->
+                                            <div th:id="'viewModeGuide-' + ${guide.id}">
+                                                <p style="white-space: pre-line; font-size: 0.9rem; line-height: 1.6;" class="text-dark mb-3" th:text="${guide.instructionContent}">Nội dung</p>
+                                                <div class="text-end border-top pt-2">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" th:onclick="'toggleEditGuide(' + ${guide.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteAction(\'guide\', ' + ${guide.id} + ')'"><i class="fa-solid fa-trash"></i> Xóa</button>
+                                                </div>
+                                            </div>
+                                            <!-- Chế độ sửa -->
+                                            <form th:action="@{/hospital/config/guide/edit}" method="POST" th:id="'editModeGuide-' + ${guide.id}" style="display: none;">
+                                                <input type="hidden" name="guideId" th:value="${guide.id}">
+                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${guide.instructionContent}" required></textarea>
+                                                <div class="text-end">
+                                                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditGuide(' + ${guide.id} + ')'">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <h6 class="fw-bold text-dark" th:text="${guide.title}">Tiêu đề</h6>
-                                <form th:action="@{/hospital/config/guide/edit}" method="POST" class="mt-2">
-                                    <input type="hidden" name="guideId" th:value="${guide.id}">
-                                    <textarea class="form-control bg-light font-monospace fs-7 mb-2" name="instructionContent" rows="3" th:text="${guide.instructionContent}" required></textarea>
-                                    <div class="text-end"><button type="submit" class="btn btn-outline-primary btn-sm rounded-pill"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button></div>
-                                </form>
                             </div>
                             <div th:if="${#lists.isEmpty(guides)}" class="text-center text-muted py-3">Chưa có dữ liệu</div>
                         </div>
+
                     </div>
                 </div>
             </div>
 
+            <!-- ========================================== -->
+            <!-- CỘT 2: CẨM NANG DẤU HIỆU BỆNH LÝ -->
+            <!-- ========================================== -->
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
-                    <div class="card-header card-header-custom" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    <div class="card-header card-header-custom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
                         <h5 class="mb-0"><i class="fa-solid fa-book-open me-2"></i>Cẩm Nang Dấu Hiệu Bệnh Lý</h5>
+                        <span class="badge bg-light text-success rounded-pill"><span th:text="${#lists.size(protocols)}">0</span> Cẩm nang</span>
                     </div>
                     <div class="card-body p-4">
-                        <form th:action="@{/hospital/config/protocol/add}" th:object="${newProtocol}" method="POST" class="p-3 bg-light rounded-3 mb-4 border">
-                            <h6 class="fw-bold text-success mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Cẩm Nang Mới</h6>
-                            <div class="row g-2">
-                                <div class="col-12">
-                                    <select class="form-select form-select-sm" th:field="*{conditionType}" required>
-                                        <option value="HYPERTENSIVE_CRISIS">Cơn tăng huyết áp</option><option value="HYPOGLYCEMIA">Hạ đường huyết</option><option value="HYPERGLYCEMIA">Tăng đường huyết</option>
-                                    </select>
-                                </div>
-                                <div class="col-12"><input type="text" class="form-control form-control-sm" th:field="*{title}" required placeholder="Tiêu đề cẩm nang..."></div>
-                                <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{warningSigns}" rows="2" required placeholder="Dấu hiệu nhận biết (Vã mồ hôi, chóng mặt...)"></textarea></div>
-                                <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="3" required placeholder="Hướng dẫn xử lý..."></textarea></div>
-                                <div class="col-12 text-end"><button type="submit" class="btn btn-success btn-sm px-4">Lưu Cẩm Nang</button></div>
-                            </div>
-                        </form>
 
+                        <!-- FORM SOẠN CẨM NANG (Gập/mở) -->
+                        <div class="collapse mb-4" id="collapseProtocolForm">
+                            <form th:action="@{/hospital/config/protocol/add}" th:object="${newProtocol}" method="POST" class="p-4 bg-light rounded-3 border">
+                                <h6 class="fw-bold text-success mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Cẩm Nang Mới</h6>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <select class="form-select form-select-sm" th:field="*{conditionType}" required>
+                                            <option value="HYPERTENSIVE_CRISIS">Cơn tăng huyết áp</option>
+                                            <option value="HYPOGLYCEMIA">Hạ đường huyết</option>
+                                            <option value="HYPERGLYCEMIA">Tăng đường huyết</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12"><input type="text" class="form-control form-control-sm" th:field="*{title}" required placeholder="Tiêu đề cẩm nang..."></div>
+                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{warningSigns}" rows="2" required placeholder="Dấu hiệu nhận biết (Vã mồ hôi, chóng mặt...)"></textarea></div>
+                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="3" required placeholder="Hướng dẫn xử lý..."></textarea></div>
+                                    <div class="col-12 text-end">
+                                        <button type="button" class="btn btn-secondary btn-sm px-3 me-2" data-bs-toggle="collapse" data-bs-target="#collapseProtocolForm">Hủy</button>
+                                        <button type="submit" class="btn btn-success btn-sm px-4">Lưu Cẩm Nang</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- HỘP BỘ LỌC NHÓM BỆNH -->
+                        <div class="mb-4">
+                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC NHÓM BỆNH</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-green" onclick="filterProtocols('ALL', this)">Tất cả (All)</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterProtocols('HYPERTENSIVE_CRISIS', this)">Cơn tăng huyết áp</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterProtocols('HYPOGLYCEMIA', this)">Hạ đường huyết</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterProtocols('HYPERGLYCEMIA', this)">Tăng đường huyết</button>
+                            </div>
+                        </div>
+
+                        <!-- DANH SÁCH ĐÃ SOẠN (ACCORDION) -->
                         <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
                         <div class="scrollable-list">
-                            <div th:each="protocol : ${protocols}" class="p-3 bg-white border rounded-3 mb-3 shadow-sm">
-                                <span class="badge bg-success text-white mb-2" th:text="${protocol.conditionType}">TYPE</span>
-                                <h6 class="fw-bold text-dark" th:text="${protocol.title}">Tiêu đề</h6>
-                                <form th:action="@{/hospital/config/protocol/edit}" method="POST" class="mt-2">
-                                    <input type="hidden" name="protocolId" th:value="${protocol.id}">
-                                    <label class="small text-muted fw-semibold">Dấu hiệu:</label>
-                                    <textarea class="form-control bg-light font-monospace fs-7 mb-2" name="warningSigns" rows="2" th:text="${protocol.warningSigns}" required></textarea>
-                                    <label class="small text-muted fw-semibold">Chỉ dẫn:</label>
-                                    <textarea class="form-control bg-light font-monospace fs-7 mb-2" name="instructionContent" rows="3" th:text="${protocol.instructionContent}" required></textarea>
-                                    <div class="text-end"><button type="submit" class="btn btn-outline-success btn-sm rounded-pill"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button></div>
-                                </form>
+                            <div class="accordion" id="accordionProtocols">
+                                <div th:each="protocol : ${protocols}" class="accordion-item protocol-record shadow-sm" th:data-condition="${protocol.conditionType}">
+
+                                    <h2 class="accordion-header" th:id="'headingProto-' + ${protocol.id}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapseProto-' + ${protocol.id}">
+                                            <div class="w-100 pe-3">
+                                                <div class="mb-2">
+                                                    <span class="badge bg-success text-white px-2 py-1" th:text="${protocol.conditionType}">TYPE</span>
+                                                </div>
+                                                <div th:text="${protocol.title}">Tiêu đề Cẩm nang</div>
+                                            </div>
+                                        </button>
+                                    </h2>
+
+                                    <div th:id="'collapseProto-' + ${protocol.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordionProtocols'">
+                                        <div class="accordion-body p-3">
+                                            <!-- Chế độ xem -->
+                                            <div th:id="'viewModeProto-' + ${protocol.id}">
+                                                <div class="p-2 mb-2 bg-white border border-success rounded">
+                                                    <strong class="small text-success">Dấu hiệu:</strong>
+                                                    <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${protocol.warningSigns}"></p>
+                                                </div>
+                                                <div class="p-2 mb-3 bg-white border rounded">
+                                                    <strong class="small text-muted">Chỉ dẫn xử lý:</strong>
+                                                    <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${protocol.instructionContent}"></p>
+                                                </div>
+                                                <div class="text-end border-top pt-2">
+                                                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill" th:onclick="'toggleEditProtocol(' + ${protocol.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteAction(\'protocol\', ' + ${protocol.id} + ')'"><i class="fa-solid fa-trash"></i> Xóa</button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Chế độ sửa -->
+                                            <form th:action="@{/hospital/config/protocol/edit}" method="POST" th:id="'editModeProto-' + ${protocol.id}" style="display: none;">
+                                                <input type="hidden" name="protocolId" th:value="${protocol.id}">
+                                                <label class="small text-muted fw-semibold">Dấu hiệu:</label>
+                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="warningSigns" rows="2" th:text="${protocol.warningSigns}" required></textarea>
+                                                <label class="small text-muted fw-semibold">Chỉ dẫn:</label>
+                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${protocol.instructionContent}" required></textarea>
+                                                <div class="text-end mt-2">
+                                                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditProtocol(' + ${protocol.id} + ')'">Hủy</button>
+                                                    <button type="submit" class="btn btn-success btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                </div>
                             </div>
                             <div th:if="${#lists.isEmpty(protocols)}" class="text-center text-muted py-3">Chưa có dữ liệu</div>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ==========================================
+    // LOGIC JAVASCRIPT: BỘ LỌC CỘT TRÁI (CHỈ DẪN)
+    // ==========================================
+    let currentMetric = 'ALL';
+    let currentLevel = 'ALL';
+
+    function filterGuides(type, value, btnElement) {
+        if (type === 'METRIC') {
+            currentMetric = value;
+            document.querySelectorAll('button[onclick^="filterGuides(\'METRIC\'"]').forEach(btn => btn.classList.remove('active-blue'));
+            btnElement.classList.add('active-blue');
+        }
+        if (type === 'LEVEL') {
+            if(btnElement.classList.contains('active-blue')) {
+                currentLevel = 'ALL';
+                btnElement.classList.remove('active-blue');
+            } else {
+                currentLevel = value;
+                document.querySelectorAll('button[onclick^="filterGuides(\'LEVEL\'"]').forEach(btn => btn.classList.remove('active-blue'));
+                btnElement.classList.add('active-blue');
+            }
+        }
+
+        document.querySelectorAll('.guide-record').forEach(item => {
+            const itemMetric = item.getAttribute('data-metric');
+            const itemLevel = item.getAttribute('data-level');
+
+            const matchMetric = (currentMetric === 'ALL' || itemMetric === currentMetric);
+            const matchLevel = (currentLevel === 'ALL' || itemLevel === currentLevel);
+
+            if (matchMetric && matchLevel) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // ==========================================
+    // LOGIC JAVASCRIPT: BỘ LỌC CỘT PHẢI (CẨM NANG)
+    // ==========================================
+    function filterProtocols(value, btnElement) {
+        document.querySelectorAll('button[onclick^="filterProtocols"]').forEach(btn => btn.classList.remove('active-green'));
+        btnElement.classList.add('active-green');
+
+        document.querySelectorAll('.protocol-record').forEach(item => {
+            const itemCondition = item.getAttribute('data-condition');
+            if (value === 'ALL' || itemCondition === value) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // ==========================================
+    // UI JAVASCRIPT: BẬT/TẮT FORM CHỈNH SỬA
+    // ==========================================
+    function toggleEditGuide(id) {
+        const viewMode = document.getElementById('viewModeGuide-' + id);
+        const editMode = document.getElementById('editModeGuide-' + id);
+        if(viewMode.style.display === 'none') {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        } else {
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+        }
+    }
+
+    function toggleEditProtocol(id) {
+        const viewMode = document.getElementById('viewModeProto-' + id);
+        const editMode = document.getElementById('editModeProto-' + id);
+        if(viewMode.style.display === 'none') {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        } else {
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+        }
+    }
+
+    // ==========================================
+    // XỬ LÝ XÓA AN TOÀN
+    // ==========================================
+    // ==========================================
+    // XỬ LÝ XÓA AN TOÀN (Đã kết nối Backend)
+    // ==========================================
+    function handleDeleteAction(type, id) {
+        const confirmMessage = type === 'guide'
+            ? "Bạn có chắc chắn muốn XÓA chỉ dẫn này không?"
+            : "Bạn có chắc chắn muốn XÓA cẩm nang này không?";
+
+        if (confirm(confirmMessage)) {
+            // Gọi API Delete xuống Spring Boot
+            fetch(`/hospital/config/${type}/delete/${id}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Xóa thành công thì tải lại trang để cập nhật danh sách
+                        location.reload();
+                    } else {
+                        alert("Có lỗi xảy ra khi xóa dữ liệu trong hệ thống.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Lỗi kết nối máy chủ.");
+                });
+        }
+    }
+</script>
 </body>
 </html>

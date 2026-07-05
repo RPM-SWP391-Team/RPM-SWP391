@@ -272,4 +272,14 @@ public class HospitalConfigService {
         protocol.setUpdatedAt(LocalDateTime.now());
         return emergencyProtocolRepository.save(protocol);
     }
+
+    @Transactional
+    public void deleteEmergencyGuide(Integer guideId) {
+        emergencyGuideRepository.deleteById(guideId);
+    }
+
+    @Transactional
+    public void deleteEmergencyProtocol(Integer protocolId) {
+        emergencyProtocolRepository.deleteById(protocolId);
+    }
 }
