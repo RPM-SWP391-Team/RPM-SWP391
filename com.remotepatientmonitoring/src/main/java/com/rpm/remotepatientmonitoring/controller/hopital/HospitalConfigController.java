@@ -205,4 +205,26 @@ public class HospitalConfigController {
         }
         return "redirect:/hospital/config/protocols";
     }
+
+    @DeleteMapping("/config/guide/delete/{id}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> deleteEmergencyGuide(@PathVariable("id") Integer id) {
+        try {
+            configService.deleteEmergencyGuide(id);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/config/protocol/delete/{id}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> deleteEmergencyProtocol(@PathVariable("id") Integer id) {
+        try {
+            configService.deleteEmergencyProtocol(id);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
+        }
+    }
 }
