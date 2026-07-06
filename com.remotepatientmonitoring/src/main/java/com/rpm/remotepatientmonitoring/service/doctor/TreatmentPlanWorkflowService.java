@@ -29,6 +29,9 @@ public class TreatmentPlanWorkflowService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private AuditTrailService auditTrailService;
+
     @Transactional
     public void createNewTreatmentPlan(
             Patient patient,
@@ -112,6 +115,12 @@ public class TreatmentPlanWorkflowService {
         newPlan.setPatient(patient);
         newPlan.setDoctor(doctor);
         newPlan.setNutritionRule(newRule);
+        // baseline (đo tại viện)
+        newPlan.setBaselineSystolicBp(baselineSystolicBp);
+        newPlan.setBaselineDiastolicBp(baselineDiastolicBp);
+        newPlan.setBaselineFastingGlucose(baselineFastingGlucose);
+        newPlan.setBaselineHba1c(baselineHba1c);
+        newPlan.setBaselineWeightKg(baselineWeightKg);
         // target
         newPlan.setTargetSystolicBp(targetSystolicBp);
         newPlan.setTargetDiastolicBp(targetDiastolicBp);
@@ -168,5 +177,17 @@ public class TreatmentPlanWorkflowService {
             patient.setUpdatedAt(now);
             patientRepository.save(patient);
         }
+
+        // 8. Ghi Audit Trail
+        auditTrailService.logAction(
+                "DOCTOR",
+                doctor.getId(),
+                "CREATE_TREATMENT_PLAN",
+                "treatment_plans",
+                newPlan.getId(),
+                null,
+                newPlan,
+                "Bác sĩ " + doctor.getFullName() + " tạo/cập nhật phác đồ mới cho bệnh nhân " + patient.getFullName()
+        );
     }
 }
