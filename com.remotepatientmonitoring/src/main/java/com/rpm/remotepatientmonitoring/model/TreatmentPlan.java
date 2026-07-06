@@ -38,7 +38,7 @@ public class TreatmentPlan {
     @Column(name = "target_diastolic_bp")
     private Integer targetDiastolicBp;
 
-    @Column(name = "target_fasting_glucose", precision = 4, scale = 2)
+    @Column(name = "target_fasting_glucose", precision = 6, scale = 2)
     private BigDecimal targetFastingGlucose;
 
     @Column(name = "target_hba1c", precision = 5, scale = 2)
@@ -52,6 +52,21 @@ public class TreatmentPlan {
 
     @Column(name = "target_sleep_hours", precision = 4, scale = 2)
     private BigDecimal targetSleepHours;
+
+    @Column(name = "baseline_systolic_bp")
+    private Integer baselineSystolicBp;
+
+    @Column(name = "baseline_diastolic_bp")
+    private Integer baselineDiastolicBp;
+
+    @Column(name = "baseline_fasting_glucose", precision = 6, scale = 2)
+    private BigDecimal baselineFastingGlucose;
+
+    @Column(name = "baseline_hba1c", precision = 5, scale = 2)
+    private BigDecimal baselineHba1c;
+
+    @Column(name = "baseline_weight_kg", precision = 5, scale = 2)
+    private BigDecimal baselineWeightKg;
 
     @Column(name = "medical_order", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String medicalOrder;
