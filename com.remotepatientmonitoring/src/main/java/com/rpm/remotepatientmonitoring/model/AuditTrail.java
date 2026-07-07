@@ -40,17 +40,17 @@ public class AuditTrail {
     @Column(name = "new_value", columnDefinition = "NVARCHAR(MAX)")
     private String newValue;
 
-    @Column(name = "ip_address", length = 45)
+    @Column(name = "ip_address", length = 100)
     private String ipAddress;
 
-    @Column(name = "device_info", length = 255)
+    @Column(name = "device_info", length = 500)
     private String deviceInfo;
 
-    @Column(length = 500)
+    @Column(name = "notes",length = 500,columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt= LocalDateTime.now();;
 
     @PrePersist
     protected void onCreate() {
