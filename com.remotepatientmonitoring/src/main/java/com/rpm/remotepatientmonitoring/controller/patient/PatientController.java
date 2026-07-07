@@ -671,47 +671,7 @@ public class PatientController {
         return "patient/nutrition";
     }
 
-    @GetMapping("/exercise")
-    public String getExercisePage(Model model) {
-        Patient patient = getCurrentPatient();
-        if (patient == null) {
-            return "redirect:/auth/login";
-        }
-        if ("NEW".equals(patient.getStatus())) {
-            return "redirect:/patient/appointments";
-        }
 
-        List<PatientExercise> exercises = new ArrayList<>();
-        int totalMinutes = 0;
-        int totalCaloriesBurned = 0;
-        int targetMinutes = 30; // Default target
-
-        try {
-            if (patient.getId() != null) {
-                LocalDate today = LocalDate.now();
-                exercises = patientExerciseRepository.findByPatientIdAndLogDate(patient.getId(), today);
-                for (PatientExercise e : exercises) {
-                    totalMinutes += e.getDurationMinutes();
-                    totalCaloriesBurned += e.getCaloriesBurned();
-                }
-            }
-        } catch (Exception ignored) {
-        }
-
-        int exerciseProgress = targetMinutes > 0 ? (totalMinutes * 100 / targetMinutes) : 0;
-        if (exerciseProgress > 100) {
-            exerciseProgress = 100;
-        }
-
-        model.addAttribute("patient", patient);
-        model.addAttribute("exercises", exercises);
-        model.addAttribute("totalMinutes", totalMinutes);
-        model.addAttribute("totalCaloriesBurned", totalCaloriesBurned);
-        model.addAttribute("targetMinutes", targetMinutes);
-        model.addAttribute("exerciseProgress", exerciseProgress);
-
-        return "patient/exercise";
-    }
 
     // ==================== Progress Report (Patient Profile) ====================
 
