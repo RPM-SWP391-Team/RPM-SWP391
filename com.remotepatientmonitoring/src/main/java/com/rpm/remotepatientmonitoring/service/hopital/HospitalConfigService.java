@@ -1,16 +1,16 @@
 package com.rpm.remotepatientmonitoring.service.hopital;
 
-import com.rpm.remotepatientmonitoring.model.AlertThreshold;
-import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
-import com.rpm.remotepatientmonitoring.model.EmergencyProtocol;
-import com.rpm.remotepatientmonitoring.model.Hospital;
-import com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository;
-import com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository;
-import com.rpm.remotepatientmonitoring.repository.EmergencyProtocolRepository;
-import com.rpm.remotepatientmonitoring.repository.HospitalRepository;
+import com.rpm.remotepatientmonitoring.model.*;
+import com.rpm.remotepatientmonitoring.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,6 +18,8 @@ import java.util.List;
 
 @Service
 public class HospitalConfigService {
+    @Autowired
+    private AuditTrailRepository auditTrailRepository;
 
     @Autowired
     private AlertThresholdRepository alertThresholdRepository;
@@ -70,6 +72,14 @@ public class HospitalConfigService {
 
         validateThresholds(updated);
 
+        // --- BẮT ĐẦU: Chụp ảnh dữ liệu cũ để lưu Log ---
+        String oldValueJson = String.format(
+                "{\"glucoseHypo\":%s, \"glucoseNormalMax\":%s, \"glucoseHighMax\":%s, \"sysNormal\":%s, \"sysDanger\":%s, \"diaNormal\":%s, \"diaDanger\":%s}",
+                existing.getGlucoseHypoThreshold(), existing.getGlucoseNormalMax(), existing.getGlucoseHighMax(),
+                existing.getSystolicNormalMax(), existing.getSystolicDangerMin(),
+                existing.getDiastolicNormalMax(), existing.getDiastolicDangerMin()
+        );
+
         existing.setGlucoseHypoThreshold(updated.getGlucoseHypoThreshold());
         existing.setGlucoseNormalMax(updated.getGlucoseNormalMax());
         existing.setGlucoseHighMax(updated.getGlucoseHighMax());
@@ -90,7 +100,17 @@ public class HospitalConfigService {
 
         existing.setUpdatedAt(LocalDateTime.now());
 
-        return alertThresholdRepository.save(existing);
+        AlertThreshold savedThreshold = alertThresholdRepository.save(existing);
+
+        String newValueJson = String.format(
+                "{\"glucoseHypo\":%s, \"glucoseNormalMax\":%s, \"glucoseHighMax\":%s, \"sysNormal\":%s, \"sysDanger\":%s, \"diaNormal\":%s, \"diaDanger\":%s}",
+                savedThreshold.getGlucoseHypoThreshold(), savedThreshold.getGlucoseNormalMax(), savedThreshold.getGlucoseHighMax(),
+                savedThreshold.getSystolicNormalMax(), savedThreshold.getSystolicDangerMin(),
+                savedThreshold.getDiastolicNormalMax(), savedThreshold.getDiastolicDangerMin()
+        );
+        saveAuditLog("UPDATE_THRESHOLD", "alert_thresholds", savedThreshold.getId(), oldValueJson, newValueJson, "Cập nhật cấu hình ngưỡng cảnh báo hệ thống");
+
+        return savedThreshold;
     }
 
     private void validateThresholds(AlertThreshold t) {
@@ -205,7 +225,13 @@ public class HospitalConfigService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return emergencyGuideRepository.save(guide);
+        EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
+
+        // --- GHI AUDIT LOG ---
+        String newValueJson = String.format("{\"alertLevel\":\"%s\", \"metricType\":\"%s\", \"title\":\"%s\"}", alertLevel, metricType, title.trim());
+        saveAuditLog("CREATE_GUIDE", "emergency_guides", savedGuide.getId(), "-", newValueJson, "Thêm mới Hướng dẫn xử lý khẩn cấp");
+
+        return savedGuide;
     }
 
     @Transactional
@@ -217,9 +243,17 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nội dung hướng dẫn không được để trống.");
         }
 
+        String oldValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Bản cũ\"}", guide.getTitle());
+
         guide.setInstructionContent(instructionContent.trim());
         guide.setUpdatedAt(LocalDateTime.now());
-        return emergencyGuideRepository.save(guide);
+        EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
+
+        // --- GHI AUDIT LOG ---
+        String newValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Đã cập nhật nội dung mới\"}", savedGuide.getTitle());
+        saveAuditLog("UPDATE_GUIDE", "emergency_guides", savedGuide.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Hướng dẫn xử lý khẩn cấp");
+
+        return savedGuide;
     }
 
     public List<EmergencyProtocol> getEmergencyProtocols(Integer hospitalId) {
@@ -252,7 +286,13 @@ public class HospitalConfigService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return emergencyProtocolRepository.save(protocol);
+        EmergencyProtocol savedProtocol = emergencyProtocolRepository.save(protocol);
+
+        // --- GHI AUDIT LOG ---
+        String newValueJson = String.format("{\"conditionType\":\"%s\", \"title\":\"%s\"}", conditionType, title.trim());
+        saveAuditLog("CREATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), "-", newValueJson, "Thêm mới Cẩm nang nhận biết bệnh lý");
+
+        return savedProtocol;
     }
 
     @Transactional
@@ -267,19 +307,94 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nội dung chỉ dẫn không được để trống.");
         }
 
+        String oldValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Bản cũ\"}", protocol.getTitle());
+
         protocol.setWarningSigns(warningSigns.trim());
         protocol.setInstructionContent(instructionContent.trim());
         protocol.setUpdatedAt(LocalDateTime.now());
-        return emergencyProtocolRepository.save(protocol);
+
+        EmergencyProtocol savedProtocol = emergencyProtocolRepository.save(protocol);
+
+        // --- GHI AUDIT LOG ---
+        String newValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Đã cập nhật nội dung mới\"}", savedProtocol.getTitle());
+        saveAuditLog("UPDATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Cẩm nang nhận biết bệnh lý");
+
+        return savedProtocol;
     }
 
     @Transactional
     public void deleteEmergencyGuide(Integer guideId) {
+        // --- GHI AUDIT LOG TRƯỚC KHI XÓA ---
+        saveAuditLog("DELETE_GUIDE", "emergency_guides", guideId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Hướng dẫn xử lý khẩn cấp");
+
         emergencyGuideRepository.deleteById(guideId);
     }
 
     @Transactional
     public void deleteEmergencyProtocol(Integer protocolId) {
+        // --- GHI AUDIT LOG TRƯỚC KHI XÓA ---
+        saveAuditLog("DELETE_PROTOCOL", "emergency_protocols", protocolId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Cẩm nang nhận biết bệnh lý");
+
         emergencyProtocolRepository.deleteById(protocolId);
+    }
+
+    private void saveAuditLog(String action, String targetTable, Integer targetRecordId, String oldValue, String newValue, String notes) {
+        try {
+            Integer adminId = 1; // Giá trị dự phòng nếu không lấy được
+            String adminEmail = "HOSPITAL_ADMIN";
+
+            // Lấy thông tin Admin thực tế từ Spring Security
+            // 1. Trích xuất Admin
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                Object principal = auth.getPrincipal();
+                if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
+                    Account acc = ((com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal).getAccount();
+                    adminId = acc.getId();
+                    adminEmail = acc.getEmail();
+                }
+            }
+
+            // 2. Trích xuất IP & Thiết bị
+            String ipAddress = "Unknown";
+            String deviceInfo = "Unknown";
+            try {
+                ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                if (attributes != null) {
+                    HttpServletRequest request = attributes.getRequest();
+                    deviceInfo = request.getHeader("User-Agent");
+                    if (deviceInfo != null && deviceInfo.length() > 250) {
+                        deviceInfo = deviceInfo.substring(0, 250);
+                    }
+
+                    ipAddress = request.getHeader("X-Forwarded-For");
+                    if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                        ipAddress = request.getRemoteAddr();
+                    }
+                    if (ipAddress != null && ipAddress.contains(",")) {
+                        ipAddress = ipAddress.split(",")[0].trim();
+                    }
+                }
+            } catch (Exception e) {}
+
+            String finalNotes = notes + " (Thực hiện bởi: " + adminEmail + ")";
+
+            AuditTrail log = AuditTrail.builder()
+                    .actorType("HOSPITAL_ADMIN") // Ép đúng chuẩn Constraint SQL
+                    .actorId(adminId)            // Trích xuất từ SecurityContext
+                    .action(action)
+                    .targetTable(targetTable)
+                    .targetRecordId(targetRecordId)
+                    .oldValue(oldValue)
+                    .newValue(newValue)
+                    .deviceInfo(deviceInfo)
+                    .notes(finalNotes)
+                    .build();
+
+            auditTrailRepository.save(log);
+        } catch (Exception e) {
+            // Không bao giờ để lỗi ghi log cản trở tiến trình lưu cấu hình
+            System.err.println("Cảnh báo: Lỗi hệ thống khi ghi Audit Log cấu hình (" + action + "): " + e.getMessage());
+        }
     }
 }
