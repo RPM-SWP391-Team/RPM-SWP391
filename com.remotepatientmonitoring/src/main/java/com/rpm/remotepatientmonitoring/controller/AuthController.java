@@ -175,14 +175,7 @@ public class AuthController {
             model.addAttribute("errorMessage", "Số điện thoại này đã được đăng ký!");
             return "auth/register";
         }
-        // Validate tên người liên hệ khẩn cấp không trùng tên bệnh nhân
-        if (emergencyContactName != null && !emergencyContactName.trim().isEmpty()
-                && emergencyContactName.trim().equalsIgnoreCase(fullName.trim())) {
-            preserveFormData(model, email, fullName, phone, dateOfBirth, gender, address, emergencyContactName,
-                    emergencyContactPhone);
-            model.addAttribute("errorMessage", "Tên người liên hệ khẩn cấp không được trùng với tên của bạn!");
-            return "auth/register";
-        }
+
         // Validate SĐT khẩn cấp không trùng SĐT bệnh nhân
         if (emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty()
                 && emergencyContactPhone.trim().equals(phone.trim())) {
