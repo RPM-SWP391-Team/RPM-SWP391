@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -60,6 +61,9 @@ public class DoctorViewController {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
+    private com.rpm.remotepatientmonitoring.repository.AppointmentRepository appointmentRepository;
+
+    @Autowired
     private NotificationRepository notificationRepository;
 
     @Autowired
@@ -73,6 +77,9 @@ public class DoctorViewController {
 
     @Autowired
     private ChangeRequestRepository changeRequestRepository;
+
+    @Autowired
+    private com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService auditTrailService;
 
     @ModelAttribute
     public void addNotificationAttributes(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
@@ -214,10 +221,19 @@ public class DoctorViewController {
         
         // 1. Biểu đồ Sinh tồn (Huyết áp & Đường huyết)
         List<DailyHealthLog> healthLogs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
-        List<String> chartDates = healthLogs.stream().map(log -> log.getLogDate().toString()).toList();
-        List<Integer> sysBpData = healthLogs.stream().map(DailyHealthLog::getSystolicBp).toList();
-        List<Integer> diaBpData = healthLogs.stream().map(DailyHealthLog::getDiastolicBp).toList();
-        List<BigDecimal> glucoseData = healthLogs.stream().map(DailyHealthLog::getGlucoseLevel).toList();
+        // Chỉ lấy các bản ghi có đủ dữ liệu, tránh null gây lỗi Chart.js
+        List<DailyHealthLog> bpLogs = healthLogs.stream()
+                .filter(log -> log.getSystolicBp() != null && log.getDiastolicBp() != null)
+                .toList();
+        List<DailyHealthLog> glucoseLogs = healthLogs.stream()
+                .filter(log -> log.getGlucoseLevel() != null)
+                .toList();
+
+        List<String> chartDates = bpLogs.stream().map(log -> log.getLogDate().toString()).toList();
+        List<Integer> sysBpData = bpLogs.stream().map(DailyHealthLog::getSystolicBp).toList();
+        List<Integer> diaBpData = bpLogs.stream().map(DailyHealthLog::getDiastolicBp).toList();
+        List<String> glucoseDates = glucoseLogs.stream().map(log -> log.getLogDate().toString()).toList();
+        List<BigDecimal> glucoseData = glucoseLogs.stream().map(DailyHealthLog::getGlucoseLevel).toList();
         
         // 2. Tuân thủ uống thuốc
         List<MedicationLog> medLogs = medicationLogRepository.findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
@@ -242,17 +258,28 @@ public class DoctorViewController {
         int exerciseCompliance = (int) ((daysExercised * 100) / 7);
         // --- Kết thúc tính toán ---
 
+        int age = 0;
+        if (patient.getDateOfBirth() != null) {
+            age = Period.between(patient.getDateOfBirth(), LocalDate.now()).getYears();
+        }
+
+        // Fetch unresolved alerts
+        List<com.rpm.remotepatientmonitoring.model.Alert> unresolvedAlerts = alertRepository.findByPatientIdAndIsResolvedFalse(patient.getId());
+
+        model.addAttribute("patientAge", age);
         model.addAttribute("doctor", doctor);
         model.addAttribute("patient", patient);
         model.addAttribute("allProfiles", allProfiles);
         model.addAttribute("currentRule", currentRule);
         model.addAttribute("currentPlan", currentPlan);
+        model.addAttribute("unresolvedAlerts", unresolvedAlerts);
         model.addAttribute("currentMeds", currentMeds);
         
         // Data biểu đồ
         model.addAttribute("chartDates", chartDates);
         model.addAttribute("sysBpData", sysBpData);
         model.addAttribute("diaBpData", diaBpData);
+        model.addAttribute("glucoseDates", glucoseDates);
         model.addAttribute("glucoseData", glucoseData);
         
         // Data tuân thủ
@@ -495,10 +522,195 @@ public class DoctorViewController {
                 System.out.println("Error saving notification: " + e.getMessage());
             }
 
+            // Ghi Audit Trail
+            auditTrailService.logAction(
+                    "DOCTOR",
+                    request.getDoctor() != null ? request.getDoctor().getId() : null,
+                    "PROCESS_CHANGE_REQUEST",
+                    "change_requests",
+                    request.getId(),
+                    null,
+                    request,
+                    "Bác sĩ " + action + " yêu cầu thay đổi với ghi chú: " + doctorResponse
+            );
+
             redirectAttributes.addFlashAttribute("successMsg", "Đã xử lý yêu cầu thành công!");
         } else {
             redirectAttributes.addFlashAttribute("errorMsg", "Không tìm thấy yêu cầu này.");
         }
+
         return "redirect:/doctor/change-requests";
+    }
+        // =========================================================
+    // 8. Quản lý Lịch hẹn (Appointments)
+    // =========================================================
+    @GetMapping("/appointments")
+    public String viewAppointments(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                   @RequestParam(value = "tab", defaultValue = "upcoming") String tab,
+                                   @RequestParam(value = "startDate", required = false) String startDateStr,
+                                   @RequestParam(value = "endDate", required = false) String endDateStr,
+                                   @RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(value = "size", defaultValue = "5") int size,
+                                   Model model) {
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return "redirect:/auth/login";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        Pageable pageable = PageRequest.of(page, size);
+        Page<com.rpm.remotepatientmonitoring.model.Appointment> appointmentPage;
+        
+        LocalDateTime filterStart = null;
+        LocalDateTime filterEnd = null;
+        
+        try {
+            if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+                filterStart = LocalDate.parse(startDateStr.trim()).atStartOfDay();
+            }
+            if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+                filterEnd = LocalDate.parse(endDateStr.trim()).atTime(23, 59, 59);
+            }
+        } catch (Exception e) {
+            // ignore invalid date format
+        }
+
+        // Nếu chỉ nhập 1 trong 2 thì gán bằng nhau để vẫn tìm được trong 1 ngày đó
+        if (filterStart != null && filterEnd == null) {
+            filterEnd = filterStart.toLocalDate().atTime(23, 59, 59);
+        } else if (filterStart == null && filterEnd != null) {
+            filterStart = filterEnd.toLocalDate().atStartOfDay();
+        }
+
+        if ("history".equals(tab)) {
+            if (filterStart != null && filterEnd != null) {
+                appointmentPage = appointmentRepository.findHistoryByDate(doctor.getId(), filterStart, filterEnd, now, pageable);
+            } else {
+                appointmentPage = appointmentRepository.findHistory(doctor.getId(), now, pageable);
+            }
+        } else {
+            if (filterStart != null && filterEnd != null) {
+                appointmentPage = appointmentRepository.findUpcomingByDate(doctor.getId(), filterStart, filterEnd, now, pageable);
+            } else {
+                appointmentPage = appointmentRepository.findUpcoming(doctor.getId(), now, pageable);
+            }
+        }
+
+        long upcomingCount = appointmentRepository.countUpcoming(doctor.getId(), now);
+
+        model.addAttribute("doctor", doctor);
+        model.addAttribute("patients", patientRepository.findByDoctorIdAndIsActiveTrue(doctor.getId()));
+        
+        model.addAttribute("appointmentPage", appointmentPage);
+        model.addAttribute("upcomingCount", upcomingCount);
+        model.addAttribute("activeTab", tab);
+        model.addAttribute("startDate", startDateStr);
+        model.addAttribute("endDate", endDateStr);
+
+        return "doctor/appointments";
+    }
+
+    @PostMapping("/appointments/create")
+    public String createAppointment(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                    @RequestParam("patientId") Integer patientId,
+                                    @RequestParam("appointmentTime") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) LocalDateTime apptTime,
+                                    @RequestParam(value = "location", required = false) String location,
+                                    @RequestParam(value = "doctorNote", required = false) String doctorNote,
+                                    RedirectAttributes redirectAttributes) {
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return "redirect:/auth/login";
+        }
+
+        Patient patient = patientRepository.findById(patientId).orElse(null);
+        if (patient == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Không thể lên lịch cho bệnh nhân này.");
+            return "redirect:/doctor/appointments";
+        }
+
+        try {
+            if (apptTime.isBefore(LocalDateTime.now())) {
+                redirectAttributes.addFlashAttribute("errorMsg", "Thời gian hẹn phải ở trong tương lai.");
+                return "redirect:/doctor/appointments";
+            }
+
+            com.rpm.remotepatientmonitoring.model.Appointment appt = com.rpm.remotepatientmonitoring.model.Appointment.builder()
+                    .patient(patient)
+                    .doctor(doctor)
+                    .appointmentTime(apptTime)
+                    .location(location)
+                    .doctorNote(doctorNote)
+                    .appointmentType("FOLLOWUP")
+                    .status("ACCEPTED") // Bác sĩ tự tạo nên đã chốt
+                    .createdBy("DOCTOR")
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+
+            appointmentRepository.save(appt);
+
+            // Gửi thông báo cho bệnh nhân
+            Notification notif = Notification.builder()
+                    .patient(patient)
+                    .doctor(doctor)
+                    .title("Lịch khám mới được lên bởi Bác sĩ")
+                    .content("Bác sĩ " + doctor.getFullName() + " đã xếp lịch tái khám vào " + apptTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + (location != null && !location.isEmpty() ? " tại " + location : "") + ".")
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+
+            redirectAttributes.addFlashAttribute("successMsg", "Đã lên lịch khám thành công cho bệnh nhân " + patient.getFullName() + ".");
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMsg", "Lỗi tạo lịch khám: " + e.getMessage() + (e.getCause() != null ? " - " + e.getCause().getMessage() : ""));
+        }
+
+        return "redirect:/doctor/appointments";
+    }
+
+    // =========================================================
+    // ALERT HANDLING
+    // =========================================================
+    @PostMapping("/alerts/{id}/resolve")
+    public String resolveAlert(
+            @PathVariable("id") Integer id,
+            @RequestParam("resolutionNotes") String resolutionNotes,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor doctor = doctorRepository.findByAccountId(accountId).orElse(null);
+        if (doctor == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Không tìm thấy phiên bác sĩ.");
+            return "redirect:/doctor/dashboard";
+        }
+
+        com.rpm.remotepatientmonitoring.model.Alert alert = alertRepository.findById(id).orElse(null);
+        if (alert != null) {
+            alert.setIsResolved(true);
+            alert.setResolvedAt(java.time.LocalDateTime.now());
+            alert.setResolvedByDoctor(doctor);
+            alert.setResolutionNotes(resolutionNotes);
+            alertRepository.save(alert);
+
+            // Ghi Audit Trail
+            auditTrailService.logAction(
+                    "DOCTOR",
+                    doctor.getId(),
+                    "RESOLVE_ALERT",
+                    "alerts",
+                    alert.getId(),
+                    null,
+                    alert,
+                    "Bác sĩ " + doctor.getFullName() + " xử lý cảnh báo với ghi chú: " + resolutionNotes
+            );
+
+            redirectAttributes.addFlashAttribute("successMsg", "Đã xử lý cảnh báo y tế.");
+            return "redirect:/doctor/patient-detail/" + alert.getPatient().getId() + "?success=alert-resolved";
+        } else {
+            redirectAttributes.addFlashAttribute("errorMsg", "Không tìm thấy cảnh báo.");
+            return "redirect:/doctor/dashboard";
+        }
     }
 }

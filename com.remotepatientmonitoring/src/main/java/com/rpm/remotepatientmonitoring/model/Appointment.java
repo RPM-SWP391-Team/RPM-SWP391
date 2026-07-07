@@ -41,6 +41,10 @@ public class Appointment {
     private String doctorNote;
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
+    
+    @Column(name = "location", length = 255)
+    private String location;
+
     @Column(name = "reminder_sent_2days", nullable = false)
     @Builder.Default
     private Boolean reminderSent2days = false;
