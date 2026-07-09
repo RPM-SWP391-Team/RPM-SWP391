@@ -66,7 +66,7 @@
                         <i class="fa-solid fa-user"></i>
                     </div>
                     <h3 class="fw-bold mb-1" th:text="${patient.fullName}">Nguyễn Văn A</h3>
-                    <p class="text-muted mb-3" th:text="'Mã BN: ' + ${patient.patientCode}">PAT-0001</p>
+                    <p class="text-muted mb-3" th:text="'Mã BN: ' + (${patient.patientCode != null && !patient.patientCode.isEmpty() ? patient.patientCode : 'Chưa cấp mã'})">PAT-0001</p>
                     <div class="d-flex justify-content-center gap-2">
                         <span class="badge px-3 py-2 rounded-pill" style="background:var(--gradient-teal);color:#fff;" th:text="${patient.status}">ACTIVE</span>
                         <span class="badge px-3 py-2 rounded-pill" style="background:var(--gradient-primary);color:#fff;" th:text="${patient.gender != null ? patient.gender : 'Chưa cập nhật'}">Nam</span>
@@ -142,8 +142,17 @@
 
                     <div class="mb-3">
                         <label for="email" class="form-label form-label-custom">Địa chỉ Email</label>
-                        <input type="email" class="form-control form-control-custom" id="email" name="email" 
-                               th:value="${patient.account?.email}" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" maxlength="100" title="Vui lòng nhập email đúng định dạng (VD: abc@gmail.com)">
+                        <input type="email" class="form-control form-control-custom bg-light text-muted" id="email" name="email" 
+                               th:value="${patient.account?.email}" readonly disabled>
+                        <div class="form-text text-muted small mt-1">
+                            <i class="fa-solid fa-circle-info me-1"></i>Email đăng nhập không thể tự thay đổi. Vui lòng liên hệ quản trị viên nếu cần hỗ trợ.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label form-label-custom">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control form-control-custom" id="currentPassword" name="currentPassword" 
+                               placeholder="Nhập mật khẩu hiện tại để xác nhận đổi mật khẩu mới" maxlength="50">
                     </div>
 
                     <div class="mb-4">
@@ -151,7 +160,7 @@
                         <input type="password" class="form-control form-control-custom" id="password" name="password" 
                                placeholder="Để trống nếu không muốn đổi mật khẩu" minlength="6" maxlength="50" title="Mật khẩu phải có từ 6 đến 50 ký tự">
                         <div class="form-text text-muted small mt-1">
-                            <i class="fa-solid fa-info-circle me-1"></i>Chỉ nhập khi bạn muốn cập nhật mật khẩu mới cho tài khoản đăng nhập.
+                            <i class="fa-solid fa-info-circle me-1"></i>Nhập cả mật khẩu hiện tại và mật khẩu mới khi bạn muốn thay đổi.
                         </div>
                     </div>
 
@@ -175,17 +184,17 @@
                     </h4>
 
                     <div class="mb-3">
-                        <label for="emergencyContactName" class="form-label form-label-custom">Tên người liên hệ khẩn cấp</label>
+                        <label for="emergencyContactName" class="form-label form-label-custom">Tên người liên hệ khẩn cấp (Không bắt buộc)</label>
                         <input type="text" class="form-control form-control-custom" id="emergencyContactName" name="emergencyContactName" 
-                               th:value="${patient.emergencyContactName}" required pattern="^[^0-9]+$" minlength="2" maxlength="50" 
-                               title="Tên không được chứa chữ số và phải từ 2 đến 50 ký tự">
+                               th:value="${patient.emergencyContactName}" pattern="^[^0-9]*$" maxlength="50" 
+                               title="Tên không được chứa chữ số và phải tối đa 50 ký tự">
                     </div>
 
                     <div class="mb-4">
-                        <label for="emergencyContactPhone" class="form-label form-label-custom">SĐT liên hệ khẩn cấp (Người thân)</label>
+                        <label for="emergencyContactPhone" class="form-label form-label-custom">SĐT liên hệ khẩn cấp (Không bắt buộc)</label>
                         <input type="tel" class="form-control form-control-custom" id="emergencyContactPhone" name="emergencyContactPhone" 
-                               th:value="${patient.emergencyContactPhone}" required pattern="0[35789][0-9]{8}" maxlength="10" 
-                               title="Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 03, 05, 07, 08 hoặc 09">
+                               th:value="${patient.emergencyContactPhone}" pattern="(0[35789][0-9]{8})?" maxlength="10" 
+                               title="Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 03, 05, 07, 08 hoặc 09 (nếu có)">
                     </div>
 
                     <!-- Save Changes Button -->
