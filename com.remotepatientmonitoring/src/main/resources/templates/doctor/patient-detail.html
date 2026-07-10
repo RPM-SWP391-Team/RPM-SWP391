@@ -601,6 +601,11 @@
                 <i class="fa-solid fa-chart-line me-2"></i>Biểu đồ & Tuân thủ
             </button>
         </li>
+        <li class="nav-item ms-2" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded-pill" id="daily-tracking-tab" data-bs-toggle="tab" data-bs-target="#daily-tracking" type="button" role="tab" aria-controls="daily-tracking" aria-selected="false">
+                <i class="fa-solid fa-calendar-day me-2"></i>Tra cứu ngày
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="patientDetailTabContent">
@@ -684,35 +689,35 @@
                                     <div class="col-sm-6">
                                         <label class="form-label">Huyết áp khám (mmHg)</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="300" name="baselineSystolicBp" class="form-control"
-                                                   th:value="${currentPlan?.baselineSystolicBp}" placeholder="Tâm thu" required>
+                                            <input type="number" min="50" max="300" name="baselineSystolicBp" class="form-control"
+                                                   th:value="${currentPlan?.baselineSystolicBp}" placeholder="Tâm thu">
                                             <span class="input-group-text">/</span>
-                                            <input type="number" min="0" max="200" name="baselineDiastolicBp" class="form-control"
-                                                   th:value="${currentPlan?.baselineDiastolicBp}" placeholder="Tâm trương" required>
+                                            <input type="number" min="30" max="200" name="baselineDiastolicBp" class="form-control"
+                                                   th:value="${currentPlan?.baselineDiastolicBp}" placeholder="Tâm trương">
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">Đường huyết đói</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="1000" step="any" name="baselineFastingGlucose"
+                                            <input type="number" min="1.0" max="33.3" step="any" name="baselineFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.baselineFastingGlucose}"
-                                                   placeholder="mg/dL" required>
+                                                   placeholder="mg/dL">
                                             <span class="input-group-text">mg/dL</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">Chỉ số HbA1c (%)</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="30" step="any" name="baselineHba1c" class="form-control"
-                                                   th:value="${currentPlan?.baselineHba1c}" placeholder="VD: 7.2" required>
+                                            <input type="number" min="0.1" max="30" step="any" name="baselineHba1c" class="form-control"
+                                                   th:value="${currentPlan?.baselineHba1c}" placeholder="VD: 7.2">
                                             <span class="input-group-text">%</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">Cân nặng ban đầu (kg)</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="500" step="any" name="baselineWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5" required>
+                                            <input type="number" min="10" max="500" step="any" name="baselineWeightKg" class="form-control"
+                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5">
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
@@ -724,35 +729,35 @@
                                     <div class="col-sm-6">
                                         <label class="form-label">Huyết áp mục tiêu (mmHg)</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="300" name="targetSystolicBp" class="form-control"
-                                                   th:value="${currentPlan?.targetSystolicBp}" placeholder="Tâm thu" required>
+                                            <input type="number" min="50" max="300" name="targetSystolicBp" class="form-control"
+                                                   th:value="${currentPlan?.targetSystolicBp}" placeholder="Tâm thu">
                                             <span class="input-group-text">/</span>
-                                            <input type="number" min="0" max="200" name="targetDiastolicBp" class="form-control"
-                                                   th:value="${currentPlan?.targetDiastolicBp}" placeholder="Tâm trương" required>
+                                            <input type="number" min="30" max="200" name="targetDiastolicBp" class="form-control"
+                                                   th:value="${currentPlan?.targetDiastolicBp}" placeholder="Tâm trương">
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">Đường huyết mục tiêu</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="1000" step="any" name="targetFastingGlucose"
+                                            <input type="number" min="1.0" max="33.3" step="any" name="targetFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.targetFastingGlucose}"
-                                                   placeholder="mg/dL" required>
+                                                   placeholder="mg/dL">
                                             <span class="input-group-text">mg/dL</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">HbA1c mục tiêu (%)</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="30" step="any" name="targetHba1c" class="form-control"
-                                                   th:value="${currentPlan?.targetHba1c}" placeholder="VD: 6.5" required>
+                                            <input type="number" min="0.1" max="30" step="any" name="targetHba1c" class="form-control"
+                                                   th:value="${currentPlan?.targetHba1c}" placeholder="VD: 6.5">
                                             <span class="input-group-text">%</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">Cân nặng mục tiêu (kg)</label>
                                         <div class="input-group">
-                                            <input type="number" min="0" max="500" step="any" name="targetWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.targetWeightKg}" placeholder="VD: 62" required>
+                                            <input type="number" min="10" max="500" step="any" name="targetWeightKg" class="form-control"
+                                                   th:value="${currentPlan?.targetWeightKg}" placeholder="VD: 62">
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
@@ -1083,6 +1088,145 @@
         </div><!-- /row g-4 mt-1 -->
     </div><!-- End Tab 2: Charts -->
 
+    <!-- Tab 3: Daily Tracking (Tra cứu ngày) -->
+    <div class="tab-pane fade" id="daily-tracking" role="tabpanel" aria-labelledby="daily-tracking-tab">
+        <div class="row g-4 mt-1">
+            
+            <!-- Cột trái: Lịch -->
+            <div class="col-lg-4">
+                <div class="card card-custom p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <button class="btn btn-light rounded-circle" id="prevMonthBtn" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+                        <h5 class="fw-bold mb-0 text-dark" id="currentMonthLabel">Tháng 6 2026</h5>
+                        <button class="btn btn-light rounded-circle" id="nextMonthBtn" type="button"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    
+                    <div class="calendar-wrapper">
+                        <!-- Days of week -->
+                        <div class="d-flex text-center mb-2 fw-bold text-muted" style="font-size:0.8rem;">
+                            <div style="flex:1">T2</div><div style="flex:1">T3</div><div style="flex:1">T4</div><div style="flex:1">T5</div><div style="flex:1">T6</div><div style="flex:1">T7</div><div style="flex:1">CN</div>
+                        </div>
+                        <!-- Days Grid -->
+                        <div id="calendarDays" class="d-flex flex-wrap text-center" style="gap: 5px 0;">
+                            <!-- JS will populate days here -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top" style="font-size:0.85rem; color:#6c757d;">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="d-inline-block rounded-circle me-2" style="width:12px; height:12px; background-color:#eef3ff;"></span> Ngày có dữ liệu
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="d-inline-block rounded-circle me-2" style="width:12px; height:12px; background-color:#2a5298;"></span> Ngày đang xem
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Chi tiết ngày -->
+            <div class="col-lg-8">
+                <div class="card card-custom p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <h5 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-calendar-check me-2"></i>Chi tiết ngày <span id="selectedDateLabel"></span></h5>
+                        <span class="badge bg-success rounded-pill px-3 py-2" id="dayStatusBadge"><i class="fa-solid fa-check-circle me-1"></i>Bình thường</span>
+                    </div>
+
+                    <div id="dailyTrackingContent">
+                        <div class="text-center text-muted my-5" id="noDataMessage" style="display:none;">
+                            <i class="fa-solid fa-calendar-xmark fs-1 mb-3 text-light"></i>
+                            <p>Không có dữ liệu cho ngày này.</p>
+                        </div>
+                        
+                        <div id="dayDataContainer">
+                            <!-- Huyết áp, Đường huyết, Nhịp tim -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3" style="background:#f8fafe; border:1px solid #eef3ff;">
+                                        <div class="d-flex gap-3 align-items-center">
+                                            <div class="icon-blue rounded-3 d-flex align-items-center justify-content-center text-white" style="width:40px;height:40px;"><i class="fa-solid fa-heart-pulse"></i></div>
+                                            <div>
+                                                <div class="text-muted" style="font-size:0.8rem; font-weight:600;">Huyết áp</div>
+                                                <div class="fw-bold text-dark fs-5" id="dtBp">--/-- <span class="fs-6 text-muted fw-normal">mmHg</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3" style="background:#f8fafe; border:1px solid #eef3ff;">
+                                        <div class="d-flex gap-3 align-items-center">
+                                            <div class="icon-blue rounded-3 d-flex align-items-center justify-content-center text-white" style="width:40px;height:40px;"><i class="fa-solid fa-droplet"></i></div>
+                                            <div>
+                                                <div class="text-muted" style="font-size:0.8rem; font-weight:600;">Đường huyết</div>
+                                                <div class="fw-bold text-dark fs-5" id="dtGlu">-- <span class="fs-6 text-muted fw-normal"></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3" style="background:#f8fafe; border:1px solid #eef3ff;">
+                                        <div class="d-flex gap-3 align-items-center">
+                                            <div class="icon-blue rounded-3 d-flex align-items-center justify-content-center text-white" style="width:40px;height:40px;"><i class="fa-solid fa-heart"></i></div>
+                                            <div>
+                                                <div class="text-muted" style="font-size:0.8rem; font-weight:600;">Nhịp tim</div>
+                                                <div class="fw-bold text-dark fs-5" id="dtHr">-- <span class="fs-6 text-muted fw-normal">bpm</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Bữa ăn & Vận động -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-12">
+                                    <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                        <h6 class="fw-bold text-success mb-2" style="font-size:0.9rem;"><i class="fa-solid fa-utensils me-2"></i>Bữa ăn <span id="dtMealSummary" class="text-muted fw-normal ms-1"></span></h6>
+                                        <div id="dtMealDetails" class="text-dark" style="font-size:0.9rem;">
+                                            <!-- Meal Items -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                        <h6 class="fw-bold text-warning mb-2" style="font-size:0.9rem;"><i class="fa-solid fa-person-running me-2"></i>Vận động <span id="dtExSummary" class="text-muted fw-normal ms-1"></span></h6>
+                                        <div id="dtExDetails" class="text-dark" style="font-size:0.9rem;">
+                                            <!-- Ex Items -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Lượng nước & Thuốc -->
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 h-100" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                        <h6 class="fw-bold text-primary mb-3" style="font-size:0.9rem;"><i class="fa-solid fa-glass-water me-2"></i>Lượng nước</h6>
+                                        <div class="text-center">
+                                            <div class="fw-bold text-dark fs-3 mb-1"><span id="dtWater">0</span> <span class="fs-6 text-muted fw-normal">ml</span></div>
+                                            <div class="progress mb-2" style="height: 6px;">
+                                                <div class="progress-bar bg-primary" id="dtWaterBar" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <div class="text-muted" style="font-size:0.8rem;">Mục tiêu: <span id="dtWaterTarget">--</span> ml</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded-3 h-100" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                        <h6 class="fw-bold text-secondary mb-3" style="font-size:0.9rem;"><i class="fa-solid fa-pills me-2"></i>Thuốc uống</h6>
+                                        <div id="dtMedDetails" class="text-dark" style="font-size:0.9rem;">
+                                            <!-- Med Items -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /row g-4 mt-1 -->
+    </div><!-- End Tab 3: Daily Tracking -->
+
 </div><!-- /tab-content -->
 </div><!-- /container -->
 
@@ -1250,6 +1394,192 @@
     }
     /*]]>*/
 </script>
-</body>
 
+<style>
+    /* Custom Calendar CSS */
+    .calendar-day {
+        width: 14.28%;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    .calendar-day:hover {
+        background-color: #f0f5ff;
+    }
+    .calendar-day.empty {
+        cursor: default;
+    }
+    .calendar-day.empty:hover {
+        background-color: transparent;
+    }
+    .calendar-day.has-data {
+        background-color: #eef3ff;
+        color: #2a5298;
+        font-weight: 600;
+    }
+    .calendar-day.selected {
+        background-color: #2a5298;
+        color: white;
+        box-shadow: 0 4px 10px rgba(42,82,152,0.3);
+    }
+</style>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const patientId = /*[[${patient.id}]]*/ 0;
+        let currentDate = new Date(); // Currently viewed month
+        let selectedDate = new Date(); // Currently selected day
+        let activeDates = new Set();
+        
+        const currentMonthLabel = document.getElementById('currentMonthLabel');
+        const calendarDays = document.getElementById('calendarDays');
+        const selectedDateLabel = document.getElementById('selectedDateLabel');
+        const dayDataContainer = document.getElementById('dayDataContainer');
+        const noDataMessage = document.getElementById('noDataMessage');
+
+        document.getElementById('prevMonthBtn').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        document.getElementById('nextMonthBtn').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        async function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            currentMonthLabel.innerText = `Tháng ${month + 1} ${year}`;
+            calendarDays.innerHTML = '';
+
+            try {
+                const response = await fetch(`/api/doctor/patients/${patientId}/history/active-days?year=${year}&month=${month + 1}`);
+                if (response.ok) {
+                    const dates = await response.json();
+                    activeDates = new Set(dates);
+                }
+            } catch (err) { console.error('Error fetching active days', err); }
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let startDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+
+            for (let i = 0; i < startDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day empty';
+                calendarDays.appendChild(emptyDiv);
+            }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day';
+                dayDiv.innerText = i;
+                
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                if (activeDates.has(dateStr)) {
+                    dayDiv.classList.add('has-data');
+                }
+                
+                const sYear = selectedDate.getFullYear();
+                const sMonth = selectedDate.getMonth();
+                const sDate = selectedDate.getDate();
+                if (year === sYear && month === sMonth && i === sDate) {
+                    dayDiv.classList.add('selected');
+                }
+
+                dayDiv.addEventListener('click', () => {
+                    selectedDate = new Date(year, month, i);
+                    renderCalendar(); 
+                    fetchDayDetails(dateStr);
+                });
+
+                calendarDays.appendChild(dayDiv);
+            }
+        }
+
+        async function fetchDayDetails(dateStr) {
+            const parts = dateStr.split('-');
+            selectedDateLabel.innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            
+            dayDataContainer.style.opacity = '0.3';
+            
+            try {
+                const response = await fetch(`/api/doctor/patients/${patientId}/history/day?date=${dateStr}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateUI(data);
+                }
+            } catch (err) { console.error(err); }
+            
+            dayDataContainer.style.opacity = '1';
+        }
+
+        function updateUI(data) {
+            const hasData = (data.systolicBp || data.totalMeals > 0 || data.totalExercises > 0 || data.totalWaterMl || data.totalMedicationsCount > 0);
+            
+            if (!hasData) {
+                noDataMessage.style.display = 'block';
+                dayDataContainer.style.display = 'none';
+                return;
+            }
+            
+            noDataMessage.style.display = 'none';
+            dayDataContainer.style.display = 'block';
+
+            document.getElementById('dtBp').innerHTML = (data.systolicBp && data.diastolicBp) ? `${data.systolicBp}/${data.diastolicBp} <span class="fs-6 text-muted fw-normal">mmHg</span>` : `--/-- <span class="fs-6 text-muted fw-normal">mmHg</span>`;
+            document.getElementById('dtGlu').innerHTML = data.glucoseLevel ? `${data.glucoseLevel} <span class="fs-6 text-muted fw-normal">mmol/L</span>` : `-- <span class="fs-6 text-muted fw-normal"></span>`;
+            document.getElementById('dtHr').innerHTML = data.heartRate ? `${data.heartRate} <span class="fs-6 text-muted fw-normal">bpm</span>` : `-- <span class="fs-6 text-muted fw-normal">bpm</span>`;
+
+            document.getElementById('dtMealSummary').innerText = `(${data.totalMeals || 0} bữa — ${data.totalMealKcal || 0} kcal)`;
+            const mealDiv = document.getElementById('dtMealDetails');
+            if (data.meals && data.meals.length > 0) {
+                mealDiv.innerHTML = data.meals.map(m => `<div class="d-flex justify-content-between mb-1"><span>${m.mealType}: ${m.foodName}</span><strong>${m.totalCalories} kcal</strong></div>`).join('');
+            } else { mealDiv.innerHTML = '<span class="text-muted">Không có dữ liệu bữa ăn</span>'; }
+
+            document.getElementById('dtExSummary').innerText = `(${data.totalExercises || 0} hoạt động)`;
+            const exDiv = document.getElementById('dtExDetails');
+            if (data.exercises && data.exercises.length > 0) {
+                exDiv.innerHTML = data.exercises.map(e => `<div class="d-flex justify-content-between mb-1"><span>${e.exerciseType} (${e.durationMinutes}p)</span><strong>${e.caloriesBurned} kcal</strong></div>`).join('');
+            } else { exDiv.innerHTML = '<span class="text-muted">Không tập luyện</span>'; }
+
+            document.getElementById('dtWater').innerText = data.totalWaterMl || 0;
+            document.getElementById('dtWaterTarget').innerText = data.targetWaterMl || '--';
+            let p = 0;
+            if (data.targetWaterMl && data.totalWaterMl) { p = Math.min(100, (data.totalWaterMl / data.targetWaterMl) * 100); }
+            document.getElementById('dtWaterBar').style.width = p + '%';
+
+            const medDiv = document.getElementById('dtMedDetails');
+            if (data.medications && data.medications.length > 0) {
+                medDiv.innerHTML = data.medications.map(m => `
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div>
+                            <div class="fw-bold">${m.medicineName}</div>
+                            <div class="text-muted" style="font-size:0.8rem;">${m.dosage} - ${m.scheduledTime}</div>
+                        </div>
+                        <div>
+                            ${m.isTaken ? '<span class="badge bg-success rounded-pill"><i class="fa-solid fa-check me-1"></i>Đã uống</span>' : '<span class="badge bg-secondary rounded-pill">Chưa uống</span>'}
+                        </div>
+                    </div>
+                `).join('');
+            } else { medDiv.innerHTML = '<span class="text-muted">Không có dữ liệu thuốc</span>'; }
+        }
+
+        // Initialize
+        renderCalendar();
+        
+        const initDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+        fetchDayDetails(initDateStr);
+    });
+    /*]]>*/
+</script>
+</body>
 </html>
