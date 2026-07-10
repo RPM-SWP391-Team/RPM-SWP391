@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface MedicationLogRepository extends JpaRepository<MedicationLog, Integer> {
     Optional<MedicationLog> findByPatientMedicationIdAndLogDate(Integer medicationId, LocalDate date);
     
+    List<MedicationLog> findByPatientMedicationPatientIdAndLogDate(Integer patientId, LocalDate date);
+
     List<MedicationLog> findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate startDate);
 
     List<MedicationLog> findByPatientMedicationPatientIdOrderByLogDateAsc(Integer patientId);
