@@ -25,6 +25,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +37,8 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.HashMap;
 
 @Controller
 @RequestMapping("/patient")
@@ -75,7 +82,13 @@ public class PatientInteractionController {
     }
 
     @GetMapping("/appointments")
-    public String getAppointments(Model model) throws JsonProcessingException {
+    public String getAppointments(
+            @RequestParam(value = "bpPage", defaultValue = "0") int bpPage,
+            @RequestParam(value = "glucosePage", defaultValue = "0") int glucosePage,
+            @RequestParam(value = "activeTab", defaultValue = "bp") String activeTab,
+            @RequestParam(value = "filterRange", defaultValue = "all") String filterRange,
+            @RequestParam(value = "filterDate", required = false) String filterDateStr,
+            Model model) throws JsonProcessingException {
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
@@ -85,16 +98,40 @@ public class PatientInteractionController {
         List<ChangeRequest> changeRequests = changeRequestRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
 
         // Fetch logs for the last 7 days for the chart
-        LocalDate startDate = LocalDate.now().minusDays(7);
-        List<DailyHealthLog> chartLogs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
+        LocalDate chartStartDate = LocalDate.now().minusDays(7);
+        List<DailyHealthLog> chartLogs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), chartStartDate);
 
-        // Group and keep only the latest log per day and milestone for the chart
+        // Group and keep only the latest log per day and milestone for the chart, merging indices
         Map<String, DailyHealthLog> latestLogsMap = new LinkedHashMap<>();
         for (DailyHealthLog log : chartLogs) {
             String key = log.getLogDate().toString() + "_" + log.getLogType();
             DailyHealthLog existing = latestLogsMap.get(key);
-            if (existing == null || log.getLogTime().isAfter(existing.getLogTime())) {
-                latestLogsMap.put(key, log);
+            if (existing == null) {
+                DailyHealthLog merged = new DailyHealthLog();
+                merged.setLogDate(log.getLogDate());
+                merged.setLogType(log.getLogType());
+                merged.setSystolicBp(log.getSystolicBp());
+                merged.setDiastolicBp(log.getDiastolicBp());
+                merged.setHeartRate(log.getHeartRate());
+                merged.setGlucoseLevel(log.getGlucoseLevel());
+                merged.setLogTime(log.getLogTime());
+                latestLogsMap.put(key, merged);
+            } else {
+                if (log.getSystolicBp() != null) {
+                    existing.setSystolicBp(log.getSystolicBp());
+                }
+                if (log.getDiastolicBp() != null) {
+                    existing.setDiastolicBp(log.getDiastolicBp());
+                }
+                if (log.getHeartRate() != null) {
+                    existing.setHeartRate(log.getHeartRate());
+                }
+                if (log.getGlucoseLevel() != null) {
+                    existing.setGlucoseLevel(log.getGlucoseLevel());
+                }
+                if (log.getLogTime().isAfter(existing.getLogTime())) {
+                    existing.setLogTime(log.getLogTime());
+                }
             }
         }
 
@@ -105,13 +142,55 @@ public class PatientInteractionController {
 
         for (DailyHealthLog log : latestLogsMap.values()) {
             dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
-            systolicList.add(log.getSystolicBp() != null ? log.getSystolicBp() : 0);
-            diastolicList.add(log.getDiastolicBp() != null ? log.getDiastolicBp() : 0);
-            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : 0.0);
+            systolicList.add(log.getSystolicBp());
+            diastolicList.add(log.getDiastolicBp());
+            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : null);
         }
 
-        // Fetch all raw logs ordered by time desc for the history list
-        List<DailyHealthLog> rawHistoryLogs = healthLogRepository.findByPatientIdOrderByLogTimeDesc(patient.getId());
+        // --- Xử lý phân trang phía máy chủ (Server-side Pagination) ---
+        LocalDate filterDate = null;
+        if (filterDateStr != null && !filterDateStr.trim().isEmpty()) {
+            try {
+                filterDate = LocalDate.parse(filterDateStr);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        LocalDate rangeStart = null;
+        LocalDate rangeEnd = null;
+        if ("today".equals(filterRange)) {
+            rangeStart = LocalDate.now();
+            rangeEnd = LocalDate.now();
+        } else if ("week".equals(filterRange)) {
+            rangeStart = LocalDate.now().minusDays(7);
+            rangeEnd = LocalDate.now();
+        } else if ("month".equals(filterRange)) {
+            rangeStart = LocalDate.now().minusDays(30);
+            rangeEnd = LocalDate.now();
+        }
+
+        // Phân trang Huyết áp (systolicBp != null)
+        Pageable bpPageable = PageRequest.of(bpPage, 5);
+        Page<DailyHealthLog> bpPageObj;
+        if (filterDate != null) {
+            bpPageObj = healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateOrderByLogTimeDesc(patient.getId(), filterDate, bpPageable);
+        } else if (rangeStart != null && rangeEnd != null) {
+            bpPageObj = healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patient.getId(), rangeStart, rangeEnd, bpPageable);
+        } else {
+            bpPageObj = healthLogRepository.findByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId(), bpPageable);
+        }
+
+        // Phân trang Đường huyết (glucoseLevel != null)
+        Pageable glucosePageable = PageRequest.of(glucosePage, 5);
+        Page<DailyHealthLog> glucosePageObj;
+        if (filterDate != null) {
+            glucosePageObj = healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateOrderByLogTimeDesc(patient.getId(), filterDate, glucosePageable);
+        } else if (rangeStart != null && rangeEnd != null) {
+            glucosePageObj = healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patient.getId(), rangeStart, rangeEnd, glucosePageable);
+        } else {
+            glucosePageObj = healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId(), glucosePageable);
+        }
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -121,7 +200,18 @@ public class PatientInteractionController {
         model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
-        model.addAttribute("healthLogs", rawHistoryLogs); // Full raw logs list
+        
+        model.addAttribute("bpLogs", bpPageObj.getContent());
+        model.addAttribute("bpPageObj", bpPageObj);
+        model.addAttribute("glucoseLogs", glucosePageObj.getContent());
+        model.addAttribute("glucosePageObj", glucosePageObj);
+        
+        model.addAttribute("bpPage", bpPage);
+        model.addAttribute("glucosePage", glucosePage);
+        model.addAttribute("activeTab", activeTab);
+        model.addAttribute("filterRange", filterRange);
+        model.addAttribute("filterDate", filterDate != null ? filterDate.toString() : "");
+
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
         model.addAttribute("systolicJson", objectMapper.writeValueAsString(systolicList));
         model.addAttribute("diastolicJson", objectMapper.writeValueAsString(diastolicList));
