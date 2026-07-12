@@ -25,6 +25,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +37,8 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.HashMap;
 
 @Controller
 @RequestMapping("/patient")
@@ -75,7 +82,13 @@ public class PatientInteractionController {
     }
 
     @GetMapping("/appointments")
-    public String getAppointments(Model model) throws JsonProcessingException {
+    public String getAppointments(
+            @RequestParam(value = "bpPage", defaultValue = "0") int bpPage,
+            @RequestParam(value = "glucosePage", defaultValue = "0") int glucosePage,
+            @RequestParam(value = "activeTab", defaultValue = "bp") String activeTab,
+            @RequestParam(value = "filterRange", defaultValue = "all") String filterRange,
+            @RequestParam(value = "filterDate", required = false) String filterDateStr,
+            Model model) throws JsonProcessingException {
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
@@ -85,16 +98,40 @@ public class PatientInteractionController {
         List<ChangeRequest> changeRequests = changeRequestRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
 
         // Fetch logs for the last 7 days for the chart
-        LocalDate startDate = LocalDate.now().minusDays(7);
-        List<DailyHealthLog> chartLogs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), startDate);
+        LocalDate chartStartDate = LocalDate.now().minusDays(7);
+        List<DailyHealthLog> chartLogs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), chartStartDate);
 
-        // Group and keep only the latest log per day and milestone for the chart
+        // Group and keep only the latest log per day and milestone for the chart, merging indices
         Map<String, DailyHealthLog> latestLogsMap = new LinkedHashMap<>();
         for (DailyHealthLog log : chartLogs) {
             String key = log.getLogDate().toString() + "_" + log.getLogType();
             DailyHealthLog existing = latestLogsMap.get(key);
-            if (existing == null || log.getLogTime().isAfter(existing.getLogTime())) {
-                latestLogsMap.put(key, log);
+            if (existing == null) {
+                DailyHealthLog merged = new DailyHealthLog();
+                merged.setLogDate(log.getLogDate());
+                merged.setLogType(log.getLogType());
+                merged.setSystolicBp(log.getSystolicBp());
+                merged.setDiastolicBp(log.getDiastolicBp());
+                merged.setHeartRate(log.getHeartRate());
+                merged.setGlucoseLevel(log.getGlucoseLevel());
+                merged.setLogTime(log.getLogTime());
+                latestLogsMap.put(key, merged);
+            } else {
+                if (log.getSystolicBp() != null) {
+                    existing.setSystolicBp(log.getSystolicBp());
+                }
+                if (log.getDiastolicBp() != null) {
+                    existing.setDiastolicBp(log.getDiastolicBp());
+                }
+                if (log.getHeartRate() != null) {
+                    existing.setHeartRate(log.getHeartRate());
+                }
+                if (log.getGlucoseLevel() != null) {
+                    existing.setGlucoseLevel(log.getGlucoseLevel());
+                }
+                if (log.getLogTime().isAfter(existing.getLogTime())) {
+                    existing.setLogTime(log.getLogTime());
+                }
             }
         }
 
@@ -105,13 +142,55 @@ public class PatientInteractionController {
 
         for (DailyHealthLog log : latestLogsMap.values()) {
             dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
-            systolicList.add(log.getSystolicBp() != null ? log.getSystolicBp() : 0);
-            diastolicList.add(log.getDiastolicBp() != null ? log.getDiastolicBp() : 0);
-            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : 0.0);
+            systolicList.add(log.getSystolicBp());
+            diastolicList.add(log.getDiastolicBp());
+            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : null);
         }
 
-        // Fetch all raw logs ordered by time desc for the history list
-        List<DailyHealthLog> rawHistoryLogs = healthLogRepository.findByPatientIdOrderByLogTimeDesc(patient.getId());
+        // --- Xử lý phân trang phía máy chủ (Server-side Pagination) ---
+        LocalDate filterDate = null;
+        if (filterDateStr != null && !filterDateStr.trim().isEmpty()) {
+            try {
+                filterDate = LocalDate.parse(filterDateStr);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        LocalDate rangeStart = null;
+        LocalDate rangeEnd = null;
+        if ("today".equals(filterRange)) {
+            rangeStart = LocalDate.now();
+            rangeEnd = LocalDate.now();
+        } else if ("week".equals(filterRange)) {
+            rangeStart = LocalDate.now().minusDays(7);
+            rangeEnd = LocalDate.now();
+        } else if ("month".equals(filterRange)) {
+            rangeStart = LocalDate.now().minusDays(30);
+            rangeEnd = LocalDate.now();
+        }
+
+        // Phân trang Huyết áp (systolicBp != null)
+        Pageable bpPageable = PageRequest.of(bpPage, 5);
+        Page<DailyHealthLog> bpPageObj;
+        if (filterDate != null) {
+            bpPageObj = healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateOrderByLogTimeDesc(patient.getId(), filterDate, bpPageable);
+        } else if (rangeStart != null && rangeEnd != null) {
+            bpPageObj = healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patient.getId(), rangeStart, rangeEnd, bpPageable);
+        } else {
+            bpPageObj = healthLogRepository.findByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId(), bpPageable);
+        }
+
+        // Phân trang Đường huyết (glucoseLevel != null)
+        Pageable glucosePageable = PageRequest.of(glucosePage, 5);
+        Page<DailyHealthLog> glucosePageObj;
+        if (filterDate != null) {
+            glucosePageObj = healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateOrderByLogTimeDesc(patient.getId(), filterDate, glucosePageable);
+        } else if (rangeStart != null && rangeEnd != null) {
+            glucosePageObj = healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patient.getId(), rangeStart, rangeEnd, glucosePageable);
+        } else {
+            glucosePageObj = healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId(), glucosePageable);
+        }
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -121,7 +200,18 @@ public class PatientInteractionController {
         model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
-        model.addAttribute("healthLogs", rawHistoryLogs); // Full raw logs list
+        
+        model.addAttribute("bpLogs", bpPageObj.getContent());
+        model.addAttribute("bpPageObj", bpPageObj);
+        model.addAttribute("glucoseLogs", glucosePageObj.getContent());
+        model.addAttribute("glucosePageObj", glucosePageObj);
+        
+        model.addAttribute("bpPage", bpPage);
+        model.addAttribute("glucosePage", glucosePage);
+        model.addAttribute("activeTab", activeTab);
+        model.addAttribute("filterRange", filterRange);
+        model.addAttribute("filterDate", filterDate != null ? filterDate.toString() : "");
+
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
         model.addAttribute("systolicJson", objectMapper.writeValueAsString(systolicList));
         model.addAttribute("diastolicJson", objectMapper.writeValueAsString(diastolicList));
@@ -292,5 +382,96 @@ public class PatientInteractionController {
         }
         
         return "redirect:/patient/appointments?deleteRequestSuccess=true";
+    }
+
+    // --- TRẮC NGHIỆM KIỂM TRA KIẾN THỨC ---
+    public static class QuizQuestion {
+        private int id;
+        private String question;
+        private List<String> options;
+        private int correctOptionIndex;
+
+        public QuizQuestion(int id, String question, List<String> options, int correctOptionIndex) {
+            this.id = id;
+            this.question = question;
+            this.options = options;
+            this.correctOptionIndex = correctOptionIndex;
+        }
+
+        public int getId() { return id; }
+        public String getQuestion() { return question; }
+        public List<String> getOptions() { return options; }
+        public int getCorrectOptionIndex() { return correctOptionIndex; }
+    }
+
+    private static final List<QuizQuestion> QUESTION_BANK = List.of(
+        new QuizQuestion(0, "Huyết áp là gì?", List.of("A. Lượng đường trong máu.", "B. Áp lực của máu tác động lên thành động mạch khi tim bơm máu.", "C. Số nhịp tim trong 1 phút.", "D. Lượng oxy trong máu."), 1),
+        new QuizQuestion(1, "Trong kết quả huyết áp 120/80 mmHg, chỉ số 120 thể hiện điều gì?", List.of("A. Huyết áp tâm trương.", "B. Nhịp tim.", "C. Huyết áp tâm thu.", "D. Nồng độ oxy trong máu."), 2),
+        new QuizQuestion(2, "Kết quả huyết áp 118/75 mmHg thuộc mức cảnh báo nào?", List.of("A. Xanh – An toàn", "B. Vàng – Chú ý", "C. Cam – Nguy hiểm", "D. Đỏ – Cấp cứu"), 0),
+        new QuizQuestion(3, "Kết quả huyết áp 135/78 mmHg thuộc mức cảnh báo nào?", List.of("A. Xanh", "B. Vàng", "C. Cam", "D. Đỏ"), 1),
+        new QuizQuestion(4, "Kết quả huyết áp 145/88 mmHg thuộc mức cảnh báo nào?", List.of("A. Xanh", "B. Vàng", "C. Cam", "D. Đỏ"), 2),
+        new QuizQuestion(5, "Kết quả huyết áp 185/95 mmHg được phân loại là gì?", List.of("A. Xanh", "B. Vàng", "C. Cam", "D. Đỏ"), 3),
+        new QuizQuestion(6, "Kết quả huyết áp 85/55 mmHg thuộc mức cảnh báo nào?", List.of("A. Xanh", "B. Vàng", "C. Cam (Hạ huyết áp)", "D. Đỏ"), 2),
+        new QuizQuestion(7, "Theo nguyên tắc phân loại huyết áp, nếu hai chỉ số ở hai mức khác nhau thì phân loại theo mức nào?", List.of("A. Mức thấp hơn.", "B. Mức trung bình.", "C. Mức cao hơn.", "D. Lấy theo huyết áp tâm thu."), 2),
+        new QuizQuestion(8, "Trước khi đo huyết áp, người bệnh nên nghỉ ngơi bao lâu?", List.of("A. 1–2 phút.", "B. 5–10 phút.", "C. 20 phút.", "D. 30 phút."), 1),
+        new QuizQuestion(9, "Điều nào KHÔNG nên làm trước khi đo huyết áp?", List.of("A. Nghỉ ngơi.", "B. Hút thuốc trong vòng 2 giờ trước khi đo.", "C. Ngồi thư giãn.", "D. Để cơ thể thả lỏng."), 1),
+        new QuizQuestion(10, "Tư thế đúng khi đo huyết áp là gì?", List.of("A. Ngồi bắt chéo chân.", "B. Cánh tay thấp hơn tim.", "C. Hai chân đặt trên sàn, cánh tay ngang mức tim.", "D. Đứng và cầm máy trên tay."), 2),
+        new QuizQuestion(11, "Lần đầu đo huyết áp nên thực hiện như thế nào?", List.of("A. Chỉ đo tay trái.", "B. Chỉ đo tay phải.", "C. Đo cả hai tay.", "D. Đo tay thuận."), 2),
+        new QuizQuestion(12, "Nếu hai lần đo huyết áp chênh nhau trên 10 mmHg thì nên làm gì?", List.of("A. Lấy kết quả cao hơn.", "B. Lấy kết quả thấp hơn.", "C. Nghỉ trên 5 phút rồi đo lại.", "D. Không cần đo lại."), 2),
+        new QuizQuestion(13, "Dấu hiệu nào dưới đây có thể gặp khi tăng huyết áp đột ngột?", List.of("A. Đau đầu dữ dội.", "B. Run tay.", "C. Đói cồn cào.", "D. Vã mồ hôi lạnh."), 0),
+        new QuizQuestion(14, "Người bệnh có huyết áp ≥180/120 mmHg kèm khó nói và yếu tay chân cần xử trí như thế nào?", List.of("A. Chờ 1 ngày rồi đo lại.", "B. Tự uống nhiều nước.", "C. Gọi cấp cứu hoặc đưa đến bệnh viện ngay.", "D. Tự ý ngậm thuốc hạ huyết áp tác dụng nhanh."), 2),
+        new QuizQuestion(15, "Theo cẩm nang, mức đường huyết bình thường là bao nhiêu?", List.of("A. <4,4 mmol/L.", "B. 4,4–10 mmol/L.", "C. 10–16 mmol/L.", "D. >16 mmol/L."), 1),
+        new QuizQuestion(16, "Đường huyết dưới 4,4 mmol/L được xếp vào mức nào?", List.of("A. Bình thường.", "B. Tăng đường huyết.", "C. Hạ đường huyết.", "D. Khẩn cấp do tăng đường huyết."), 2),
+        new QuizQuestion(17, "Triệu chứng nào thường gặp khi đường huyết tăng cao?", List.of("A. Khát nước nhiều và tiểu nhiều.", "B. Run tay và đói cồn cào.", "C. Chảy máu cam.", "D. Liệt mặt."), 0),
+        new QuizQuestion(18, "Khi người bệnh còn tỉnh và bị hạ đường huyết, nên làm gì đầu tiên?", List.of("A. Tiêm thêm insulin.", "B. Uống ngay nước đường hoặc đồ uống có đường.", "C. Không ăn uống gì.", "D. Đi ngủ."), 1),
+        new QuizQuestion(19, "Điều nào sau đây là đúng khi phòng ngừa tăng và hạ đường huyết?", List.of("A. Tự ý tăng hoặc giảm thuốc khi thấy khỏe hơn.", "B. Chỉ đo đường huyết khi có triệu chứng.", "C. Dùng thuốc đúng chỉ định, ăn uống hợp lý và tập luyện đều đặn.", "D. Chỉ cần kiêng đồ ngọt là đủ."), 2)
+    );
+
+    @GetMapping("/quiz")
+    public String getQuiz(Model model) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("questions", QUESTION_BANK);
+        model.addAttribute("isSubmitted", false);
+        return "patient/quiz";
+    }
+
+    @PostMapping("/quiz/submit")
+    public String submitQuiz(
+            @RequestParam("questionIds") List<Integer> questionIds,
+            @RequestParam Map<String, String> allParams,
+            Model model) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        List<QuizQuestion> questions = new ArrayList<>();
+        Map<Integer, Integer> userAnswers = new HashMap<>();
+        int score = 0;
+
+        for (Integer qId : questionIds) {
+            QuizQuestion qq = QUESTION_BANK.stream().filter(q -> q.getId() == qId).findFirst().orElse(null);
+            if (qq != null) {
+                questions.add(qq);
+                String answerStr = allParams.get("answer_" + qId);
+                Integer userAnswer = (answerStr != null) ? Integer.parseInt(answerStr) : -1;
+                userAnswers.put(qId, userAnswer);
+                if (userAnswer == qq.getCorrectOptionIndex()) {
+                    score++;
+                }
+            }
+        }
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("questions", questions);
+        model.addAttribute("userAnswers", userAnswers);
+        model.addAttribute("score", score);
+        model.addAttribute("isSubmitted", true);
+        return "patient/quiz";
     }
 }
