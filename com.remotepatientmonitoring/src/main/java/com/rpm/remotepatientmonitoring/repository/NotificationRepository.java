@@ -4,6 +4,9 @@ import com.rpm.remotepatientmonitoring.model.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -33,4 +36,17 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Query("UPDATE Notification n SET n.isRead = true WHERE n.doctor.id = :doctorId AND n.recipientType = 'DOCTOR' AND n.isRead = false")
     void markAllAsReadByDoctorId(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId);
+
+    List<Notification> findTop5ByDoctorIdOrderByCreatedAtDesc(Integer doctorId);
+
+    @Query("SELECT n FROM Notification n WHERE n.patient.id = :patientId " +
+           "AND n.isRead = false " +
+           "AND n.notificationType IN ('EXERCISE_REMINDER', 'EXERCISE_STREAK_MILESTONE', 'EXERCISE_BP_REMINDER', 'EXERCISE_INACTIVITY_REMINDER') " +
+           "AND n.createdAt >= :startOfDay AND n.createdAt <= :endOfDay " +
+           "ORDER BY n.createdAt DESC")
+    List<Notification> findUnreadExerciseNotificationsToday(
+            @Param("patientId") Integer patientId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
 }
