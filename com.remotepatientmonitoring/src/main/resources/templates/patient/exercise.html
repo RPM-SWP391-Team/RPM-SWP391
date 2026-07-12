@@ -13,6 +13,27 @@
             <h3 class="fw-bold text-dark mb-0">Theo Dõi Tập Luyện Hàng Ngày</h3>
         </div>
 
+        <!-- Exercise Notifications Banner Area -->
+        <div th:if="${exerciseNotifications != null && !exerciseNotifications.isEmpty()}" class="mb-4 d-flex flex-column gap-2" id="exerciseNotifArea">
+            <div th:each="notif : ${exerciseNotifications}" 
+                 class="alert alert-info alert-dismissible fade show shadow-sm border-0 d-flex align-items-center py-3 px-4 rounded-3 mb-0" 
+                 role="alert" 
+                 th:id="'exercise-notif-' + ${notif.id}">
+                <div class="me-3">
+                    <!-- Icon based on notification type -->
+                    <i th:if="${notif.notificationType == 'EXERCISE_STREAK_MILESTONE'}" class="fa-solid fa-fire text-warning fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_REMINDER'}" class="fa-solid fa-person-running text-primary fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_BP_REMINDER'}" class="fa-solid fa-heart-pulse text-danger fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_INACTIVITY_REMINDER'}" class="fa-solid fa-couch text-secondary fa-xl"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <strong class="text-dark d-block mb-1" th:text="${notif.title}">Tiêu đề</strong>
+                    <span class="small text-muted" th:text="${notif.content}">Nội dung thông báo</span>
+                </div>
+                <button type="button" class="btn-close" th:onclick="'markNotifAsRead(' + ${notif.id} + ')'" aria-label="Close"></button>
+            </div>
+        </div>
+
         <div class="row g-4">
             <!-- Left panel: Thông tin tích lũy hôm nay -->
             <div class="col-lg-5">
@@ -23,38 +44,93 @@
                     <span class="small text-dark fw-semibold">Bạn đã vận động khá nhiều hôm nay (120+ phút). Hãy chú ý theo dõi huyết áp sau khi tập và nghỉ ngơi đầy đủ nhé.</span>
                 </div>
 
-                <div class="card card-custom p-4 bg-white mb-4">
-                    <h5 class="fw-bold text-dark mb-3">
-                        <i class="fa-solid fa-chart-line me-2 text-success"></i>Tích Lũy Tập Luyện Hôm Nay
-                    </h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-lg-12">
+                        <div class="card card-custom p-4 bg-white h-100 mb-0">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-chart-line me-2 text-success"></i>Tích Lũy Tập Luyện Hôm Nay
+                            </h5>
 
-                    <!-- Thời gian tập -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="small fw-semibold text-muted">Thời gian tập luyện</span>
-                            <span class="badge bg-success-subtle text-success" id="todayProgressBadge" th:text="${totalMinutes} + ' / ' + ${targetMinutes} + ' phút'">0 / 30 phút</span>
-                        </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
-                            <div class="progress-bar bg-success" id="todayProgressBar" role="progressbar" 
-                                 th:style="'width: ' + ${exerciseProgress} + '%'" 
-                                 th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
+                            <!-- Thời gian tập -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small fw-semibold text-muted">Thời gian tập luyện</span>
+                                    <span class="badge bg-success-subtle text-success" id="todayProgressBadge" th:text="${totalMinutes} + ' / ' + ${targetMinutes} + ' phút'">0 / 30 phút</span>
+                                </div>
+                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                    <div class="progress-bar bg-success" id="todayProgressBar" role="progressbar" 
+                                         th:style="'width: ' + ${exerciseProgress} + '%'" 
+                                         th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <!-- Calo tiêu hao -->
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small fw-semibold text-muted">Ước tính Calo tiêu hao</span>
+                                    <span class="badge bg-danger-subtle text-danger"><i class="fa-solid fa-fire me-1"></i><span id="todayCaloriesSpan" th:text="${#numbers.formatDecimal(totalCaloriesBurned, 1, 0)}">0</span> kcal</span>
+                                </div>
+                            </div>
+
+                            <!-- Streak đạt mục tiêu liên tiếp -->
+                            <div id="streakContainer" class="mt-3 text-center" 
+                                 th:style="${streak > 0} ? 'display: block;' : 'display: none;'">
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-2 px-3 rounded-pill fw-bold" style="font-size: 0.9rem;">
+                                    🔥 Bạn đã đạt mục tiêu <span id="streakDaysCount" th:text="${streak}">0</span> ngày liên tiếp!
+                                </span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Calo tiêu hao -->
-                    <div class="mb-2">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="small fw-semibold text-muted">Ước tính Calo tiêu hao</span>
-                            <span class="badge bg-danger-subtle text-danger"><i class="fa-solid fa-fire me-1"></i><span id="todayCaloriesSpan" th:text="${#numbers.formatDecimal(totalCaloriesBurned, 1, 0)}">0</span> kcal</span>
+                    <div class="col-md-6 col-lg-12">
+                        <!-- Card: Chỉ Số BMI -->
+                        <div class="card card-custom p-4 bg-white h-100 mb-0">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-weight-scale me-2 text-primary"></i>Chỉ Số BMI
+                            </h5>
+                            
+                            <div th:if="${latestBmi != null}">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div>
+                                        <span class="fs-2 fw-bold text-dark" th:text="${latestBmi.bmiValue}">22.5</span>
+                                        <span class="text-muted ms-1" style="font-size: 0.9rem;">kg/m²</span>
+                                    </div>
+                                    <!-- Phân loại theo WHO châu Á -->
+                                    <div>
+                                        <span th:if="${latestBmi.bmiCategory == 'Thiếu cân'}" class="badge bg-info fs-6 py-2 px-3 rounded-pill text-white" style="background-color: #0dcaf0 !important;">Thiếu cân</span>
+                                        <span th:if="${latestBmi.bmiCategory == 'Bình thường'}" class="badge bg-success fs-6 py-2 px-3 rounded-pill">Bình thường</span>
+                                        <span th:if="${latestBmi.bmiCategory == 'Thừa cân'}" class="badge bg-warning text-dark fs-6 py-2 px-3 rounded-pill">Thừa cân</span>
+                                        <span th:if="${latestBmi.bmiCategory == 'Béo phì'}" class="badge bg-danger fs-6 py-2 px-3 rounded-pill">Béo phì</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="small text-muted mb-3">
+                                    <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                        <span>Chiều cao:</span>
+                                        <span class="fw-semibold text-dark" th:text="${latestBmi.heightCm} + ' cm'">170 cm</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                        <span>Cân nặng:</span>
+                                        <span class="fw-semibold text-dark" th:text="${latestBmi.weightKg} + ' kg'">65 kg</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-1">
+                                        <span>Ngày đo gần nhất:</span>
+                                        <span class="fw-semibold text-dark" th:text="${latestBmi.examinationDate}">12/07/2026</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info py-2 px-3 mb-0 rounded-3" style="font-size: 0.8rem; border: none; background-color: #e0f2fe; color: #0369a1;">
+                                    <i class="fa-solid fa-circle-info me-1"></i>Số liệu y tế do bác sĩ đo lường tại phòng khám.
+                                </div>
+                            </div>
+                            
+                            <div th:if="${latestBmi == null}" class="d-flex align-items-center justify-content-center h-75 text-center py-4">
+                                <div>
+                                    <i class="fa-solid fa-triangle-exclamation text-warning mb-2 fa-2x"></i>
+                                    <p class="text-muted small mb-0 fw-semibold">Chưa có dữ liệu BMI. Vui lòng đến khám để bác sĩ cập nhật chỉ số cơ thể.</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Streak đạt mục tiêu liên tiếp -->
-                    <div id="streakContainer" class="mt-3 text-center" 
-                         th:style="${streak > 0} ? 'display: block;' : 'display: none;'">
-                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-2 px-3 rounded-pill fw-bold" style="font-size: 0.9rem;">
-                            🔥 Bạn đã đạt mục tiêu <span id="streakDaysCount" th:text="${streak}">0</span> ngày liên tiếp!
-                        </span>
                     </div>
                 </div>
 
@@ -508,6 +584,53 @@
                 populateTable(history30);
                 renderChart(history30);
             }
+        }
+
+        function markNotifAsRead(notifId) {
+            fetch(`/api/patient/notifications/${notifId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Marked notification as read successfully: ", notifId);
+                    
+                    // Remove the notification banner from the DOM
+                    const element = document.getElementById(`exercise-notif-${notifId}`);
+                    if (element) {
+                        element.remove();
+                    }
+                    
+                    // If no more notifications, remove the container
+                    const remainingNotifs = document.querySelectorAll('#exerciseNotifArea .alert');
+                    if (remainingNotifs.length === 0) {
+                        const container = document.getElementById('exerciseNotifArea');
+                        if (container) {
+                            container.remove();
+                        }
+                    }
+
+                    // Update the bell icon badge count
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        let currentCount = parseInt(badge.textContent) || 0;
+                        if (currentCount > 0) {
+                            currentCount--;
+                            badge.textContent = currentCount;
+                            if (currentCount === 0) {
+                                badge.classList.add('d-none');
+                            }
+                        }
+                    }
+                } else {
+                    console.error("Failed to mark notification as read");
+                }
+            })
+            .catch(error => {
+                console.error("Error calling mark as read API: ", error);
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function() {

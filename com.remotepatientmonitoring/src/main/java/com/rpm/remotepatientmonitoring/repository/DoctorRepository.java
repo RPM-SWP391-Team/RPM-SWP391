@@ -57,4 +57,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
     boolean existsByPhoneAndIdNot(@Param("phone") String phone, @Param("id") Integer id);
 
     List<Doctor> findByHospitalIdAndIsActiveTrue(Integer hospitalId);
+
+    Page<Doctor> findByHospitalIdAndIsActiveTrue(Integer hospitalId, Pageable pageable);
 }

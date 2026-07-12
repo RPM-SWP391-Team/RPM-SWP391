@@ -265,6 +265,7 @@ public class PatientInteractionController {
         if (doctor != null) {
             com.rpm.remotepatientmonitoring.model.Notification notif = com.rpm.remotepatientmonitoring.model.Notification.builder()
                     .doctor(doctor)
+                    .recipientType("DOCTOR")
                     .title("Yêu cầu thay đổi mới")
                     .content("Bệnh nhân " + patient.getFullName() + " vừa gửi một yêu cầu " + 
                             (changeRequest.getRequestType().equals("RESCHEDULE") ? "đổi lịch khám" : "thay đổi phác đồ") + ".")

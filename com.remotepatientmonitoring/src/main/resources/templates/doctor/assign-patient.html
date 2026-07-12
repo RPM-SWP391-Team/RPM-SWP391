@@ -46,30 +46,13 @@
         </a>
         <div class="d-flex align-items-center">
             <!-- Notification Bell -->
-            <div class="dropdown me-4">
-                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa-solid fa-bell fa-xl"></i>
-                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
-                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                        0
-                    </span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
-                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
-                    <li th:if="${recentNotifications.isEmpty()}">
-                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
-                    </li>
-                    <li th:each="notif : ${recentNotifications}">
-                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
-                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
-                            </div>
-                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <a href="/doctor/notifications" class="text-white text-decoration-none position-relative me-4" title="Thông báo">
+                <i class="fa-solid fa-bell fa-xl"></i>
+                <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                    0
+                </span>
+            </a>
 
             <!-- Profile Dropdown -->
             <div class="dropdown">
@@ -143,15 +126,48 @@
     </div>
 </div>
 
+<!-- Modal Tiếp nhận bệnh nhân -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignModalLabel">Tiếp nhận bệnh nhân</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="assignPatientId">
+                <div class="mb-3">
+                    <label for="assignDiseaseProfile" class="form-label fw-bold">Chọn hồ sơ bệnh lý ban đầu <span class="text-danger">*</span></label>
+                    <select class="form-select" id="assignDiseaseProfile" required>
+                        <option value="">-- Chọn bệnh lý --</option>
+                        <option th:each="profile : ${diseaseProfiles}" th:value="${profile.id}" th:text="${profile.profileName}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAssign()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
-    const currentDoctorId = /*[[${doctor.id}]]*/ 1;
+    function escapeHtml(unsafe) {
+        return (unsafe || "").toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
 
     function searchPatients() {
         const keyword = document.getElementById("keyword").value;
         if(!keyword) return;
 
         // Gọi API GET tìm kiếm
-        fetch(`/api/doctor/patients/search?keyword=${keyword}`)
+        fetch(`/api/doctor/patients/search?keyword=${encodeURIComponent(keyword)}`)
             .then(response => response.json())
             .then(data => {
                 let html = '';
@@ -160,10 +176,10 @@
                 } else {
                     data.forEach(p => {
                         html += `<tr>
-                                <td><span class="badge bg-secondary">${p.patientCode || 'N/A'}</span></td>
-                                <td class="fw-bold">${p.fullName}</td>
-                                <td>${p.phone}</td>
-                                <td><span class="badge ${p.status === 'NEW' ? 'bg-warning text-dark' : 'bg-success'}">${p.status}</span></td>
+                                <td><span class="badge bg-secondary">${escapeHtml(p.patientCode || 'N/A')}</span></td>
+                                <td class="fw-bold">${escapeHtml(p.fullName)}</td>
+                                <td>${escapeHtml(p.phone)}</td>
+                                <td><span class="badge ${p.status === 'NEW' ? 'bg-warning text-dark' : 'bg-success'}">${escapeHtml(p.status)}</span></td>
                                 <td class="text-center">
                                     <button class="btn btn-assign btn-sm px-3 rounded-pill" onclick="assignPatient(${p.id})">
                                         <i class="fa-solid fa-check me-1"></i>Tiếp nhận
@@ -176,9 +192,28 @@
             }).catch(err => console.error("Lỗi tìm kiếm:", err));
     }
 
+    let assignModalInstance;
+
     function assignPatient(patientId) {
-        // Giả lập ID hồ sơ bệnh lý mặc định là 1
-        const requestData = { patientId: patientId, doctorId: currentDoctorId, diseaseProfileId: 1 };
+        document.getElementById("assignPatientId").value = patientId;
+        if (!assignModalInstance) {
+            assignModalInstance = new bootstrap.Modal(document.getElementById('assignModal'));
+        }
+        assignModalInstance.show();
+    }
+
+    function confirmAssign() {
+        const patientId = document.getElementById("assignPatientId").value;
+        const diseaseProfileIdVal = document.getElementById("assignDiseaseProfile").value;
+        
+        if(!diseaseProfileIdVal) {
+            alert("Vui lòng chọn hồ sơ bệnh lý ban đầu!");
+            return;
+        }
+        
+        const diseaseProfileId = parseInt(diseaseProfileIdVal, 10);
+
+        const requestData = { patientId: patientId, diseaseProfileId: diseaseProfileId };
 
         // Gọi API POST tiếp nhận
         fetch('/api/doctor/patients/assign', {
@@ -189,10 +224,14 @@
             .then(response => response.text())
             .then(message => {
                 alert("✅ " + message);
+                assignModalInstance.hide();
                 searchPatients(); // Load lại bảng sau khi tiếp nhận thành công
             }).catch(error => alert("❌ Có lỗi xảy ra: " + error));
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
 </body>
 </html>

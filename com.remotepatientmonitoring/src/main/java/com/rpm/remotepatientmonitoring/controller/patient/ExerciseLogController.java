@@ -68,6 +68,13 @@ public class ExerciseLogController {
         List<Map<String, Object>> history30 = exerciseLogService.getHistorySummary(patient.getId(), 30);
         int streak = exerciseLogService.getCurrentStreak(patient.getId());
 
+        // Lấy chỉ số BMI gần nhất
+        Map<String, Object> latestBmi = exerciseLogService.getLatestBmi(patient.getId());
+
+        // Lấy danh sách thông báo tập luyện chưa đọc hôm nay
+        List<com.rpm.remotepatientmonitoring.model.Notification> exerciseNotifications = 
+                exerciseLogService.getUnreadExerciseNotificationsToday(patient.getId());
+
         model.addAttribute("patient", patient);
         model.addAttribute("exercises", logs);
         model.addAttribute("totalMinutes", summary.get("totalMinutes"));
@@ -78,6 +85,8 @@ public class ExerciseLogController {
         model.addAttribute("history30Days", history30);
         model.addAttribute("streak", streak);
         model.addAttribute("warningThreshold", ExerciseLogService.HIGH_INTENSITY_WARNING_THRESHOLD);
+        model.addAttribute("latestBmi", latestBmi);
+        model.addAttribute("exerciseNotifications", exerciseNotifications);
 
         return "patient/exercise";
     }
