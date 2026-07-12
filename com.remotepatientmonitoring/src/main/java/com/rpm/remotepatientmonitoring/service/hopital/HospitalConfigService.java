@@ -1,5 +1,6 @@
 package com.rpm.remotepatientmonitoring.service.hopital;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class HospitalConfigService {
@@ -32,6 +35,9 @@ public class HospitalConfigService {
 
     @Autowired
     private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public AlertThreshold getGlobalThreshold(Integer hospitalId) {
         return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL")
@@ -72,13 +78,21 @@ public class HospitalConfigService {
 
         validateThresholds(updated);
 
-        // --- BẮT ĐẦU: Chụp ảnh dữ liệu cũ để lưu Log ---
-        String oldValueJson = String.format(
-                "{\"glucoseHypo\":%s, \"glucoseNormalMax\":%s, \"glucoseHighMax\":%s, \"sysNormal\":%s, \"sysDanger\":%s, \"diaNormal\":%s, \"diaDanger\":%s}",
-                existing.getGlucoseHypoThreshold(), existing.getGlucoseNormalMax(), existing.getGlucoseHighMax(),
-                existing.getSystolicNormalMax(), existing.getSystolicDangerMin(),
-                existing.getDiastolicNormalMax(), existing.getDiastolicDangerMin()
-        );
+        // --- ĐỒNG BỘ CÁCH LẤY LOG BẰNG MAP VÀ OBJECTMAPPER ---
+        String oldValueJson = "-";
+        try {
+            Map<String, Object> oldLog = new HashMap<>();
+            oldLog.put("glucoseHypo", existing.getGlucoseHypoThreshold());
+            oldLog.put("glucoseNormalMax", existing.getGlucoseNormalMax());
+            oldLog.put("glucoseHighMax", existing.getGlucoseHighMax());
+            oldLog.put("sysNormal", existing.getSystolicNormalMax());
+            oldLog.put("sysDanger", existing.getSystolicDangerMin());
+            oldLog.put("diaNormal", existing.getDiastolicNormalMax());
+            oldLog.put("diaDanger", existing.getDiastolicDangerMin());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+        } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi parse dữ liệu cũ\"}";
+        }
 
         existing.setGlucoseHypoThreshold(updated.getGlucoseHypoThreshold());
         existing.setGlucoseNormalMax(updated.getGlucoseNormalMax());
@@ -99,22 +113,29 @@ public class HospitalConfigService {
         existing.setDiastolicEmergencyThreshold(updated.getDiastolicEmergencyThreshold());
 
         existing.setUpdatedAt(LocalDateTime.now());
-
         AlertThreshold savedThreshold = alertThresholdRepository.save(existing);
 
-        String newValueJson = String.format(
-                "{\"glucoseHypo\":%s, \"glucoseNormalMax\":%s, \"glucoseHighMax\":%s, \"sysNormal\":%s, \"sysDanger\":%s, \"diaNormal\":%s, \"diaDanger\":%s}",
-                savedThreshold.getGlucoseHypoThreshold(), savedThreshold.getGlucoseNormalMax(), savedThreshold.getGlucoseHighMax(),
-                savedThreshold.getSystolicNormalMax(), savedThreshold.getSystolicDangerMin(),
-                savedThreshold.getDiastolicNormalMax(), savedThreshold.getDiastolicDangerMin()
-        );
+        String newValueJson = "-";
+        try {
+            Map<String, Object> newLog = new HashMap<>();
+            newLog.put("glucoseHypo", savedThreshold.getGlucoseHypoThreshold());
+            newLog.put("glucoseNormalMax", savedThreshold.getGlucoseNormalMax());
+            newLog.put("glucoseHighMax", savedThreshold.getGlucoseHighMax());
+            newLog.put("sysNormal", savedThreshold.getSystolicNormalMax());
+            newLog.put("sysDanger", savedThreshold.getSystolicDangerMin());
+            newLog.put("diaNormal", savedThreshold.getDiastolicNormalMax());
+            newLog.put("diaDanger", savedThreshold.getDiastolicDangerMin());
+            newValueJson = objectMapper.writeValueAsString(newLog);
+        } catch (Exception e) {
+            newValueJson = "{\"error\":\"Lỗi parse dữ liệu mới\"}";
+        }
+
         saveAuditLog("UPDATE_THRESHOLD", "alert_thresholds", savedThreshold.getId(), oldValueJson, newValueJson, "Cập nhật cấu hình ngưỡng cảnh báo hệ thống");
 
         return savedThreshold;
     }
 
     private void validateThresholds(AlertThreshold t) {
-        // --- 1. KIỂM TRA NULL (Chống sập hệ thống) ---
         if (t.getGlucoseHypoThreshold() == null || t.getGlucoseNormalMax() == null || t.getGlucoseHighMax() == null) {
             throw new IllegalArgumentException("Các chỉ số đường huyết bắt buộc phải có.");
         }
@@ -127,7 +148,6 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Các chỉ số huyết áp tâm trương bắt buộc phải có.");
         }
 
-        // --- 2. KIỂM TRA LOGIC BẮC CẦU (A < B < C) ---
         if (t.getGlucoseHypoThreshold().compareTo(t.getGlucoseNormalMax()) >= 0) {
             throw new IllegalArgumentException("Mốc hạ đường huyết phải nhỏ hơn mốc bình thường tối đa.");
         }
@@ -135,8 +155,6 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Mốc bình thường tối đa phải nhỏ hơn mốc cao tối đa.");
         }
 
-        // --- 3. ÉP CỨNG BIÊN ĐỘ ĐƯỜNG HUYẾT THEO TÀI LIỆU ---
-        // Cho phép nhập đúng số chuẩn, nhưng không được vượt quá
         if (t.getGlucoseHypoThreshold().compareTo(new BigDecimal("4.4")) > 0) {
             throw new IllegalArgumentException("Ngưỡng hạ đường huyết (Level 1) không được lớn hơn 4.4 mmol/L.");
         }
@@ -147,7 +165,6 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Ngưỡng cao tối đa (Level 3) không được lớn hơn 16.0 mmol/L.");
         }
 
-        // --- 4. ÉP CỨNG BIÊN ĐỘ HUYẾT ÁP TÂM THU (SYSTOLIC) ---
         if (t.getSystolicNormalMax() >= t.getSystolicWarningMin()) {
             throw new IllegalArgumentException("Huyết áp tâm thu bình thường phải nhỏ hơn ngưỡng cảnh báo tối thiểu.");
         }
@@ -164,13 +181,11 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nguy hiểm tâm thu tối đa phải nhỏ hơn ngưỡng cấp cứu.");
         }
 
-        // Chặn theo mốc Nghị định
         if (t.getSystolicNormalMax() > 120) throw new IllegalArgumentException("Tâm thu đạt mục tiêu (Xanh) không được vượt quá 120 mmHg.");
         if (t.getSystolicWarningMin() < 130 || t.getSystolicWarningMax() > 139) throw new IllegalArgumentException("Ngưỡng Vàng tâm thu bắt buộc phải nằm trong khung 130 - 139 mmHg.");
         if (t.getSystolicDangerMin() < 140 || t.getSystolicDangerMax() > 179) throw new IllegalArgumentException("Ngưỡng Cam tâm thu bắt buộc phải nằm trong khung 140 - 179 mmHg.");
         if (t.getSystolicEmergencyThreshold() < 180) throw new IllegalArgumentException("Ngưỡng Đỏ tâm thu bắt buộc phải từ 180 mmHg trở lên.");
 
-        // --- 5. ÉP CỨNG BIÊN ĐỘ HUYẾT ÁP TÂM TRƯƠNG (DIASTOLIC) ---
         if (t.getDiastolicNormalMax() >= t.getDiastolicWarningMin()) {
             throw new IllegalArgumentException("Huyết áp tâm trương bình thường phải nhỏ hơn ngưỡng cảnh báo tối thiểu.");
         }
@@ -187,7 +202,6 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nguy hiểm tâm trương tối đa phải nhỏ hơn ngưỡng cấp cứu.");
         }
 
-        // Chặn theo mốc Nghị định
         if (t.getDiastolicNormalMax() > 80) throw new IllegalArgumentException("Tâm trương đạt mục tiêu (Xanh) không được vượt quá 80 mmHg.");
         if (t.getDiastolicWarningMin() < 85 || t.getDiastolicWarningMax() > 89) throw new IllegalArgumentException("Ngưỡng Vàng tâm trương bắt buộc phải nằm trong khung 85 - 89 mmHg.");
         if (t.getDiastolicDangerMin() < 90 || t.getDiastolicDangerMax() > 109) throw new IllegalArgumentException("Ngưỡng Cam tâm trương bắt buộc phải nằm trong khung 90 - 109 mmHg.");
@@ -227,8 +241,17 @@ public class HospitalConfigService {
 
         EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
 
-        // --- GHI AUDIT LOG ---
-        String newValueJson = String.format("{\"alertLevel\":\"%s\", \"metricType\":\"%s\", \"title\":\"%s\"}", alertLevel, metricType, title.trim());
+        String newValueJson = "-";
+        try {
+            Map<String, Object> logMap = new HashMap<>();
+            logMap.put("alertLevel", alertLevel);
+            logMap.put("metricType", metricType);
+            logMap.put("title", title.trim());
+            logMap.put("instructionContent", instructionContent.trim());
+            newValueJson = objectMapper.writeValueAsString(logMap);
+        } catch (Exception e) {
+            newValueJson = "{\"error\":\"Lỗi định dạng cấu trúc dữ liệu\"}";
+        }
         saveAuditLog("CREATE_GUIDE", "emergency_guides", savedGuide.getId(), "-", newValueJson, "Thêm mới Hướng dẫn xử lý khẩn cấp");
 
         return savedGuide;
@@ -243,14 +266,34 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nội dung hướng dẫn không được để trống.");
         }
 
-        String oldValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Bản cũ\"}", guide.getTitle());
+        String oldValueJson = "-";
+        try {
+            Map<String, Object> oldLog = new HashMap<>();
+            oldLog.put("title", guide.getTitle());
+            oldLog.put("alertLevel", guide.getAlertLevel());
+            oldLog.put("metricType", guide.getMetricType());
+            oldLog.put("instructionContent", guide.getInstructionContent());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+        } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
+        }
 
         guide.setInstructionContent(instructionContent.trim());
         guide.setUpdatedAt(LocalDateTime.now());
         EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
 
-        // --- GHI AUDIT LOG ---
-        String newValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Đã cập nhật nội dung mới\"}", savedGuide.getTitle());
+        String newValueJson = "-";
+        try {
+            Map<String, Object> newLog = new HashMap<>();
+            newLog.put("title", savedGuide.getTitle());
+            newLog.put("alertLevel", savedGuide.getAlertLevel());
+            newLog.put("metricType", savedGuide.getMetricType());
+            newLog.put("instructionContent", savedGuide.getInstructionContent());
+            newValueJson = objectMapper.writeValueAsString(newLog);
+        } catch (Exception e) {
+            newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
+        }
+
         saveAuditLog("UPDATE_GUIDE", "emergency_guides", savedGuide.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Hướng dẫn xử lý khẩn cấp");
 
         return savedGuide;
@@ -288,8 +331,17 @@ public class HospitalConfigService {
 
         EmergencyProtocol savedProtocol = emergencyProtocolRepository.save(protocol);
 
-        // --- GHI AUDIT LOG ---
-        String newValueJson = String.format("{\"conditionType\":\"%s\", \"title\":\"%s\"}", conditionType, title.trim());
+        String newValueJson = "-";
+        try {
+            Map<String, Object> logMap = new HashMap<>();
+            logMap.put("conditionType", conditionType);
+            logMap.put("title", title.trim());
+            logMap.put("warningSigns", warningSigns.trim());
+            logMap.put("instructionContent", instructionContent.trim());
+            newValueJson = objectMapper.writeValueAsString(logMap);
+        } catch (Exception e) {
+            newValueJson = "{\"error\":\"Lỗi định dạng cấu trúc dữ liệu\"}";
+        }
         saveAuditLog("CREATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), "-", newValueJson, "Thêm mới Cẩm nang nhận biết bệnh lý");
 
         return savedProtocol;
@@ -307,7 +359,17 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Nội dung chỉ dẫn không được để trống.");
         }
 
-        String oldValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Bản cũ\"}", protocol.getTitle());
+        String oldValueJson = "-";
+        try {
+            Map<String, Object> oldLog = new HashMap<>();
+            oldLog.put("title", protocol.getTitle());
+            oldLog.put("conditionType", protocol.getConditionType());
+            oldLog.put("warningSigns", protocol.getWarningSigns());
+            oldLog.put("instructionContent", protocol.getInstructionContent());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+        } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
+        }
 
         protocol.setWarningSigns(warningSigns.trim());
         protocol.setInstructionContent(instructionContent.trim());
@@ -315,8 +377,18 @@ public class HospitalConfigService {
 
         EmergencyProtocol savedProtocol = emergencyProtocolRepository.save(protocol);
 
-        // --- GHI AUDIT LOG ---
-        String newValueJson = String.format("{\"title\":\"%s\", \"contentStatus\":\"Đã cập nhật nội dung mới\"}", savedProtocol.getTitle());
+        String newValueJson = "-";
+        try {
+            Map<String, Object> newLog = new HashMap<>();
+            newLog.put("title", savedProtocol.getTitle());
+            newLog.put("conditionType", savedProtocol.getConditionType());
+            newLog.put("warningSigns", savedProtocol.getWarningSigns());
+            newLog.put("instructionContent", savedProtocol.getInstructionContent());
+            newValueJson = objectMapper.writeValueAsString(newLog);
+        } catch (Exception e) {
+            newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
+        }
+
         saveAuditLog("UPDATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Cẩm nang nhận biết bệnh lý");
 
         return savedProtocol;
@@ -324,30 +396,25 @@ public class HospitalConfigService {
 
     @Transactional
     public void deleteEmergencyGuide(Integer guideId) {
-        // --- GHI AUDIT LOG TRƯỚC KHI XÓA ---
         saveAuditLog("DELETE_GUIDE", "emergency_guides", guideId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Hướng dẫn xử lý khẩn cấp");
-
         emergencyGuideRepository.deleteById(guideId);
     }
 
     @Transactional
     public void deleteEmergencyProtocol(Integer protocolId) {
-        // --- GHI AUDIT LOG TRƯỚC KHI XÓA ---
         saveAuditLog("DELETE_PROTOCOL", "emergency_protocols", protocolId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Cẩm nang nhận biết bệnh lý");
-
         emergencyProtocolRepository.deleteById(protocolId);
     }
 
     private void saveAuditLog(String action, String targetTable, Integer targetRecordId, String oldValue, String newValue, String notes) {
         try {
-            Integer adminId = 1; // Giá trị dự phòng nếu không lấy được
+            Integer adminId = 1;
             String adminEmail = "HOSPITAL_ADMIN";
 
-            // Lấy thông tin Admin thực tế từ Spring Security
-            // 1. Trích xuất Admin
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated()) {
                 Object principal = auth.getPrincipal();
+                // LƯU Ý: Đảm bảo class CustomUserDetails nằm ĐÚNG đường dẫn import dưới đây trong project của bạn
                 if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
                     Account acc = ((com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal).getAccount();
                     adminId = acc.getId();
@@ -355,16 +422,16 @@ public class HospitalConfigService {
                 }
             }
 
-            // 2. Trích xuất IP & Thiết bị
             String ipAddress = "Unknown";
             String deviceInfo = "Unknown";
             try {
                 ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
                 if (attributes != null) {
                     HttpServletRequest request = attributes.getRequest();
+
                     deviceInfo = request.getHeader("User-Agent");
                     if (deviceInfo != null && deviceInfo.length() > 250) {
-                        deviceInfo = deviceInfo.substring(0, 250);
+                        deviceInfo = deviceInfo.substring(0, 250); // Ép cứng độ dài chống vỡ CSDL
                     }
 
                     ipAddress = request.getHeader("X-Forwarded-For");
@@ -380,8 +447,8 @@ public class HospitalConfigService {
             String finalNotes = notes + " (Thực hiện bởi: " + adminEmail + ")";
 
             AuditTrail log = AuditTrail.builder()
-                    .actorType("HOSPITAL_ADMIN") // Ép đúng chuẩn Constraint SQL
-                    .actorId(adminId)            // Trích xuất từ SecurityContext
+                    .actorType("HOSPITAL_ADMIN")
+                    .actorId(adminId)
                     .action(action)
                     .targetTable(targetTable)
                     .targetRecordId(targetRecordId)
@@ -393,7 +460,6 @@ public class HospitalConfigService {
 
             auditTrailRepository.save(log);
         } catch (Exception e) {
-            // Không bao giờ để lỗi ghi log cản trở tiến trình lưu cấu hình
             System.err.println("Cảnh báo: Lỗi hệ thống khi ghi Audit Log cấu hình (" + action + "): " + e.getMessage());
         }
     }
