@@ -151,7 +151,7 @@
                                     <td th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do khám</td>
                                     <td class="text-wrap" style="max-width: 260px;">
                                         <div th:if="${appt.status == 'COMPLETED'}" class="bg-light p-2.5 rounded border-start border-success border-3">
-                                            <strong class="text-success small" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fa-solid fa-notes-medical me-1"></i>KẾN LUẬN:</strong>
+                                            <strong class="text-success small" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fa-solid fa-notes-medical me-1"></i>KẾT LUẬN:</strong>
                                             <p class="mb-0 mt-1 text-dark small" style="line-height: 1.4;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có ghi chú'}">Ghi chú</p>
                                         </div>
                                         <div th:if="${appt.status == 'REJECTED'}" class="bg-light p-2.5 rounded border-start border-danger border-3">
@@ -320,7 +320,7 @@
                                          <td th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do</td>
                                          <td>
                                              <div class="bg-light p-2.5 rounded border-start border-success border-3">
-                                                 <strong class="text-success small" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-notes-medical me-1"></i>KẾT LUẬN & ĐẶN DÒ:</strong>
+                                                 <strong class="text-success small" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-notes-medical me-1"></i>KẾT LUẬN & DẶN DÒ:</strong>
                                                  <p class="mb-0 mt-1 text-dark small" style="line-height: 1.45;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}">Nội dung</p>
                                              </div>
                                          </td>
