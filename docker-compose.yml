@@ -4,7 +4,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:sqlserver://db:1433;databaseName=rpms
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://db:1433;databaseName=rpms;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true;characterEncoding=UTF-8;
       - SPRING_DATASOURCE_USERNAME=sa
       - SPRING_DATASOURCE_PASSWORD=RPM@123456
     depends_on:

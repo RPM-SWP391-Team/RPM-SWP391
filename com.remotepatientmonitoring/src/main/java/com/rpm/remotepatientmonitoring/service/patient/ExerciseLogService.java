@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import com.rpm.remotepatientmonitoring.model.Notification;
 
 @Service
 public class ExerciseLogService {
@@ -33,6 +34,12 @@ public class ExerciseLogService {
 
     @Autowired
     private TreatmentPlanRepository treatmentPlanRepository;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
 
     /**
      * Lấy mục tiêu thời lượng tập luyện của bệnh nhân dựa trên phác đồ điều trị hiện tại
@@ -277,5 +284,98 @@ public class ExerciseLogService {
         log.setLoggedAt(LocalDateTime.now());
 
         return exerciseLogRepository.save(log);
+    }
+
+    /**
+     * Lấy chỉ số BMI từ clinical_records gần nhất của bệnh nhân.
+     */
+    public Map<String, Object> getLatestBmi(Integer patientId) {
+        log.info("Lấy chỉ số BMI cho patientId={}", patientId);
+        String sql = "SELECT TOP 1 weight_kg, height_cm, bmi, examination_date " +
+                     "FROM clinical_records " +
+                     "WHERE patient_id = ? " +
+                     "ORDER BY examination_date DESC";
+        
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, patientId);
+            if (rows.isEmpty()) {
+                return null;
+            }
+            
+            Map<String, Object> row = rows.get(0);
+            java.math.BigDecimal weight = (java.math.BigDecimal) row.get("weight_kg");
+            java.math.BigDecimal height = (java.math.BigDecimal) row.get("height_cm");
+            java.math.BigDecimal bmiDb = (java.math.BigDecimal) row.get("bmi");
+            Object examDateObj = row.get("examination_date");
+            
+            if (weight == null || height == null) {
+                return null;
+            }
+            
+            double weightVal = weight.doubleValue();
+            double heightVal = height.doubleValue();
+            double bmiVal;
+            
+            if (bmiDb != null) {
+                bmiVal = bmiDb.doubleValue();
+            } else {
+                if (heightVal <= 0) {
+                    return null;
+                }
+                bmiVal = weightVal / Math.pow(heightVal / 100.0, 2);
+            }
+            
+            // Round to 1 decimal place
+            bmiVal = Math.round(bmiVal * 10.0) / 10.0;
+            
+            String category;
+            if (bmiVal < 18.5) {
+                category = "Thiếu cân";
+            } else if (bmiVal < 23.0) {
+                category = "Bình thường";
+            } else if (bmiVal < 25.0) {
+                category = "Thừa cân";
+            } else {
+                category = "Béo phì";
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("weightKg", weightVal);
+            result.put("heightCm", heightVal);
+            result.put("bmiValue", bmiVal);
+            result.put("bmiCategory", category);
+            
+            if (examDateObj != null) {
+                LocalDateTime ldt = null;
+                if (examDateObj instanceof java.sql.Timestamp) {
+                    ldt = ((java.sql.Timestamp) examDateObj).toLocalDateTime();
+                } else if (examDateObj instanceof LocalDateTime) {
+                    ldt = (LocalDateTime) examDateObj;
+                }
+                
+                if (ldt != null) {
+                    result.put("examinationDate", ldt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                } else {
+                    result.put("examinationDate", examDateObj.toString());
+                }
+            } else {
+                result.put("examinationDate", "N/A");
+            }
+            
+            return result;
+        } catch (Exception e) {
+            log.error("Lỗi khi lấy chỉ số BMI cho patientId={}: {}", patientId, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Lấy danh sách các thông báo liên quan tập luyện chưa đọc của ngày hôm nay.
+     */
+    public List<Notification> getUnreadExerciseNotificationsToday(Integer patientId) {
+        log.info("Lấy thông báo tập luyện chưa đọc hôm nay cho patientId={}", patientId);
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = LocalDate.now().atTime(23, 59, 59);
+        return notificationRepository.findUnreadExerciseNotificationsToday(patientId, start, end);
     }
 }

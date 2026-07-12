@@ -14,10 +14,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,6 +38,12 @@ public class ExerciseLogServiceTest {
 
     @InjectMocks
     private ExerciseLogService exerciseLogService;
+
+    @Mock
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
 
     @Test
     public void testGetTodaySummary_WithLogs() {
@@ -243,5 +251,50 @@ public class ExerciseLogServiceTest {
         int streak = exerciseLogService.getCurrentStreak(patientId);
 
         assertEquals(0, streak);
+    }
+
+    @Test
+    public void testGetLatestBmi_Success() {
+        Integer patientId = 1;
+        Map<String, Object> mockRow = new HashMap<>();
+        mockRow.put("weight_kg", new java.math.BigDecimal("65.5"));
+        mockRow.put("height_cm", new java.math.BigDecimal("170.0"));
+        mockRow.put("bmi", null); // triggers calculation
+        mockRow.put("examination_date", java.sql.Timestamp.valueOf(LocalDateTime.of(2026, 7, 12, 10, 0)));
+
+        when(jdbcTemplate.queryForList(anyString(), eq(patientId))).thenReturn(Collections.singletonList(mockRow));
+
+        Map<String, Object> result = exerciseLogService.getLatestBmi(patientId);
+
+        assertNotNull(result);
+        assertEquals(65.5, result.get("weightKg"));
+        assertEquals(170.0, result.get("heightCm"));
+        assertEquals(22.7, result.get("bmiValue")); // 65.5 / 1.7^2 = 22.66 -> 22.7
+        assertEquals("Bình thường", result.get("bmiCategory"));
+        assertEquals("12/07/2026", result.get("examinationDate"));
+    }
+
+    @Test
+    public void testGetLatestBmi_Empty() {
+        Integer patientId = 1;
+        when(jdbcTemplate.queryForList(anyString(), eq(patientId))).thenReturn(Collections.emptyList());
+
+        Map<String, Object> result = exerciseLogService.getLatestBmi(patientId);
+
+        assertNull(result);
+    }
+
+    @Test
+    public void testGetUnreadExerciseNotificationsToday() {
+        Integer patientId = 1;
+        List<com.rpm.remotepatientmonitoring.model.Notification> mockNotifs = Collections.singletonList(new com.rpm.remotepatientmonitoring.model.Notification());
+        
+        when(notificationRepository.findUnreadExerciseNotificationsToday(eq(patientId), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(mockNotifs);
+
+        List<com.rpm.remotepatientmonitoring.model.Notification> result = exerciseLogService.getUnreadExerciseNotificationsToday(patientId);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
     }
 }
