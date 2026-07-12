@@ -7,5 +7,6 @@ import java.util.List;
 
 @Repository
 public interface EmergencyProtocolRepository extends JpaRepository<EmergencyProtocol, Integer> {
+    List<EmergencyProtocol> findByHospitalId(Integer hospitalId);
     List<EmergencyProtocol> findByHospitalIdAndIsActiveTrue(Integer hospitalId);
 }

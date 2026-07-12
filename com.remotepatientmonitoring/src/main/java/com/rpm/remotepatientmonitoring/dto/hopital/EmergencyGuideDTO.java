@@ -1,6 +1,7 @@
-package com.rpm.remotepatientmonitoring.dto;
+package com.rpm.remotepatientmonitoring.dto.hopital;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,10 +15,12 @@ import lombok.NoArgsConstructor;
 public class EmergencyGuideDTO {
 
     @NotBlank(message = "Mức cảnh báo bắt buộc phải chọn.")
+    @Pattern(regexp = "^(GREEN|YELLOW|ORANGE|RED)$", message = "Mức cảnh báo phải là GREEN, YELLOW, ORANGE hoặc RED.")
     @Size(max = 10, message = "Mức cảnh báo không được quá 10 ký tự.")
     private String alertLevel;
 
     @NotBlank(message = "Chỉ số áp dụng bắt buộc phải chọn.")
+    @Pattern(regexp = "^(GLUCOSE|BLOOD_PRESSURE|BOTH)$", message = "Chỉ số áp dụng phải là GLUCOSE, BLOOD_PRESSURE hoặc BOTH.")
     @Size(max = 30, message = "Tên chỉ số không được quá 30 ký tự.")
     private String metricType;
 

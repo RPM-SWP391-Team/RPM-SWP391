@@ -46,10 +46,10 @@ public class Notification {
     @Builder.Default
     private String status = "SENT";
 
-    @Column(name = "title", nullable = false, length = 255)
+    @Column(name = "title", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
-    @Column(name = "content", nullable = false, length = 1000)
+    @Column(name = "content", nullable = false, columnDefinition = "NVARCHAR(1000)")
     private String content;
 
     @Column(name = "is_read", nullable = false)
