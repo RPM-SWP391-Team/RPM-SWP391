@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo | Bác sĩ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f4f7fb; color: #333; }
+        .navbar-custom { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-back { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: color 0.3s; }
+        .btn-back:hover { color: #fff; }
+        .card-custom { border: none; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: white; }
+        .notif-item { border-bottom: 1px solid #eee; padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; text-decoration: none; color: inherit; transition: background 0.2s; }
+        .notif-item:hover { background-color: #f8f9fa; }
+        .notif-item.unread { background-color: #eef3ff; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-title { font-weight: 700; color: #1e3c72; font-size: 0.95rem; }
+        .notif-content { color: #555; font-size: 0.88rem; margin-top: 4px; }
+        .notif-time { color: #999; font-size: 0.78rem; white-space: nowrap; }
+        .badge-unread-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff416c; display: inline-block; margin-right: 8px; flex-shrink: 0; margin-top: 6px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark navbar-custom py-3 mb-4">
+    <div class="container">
+        <a href="/doctor/dashboard" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
+        </a>
+        <div class="d-flex align-items-center">
+            <a href="/doctor/notifications" class="text-white text-decoration-none position-relative me-4" title="Thông báo">
+                <i class="fa-solid fa-bell fa-xl"></i>
+                <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">0</span>
+            </a>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="text-end me-3">
+                        <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ</div>
+                        <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa</small>
+                    </div>
+                    <i class="fa-solid fa-circle-user fa-2x"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; min-width: 180px;">
+                    <li><a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2"><i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi</a></li>
+                    <li><a href="/doctor/change-requests" class="dropdown-item d-flex align-items-center gap-2 py-2"><i class="fa-solid fa-envelope-open-text text-warning"></i> Quản lý yêu cầu</a></li>
+                    <li><a href="/doctor/appointments" class="dropdown-item d-flex align-items-center gap-2 py-2"><i class="fa-solid fa-calendar-check text-info"></i> Quản lý Lịch hẹn</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form th:action="@{/auth/logout}" method="POST" class="m-0">
+                            <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container pb-5">
+
+    <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1 text-dark">Thông báo</h3>
+            <p class="text-muted mb-0">Toàn bộ thông báo hệ thống gửi tới bạn.</p>
+        </div>
+        <form th:action="@{/doctor/notifications/mark-all-read}" method="POST">
+            <button type="submit" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+                <i class="fa-solid fa-check-double me-2"></i>Đánh dấu tất cả đã đọc
+            </button>
+        </form>
+    </div>
+
+    <!-- Lọc theo ngày -->
+    <form action="/doctor/notifications" method="GET" class="d-flex gap-2 mb-4 align-items-center">
+        <span class="text-muted small fw-bold">Từ:</span>
+        <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}" style="border-radius: 50px; max-width: 160px;">
+        <span class="text-muted small fw-bold">Đến:</span>
+        <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}" style="border-radius: 50px; max-width: 160px;">
+        <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="fa-solid fa-filter me-1"></i> Lọc
+        </button>
+        <a href="/doctor/notifications" th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '')}"
+           class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="Xóa bộ lọc">
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+    </form>
+
+    <div class="card card-custom p-0 overflow-hidden">
+        <div th:if="${notificationPage.isEmpty()}" class="text-center py-5 text-muted">
+            <i class="fa-regular fa-bell-slash fa-3x mb-3 opacity-50"></i>
+            <h5>Không có thông báo nào</h5>
+        </div>
+
+        <a th:each="notif : ${notificationPage.content}"
+           th:href="@{/doctor/notifications/{id}/read(id=${notif.id})}"
+           class="notif-item" th:classappend="${notif.isRead ? '' : 'unread'}">
+            <div class="d-flex">
+                <span th:if="${!notif.isRead}" class="badge-unread-dot"></span>
+                <div>
+                    <div class="notif-title" th:text="${notif.title}">Tiêu đề</div>
+                    <div class="notif-content" th:text="${notif.content}">Nội dung</div>
+                </div>
+            </div>
+            <div class="notif-time" th:text="${#temporals.format(notif.createdAt, 'dd/MM/yyyy HH:mm')}">--</div>
+        </a>
+    </div>
+
+    <nav aria-label="Page navigation" th:if="${notificationPage.totalPages > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${notificationPage.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/doctor/notifications(startDate=${startDate}, endDate=${endDate}, page=${notificationPage.number - 1})}">
+                    <i class="fa-solid fa-chevron-left"></i> Trước
+                </a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, notificationPage.totalPages - 1)}"
+                th:classappend="${notificationPage.number == i} ? 'active'">
+                <a class="page-link" th:href="@{/doctor/notifications(startDate=${startDate}, endDate=${endDate}, page=${i})}" th:text="${i + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${notificationPage.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/doctor/notifications(startDate=${startDate}, endDate=${endDate}, page=${notificationPage.number + 1})}">
+                    Sau <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
