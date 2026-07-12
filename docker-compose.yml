@@ -1,6 +1,6 @@
 services:
   backend:
-    build: ./backend
+    build: ./com.remotepatientmonitoring
     ports:
       - "8080:8080"
     environment:

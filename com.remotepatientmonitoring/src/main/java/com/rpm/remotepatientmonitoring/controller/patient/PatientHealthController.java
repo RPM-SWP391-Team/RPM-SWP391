@@ -4,10 +4,12 @@ import com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest;
 import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
+import com.rpm.remotepatientmonitoring.model.EmergencyProtocol;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository;
+import com.rpm.remotepatientmonitoring.repository.EmergencyProtocolRepository;
 import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,9 @@ public class PatientHealthController {
 
     @Autowired
     private EmergencyGuideRepository emergencyGuideRepository;
+
+    @Autowired
+    private EmergencyProtocolRepository emergencyProtocolRepository;
 
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -96,12 +101,12 @@ public class PatientHealthController {
             Integer latestDiastolic = null;
             Double latestGlucose = null;
 
-            Optional<DailyHealthLog> latestLogOpt = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(patient.getId());
-            if (latestLogOpt.isPresent()) {
-                DailyHealthLog log = latestLogOpt.get();
-                if (log.getSystolicBp() != null) {
-                    latestSystolic = log.getSystolicBp();
-                    if (latestSystolic >= 180) {
+            Optional<DailyHealthLog> latestBpLogOpt = healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId());
+            if (latestBpLogOpt.isPresent()) {
+                DailyHealthLog bpLog = latestBpLogOpt.get();
+                if (bpLog.getSystolicBp() != null) {
+                    latestSystolic = bpLog.getSystolicBp();
+                    if (latestSystolic >= 180 || latestSystolic < 90) {
                         level = Math.max(level, 4);
                     } else if (latestSystolic >= 140) {
                         level = Math.max(level, 3);
@@ -109,9 +114,9 @@ public class PatientHealthController {
                         level = Math.max(level, 2);
                     }
                 }
-                if (log.getDiastolicBp() != null) {
-                    latestDiastolic = log.getDiastolicBp();
-                    if (latestDiastolic >= 110) {
+                if (bpLog.getDiastolicBp() != null) {
+                    latestDiastolic = bpLog.getDiastolicBp();
+                    if (latestDiastolic >= 110 || latestDiastolic < 60) {
                         level = Math.max(level, 4);
                     } else if (latestDiastolic >= 90) {
                         level = Math.max(level, 3);
@@ -119,8 +124,13 @@ public class PatientHealthController {
                         level = Math.max(level, 2);
                     }
                 }
-                if (log.getGlucoseLevel() != null) {
-                    latestGlucose = log.getGlucoseLevel().doubleValue();
+            }
+
+            Optional<DailyHealthLog> latestGlucoseLogOpt = healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId());
+            if (latestGlucoseLogOpt.isPresent()) {
+                DailyHealthLog glucoseLog = latestGlucoseLogOpt.get();
+                if (glucoseLog.getGlucoseLevel() != null) {
+                    latestGlucose = glucoseLog.getGlucoseLevel().doubleValue();
                     if (latestGlucose < 4.4 || latestGlucose > 16.0) {
                         level = Math.max(level, 4);
                     } else if (latestGlucose > 10.0) {
@@ -156,6 +166,28 @@ public class PatientHealthController {
             response.put("guides", guidesList);
 
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/protocols")
+    public ResponseEntity<?> getEmergencyProtocols() {
+        try {
+            Patient patient = getCurrentPatient();
+            if (patient == null) {
+                // Fallback to first patient if no session (e.g. testing)
+                List<Patient> allPatients = patientRepository.findAll();
+                if (allPatients.isEmpty() == false) {
+                    patient = allPatients.get(0);
+                }
+            }
+            if (patient == null || patient.getHospital() == null) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            List<EmergencyProtocol> protocols = emergencyProtocolRepository.findByHospitalIdAndIsActiveTrue(patient.getHospital().getId());
+            return ResponseEntity.ok(protocols);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
