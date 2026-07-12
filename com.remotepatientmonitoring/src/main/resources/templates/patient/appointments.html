@@ -136,7 +136,6 @@
                                     <th>Bác sĩ</th>
                                     <th>Loại lịch hẹn</th>
                                     <th>Lý do của bạn</th>
-                                    <th>Kết luận của Bác sĩ</th>
                                     <th>Trạng thái</th>
                                     <th>Hành động</th>
                                 </tr>
@@ -149,17 +148,6 @@
                                         <span class="badge bg-secondary" th:text="${appt.appointmentType}">CHECKUP</span>
                                     </td>
                                     <td th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do khám</td>
-                                    <td class="text-wrap" style="max-width: 260px;">
-                                        <div th:if="${appt.status == 'COMPLETED'}" class="bg-light p-2.5 rounded border-start border-success border-3">
-                                            <strong class="text-success small" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fa-solid fa-notes-medical me-1"></i>KẾT LUẬN:</strong>
-                                            <p class="mb-0 mt-1 text-dark small" style="line-height: 1.4;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có ghi chú'}">Ghi chú</p>
-                                        </div>
-                                        <div th:if="${appt.status == 'REJECTED'}" class="bg-light p-2.5 rounded border-start border-danger border-3">
-                                            <strong class="text-danger small" style="font-size: 0.7rem; letter-spacing: 0.5px;"><i class="fa-solid fa-circle-xmark me-1"></i>LÝ DO TỪ CHỐI:</strong>
-                                            <p class="mb-0 mt-1 text-danger small" style="line-height: 1.4;" th:text="${appt.rejectionReason != null ? appt.rejectionReason : 'Không có lý do'}">Lý do</p>
-                                        </div>
-                                        <span th:if="${appt.status != 'COMPLETED' && appt.status != 'REJECTED'}" class="text-muted small">-</span>
-                                    </td>
                                     <td>
                                         <span class="badge badge-status" 
                                               th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
@@ -175,7 +163,7 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(appointments)}">
-                                    <td colspan="7" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
+                                    <td colspan="6" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -193,16 +181,6 @@
                             <h6 class="fw-bold mb-1" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                             <p class="mb-1 text-muted small">Bác sĩ phụ trách: <span th:text="${appt.doctor.fullName}">Bác sĩ B</span></p>
                             <p class="mb-1 text-muted small" th:text="'Lý do: ' + ${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}"></p>
-                            
-                            <!-- Doctor note / Rejection details for Mobile -->
-                            <div th:if="${appt.status == 'COMPLETED'}" class="mt-2 bg-light p-2.5 rounded border-start border-success border-3">
-                                <strong class="text-success small d-block mb-1"><i class="fa-solid fa-notes-medical me-1"></i>Kết luận của bác sĩ:</strong>
-                                <p class="mb-0 small text-dark" style="line-height: 1.4;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có ghi chú'}"></p>
-                            </div>
-                            <div th:if="${appt.status == 'REJECTED'}" class="mt-2 bg-light p-2.5 rounded border-start border-danger border-3">
-                                <strong class="text-danger small d-block mb-1"><i class="fa-solid fa-circle-xmark me-1"></i>Lý do từ chối:</strong>
-                                <p class="mb-0 small text-danger" style="line-height: 1.4;" th:text="${appt.rejectionReason != null ? appt.rejectionReason : 'Không có lý do'}"></p>
-                            </div>
 
                             <div th:if="${appt.status == 'PENDING'}" class="mt-2 text-end">
                                 <form th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');">
