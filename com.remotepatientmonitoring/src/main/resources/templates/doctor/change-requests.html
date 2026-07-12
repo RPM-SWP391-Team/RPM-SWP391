@@ -88,30 +88,13 @@
         </a>
         <div class="d-flex align-items-center">
             <!-- Notification Bell -->
-            <div class="dropdown me-4">
-                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa-solid fa-bell fa-xl"></i>
-                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
-                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                        0
-                    </span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
-                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
-                    <li th:if="${recentNotifications.isEmpty()}">
-                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
-                    </li>
-                    <li th:each="notif : ${recentNotifications}">
-                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
-                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
-                            </div>
-                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <a href="/doctor/notifications" class="text-white text-decoration-none position-relative me-4" title="Thông báo">
+                <i class="fa-solid fa-bell fa-xl"></i>
+                <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                    0
+                </span>
+            </a>
 
             <!-- Profile Dropdown -->
             <div class="dropdown">
@@ -181,19 +164,36 @@
         </div>
     </div>
 
-    <!-- TABS -->
-    <ul class="nav nav-pills mb-4 gap-2">
-        <li class="nav-item">
-            <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'pending' ? 'active' : 'bg-white border text-dark'}" href="/doctor/change-requests?tab=pending">
-                <i class="fa-solid fa-clock-rotate-left me-2"></i>Chờ xử lý
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- TABS -->
+        <ul class="nav nav-pills gap-2 mb-0">
+            <li class="nav-item">
+                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'pending' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/change-requests(tab='pending', startDate=${startDate}, endDate=${endDate})}">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Chờ xử lý
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/change-requests(tab='history', startDate=${startDate}, endDate=${endDate})}">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử (Đã xử lý)
+                </a>
+            </li>
+        </ul>
+
+        <!-- Lọc theo ngày -->
+        <form action="/doctor/change-requests" method="GET" class="d-flex gap-2 mb-0 align-items-center">
+            <input type="hidden" name="tab" th:value="${activeTab}">
+            <span class="text-muted small fw-bold">Từ:</span>
+            <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}" style="border-radius: 50px;">
+            <span class="text-muted small fw-bold">Đến:</span>
+            <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}" style="border-radius: 50px;">
+            <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+                <i class="fa-solid fa-filter me-1"></i> Lọc
+            </button>
+            <a th:href="@{/doctor/change-requests(tab=${activeTab})}" th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '')}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="Xóa bộ lọc">
+                <i class="fa-solid fa-xmark"></i>
             </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}" href="/doctor/change-requests?tab=history">
-                <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử (Đã xử lý)
-            </a>
-        </li>
-    </ul>
+        </form>
+    </div>
 
     <div class="card card-custom p-0 overflow-hidden">
         <div class="table-responsive">
@@ -209,13 +209,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:if="${changeRequests.isEmpty()}">
+                    <tr th:if="${changeRequestPage.isEmpty()}">
                         <td colspan="6" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-inbox fa-3x mb-3 opacity-50"></i>
                             <h5>Không có yêu cầu nào</h5>
                         </td>
                     </tr>
-                    <tr th:each="req : ${changeRequests}">
+                    <tr th:each="req : ${changeRequestPage.content}">
                         <td>
                             <div class="fw-bold text-dark" th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy')}">12/10/2023</div>
                             <small class="text-muted" th:text="${#temporals.format(req.createdAt, 'HH:mm')}">14:30</small>
@@ -305,9 +305,30 @@
                 </tbody>
             </table>
         </div>
+        <nav aria-label="Page navigation" th:if="${changeRequestPage.totalPages > 1}" class="mt-4 pb-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${changeRequestPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${changeRequestPage.number - 1})}">
+                        <i class="fa-solid fa-chevron-left"></i> Trước
+                    </a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, changeRequestPage.totalPages - 1)}"
+                    th:classappend="${changeRequestPage.number == i} ? 'active'">
+                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${changeRequestPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${changeRequestPage.number + 1})}">
+                        Sau <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
 </body>
 </html>

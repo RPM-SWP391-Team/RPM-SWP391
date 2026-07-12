@@ -406,30 +406,13 @@
         </a>
         <div class="d-flex align-items-center">
             <!-- Notification Bell -->
-            <div class="dropdown me-4">
-                <a href="#" class="text-white text-decoration-none position-relative" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa-solid fa-bell fa-xl"></i>
-                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
-                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                        0
-                    </span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationDropdown" style="width: 320px; border-radius: 12px; max-height: 400px; overflow-y: auto;">
-                    <li><h6 class="dropdown-header fw-bold">Thông báo hệ thống</h6></li>
-                    <li th:if="${recentNotifications.isEmpty()}">
-                        <span class="dropdown-item-text text-muted small text-center d-block py-3">Không có thông báo mới</span>
-                    </li>
-                    <li th:each="notif : ${recentNotifications}">
-                        <a href="#" class="dropdown-item py-2 border-bottom" th:classappend="${notif.isRead ? '' : 'bg-light'}">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1 fw-bold text-dark" th:text="${notif.title}" style="font-size: 0.9rem; white-space: normal; line-height: 1.2;">Tiêu đề</h6>
-                                <small class="text-muted" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}" style="font-size: 0.75rem;">Time</small>
-                            </div>
-                            <p class="mb-0 text-muted mt-1" th:text="${notif.content}" style="font-size: 0.85rem; white-space: normal; line-height: 1.4;">Nội dung</p>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <a href="/doctor/notifications" class="text-white text-decoration-none position-relative me-4" title="Thông báo">
+                <i class="fa-solid fa-bell fa-xl"></i>
+                <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                    0
+                </span>
+            </a>
 
             <!-- Profile Dropdown -->
             <div class="dropdown">
@@ -1581,5 +1564,8 @@
     });
     /*]]>*/
 </script>
+
+
+
 </body>
 </html>
