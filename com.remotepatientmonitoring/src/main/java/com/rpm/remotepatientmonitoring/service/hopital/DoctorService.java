@@ -200,7 +200,7 @@ public class DoctorService {
         List<Patient> activePatients = patientRepository.findByDoctorIdAndIsActiveTrue(doctorId);
 
         // Biến vệ tinh thu thập thông tin log (Không can thiệp cấu trúc điều hướng tải)
-        List<Integer> transferredPatientIds = new ArrayList<>();
+        List<String> transferredPatientsInfo = new ArrayList<>();
         List<Integer> assignedReplacementDoctorIds = new ArrayList<>();
 
         if (!activePatients.isEmpty()) {
@@ -230,7 +230,14 @@ public class DoctorService {
                 patientRepository.save(patient);
 
                 // Thu thập thông tin ID phục vụ lưu vết nhật ký
-                transferredPatientIds.add(patient.getId());
+                String safePatientCode = (patient.getPatientCode() != null) ? patient.getPatientCode().replace("\"", "'") : "Chưa có mã";
+                String safePatientName = (patient.getFullName() != null) ? patient.getFullName().replace("\"", "'") : "";
+
+                transferredPatientsInfo.add(String.format("{\"id\":%d, \"code\":\"%s\", \"name\":\"%s\"}",
+                        patient.getId(),
+                        safePatientCode,
+                        safePatientName
+                ));
                 if (!assignedReplacementDoctorIds.contains(replacementDoctor.getId())) {
                     assignedReplacementDoctorIds.add(replacementDoctor.getId());
                 }
@@ -256,10 +263,12 @@ public class DoctorService {
         }
 
         // ================= THÊM MỚI: AUDIT LOG CHO HÀNH ĐỘNG VÔ HIỆU HÓA & ĐIỀU CHUYỂN =================
+        // ĐỔI TỪ ĐOẠN String newValueJson CŨ:
+// THÀNH ĐOẠN NÀY:
         String newValueJson = String.format(
-                "{\"status\":\"INACTIVE\",\"doctorId\":%s,\"patientIds\":%s}",
+                "{\"status\":\"INACTIVE\",\"doctorId\":%s,\"patients\":[%s]}",
                 assignedReplacementDoctorIds.toString(),
-                transferredPatientIds.toString()
+                String.join(",", transferredPatientsInfo)
         );
         saveAuditLog("ASSIGN_PATIENTS", "doctors", doctor.getId(), "{\"status\":\"ACTIVE\"}", newValueJson, "Vô hiệu hóa bác sĩ & điều chuyển bệnh nhân");
     }
@@ -292,25 +301,53 @@ public class DoctorService {
         Doctor doctor = doctorRepository.findById(Integer.valueOf(id))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id));
 
-        // Giữ nguyên logic bẫy trùng SĐT và bẫy giới hạn tải của bạn
+        // 1. Kiểm tra trùng số điện thoại
         if (doctorRepository.existsByPhoneAndIdNot(dto.getPhone(), id)) {
             throw new IllegalArgumentException("Số điện thoại đã được đăng ký bởi một bác sĩ khác.");
         }
 
+        // 2. Kiểm tra giới hạn tải bệnh nhân
         if (dto.getCapacityLimit() < doctor.getCurrentPatientCount()) {
             throw new IllegalArgumentException("Giới hạn tải không thể nhỏ hơn số lượng bệnh nhân hiện tại bác sĩ đang phụ trách (" + doctor.getCurrentPatientCount() + " bệnh nhân).");
         }
 
+        // 3. Kiểm tra tên hợp lệ
         String nameRegex = "^[\\p{L}\\s]{2,50}$";
         if (dto.getFullName() == null || !dto.getFullName().trim().matches(nameRegex)) {
             throw new IllegalArgumentException("Họ và tên bác sĩ không hợp lệ. Tên chỉ được phép chứa chữ cái tiếng Việt và khoảng trắng.");
         }
 
-        // ================= STEP 1: CHỤP ẢNH DỮ LIỆU CŨ TRƯỚC KHI THAY ĐỔI =================
+        Account account = doctor.getAccount();
+        String currentEmail = account.getEmail();
+        String newEmail = dto.getEmail().trim();
+        boolean isEmailChanged = !currentEmail.equalsIgnoreCase(newEmail);
+        String newPassword = null;
+
+        // 4. XỬ LÝ ĐỔI EMAIL VÀ CẤP LẠI MẬT KHẨU
+        if (isEmailChanged) {
+            // Kiểm tra email mới đã tồn tại chưa (loại trừ tài khoản hiện tại)
+            if (accountRepository.existsByEmail(newEmail)) {
+                throw new IllegalArgumentException("Email này đã được sử dụng bởi một tài khoản khác.");
+            }
+
+            newPassword = generatePassword(); // Hàm sinh mật khẩu ngẫu nhiên đã có sẵn
+
+            try {
+                boolean isMailSent = emailService.sendDoctorPassword(newEmail, dto.getFullName(), newPassword);
+                if (!isMailSent) {
+                    throw new IllegalArgumentException("Email lỗi: Địa chỉ email mới không tồn tại hoặc không thể chuyển phát thư.");
+                }
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Email lỗi: Địa chỉ email mới không khả dụng hoặc cấu hình SMTP bị từ chối.");
+            }
+        }
+
+        // 5. CHỤP ẢNH DỮ LIỆU CŨ (Bổ sung thêm Email)
         String oldValueJson = "-";
         try {
             oldValueJson = String.format(
-                    "{\"fullName\": \"%s\", \"phone\": \"%s\", \"gender\": \"%s\", \"specialty\": \"%s\", \"capacityLimit\": %d}",
+                    "{\"email\": \"%s\", \"fullName\": \"%s\", \"phone\": \"%s\", \"gender\": \"%s\", \"specialty\": \"%s\", \"capacityLimit\": %d}",
+                    currentEmail,
                     doctor.getFullName() != null ? doctor.getFullName() : "",
                     doctor.getPhone() != null ? doctor.getPhone() : "",
                     doctor.getGender() != null ? doctor.getGender() : "",
@@ -321,7 +358,14 @@ public class DoctorService {
             oldValueJson = "{\"error\": \"Không thể lưu ảnh snapshot dữ liệu cũ\"}";
         }
 
-        // Giữ nguyên luồng cập nhật gán dữ liệu gốc của bạn
+        // 6. CẬP NHẬT DỮ LIỆU MỚI
+        if (isEmailChanged) {
+            account.setEmail(newEmail);
+            account.setPasswordHash(passwordEncoder.encode(newPassword));
+            account.setUpdatedAt(LocalDateTime.now());
+            accountRepository.save(account);
+        }
+
         doctor.setFullName(dto.getFullName().trim());
         doctor.setPhone(dto.getPhone().trim());
         doctor.setGender(dto.getGender());
@@ -331,17 +375,20 @@ public class DoctorService {
 
         doctorRepository.save(doctor);
 
-        // ================= STEP 2: GHI AUDIT LOG LƯU GIÁ TRỊ MỚI =================
+        // 7. GHI AUDIT LOG (Bổ sung thêm Email)
         String newValueJson = String.format(
-                "{\"fullName\":\"%s\",\"phone\":\"%s\",\"gender\":\"%s\",\"specialty\":\"%s\",\"capacityLimit\":%d}",
+                "{\"email\":\"%s\", \"fullName\":\"%s\",\"phone\":\"%s\",\"gender\":\"%s\",\"specialty\":\"%s\",\"capacityLimit\":%d}",
+                newEmail,
                 doctor.getFullName(),
                 doctor.getPhone(),
                 doctor.getGender(),
                 doctor.getSpecialty(),
                 doctor.getCapacityLimit()
         );
-        saveAuditLog("UPDATE_DOCTOR", "doctors", doctor.getId(), oldValueJson, newValueJson, "Cập nhật thông tin bác sĩ");
+        saveAuditLog("UPDATE_DOCTOR", "doctors", doctor.getId(), oldValueJson, newValueJson,
+                isEmailChanged ? "Cập nhật thông tin và đổi Email/Mật khẩu" : "Cập nhật thông tin bác sĩ");
     }
+
 
     private List<ReplacementDoctorDto> getReplacementCapacityList(Integer hospitalId, Integer currentDoctorId) {
         List<com.rpm.remotepatientmonitoring.model.Doctor> docs = doctorRepository.findBestReplacementDoctors(hospitalId, currentDoctorId);

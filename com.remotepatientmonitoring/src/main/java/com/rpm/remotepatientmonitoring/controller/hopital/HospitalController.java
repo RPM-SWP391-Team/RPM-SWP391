@@ -7,6 +7,9 @@ import com.rpm.remotepatientmonitoring.model.Alert;
 import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.service.hopital.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -109,34 +112,46 @@ public class HospitalController {
     }
 
     @GetMapping("/admin/doctors/active")
-    public String activeDoctors(Model model) {
-        List<Doctor> doctors = doctorRepository.findByHospitalIdAndIsActiveTrue(HARDCODED_HOSPITAL_ID);
+    public String activeDoctors(@RequestParam(defaultValue = "0") int page, Model model) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Doctor> doctorPage = doctorRepository.findByHospitalIdAndIsActiveTrue(HARDCODED_HOSPITAL_ID, pageable);
+
         model.addAttribute("title", "Danh sách Bác sĩ đang hoạt động");
-        model.addAttribute("doctors", doctors);
+        model.addAttribute("doctors", doctorPage.getContent()); // Vẫn trả ra List để Thymeleaf ko bị lỗi
+        model.addAttribute("pageData", doctorPage); // Đẩy thêm data phân trang
         return "hospital/list_view";
     }
 
     @GetMapping("/admin/patients/treating")
-    public String treatingPatients(Model model) {
-        List<Patient> patients = patientRepository.findByHospitalIdAndStatus(HARDCODED_HOSPITAL_ID, "TREATING");
+    public String treatingPatients(@RequestParam(defaultValue = "0") int page, Model model) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Patient> patientPage = patientRepository.findByHospitalIdAndStatus(HARDCODED_HOSPITAL_ID, "TREATING", pageable);
+
         model.addAttribute("title", "Danh sách Bệnh nhân đang điều trị");
-        model.addAttribute("patients", patients);
+        model.addAttribute("patients", patientPage.getContent());
+        model.addAttribute("pageData", patientPage);
         return "hospital/list_view";
     }
 
     @GetMapping("/admin/patients/new")
-    public String newPatients(Model model) {
-        List<Patient> patients = patientRepository.findByHospitalIdAndStatus(HARDCODED_HOSPITAL_ID, "NEW");
+    public String newPatients(@RequestParam(defaultValue = "0") int page, Model model) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Patient> patientPage = patientRepository.findByHospitalIdAndStatus(HARDCODED_HOSPITAL_ID, "NEW", pageable);
+
         model.addAttribute("title", "Danh sách Bệnh nhân đăng ký mới");
-        model.addAttribute("patients", patients);
+        model.addAttribute("patients", patientPage.getContent());
+        model.addAttribute("pageData", patientPage);
         return "hospital/list_view";
     }
 
     @GetMapping("/admin/alerts/red-pending")
-    public String pendingRedAlerts(Model model) {
-        List<Alert> alerts = alertRepository.findUnresolvedRedAlertsByHospital(HARDCODED_HOSPITAL_ID);
+    public String pendingRedAlerts(@RequestParam(defaultValue = "0") int page, Model model) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Alert> alertPage = alertRepository.findUnresolvedRedAlertsByHospital(HARDCODED_HOSPITAL_ID, pageable);
+
         model.addAttribute("title", "Danh sách Cảnh báo Đỏ chưa giải quyết");
-        model.addAttribute("alerts", alerts);
+        model.addAttribute("alerts", alertPage.getContent());
+        model.addAttribute("pageData", alertPage);
         return "hospital/list_view";
     }
 }
