@@ -181,6 +181,57 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Hướng dẫn đo y tế -->
+                        <div class="mt-4 border-top pt-4">
+                            <!-- Hướng dẫn đo huyết áp -->
+                            <div class="card border-0 shadow-sm mb-3 bg-white" style="border-radius: 14px;">
+                                <div class="card-body p-3">
+                                    <h6 class="fw-bold text-danger mb-2 d-flex align-items-center gap-2" style="font-size: 0.88rem;">
+                                        <i class="fa-solid fa-heart-pulse"></i> Hướng dẫn đo huyết áp
+                                    </h6>
+                                    <div class="small text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.45;">
+                                        <div class="fw-bold text-dark mb-1">Trước khi đo:</div>
+                                        <ul class="ps-3 mb-2">
+                                            <li>Nghỉ ngơi 5–10 phút.</li>
+                                            <li>Không uống cà phê, rượu bia hoặc hút thuốc trong 2 giờ trước khi đo.</li>
+                                            <li>Ngồi thẳng lưng, thả lỏng cơ thể, không bắt chéo chân.</li>
+                                            <li>Đặt cánh tay ngang mức tim.</li>
+                                            <li>Không nói chuyện hoặc cử động khi đang đo.</li>
+                                        </ul>
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-circle-info me-1" style="color: #6b7280;"></i><strong>Lưu ý:</strong> Nên đo ít nhất 2 lần, cách nhau 1–2 phút và lấy trung bình kết quả.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hướng dẫn đo đường huyết -->
+                            <div class="card border-0 shadow-sm bg-white" style="border-radius: 14px;">
+                                <div class="card-body p-3">
+                                    <h6 class="fw-semibold mb-2 d-flex align-items-center gap-2" style="color: #0891b2; font-size: 0.88rem;">
+                                        <i class="fa-solid fa-droplet"></i> Hướng dẫn đo đường huyết
+                                    </h6>
+                                    <div class="small text-secondary" style="font-size: 0.78rem; line-height: 1.45;">
+                                        <div class="fw-bold text-dark mb-1">Trước khi đo:</div>
+                                        <ul class="ps-3 mb-2">
+                                            <li>Rửa tay sạch và lau khô.</li>
+                                            <li>Chuẩn bị máy đo, que thử và kim lấy máu.</li>
+                                            <li>Không lấy máu khi tay còn dính thức ăn hoặc nước ngọt.</li>
+                                        </ul>
+                                        <div class="fw-bold text-dark mb-1">Thời điểm đo:</div>
+                                        <ul class="ps-3 mb-2">
+                                            <li>Lúc đói: Sau khi nhịn ăn ít nhất 8 giờ.</li>
+                                            <li>Sau ăn: Đo 2 giờ sau khi bắt đầu bữa ăn.</li>
+                                            <li>Hoặc đo theo chỉ định của bác sĩ.</li>
+                                        </ul>
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-circle-info me-1" style="color: #6b7280;"></i><strong>Lưu ý:</strong> Ghi lại kết quả để theo dõi và chia sẻ với bác sĩ khi cần.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ========== PANEL 1A: Mốc huyết áp ========== -->
@@ -334,7 +385,7 @@
                             <i class="fa-solid fa-cloud-arrow-up fa-3x mb-3" style="color:#94a3b8;"></i>
                             <h6 class="fw-bold">Chụp ảnh hoặc chọn tệp</h6>
                             <p class="text-muted small mb-0">JPG, PNG từ máy đo</p>
-                            <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="simulateOCR()">
+                            <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="uploadPhotoAndProcessOCR()">
                         </div>
                         <div id="ocr-loading-area" class="text-center py-4 border rounded-3 bg-light mb-4 d-none">
                             <div class="spinner-border text-primary mb-3" role="status"></div>
@@ -343,7 +394,10 @@
                                 <div class="scanner-line"></div>
                             </div>
                         </div>
-                        <div id="ocr-error-area" class="alert alert-danger d-none"><i class="fa-solid fa-triangle-exclamation me-2"></i><strong>Không đọc được — vui lòng nhập tay.</strong></div>
+                        <div id="ocr-error-area" class="alert alert-danger d-none">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                            <strong id="ocr-error-message">Không đọc được — vui lòng nhập tay.</strong>
+                        </div>
                         <div id="ocr-confirm-area" class="p-3 border rounded-4 bg-light mb-3 d-none">
                             <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-circle-check me-2"></i>Kết quả AI</h6>
                             <div id="ocr-result-bp" class="mb-2 d-none">
@@ -574,6 +628,64 @@
         function triggerPhotoUpload() { document.getElementById('file-input').click(); }
         function simulateOCR() { simulateSuccessfulPhotoUpload(); }
 
+        function uploadPhotoAndProcessOCR() {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length === 0) return;
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            switchInputMethod('OCR');
+            document.getElementById('upload-box').classList.add('d-none');
+            document.getElementById('ocr-loading-area').classList.remove('d-none');
+            document.getElementById('ocr-confirm-area').classList.add('d-none');
+            document.getElementById('ocr-error-area').classList.add('d-none');
+
+            fetch('/patient/log/ocr', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ocr-loading-area').classList.add('d-none');
+
+                if (data.error) {
+                    console.error("OCR Error:", data.error);
+                    document.getElementById('ocr-error-message').textContent = data.error;
+                    document.getElementById('ocr-error-area').classList.remove('d-none');
+                    return;
+                }
+
+                // Điền dữ liệu quét được vào vùng hiển thị xác nhận
+                if (hasHypertension) {
+                    document.getElementById('ocr-val-systolic').textContent = data.systolic !== null ? data.systolic : "--";
+                    document.getElementById('ocr-val-diastolic').textContent = data.diastolic !== null ? data.diastolic : "--";
+                    document.getElementById('ocr-val-heartrate').textContent = data.heartRate !== null ? data.heartRate : "--";
+                    
+                    document.getElementById('ocr-result-bp').classList.remove('d-none');
+                }
+
+                if (hasDiabetes) {
+                    document.getElementById('ocr-val-glucose').textContent = data.glucose !== null ? data.glucose + " mmol/L" : "-- mmol/L";
+                    
+                    document.getElementById('ocr-result-glucose').classList.remove('d-none');
+                }
+
+                // Hiển thị vùng xác nhận kết quả
+                document.getElementById('ocr-confirm-area').classList.remove('d-none');
+
+                // Lưu kết quả OCR vào bộ nhớ tạm
+                window.ocrResults = data;
+            })
+            .catch(error => {
+                console.error("AJAX Error:", error);
+                document.getElementById('ocr-loading-area').classList.add('d-none');
+                document.getElementById('ocr-error-message').textContent = "Không thể kết nối đến server.";
+                document.getElementById('ocr-error-area').classList.remove('d-none');
+            });
+        }
+
         function simulateSuccessfulPhotoUpload() {
             switchInputMethod('OCR');
             document.getElementById('upload-box').classList.add('d-none');
@@ -583,8 +695,25 @@
             setTimeout(() => {
                 document.getElementById('ocr-loading-area').classList.add('d-none');
                 document.getElementById('ocr-confirm-area').classList.remove('d-none');
-                if (hasHypertension) document.getElementById('ocr-result-bp').classList.remove('d-none');
-                if (hasDiabetes) document.getElementById('ocr-result-glucose').classList.remove('d-none');
+                
+                const mockData = {
+                    systolic: 122,
+                    diastolic: 80,
+                    heartRate: 74,
+                    glucose: 6.5
+                };
+                window.ocrResults = mockData;
+
+                if (hasHypertension) {
+                    document.getElementById('ocr-val-systolic').textContent = mockData.systolic;
+                    document.getElementById('ocr-val-diastolic').textContent = mockData.diastolic;
+                    document.getElementById('ocr-val-heartrate').textContent = mockData.heartRate;
+                    document.getElementById('ocr-result-bp').classList.remove('d-none');
+                }
+                if (hasDiabetes) {
+                    document.getElementById('ocr-val-glucose').textContent = mockData.glucose + " mmol/L";
+                    document.getElementById('ocr-result-glucose').classList.remove('d-none');
+                }
             }, 1800);
         }
 
@@ -596,6 +725,7 @@
             document.getElementById('ocr-error-area').classList.add('d-none');
             setTimeout(() => {
                 document.getElementById('ocr-loading-area').classList.add('d-none');
+                document.getElementById('ocr-error-message').textContent = "Lỗi giả lập: Không đọc được ảnh máy đo.";
                 document.getElementById('ocr-error-area').classList.remove('d-none');
                 setTimeout(() => {
                     alert("Không đọc được — vui lòng nhập tay");
@@ -607,10 +737,11 @@
         }
 
         function ocrEditManual() {
+            const data = window.ocrResults || {};
             if (hasHypertension) {
-                document.getElementById('systolicBp').value = 122;
-                document.getElementById('diastolicBp').value = 80;
-                document.getElementById('heartRate').value = 74;
+                document.getElementById('systolicBp').value = data.systolic !== null ? data.systolic : "";
+                document.getElementById('diastolicBp').value = data.diastolic !== null ? data.diastolic : "";
+                document.getElementById('heartRate').value = data.heartRate !== null ? data.heartRate : "";
                 document.getElementById('logTypeField').value = 'MORNING';
                 document.getElementById('labelBp').textContent = '🌅 Buổi sáng';
                 switchInputMethod('MANUAL');
@@ -618,7 +749,7 @@
                 if (isBothGroups) setBars('done', 'done', 'active');
                 else setBars('done', 'active', null);
             } else if (hasDiabetes) {
-                document.getElementById('glucoseLevel').value = 6.5;
+                document.getElementById('glucoseLevel').value = data.glucose !== null ? data.glucose : "";
                 document.getElementById('logTypeField').value = 'MORNING';
                 document.getElementById('labelGl').textContent = '☀️ Mốc 1';
                 switchInputMethod('MANUAL');
@@ -631,10 +762,11 @@
         }
 
         function ocrConfirmSubmit() {
+            const data = window.ocrResults || {};
             if (hasHypertension) {
-                document.getElementById('systolicBp').value = 122;
-                document.getElementById('diastolicBp').value = 80;
-                document.getElementById('heartRate').value = 74;
+                document.getElementById('systolicBp').value = data.systolic !== null ? data.systolic : "";
+                document.getElementById('diastolicBp').value = data.diastolic !== null ? data.diastolic : "";
+                document.getElementById('heartRate').value = data.heartRate !== null ? data.heartRate : "";
             } else {
                 const sys = document.getElementById('systolicBp');
                 const dia = document.getElementById('diastolicBp');
@@ -644,7 +776,7 @@
                 if (hr) hr.disabled = true;
             }
             if (hasDiabetes) {
-                document.getElementById('glucoseLevel').value = 6.5;
+                document.getElementById('glucoseLevel').value = data.glucose !== null ? data.glucose : "";
             } else {
                 const gl = document.getElementById('glucoseLevel');
                 if (gl) gl.disabled = true;
