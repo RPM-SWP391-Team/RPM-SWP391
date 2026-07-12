@@ -684,47 +684,7 @@ public class PatientController {
         return "patient/nutrition";
     }
 
-    @GetMapping("/exercise")
-    public String getExercisePage(Model model) {
-        Patient patient = getCurrentPatient();
-        if (patient == null) {
-            return "redirect:/auth/login";
-        }
-        if ("NEW".equals(patient.getStatus())) {
-            return "redirect:/patient/appointments";
-        }
 
-        List<PatientExercise> exercises = new ArrayList<>();
-        int totalMinutes = 0;
-        int totalCaloriesBurned = 0;
-        int targetMinutes = 30; // Default target
-
-        try {
-            if (patient.getId() != null) {
-                LocalDate today = LocalDate.now();
-                exercises = patientExerciseRepository.findByPatientIdAndLogDate(patient.getId(), today);
-                for (PatientExercise e : exercises) {
-                    totalMinutes += e.getDurationMinutes();
-                    totalCaloriesBurned += e.getCaloriesBurned();
-                }
-            }
-        } catch (Exception ignored) {
-        }
-
-        int exerciseProgress = targetMinutes > 0 ? (totalMinutes * 100 / targetMinutes) : 0;
-        if (exerciseProgress > 100) {
-            exerciseProgress = 100;
-        }
-
-        model.addAttribute("patient", patient);
-        model.addAttribute("exercises", exercises);
-        model.addAttribute("totalMinutes", totalMinutes);
-        model.addAttribute("totalCaloriesBurned", totalCaloriesBurned);
-        model.addAttribute("targetMinutes", targetMinutes);
-        model.addAttribute("exerciseProgress", exerciseProgress);
-
-        return "patient/exercise";
-    }
 
     // ==================== Progress Report (Patient Profile) ====================
 
@@ -760,46 +720,63 @@ public class PatientController {
     public String updateProfile(
             @RequestParam("phone") String phone,
             @RequestParam("address") String address,
-            @RequestParam("email") String email,
+            @RequestParam(value = "currentPassword", required = false) String currentPassword,
             @RequestParam(value = "password", required = false) String password,
-            @RequestParam("emergencyContactName") String emergencyContactName,
-            @RequestParam("emergencyContactPhone") String emergencyContactPhone,
+            @RequestParam(value = "emergencyContactName", required = false) String emergencyContactName,
+            @RequestParam(value = "emergencyContactPhone", required = false) String emergencyContactPhone,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes
     ) {
-        if (!phone.matches("0[35789][0-9]{8}")) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        // Validate personal phone format
+        if (phone == null || !phone.matches("0[35789][0-9]{8}")) {
             redirectAttributes.addFlashAttribute("error", "Số điện thoại cá nhân không hợp lệ!");
             return "redirect:/patient/progress";
         }
-        if (!emergencyContactPhone.matches("0[35789][0-9]{8}")) {
-            redirectAttributes.addFlashAttribute("error", "Số điện thoại người thân không hợp lệ!");
-            return "redirect:/patient/progress";
-        }
-        if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
-            redirectAttributes.addFlashAttribute("error", "Email không hợp lệ!");
-            return "redirect:/patient/progress";
-        }
-        if (password != null && !password.trim().isEmpty() && (password.length() < 6 || password.length() > 50)) {
-            redirectAttributes.addFlashAttribute("error", "Mật khẩu phải từ 6 đến 50 ký tự!");
-            return "redirect:/patient/progress";
-        }
-        List<Patient> allPatients = patientRepository.findAll();
-        if (allPatients.isEmpty()) {
-            throw new IllegalStateException("No patient found in the database.");
-        }
-        Patient patient = allPatients.get(0);
 
-        patient.setPhone(phone);
-        patient.setAddress(address);
-        patient.setEmergencyContactName(emergencyContactName);
-        patient.setEmergencyContactPhone(emergencyContactPhone);
+
+        // Validate emergency phone format if provided
+        if (emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty()) {
+            if (!emergencyContactPhone.matches("0[35789][0-9]{8}")) {
+                redirectAttributes.addFlashAttribute("error", "Số điện thoại người thân không hợp lệ!");
+                return "redirect:/patient/progress";
+            }
+        }
+
+        // Check password change request and validate current password
+        boolean isChangingPassword = password != null && !password.trim().isEmpty();
+        if (isChangingPassword) {
+            if (password.length() < 6 || password.length() > 50) {
+                redirectAttributes.addFlashAttribute("error", "Mật khẩu mới phải từ 6 đến 50 ký tự!");
+                return "redirect:/patient/progress";
+            }
+            if (currentPassword == null || currentPassword.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Vui lòng nhập mật khẩu hiện tại để xác nhận đổi mật khẩu mới!");
+                return "redirect:/patient/progress";
+            }
+            Account account = patient.getAccount();
+            if (account == null || !passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+                redirectAttributes.addFlashAttribute("error", "Mật khẩu hiện tại không đúng!");
+                return "redirect:/patient/progress";
+            }
+        }
+
+        // Apply and save changes to Patient info
+        patient.setPhone(phone.trim());
+        patient.setAddress(address != null ? address.trim() : "");
+        patient.setEmergencyContactName(emergencyContactName != null && !emergencyContactName.trim().isEmpty() ? emergencyContactName.trim() : null);
+        patient.setEmergencyContactPhone(emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty() ? emergencyContactPhone.trim() : null);
         patient.setUpdatedAt(LocalDateTime.now());
         patientRepository.save(patient);
 
+        // Apply and save changes to Account info (Email is readonly and NOT updated)
         Account account = patient.getAccount();
         if (account != null) {
-            account.setEmail(email);
-            if (password != null && !password.trim().isEmpty()) {
-                account.setPasswordHash(passwordEncoder.encode(password));
+            if (isChangingPassword) {
+                account.setPasswordHash(passwordEncoder.encode(password.trim()));
             }
             account.setUpdatedAt(LocalDateTime.now());
             accountRepository.save(account);
