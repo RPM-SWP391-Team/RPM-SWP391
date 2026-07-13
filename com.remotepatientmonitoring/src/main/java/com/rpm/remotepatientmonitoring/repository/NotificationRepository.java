@@ -41,7 +41,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     @Query("SELECT n FROM Notification n WHERE n.patient.id = :patientId " +
            "AND n.isRead = false " +
-           "AND n.notificationType IN ('EXERCISE_REMINDER', 'EXERCISE_STREAK_MILESTONE', 'EXERCISE_BP_REMINDER', 'EXERCISE_INACTIVITY_REMINDER') " +
+           "AND n.notificationType IN ('EXERCISE_REMINDER', 'EXERCISE_STREAK_MILESTONE', 'EXERCISE_BP_REMINDER', 'EXERCISE_INACTIVITY_REMINDER', 'EXERCISE_STREAK_AT_RISK') " +
            "ORDER BY n.createdAt DESC")
     List<Notification> findUnreadExerciseNotifications(
             @Param("patientId") Integer patientId

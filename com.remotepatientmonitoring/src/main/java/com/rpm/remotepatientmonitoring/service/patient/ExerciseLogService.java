@@ -403,10 +403,33 @@ public class ExerciseLogService {
                         n.setContent("Bạn đã ghi nhận vận động hôm nay. Tiếp tục cố gắng để đạt mục tiêu nhé!");
                     }
                     notificationRepository.save(n);
+                } else if ("EXERCISE_STREAK_AT_RISK".equals(n.getNotificationType())) {
+                    if (totalMinutes >= targetMinutes) {
+                        n.setTitle("Đạt mục tiêu tập luyện");
+                        n.setContent("Chúc mừng! Bạn đã đạt mục tiêu vận động hôm nay 🎉");
+                        notificationRepository.save(n);
+                    }
                 }
             }
         } catch (Exception e) {
             log.error("Lỗi khi thay đổi thông báo chưa tập luyện cho patient={}: {}", patientId, e.getMessage());
         }
+    }
+
+    /**
+     * Kiểm tra xem bệnh nhân có nguy cơ mất streak tập luyện hôm nay hay không.
+     * Trả về true nếu streak hiện tại > 0 VÀ tổng phút vận động hôm nay < mục tiêu hôm nay.
+     */
+    public boolean isStreakAtRiskToday(Integer patientId) {
+        int streak = getCurrentStreak(patientId);
+        if (streak <= 0) {
+            return false;
+        }
+
+        Map<String, Object> summary = getTodaySummary(patientId);
+        int totalMinutes = summary.get("totalMinutes") != null ? (int) summary.get("totalMinutes") : 0;
+        int targetMinutes = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : 30;
+
+        return totalMinutes < targetMinutes;
     }
 }
