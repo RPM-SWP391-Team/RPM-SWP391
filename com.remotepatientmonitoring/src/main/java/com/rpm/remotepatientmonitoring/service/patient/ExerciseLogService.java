@@ -238,7 +238,7 @@ public class ExerciseLogService {
                         .createdAt(LocalDateTime.now())
                         .build();
                 notificationRepository.save(notif);
-                log.info("Đã tạo cảnh báo vận động mạnh đột ngột cho patientId={}", patientId);
+                ExerciseLogService.log.info("Đã tạo cảnh báo vận động mạnh đột ngột cho patientId={}", patientId);
             }
         }
 
@@ -341,7 +341,7 @@ public class ExerciseLogService {
                         .createdAt(LocalDateTime.now())
                         .build();
                 notificationRepository.save(notif);
-                log.info("Đã tạo cảnh báo vận động mạnh đột ngột cho patientId={}", patientId);
+                ExerciseLogService.log.info("Đã tạo cảnh báo vận động mạnh đột ngột cho patientId={}", patientId);
             }
         }
 
