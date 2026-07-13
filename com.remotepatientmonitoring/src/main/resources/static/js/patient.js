@@ -255,7 +255,19 @@ document.addEventListener("DOMContentLoaded", function() {
                                         ${glucoseGuidesHtml ? glucoseGuidesHtml : '<p class="text-muted small">Không có hướng dẫn đường huyết nào.</p>'}
                                     </div>
                                 </div>
-                          // 7. Build Handbook (Cẩm nang) Modal HTML dynamically
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Append Emergency Modal
+        const emergencyContainer = document.createElement('div');
+        emergencyContainer.innerHTML = emergencyModalHtml;
+        document.body.appendChild(emergencyContainer.firstElementChild);
+
+        // 7. Build Handbook (Cẩm nang) Modal HTML dynamically
         const handbookModalHtml = `
             <div class="modal fade" id="handbookModal" tabindex="-1" aria-labelledby="handbookModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -468,19 +480,9 @@ document.addEventListener("DOMContentLoaded", function() {
             };
             searchInput.addEventListener('input', handleFilterChange);
             sortSelect.addEventListener('change', handleFilterChange);
-        }                             </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        }
 
-        // Append Handbook Modal
-        const handbookContainer = document.createElement('div');
-        handbookContainer.innerHTML = handbookModalHtml;
-        document.body.appendChild(handbookContainer.firstElementChild);
+
 
         // 8. Create Health Evaluation Modal HTML
         let levelText = 'Bình thường';
