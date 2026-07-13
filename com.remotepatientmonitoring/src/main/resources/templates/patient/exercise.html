@@ -16,15 +16,20 @@
         <!-- Exercise Notifications Banner Area -->
         <div th:if="${exerciseNotifications != null && !exerciseNotifications.isEmpty()}" class="mb-4 d-flex flex-column gap-2" id="exerciseNotifArea">
             <div th:each="notif : ${exerciseNotifications}" 
-                 class="alert alert-info alert-dismissible fade show shadow-sm border-0 d-flex align-items-center py-3 px-4 rounded-3 mb-0" 
+                 class="alert alert-dismissible fade show shadow-sm border-0 d-flex align-items-center py-3 px-4 rounded-3 mb-0" 
                  role="alert" 
-                 th:id="'exercise-notif-' + ${notif.id}">
+                 th:id="'exercise-notif-' + ${notif.id}"
+                 th:classappend="${notif.notificationType == 'EXERCISE_SHORT_BURST_WARNING' ? 'alert-danger' : (notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'alert-warning' : 'alert-info')}"
+                 th:style="${notif.notificationType == 'EXERCISE_SHORT_BURST_WARNING' ? 'background-color: #fff5eb; border-left: 5px solid #fd7e14 !important;' : (notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'background-color: #fff9db; border-left: 5px solid #fcc419 !important;' : 'background-color: #eef2ff; border-left: 5px solid #6366f1 !important;')}"
+            >
                 <div class="me-3">
                     <!-- Icon based on notification type -->
                     <i th:if="${notif.notificationType == 'EXERCISE_STREAK_MILESTONE'}" class="fa-solid fa-fire text-warning fa-xl"></i>
                     <i th:if="${notif.notificationType == 'EXERCISE_REMINDER'}" class="fa-solid fa-person-running text-primary fa-xl"></i>
                     <i th:if="${notif.notificationType == 'EXERCISE_BP_REMINDER'}" class="fa-solid fa-heart-pulse text-danger fa-xl"></i>
                     <i th:if="${notif.notificationType == 'EXERCISE_INACTIVITY_REMINDER'}" class="fa-solid fa-couch text-secondary fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK'}" class="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_SHORT_BURST_WARNING'}" class="fa-solid fa-circle-exclamation fa-xl" style="color: #fd7e14 !important;"></i>
                 </div>
                 <div class="flex-grow-1">
                     <strong class="text-dark d-block mb-1" th:text="${notif.title}">Tiêu đề</strong>
@@ -285,6 +290,7 @@
         const history7 = /*[[${history7Days}]]*/ [];
         const history30 = /*[[${history30Days}]]*/ [];
         const warningThreshold = /*[[${warningThreshold}]]*/ 600;
+        const recommendedCalories = /*[[${recommendedCalories}]]*/ 120;
         /*]]>*/
 
         let editingExerciseId = null;
@@ -507,7 +513,7 @@
         function renderChart(data) {
             const ctx = document.getElementById('historyChart').getContext('2d');
             const labels = data.map(item => item.formattedDate);
-            const values = data.map(item => item.totalMinutes);
+            const values = data.map(item => item.totalCaloriesBurned);
 
             if (chartInstance) {
                 chartInstance.destroy();
@@ -517,17 +523,30 @@
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Thời gian tập (phút)',
-                        data: values,
-                        borderColor: '#198754',
-                        backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                        borderWidth: 2.5,
-                        tension: 0.3,
-                        fill: true,
-                        pointBackgroundColor: '#198754',
-                        pointHoverRadius: 6
-                    }]
+                    datasets: [
+                        {
+                            label: 'Calo tiêu hao (kcal)',
+                            data: values,
+                            borderColor: '#198754',
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            borderWidth: 2.5,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: values.map(val => val >= recommendedCalories ? '#dc3545' : '#198754'),
+                            pointBorderColor: values.map(val => val >= recommendedCalories ? '#dc3545' : '#198754'),
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Khuyến nghị (' + recommendedCalories + ' kcal)',
+                            data: labels.map(() => recommendedCalories),
+                            borderColor: '#fd7e14',
+                            borderWidth: 1.5,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -537,13 +556,13 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'Phút'
+                                text: 'Calo (kcal)'
                             }
                         }
                     },
                     plugins: {
                         legend: {
-                            display: false
+                            display: true
                         }
                     }
                 }

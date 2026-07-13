@@ -25,6 +25,8 @@ public class ExerciseLogService {
 
     public static final int DAILY_GOAL_MINUTES = 30;
     public static final int HIGH_CALORIE_WARNING_THRESHOLD = 600;
+    public static final int AVERAGE_KCAL_PER_MINUTE = 4;
+    public static final double SHORT_BURST_CALORIE_THRESHOLD = 300.0;
 
     @Autowired
     private ExerciseLogRepository exerciseLogRepository;
@@ -212,6 +214,34 @@ public class ExerciseLogService {
 
         ExerciseLog saved = exerciseLogRepository.save(log);
         checkAndReplaceMissedExerciseNotification(patientId);
+
+        // Kiểm tra vận động quá nhiều trong thời gian ngắn
+        if (isShortBurstOverexertion(patientId)) {
+            LocalDateTime sixtyMinutesAgo = LocalDateTime.now().minusMinutes(60);
+            List<Notification> recentNotifs = notificationRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
+            boolean alreadySent = recentNotifs.stream()
+                    .anyMatch(n -> "EXERCISE_SHORT_BURST_WARNING".equals(n.getNotificationType())
+                            && n.getCreatedAt().isAfter(sixtyMinutesAgo));
+
+            if (!alreadySent) {
+                String content = "Bạn vừa vận động khá mạnh trong thời gian ngắn (300+ kcal trong 1 giờ). Hãy nghỉ ngơi và đo huyết áp ngay nếu cảm thấy chóng mặt hoặc khó chịu.";
+                Notification notif = Notification.builder()
+                        .patient(patient)
+                        .recipientType("PATIENT")
+                        .recipientId(patientId)
+                        .notificationType("EXERCISE_SHORT_BURST_WARNING")
+                        .channel("IN_APP")
+                        .status("SENT")
+                        .title("Cảnh báo vận động mạnh đột ngột")
+                        .content(content)
+                        .isRead(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                notificationRepository.save(notif);
+                log.info("Đã tạo cảnh báo vận động mạnh đột ngột cho patientId={}", patientId);
+            }
+        }
+
         return saved;
     }
 
@@ -287,6 +317,34 @@ public class ExerciseLogService {
 
         ExerciseLog saved = exerciseLogRepository.save(log);
         checkAndReplaceMissedExerciseNotification(patientId);
+
+        // Kiểm tra vận động quá nhiều trong thời gian ngắn
+        if (isShortBurstOverexertion(patientId)) {
+            LocalDateTime sixtyMinutesAgo = LocalDateTime.now().minusMinutes(60);
+            List<Notification> recentNotifs = notificationRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
+            boolean alreadySent = recentNotifs.stream()
+                    .anyMatch(n -> "EXERCISE_SHORT_BURST_WARNING".equals(n.getNotificationType())
+                            && n.getCreatedAt().isAfter(sixtyMinutesAgo));
+
+            if (!alreadySent) {
+                String content = "Bạn vừa vận động khá mạnh trong thời gian ngắn (300+ kcal trong 1 giờ). Hãy nghỉ ngơi và đo huyết áp ngay nếu cảm thấy chóng mặt hoặc khó chịu.";
+                Notification notif = Notification.builder()
+                        .patient(log.getPatient())
+                        .recipientType("PATIENT")
+                        .recipientId(patientId)
+                        .notificationType("EXERCISE_SHORT_BURST_WARNING")
+                        .channel("IN_APP")
+                        .status("SENT")
+                        .title("Cảnh báo vận động mạnh đột ngột")
+                        .content(content)
+                        .isRead(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                notificationRepository.save(notif);
+                log.info("Đã tạo cảnh báo vận động mạnh đột ngột cho patientId={}", patientId);
+            }
+        }
+
         return saved;
     }
 
@@ -431,5 +489,23 @@ public class ExerciseLogService {
         int targetMinutes = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : 30;
 
         return totalMinutes < targetMinutes;
+    }
+
+    /**
+     * Kiểm tra xem bệnh nhân có vận động dồn dập trong vòng 60 phút gần nhất hay không.
+     * Trả về true nếu tổng lượng calo tiêu hao trong các bài tập 60 phút qua > SHORT_BURST_CALORIE_THRESHOLD.
+     */
+    public boolean isShortBurstOverexertion(Integer patientId) {
+        LocalDateTime sixtyMinutesAgo = LocalDateTime.now().minusMinutes(60);
+        List<ExerciseLog> logs = exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(patientId, sixtyMinutesAgo);
+
+        double totalCalories = 0.0;
+        for (ExerciseLog log : logs) {
+            if (log.getCaloriesBurned() != null) {
+                totalCalories += log.getCaloriesBurned();
+            }
+        }
+
+        return totalCalories > SHORT_BURST_CALORIE_THRESHOLD;
     }
 }

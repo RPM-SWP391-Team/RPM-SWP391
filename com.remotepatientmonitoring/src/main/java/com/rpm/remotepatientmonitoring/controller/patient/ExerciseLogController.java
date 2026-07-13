@@ -75,6 +75,9 @@ public class ExerciseLogController {
         List<com.rpm.remotepatientmonitoring.model.Notification> exerciseNotifications = 
                 exerciseLogService.getUnreadExerciseNotificationsToday(patient.getId());
 
+        int targetMinutesVal = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : ExerciseLogService.DAILY_GOAL_MINUTES;
+        int recommendedCalories = targetMinutesVal * ExerciseLogService.AVERAGE_KCAL_PER_MINUTE;
+
         model.addAttribute("patient", patient);
         model.addAttribute("exercises", logs);
         model.addAttribute("totalMinutes", summary.get("totalMinutes"));
@@ -85,6 +88,7 @@ public class ExerciseLogController {
         model.addAttribute("history30Days", history30);
         model.addAttribute("streak", streak);
         model.addAttribute("warningThreshold", ExerciseLogService.HIGH_CALORIE_WARNING_THRESHOLD);
+        model.addAttribute("recommendedCalories", recommendedCalories);
         model.addAttribute("latestBmi", latestBmi);
         model.addAttribute("exerciseNotifications", exerciseNotifications);
 

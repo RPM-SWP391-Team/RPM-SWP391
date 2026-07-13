@@ -368,4 +368,54 @@ public class ExerciseLogServiceTest {
 
         assertFalse(atRisk);
     }
+
+    @Test
+    public void testIsShortBurstOverexertion_True() {
+        Integer patientId = 1;
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        // Logs in the last 60 mins: total 310 kcal (> 300)
+        ExerciseLog log1 = new ExerciseLog(patient, LocalDate.now(), "Đạp xe", 30, null, 180.0);
+        ExerciseLog log2 = new ExerciseLog(patient, LocalDate.now(), "Bơi lội", 20, null, 130.0);
+        List<ExerciseLog> dbLogs = Arrays.asList(log1, log2);
+
+        when(exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(eq(patientId), any(LocalDateTime.class)))
+                .thenReturn(dbLogs);
+
+        boolean result = exerciseLogService.isShortBurstOverexertion(patientId);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void testIsShortBurstOverexertion_False() {
+        Integer patientId = 1;
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        // Logs in the last 60 mins: total 200 kcal (<= 300)
+        ExerciseLog log1 = new ExerciseLog(patient, LocalDate.now(), "Yoga", 30, null, 90.0);
+        ExerciseLog log2 = new ExerciseLog(patient, LocalDate.now(), "Đi bộ", 30, 2500, 110.0);
+        List<ExerciseLog> dbLogs = Arrays.asList(log1, log2);
+
+        when(exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(eq(patientId), any(LocalDateTime.class)))
+                .thenReturn(dbLogs);
+
+        boolean result = exerciseLogService.isShortBurstOverexertion(patientId);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void testIsShortBurstOverexertion_False_NoLogs() {
+        Integer patientId = 1;
+
+        when(exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(eq(patientId), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList());
+
+        boolean result = exerciseLogService.isShortBurstOverexertion(patientId);
+
+        assertFalse(result);
+    }
 }
