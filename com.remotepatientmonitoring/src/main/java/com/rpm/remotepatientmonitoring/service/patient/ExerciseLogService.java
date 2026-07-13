@@ -210,7 +210,9 @@ public class ExerciseLogService {
         log.setCaloriesBurned(caloriesBurned != null ? caloriesBurned : 0.0);
         log.setLoggedAt(LocalDateTime.now());
 
-        return exerciseLogRepository.save(log);
+        ExerciseLog saved = exerciseLogRepository.save(log);
+        checkAndReplaceMissedExerciseNotification(patientId);
+        return saved;
     }
 
     /**
@@ -283,7 +285,9 @@ public class ExerciseLogService {
         log.setCaloriesBurned(caloriesBurned != null ? caloriesBurned : 0.0);
         log.setLoggedAt(LocalDateTime.now());
 
-        return exerciseLogRepository.save(log);
+        ExerciseLog saved = exerciseLogRepository.save(log);
+        checkAndReplaceMissedExerciseNotification(patientId);
+        return saved;
     }
 
     /**
@@ -370,12 +374,39 @@ public class ExerciseLogService {
     }
 
     /**
-     * Lấy danh sách các thông báo liên quan tập luyện chưa đọc của ngày hôm nay.
+     * Lấy danh sách các thông báo liên quan tập luyện chưa đọc.
      */
     public List<Notification> getUnreadExerciseNotificationsToday(Integer patientId) {
-        log.info("Lấy thông báo tập luyện chưa đọc hôm nay cho patientId={}", patientId);
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(23, 59, 59);
-        return notificationRepository.findUnreadExerciseNotificationsToday(patientId, start, end);
+        log.info("Lấy thông báo tập luyện chưa đọc cho patientId={}", patientId);
+        return notificationRepository.findUnreadExerciseNotifications(patientId);
+    }
+
+    /**
+     * Tự động cập nhật thông báo "chưa ghi nhận vận động" thành "đã ghi nhận vận động"
+     */
+    private void checkAndReplaceMissedExerciseNotification(Integer patientId) {
+        try {
+            Map<String, Object> summary = getTodaySummary(patientId);
+            int totalMinutes = summary.get("totalMinutes") != null ? (int) summary.get("totalMinutes") : 0;
+            int targetMinutes = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : 30;
+
+            List<Notification> unreadNotifs = notificationRepository.findUnreadExerciseNotifications(patientId);
+            for (Notification n : unreadNotifs) {
+                if ("EXERCISE_REMINDER".equals(n.getNotificationType()) 
+                        && n.getContent() != null 
+                        && n.getContent().contains("chưa ghi nhận vận động")) {
+                    if (totalMinutes >= targetMinutes) {
+                        n.setTitle("Đạt mục tiêu tập luyện");
+                        n.setContent("Chúc mừng! Bạn đã đạt mục tiêu vận động hôm nay 🎉");
+                    } else {
+                        n.setTitle("Đã ghi nhận tập luyện");
+                        n.setContent("Bạn đã ghi nhận vận động hôm nay. Tiếp tục cố gắng để đạt mục tiêu nhé!");
+                    }
+                    notificationRepository.save(n);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi thay đổi thông báo chưa tập luyện cho patient={}: {}", patientId, e.getMessage());
+        }
     }
 }
