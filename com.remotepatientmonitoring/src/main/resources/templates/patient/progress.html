@@ -91,6 +91,23 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small mb-1">Chiều cao</label>
+                            <div class="readonly-field">
+                                <span th:if="${latestBmi != null}" th:text="${latestBmi.heightCm} + ' cm'">170 cm</span>
+                                <span th:if="${latestBmi == null}" class="text-danger small" style="font-size: 0.85rem;">Vui lòng khám bác sĩ để cập nhật</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small mb-1">Cân nặng</label>
+                            <div class="readonly-field">
+                                <span th:if="${latestBmi != null}" th:text="${latestBmi.weightKg} + ' kg'">65 kg</span>
+                                <span th:if="${latestBmi == null}" class="text-danger small" style="font-size: 0.85rem;">Vui lòng khám bác sĩ để cập nhật</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label text-muted small mb-1">Hồ sơ bệnh lý</label>
                         <div class="readonly-field">

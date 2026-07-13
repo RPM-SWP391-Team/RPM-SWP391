@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
+import com.rpm.remotepatientmonitoring.service.patient.ExerciseLogService;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -59,6 +60,9 @@ public class PatientController {
 
     @Autowired
     private FoodDictionaryRepository foodDictionaryRepository;
+
+    @Autowired
+    private ExerciseLogService exerciseLogService;
 
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -713,6 +717,7 @@ public class PatientController {
         }
 
         model.addAttribute("patient", patient);
+        model.addAttribute("latestBmi", exerciseLogService.getLatestBmi(patient.getId()));
         return "patient/progress";
     }
 
