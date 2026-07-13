@@ -30,7 +30,7 @@
                     <strong class="text-dark d-block mb-1" th:text="${notif.title}">Tiêu đề</strong>
                     <span class="small text-muted" th:text="${notif.content}">Nội dung thông báo</span>
                 </div>
-                <button type="button" class="btn-close" th:onclick="'markNotifAsRead(' + ${notif.id} + ')'" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" th:onclick="'markNotifAsRead(' + ${notif.id} + ')'" aria-label="Close"></button>
             </div>
         </div>
 

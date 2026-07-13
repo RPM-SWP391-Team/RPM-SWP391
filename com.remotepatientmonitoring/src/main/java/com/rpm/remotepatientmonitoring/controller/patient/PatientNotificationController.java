@@ -40,6 +40,8 @@ public class PatientNotificationController {
         // Tìm thông báo bằng ID
         Optional<Notification> notificationOptional = notificationRepository.findById(id);
 
+        String targetUrl = null;
+
         // Kiểm tra xem thông báo có tồn tại trong cơ sở dữ liệu hay không
         if (notificationOptional.isPresent()) {
             Notification notification = notificationOptional.get();
@@ -48,6 +50,24 @@ public class PatientNotificationController {
                 notification.setIsRead(true); // Đổi thành đã đọc
                 notificationRepository.save(notification); // Lưu lại vào cơ sở dữ liệu
             }
+
+            // Chuyển hướng người dùng đến trang chức năng tương ứng với loại thông báo
+            String type = notification.getNotificationType();
+            if (type != null) {
+                if (type.startsWith("EXERCISE") || type.equals("EXERCISE_REMINDER") || type.equals("EXERCISE_STREAK_MILESTONE") || type.equals("EXERCISE_BP_REMINDER") || type.equals("EXERCISE_INACTIVITY_REMINDER")) {
+                    targetUrl = "/patient/exercise";
+                } else if (type.startsWith("DIET") || type.equals("DIET_REMINDER")) {
+                    targetUrl = "/patient/nutrition";
+                } else if (type.contains("MED_REMINDER")) {
+                    targetUrl = "/patient/adherence";
+                } else if (type.equals("HEALTH_LOG_REMINDER")) {
+                    targetUrl = "/patient/dashboard";
+                }
+            }
+        }
+
+        if (targetUrl != null) {
+            return "redirect:" + targetUrl;
         }
 
         // Chuyển hướng người dùng quay lại trang cũ hoặc trang chủ dashboard
