@@ -297,4 +297,75 @@ public class ExerciseLogServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
     }
+
+    @Test
+    public void testIsStreakAtRiskToday_True() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(3650);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        // Target: 30 minutes
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        // Logs: yesterday achieved (30 min), today logged only 10 min
+        ExerciseLog logYesterday = new ExerciseLog(patient, today.minusDays(1), "Đi bộ", 30, null, 120.0);
+        ExerciseLog logToday = new ExerciseLog(patient, today, "Chạy bộ", 10, null, 60.0);
+        List<ExerciseLog> dbLogs = Arrays.asList(logYesterday, logToday);
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(dbLogs);
+        when(exerciseLogRepository.findByPatientIdAndLogDate(patientId, today)).thenReturn(Collections.singletonList(logToday));
+
+        boolean atRisk = exerciseLogService.isStreakAtRiskToday(patientId);
+
+        assertTrue(atRisk);
+    }
+
+    @Test
+    public void testIsStreakAtRiskToday_False_MetTarget() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(3650);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        // Logs: yesterday achieved (30 min), today achieved (30 min)
+        ExerciseLog logYesterday = new ExerciseLog(patient, today.minusDays(1), "Đi bộ", 30, null, 120.0);
+        ExerciseLog logToday = new ExerciseLog(patient, today, "Chạy bộ", 30, null, 180.0);
+        List<ExerciseLog> dbLogs = Arrays.asList(logYesterday, logToday);
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(dbLogs);
+        when(exerciseLogRepository.findByPatientIdAndLogDate(patientId, today)).thenReturn(Collections.singletonList(logToday));
+
+        boolean atRisk = exerciseLogService.isStreakAtRiskToday(patientId);
+
+        assertFalse(atRisk);
+    }
+
+    @Test
+    public void testIsStreakAtRiskToday_False_NoStreak() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(3650);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        // Logs: yesterday achieved 0 min (no logs), today logged 10 min
+        ExerciseLog logToday = new ExerciseLog(patient, today, "Chạy bộ", 10, null, 60.0);
+        List<ExerciseLog> dbLogs = Collections.singletonList(logToday);
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(dbLogs);
+
+        boolean atRisk = exerciseLogService.isStreakAtRiskToday(patientId);
+
+        assertFalse(atRisk);
+    }
 }
