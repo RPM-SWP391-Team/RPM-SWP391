@@ -255,109 +255,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         ${glucoseGuidesHtml ? glucoseGuidesHtml : '<p class="text-muted small">Không có hướng dẫn đường huyết nào.</p>'}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Append Emergency Modal
-        const emergencyContainer = document.createElement('div');
-        emergencyContainer.innerHTML = emergencyModalHtml;
-        document.body.appendChild(emergencyContainer.firstElementChild);
-
-        // 7. Build Handbook (Cẩm nang) Modal HTML dynamically
-        let handbookTabsHtml = '';
-        let handbookContentHtml = '';
-
-        if (protocols && protocols.length > 0) {
-            protocols.forEach((p, idx) => {
-                const isActive = idx === 0 ? 'active' : '';
-                const isSelected = idx === 0 ? 'true' : 'false';
-                const showActive = idx === 0 ? 'show active' : '';
-                const tabId = `handbook-tab-${p.id}`;
-                const paneId = `handbook-pane-${p.id}`;
-
-                let icon = 'fa-book-medical';
-                let badgeClass = 'bg-primary text-white';
-                if (p.conditionType === 'HYPERTENSIVE_CRISIS') {
-                    icon = 'fa-heart-pulse text-danger';
-                    badgeClass = 'bg-danger text-white';
-                } else if (p.conditionType === 'HYPOGLYCEMIA') {
-                    icon = 'fa-droplet text-info';
-                    badgeClass = 'bg-info text-dark';
-                } else if (p.conditionType === 'HYPERGLYCEMIA') {
-                    icon = 'fa-circle-exclamation text-warning';
-                    badgeClass = 'bg-warning text-dark';
-                }
-
-                // Tab link
-                handbookTabsHtml += `
-                    <button class="nav-link w-100 text-start py-3 px-3 border-0 border-bottom d-flex align-items-center gap-2 ${isActive}" 
-                            id="${tabId}" data-bs-toggle="pill" data-bs-target="#${paneId}" 
-                            type="button" role="tab" aria-controls="${paneId}" aria-selected="${isSelected}"
-                            style="font-weight: 600; font-size: 0.88rem; transition: all 0.2s;">
-                        <i class="fa-solid ${icon} fa-lg me-1"></i>
-                        <span>${p.title}</span>
-                    </button>
-                `;
-
-                // Format instruction lines
-                const instructionLines = p.instructionContent ? p.instructionContent.split('\n').filter(s => s.trim().length > 0).map(s => {
-                    const line = s.trim();
-                    if (line.startsWith('-')) {
-                        return `<li class="small text-secondary mb-1">${line.substring(1).trim()}</li>`;
-                    } else if (line.startsWith('Bước') || line.startsWith('Quy trình') || line.startsWith('Cách xử trí') || line.startsWith('Biện pháp') || line.startsWith('Khi nào')) {
-                        return `<h6 class="fw-bold mt-3 mb-2 text-dark" style="font-size: 0.95rem;">${line}</h6>`;
-                    } else {
-                        return `<p class="mb-1 text-secondary small" style="font-size: 0.85rem;">${line}</p>`;
-                    }
-                }).join('') : '';
-
-                // Tab pane content
-                handbookContentHtml += `
-                    <div class="tab-pane fade ${showActive}" id="${paneId}" role="tabpanel" aria-labelledby="${tabId}">
-                        <div class="p-4" style="max-height: 480px; overflow-y: auto;">
-                            <div class="d-flex align-items-center gap-2 mb-3">
-                                <span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size: 0.68rem; border-radius: 4px;">${p.conditionType}</span>
-                                <h5 class="fw-bold text-dark mb-0">${p.title}</h5>
-                            </div>
-
-                            ${p.warningSigns ? `
-                                <div class="card border-0 bg-light p-3 mb-3 shadow-sm" style="border-radius: 10px; border-left: 4px solid #dc3545 !important;">
-                                    <h6 class="fw-bold text-danger mb-2" style="font-size: 0.88rem;"><i class="fa-solid fa-triangle-exclamation me-2"></i>Dấu hiệu nhận biết</h6>
-                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">${p.warningSigns}</p>
-                                </div>
-                            ` : ''}
-
-                            <div class="instruction-body">
-                                ${instructionLines}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            // Default fallback
-            handbookTabsHtml = `
-                <button class="nav-link w-100 text-start py-3 px-3 border-0 border-bottom d-flex align-items-center gap-2 active" 
-                        id="handbook-tab-default-bp" data-bs-toggle="pill" data-bs-target="#handbook-pane-default-bp" 
-                        type="button" role="tab" aria-selected="true" style="font-weight: 600; font-size: 0.88rem;">
-                    <i class="fa-solid fa-heart-pulse text-danger fa-lg me-1"></i>
-                    <span>Cẩm nang Huyết áp</span>
-                </button>
-            `;
-            handbookContentHtml = `
-                <div class="tab-pane fade show active" id="handbook-pane-default-bp" role="tabpanel">
-                    <div class="p-4" style="max-height: 480px; overflow-y: auto;">
-                        <h5 class="fw-bold text-dark mb-3">Cẩm nang Huyết áp</h5>
-                        <p class="small text-muted">Vui lòng tải lại trang hoặc kiểm tra kết nối với hệ thống dữ liệu để cập nhật đầy đủ cẩm nang chi tiết.</p>
-                    </div>
-                </div>
-            `;
-        }
-
+                          // 7. Build Handbook (Cẩm nang) Modal HTML dynamically
         const handbookModalHtml = `
             <div class="modal fade" id="handbookModal" tabindex="-1" aria-labelledby="handbookModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -372,10 +270,31 @@ document.addEventListener("DOMContentLoaded", function() {
                             <div class="container-fluid p-0">
                                 <div class="row g-0">
                                     <!-- Left Navigation Sidebar -->
-                                    <div class="col-md-4 border-end bg-light" style="min-height: 400px;">
-                                        <div class="nav flex-column nav-pills" id="handbook-pills-tab" role="tablist" aria-orientation="vertical">
-                                            ${handbookTabsHtml}
-                                            <a href="/patient/quiz" class="nav-link w-100 text-start py-3 px-3 border-0 border-bottom d-flex align-items-center gap-2 text-decoration-none" 
+                                    <div class="col-md-4 border-end bg-light" style="min-height: 430px; display: flex; flex-direction: column;">
+                                        <!-- Search & Sort Box -->
+                                        <div class="p-3 border-bottom bg-white">
+                                            <div class="input-group input-group-sm mb-2 shadow-sm">
+                                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                                <input type="text" id="handbookSearchInput" class="form-control border-start-0" placeholder="Tìm kiếm cẩm nang...">
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="text-muted" style="font-size: 0.72rem; font-weight: 500;"><i class="fa-solid fa-arrow-down-wide-short me-1"></i>Sắp xếp:</span>
+                                                <select id="handbookSortSelect" class="form-select form-select-sm border-0 bg-transparent p-0 ps-1 text-primary fw-bold" style="font-size: 0.72rem; width: auto; cursor: pointer; outline: none; box-shadow: none;">
+                                                    <option value="newest" selected>Mới nhất</option>
+                                                    <option value="oldest">Cũ nhất</option>
+                                                    <option value="az">A - Z</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Scrollable Tabs List -->
+                                        <div class="nav flex-column nav-pills flex-grow-1" id="handbook-pills-tab" role="tablist" aria-orientation="vertical" style="max-height: 300px; overflow-y: auto;">
+                                            <!-- Dynamically filled -->
+                                        </div>
+                                        
+                                        <!-- Quiz Link (Sticky at bottom) -->
+                                        <div class="mt-auto border-top bg-white">
+                                            <a href="/patient/quiz" class="nav-link w-100 text-start py-3 px-3 border-0 d-flex align-items-center gap-2 text-decoration-none" 
                                                style="font-weight: 600; font-size: 0.88rem; transition: all 0.2s; color: #10b981;">
                                                 <i class="fa-solid fa-graduation-cap text-success fa-lg me-1"></i>
                                                 <span>Kiểm tra kiến thức</span>
@@ -384,10 +303,172 @@ document.addEventListener("DOMContentLoaded", function() {
                                     </div>
                                     <!-- Right Content Panel -->
                                     <div class="col-md-8">
-                                        <div class="tab-content" id="handbook-pills-tabContent">
-                                            ${handbookContentHtml}
+                                        <div class="tab-content" id="handbook-pills-tabContent" style="min-height: 430px; max-height: 480px; overflow-y: auto;">
+                                            <!-- Dynamically filled -->
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Append Handbook Modal
+        const handbookContainer = document.createElement('div');
+        handbookContainer.innerHTML = handbookModalHtml;
+        const handbookModalEl = handbookContainer.firstElementChild;
+        document.body.appendChild(handbookModalEl);
+
+        const handbookTabsContainer = handbookModalEl.querySelector('#handbook-pills-tab');
+        const handbookContentContainer = handbookModalEl.querySelector('#handbook-pills-tabContent');
+
+        function renderHandbook(searchTerm = '', sortBy = 'newest') {
+            let filtered = [];
+            if (protocols && protocols.length > 0) {
+                // Filter
+                filtered = protocols.filter(p => {
+                    const term = searchTerm.toLowerCase().trim();
+                    if (!term) return true;
+                    return (p.title && p.title.toLowerCase().includes(term)) ||
+                           (p.warningSigns && p.warningSigns.toLowerCase().includes(term)) ||
+                           (p.instructionContent && p.instructionContent.toLowerCase().includes(term));
+                });
+
+                // Sort
+                filtered.sort((a, b) => {
+                    if (sortBy === 'newest' || sortBy === 'oldest') {
+                        const dateA = new Date(a.updatedAt || a.updated_at || a.createdAt || a.created_at || 0);
+                        const dateB = new Date(b.updatedAt || b.updated_at || b.createdAt || b.created_at || 0);
+                        return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+                    } else if (sortBy === 'az') {
+                        const titleA = (a.title || '').toLowerCase();
+                        const titleB = (b.title || '').toLowerCase();
+                        return titleA.localeCompare(titleB, 'vi');
+                    }
+                    return 0;
+                });
+            }
+
+            let tabsHtml = '';
+            let contentHtml = '';
+
+            if (filtered.length > 0) {
+                filtered.forEach((p, idx) => {
+                    const isActive = idx === 0 ? 'active' : '';
+                    const isSelected = idx === 0 ? 'true' : 'false';
+                    const showActive = idx === 0 ? 'show active' : '';
+                    const tabId = `handbook-tab-${p.id}`;
+                    const paneId = `handbook-pane-${p.id}`;
+
+                    let icon = 'fa-book-medical';
+                    let badgeClass = 'bg-primary text-white';
+                    if (p.conditionType === 'HYPERTENSIVE_CRISIS') {
+                        icon = 'fa-heart-pulse text-danger';
+                        badgeClass = 'bg-danger text-white';
+                    } else if (p.conditionType === 'HYPOGLYCEMIA') {
+                        icon = 'fa-droplet text-info';
+                        badgeClass = 'bg-info text-dark';
+                    } else if (p.conditionType === 'HYPERGLYCEMIA') {
+                        icon = 'fa-circle-exclamation text-warning';
+                        badgeClass = 'bg-warning text-dark';
+                    }
+
+                    // Format date
+                    const dateVal = p.updatedAt || p.updated_at || p.createdAt || p.created_at;
+                    let dateStr = '';
+                    if (dateVal) {
+                        const d = new Date(dateVal);
+                        dateStr = d.toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        }) + ' ' + d.toLocaleTimeString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+
+                    tabsHtml += `
+                        <button class="nav-link w-100 text-start py-2.5 px-3 border-0 border-bottom d-flex align-items-center gap-2 ${isActive}" 
+                                id="${tabId}" data-bs-toggle="pill" data-bs-target="#${paneId}" 
+                                type="button" role="tab" aria-controls="${paneId}" aria-selected="${isSelected}"
+                                style="font-weight: 600; font-size: 0.85rem; transition: all 0.2s;">
+                            <i class="fa-solid ${icon} fa-lg me-1" style="min-width: 20px;"></i>
+                            <div class="flex-grow-1 min-width-0">
+                                <span class="d-block text-truncate" style="max-width: 170px;">${p.title}</span>
+                                ${dateStr ? `<small class="text-muted d-block mt-0.5" style="font-size: 0.68rem; font-weight: normal; letter-spacing: 0.1px;"><i class="fa-regular fa-clock me-1"></i>${dateStr}</small>` : ''}
+                            </div>
+                        </button>
+                    `;
+
+                    const instructionLines = p.instructionContent ? p.instructionContent.split('\n').filter(s => s.trim().length > 0).map(s => {
+                        const line = s.trim();
+                        if (line.startsWith('-')) {
+                            return `<li class="small text-secondary mb-1">${line.substring(1).trim()}</li>`;
+                        } else if (line.startsWith('Bước') || line.startsWith('Quy trình') || line.startsWith('Cách xử trí') || line.startsWith('Biện pháp') || line.startsWith('Khi nào')) {
+                            return `<h6 class="fw-bold mt-3 mb-2 text-dark" style="font-size: 0.95rem;">${line}</h6>`;
+                        } else {
+                            return `<p class="mb-1 text-secondary small" style="font-size: 0.85rem;">${line}</p>`;
+                        }
+                    }).join('') : '';
+
+                    contentHtml += `
+                        <div class="tab-pane fade ${showActive}" id="${paneId}" role="tabpanel" aria-labelledby="${tabId}">
+                            <div class="p-4">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size: 0.68rem; border-radius: 4px;">${p.conditionType}</span>
+                                    <h5 class="fw-bold text-dark mb-0">${p.title}</h5>
+                                </div>
+
+                                ${p.warningSigns ? `
+                                    <div class="card border-0 bg-light p-3 mb-3 shadow-sm" style="border-radius: 10px; border-left: 4px solid #dc3545 !important;">
+                                        <h6 class="fw-bold text-danger mb-2" style="font-size: 0.88rem;"><i class="fa-solid fa-triangle-exclamation me-2"></i>Dấu hiệu nhận biết</h6>
+                                        <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">${p.warningSigns}</p>
+                                    </div>
+                                ` : ''}
+
+                                <div class="instruction-body">
+                                    ${instructionLines}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                tabsHtml = `
+                    <div class="text-center py-5 text-muted small w-100">
+                        <i class="fa-solid fa-folder-open fa-2x mb-2 text-muted"></i>
+                        <p class="mb-0">Không tìm thấy cẩm nang.</p>
+                    </div>
+                `;
+                contentHtml = `
+                    <div class="text-center py-5 text-muted small w-100">
+                        <i class="fa-solid fa-file-circle-xmark fa-3x mb-2 text-muted" style="margin-top: 50px;"></i>
+                        <p class="mb-0 fs-6">Vui lòng nhập từ khóa tìm kiếm khác.</p>
+                    </div>
+                `;
+            }
+
+            handbookTabsContainer.innerHTML = tabsHtml;
+            handbookContentContainer.innerHTML = contentHtml;
+        }
+
+        // Initial render
+        renderHandbook();
+
+        // Bind events
+        const searchInput = handbookModalEl.querySelector('#handbookSearchInput');
+        const sortSelect = handbookModalEl.querySelector('#handbookSortSelect');
+
+        if (searchInput && sortSelect) {
+            const handleFilterChange = () => {
+                renderHandbook(searchInput.value, sortSelect.value);
+            };
+            searchInput.addEventListener('input', handleFilterChange);
+            sortSelect.addEventListener('change', handleFilterChange);
+        }                             </div>
                                 </div>
                             </div>
                         </div>
