@@ -42,11 +42,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     @Query("SELECT n FROM Notification n WHERE n.patient.id = :patientId " +
            "AND n.isRead = false " +
            "AND n.notificationType IN ('EXERCISE_REMINDER', 'EXERCISE_STREAK_MILESTONE', 'EXERCISE_BP_REMINDER', 'EXERCISE_INACTIVITY_REMINDER') " +
-           "AND n.createdAt >= :startOfDay AND n.createdAt <= :endOfDay " +
            "ORDER BY n.createdAt DESC")
-    List<Notification> findUnreadExerciseNotificationsToday(
-            @Param("patientId") Integer patientId,
-            @Param("startOfDay") LocalDateTime startOfDay,
-            @Param("endOfDay") LocalDateTime endOfDay
+    List<Notification> findUnreadExerciseNotifications(
+            @Param("patientId") Integer patientId
     );
 }
