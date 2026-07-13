@@ -84,7 +84,7 @@ public class ExerciseLogController {
         model.addAttribute("history7Days", history7);
         model.addAttribute("history30Days", history30);
         model.addAttribute("streak", streak);
-        model.addAttribute("warningThreshold", ExerciseLogService.HIGH_INTENSITY_WARNING_THRESHOLD);
+        model.addAttribute("warningThreshold", ExerciseLogService.HIGH_CALORIE_WARNING_THRESHOLD);
         model.addAttribute("latestBmi", latestBmi);
         model.addAttribute("exerciseNotifications", exerciseNotifications);
 
