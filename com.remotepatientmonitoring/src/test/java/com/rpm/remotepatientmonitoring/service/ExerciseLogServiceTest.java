@@ -289,7 +289,7 @@ public class ExerciseLogServiceTest {
         Integer patientId = 1;
         List<com.rpm.remotepatientmonitoring.model.Notification> mockNotifs = Collections.singletonList(new com.rpm.remotepatientmonitoring.model.Notification());
         
-        when(notificationRepository.findUnreadExerciseNotificationsToday(eq(patientId), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(notificationRepository.findUnreadExerciseNotifications(eq(patientId)))
                 .thenReturn(mockNotifs);
 
         List<com.rpm.remotepatientmonitoring.model.Notification> result = exerciseLogService.getUnreadExerciseNotificationsToday(patientId);
