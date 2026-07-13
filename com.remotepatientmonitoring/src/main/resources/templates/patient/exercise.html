@@ -39,9 +39,9 @@
             <div class="col-lg-5">
                 <!-- Alert cảnh báo vận động quá mức -->
                 <div id="overExertionWarning" class="alert alert-warning border border-warning-subtle shadow-sm mb-3 py-2 px-3 rounded-3" role="alert" 
-                     th:style="${totalMinutes > warningThreshold} ? 'display: block;' : 'display: none;'">
+                     th:style="${totalCaloriesBurned > warningThreshold} ? 'display: block;' : 'display: none;'">
                     <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
-                    <span class="small text-dark fw-semibold">Bạn đã vận động khá nhiều hôm nay (120+ phút). Hãy chú ý theo dõi huyết áp sau khi tập và nghỉ ngơi đầy đủ nhé.</span>
+                    <span class="small text-dark fw-semibold">Bạn đã tiêu hao khá nhiều calo hôm nay (600+ kcal). Hãy chú ý theo dõi huyết áp sau khi tập và nghỉ ngơi đầy đủ nhé.</span>
                 </div>
 
                 <div class="row g-3 mb-4">
@@ -284,7 +284,7 @@
         /*<![CDATA[*/
         const history7 = /*[[${history7Days}]]*/ [];
         const history30 = /*[[${history30Days}]]*/ [];
-        const warningThreshold = /*[[${warningThreshold}]]*/ 120;
+        const warningThreshold = /*[[${warningThreshold}]]*/ 600;
         /*]]>*/
 
         let editingExerciseId = null;
@@ -485,7 +485,7 @@
                     // Cập nhật over-exertion warning
                     const warningBanner = document.getElementById('overExertionWarning');
                     if (warningBanner) {
-                        if (data.totalMinutes > warningThreshold) {
+                        if (data.totalCaloriesBurned > warningThreshold) {
                             warningBanner.style.display = 'block';
                         } else {
                             warningBanner.style.display = 'none';

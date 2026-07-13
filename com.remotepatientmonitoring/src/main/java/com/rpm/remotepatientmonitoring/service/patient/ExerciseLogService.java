@@ -24,7 +24,7 @@ public class ExerciseLogService {
     private static final Logger log = LoggerFactory.getLogger(ExerciseLogService.class);
 
     public static final int DAILY_GOAL_MINUTES = 30;
-    public static final int HIGH_INTENSITY_WARNING_THRESHOLD = 120;
+    public static final int HIGH_CALORIE_WARNING_THRESHOLD = 600;
 
     @Autowired
     private ExerciseLogRepository exerciseLogRepository;
