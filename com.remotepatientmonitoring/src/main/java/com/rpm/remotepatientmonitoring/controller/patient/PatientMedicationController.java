@@ -23,7 +23,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/patient/api/medications")
-public class PatientMedicationController {
+public class
+
+PatientMedicationController {
 
     @Autowired
     private PatientMedicationRepository medicationRepository;
