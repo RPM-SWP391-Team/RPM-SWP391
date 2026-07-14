@@ -8,4 +8,5 @@ import java.util.Optional;
     @Repository
 public interface AlertThresholdRepository extends JpaRepository<AlertThreshold, Integer> {
     Optional<AlertThreshold> findByHospitalIdAndScope(Integer hospitalId, String scope);
+    Optional<AlertThreshold> findByPatientIdAndScope(Integer patientId, String scope);
 }
