@@ -35,7 +35,7 @@ public class Patient {
     @JoinColumn(name = "disease_profile_id")
     private DiseaseProfile diseaseProfile;
 
-    @Column(name = "patient_code", length = 50)
+    @Column(name = "patient_code", length = 50, unique = true)
     private String patientCode;
 
     @Column(name = "full_name", nullable = false, length = 255)
