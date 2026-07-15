@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import com.rpm.remotepatientmonitoring.model.Notification;
+import com.rpm.remotepatientmonitoring.model.ExerciseGuideline;
+import com.rpm.remotepatientmonitoring.repository.ExerciseGuidelineRepository;
 
 @Service
 public class ExerciseLogService {
@@ -24,7 +26,8 @@ public class ExerciseLogService {
     private static final Logger log = LoggerFactory.getLogger(ExerciseLogService.class);
 
     public static final int DAILY_GOAL_MINUTES = 30;
-    public static final int HIGH_INTENSITY_WARNING_THRESHOLD = 120;
+    public static final int HIGH_CALORIE_WARNING_THRESHOLD = 600;
+    public static final int AVERAGE_KCAL_PER_MINUTE = 4;
 
     @Autowired
     private ExerciseLogRepository exerciseLogRepository;
@@ -40,6 +43,9 @@ public class ExerciseLogService {
 
     @Autowired
     private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+
+    @Autowired
+    private ExerciseGuidelineRepository exerciseGuidelineRepository;
 
     /**
      * Lấy mục tiêu thời lượng tập luyện của bệnh nhân dựa trên phác đồ điều trị hiện tại
@@ -212,6 +218,7 @@ public class ExerciseLogService {
 
         ExerciseLog saved = exerciseLogRepository.save(log);
         checkAndReplaceMissedExerciseNotification(patientId);
+
         return saved;
     }
 
@@ -287,6 +294,7 @@ public class ExerciseLogService {
 
         ExerciseLog saved = exerciseLogRepository.save(log);
         checkAndReplaceMissedExerciseNotification(patientId);
+
         return saved;
     }
 
@@ -403,6 +411,12 @@ public class ExerciseLogService {
                         n.setContent("Bạn đã ghi nhận vận động hôm nay. Tiếp tục cố gắng để đạt mục tiêu nhé!");
                     }
                     notificationRepository.save(n);
+                } else if ("EXERCISE_STREAK_AT_RISK".equals(n.getNotificationType())) {
+                    if (totalMinutes >= targetMinutes) {
+                        n.setTitle("Đạt mục tiêu tập luyện");
+                        n.setContent("Chúc mừng! Bạn đã đạt mục tiêu vận động hôm nay 🎉");
+                        notificationRepository.save(n);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -419,5 +433,133 @@ public class ExerciseLogService {
         }
         exerciseLogRepository.delete(log);
         checkAndReplaceMissedExerciseNotification(patientId);
+    }
+
+    /**
+     * Kiểm tra xem bệnh nhân có nguy cơ mất streak tập luyện hôm nay hay không.
+     * Trả về true nếu streak hiện tại > 0 VÀ tổng phút vận động hôm nay < mục tiêu hôm nay.
+     */
+    public boolean isStreakAtRiskToday(Integer patientId) {
+        int streak = getCurrentStreak(patientId);
+        if (streak <= 0) {
+            return false;
+        }
+
+        Map<String, Object> summary = getTodaySummary(patientId);
+        int totalMinutes = summary.get("totalMinutes") != null ? (int) summary.get("totalMinutes") : 0;
+        int targetMinutes = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : 30;
+
+        return totalMinutes < targetMinutes;
+    }
+
+    public static class WeeklyCompliance {
+        private final int daysAchieved;
+        private final int totalDays;
+
+        public WeeklyCompliance(int daysAchieved, int totalDays) {
+            this.daysAchieved = daysAchieved;
+            this.totalDays = totalDays;
+        }
+
+        public int getDaysAchieved() {
+            return daysAchieved;
+        }
+
+        public int getTotalDays() {
+            return totalDays;
+        }
+    }
+
+    /**
+     * Đo lường mức độ tuân thủ theo khuyến nghị trong 7 ngày gần nhất.
+     */
+    public WeeklyCompliance getWeeklyComplianceRate(Integer patientId) {
+        int targetMinutes = getTargetMinutesForPatient(patientId);
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        List<ExerciseLog> logs = exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today);
+
+        // Group by logDate
+        Map<LocalDate, Integer> dailyMinutes = new HashMap<>();
+        for (ExerciseLog elog : logs) {
+            LocalDate date = elog.getLogDate();
+            if (elog.getDurationMinutes() != null) {
+                dailyMinutes.put(date, dailyMinutes.getOrDefault(date, 0) + elog.getDurationMinutes());
+            }
+        }
+
+        int daysAchieved = 0;
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = startDate.plusDays(i);
+            int minutes = dailyMinutes.getOrDefault(date, 0);
+            if (minutes >= targetMinutes) {
+                daysAchieved++;
+            }
+        }
+
+        return new WeeklyCompliance(daysAchieved, 7);
+    }
+
+    /**
+     * Lấy văn bản khuyến nghị vận động dựa trên treatment plan hoặc disease profile.
+     */
+    public String getExerciseRecommendation(Integer patientId) {
+        // 1. Kiểm tra phác đồ điều trị hiện tại
+        try {
+            Optional<TreatmentPlan> planOpt = treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true);
+            if (planOpt.isPresent()) {
+                TreatmentPlan plan = planOpt.get();
+                if (plan.getExerciseGoal() != null && !plan.getExerciseGoal().trim().isEmpty()) {
+                    return plan.getExerciseGoal().trim();
+                }
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi lấy phác đồ điều trị cho patientId={}: {}", patientId, e.getMessage());
+        }
+
+        // 2. Dự phòng theo disease profile
+        try {
+            Optional<Patient> patientOpt = patientRepository.findById(patientId);
+            if (patientOpt.isPresent()) {
+                Patient patient = patientOpt.get();
+                if (patient.getDiseaseProfile() != null) {
+                    String code = patient.getDiseaseProfile().getProfileCode();
+                    if ("HYPERTENSION".equalsIgnoreCase(code)) {
+                        return "Nên đi bộ nhanh, đạp xe nhẹ hoặc tập yoga 30 phút/ngày, 5 ngày/tuần. Tránh vận động gắng sức đột ngột, nên khởi động kỹ trước khi tập.";
+                    } else if ("DIABETES".equalsIgnoreCase(code)) {
+                        return "Nên vận động đều đặn 30 phút/ngày giúp cải thiện độ nhạy insulin. Ưu tiên đi bộ sau bữa ăn, tránh tập lúc đói hoặc đường huyết đang thấp.";
+                    } else if ("BOTH".equalsIgnoreCase(code)) {
+                        return "Nên đi bộ nhanh, đạp xe nhẹ hoặc tập yoga 30 phút/ngày, 5 ngày/tuần. Tránh vận động gắng sức đột ngột, nên khởi động kỹ trước khi tập.\nNên vận động đều đặn 30 phút/ngày giúp cải thiện độ nhạy insulin. Ưu tiên đi bộ sau bữa ăn, tránh tập lúc đói hoặc đường huyết đang thấp.";
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi lấy thông tin bệnh nhân/disease profile cho patientId={}: {}", patientId, e.getMessage());
+        }
+
+        // 3. Dự phòng chung
+        return "Thực hiện vận động thể chất ít nhất 30 phút mỗi ngày giúp tăng cường sức khỏe tim mạch, cải thiện độ nhạy insulin và kiểm soát đường huyết hiệu quả. Hãy lựa chọn các bài tập vừa sức như đi bộ nhanh, đạp xe nhẹ nhàng hoặc tập yoga.";
+    }
+
+    /**
+     * Lấy hướng dẫn vận động phù hợp với disease_profile_id và hospital_id của bệnh nhân.
+     */
+    public Optional<ExerciseGuideline> getExerciseGuideline(Integer patientId) {
+        try {
+            Optional<Patient> patientOpt = patientRepository.findById(patientId);
+            if (patientOpt.isPresent()) {
+                Patient patient = patientOpt.get();
+                if (patient.getDiseaseProfile() != null && patient.getHospital() != null) {
+                    return exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(
+                            patient.getDiseaseProfile().getId(),
+                            patient.getHospital().getId()
+                    );
+                }
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi truy xuất exercise guideline cho patientId={}: {}", patientId, e.getMessage());
+        }
+        return Optional.empty();
     }
 }

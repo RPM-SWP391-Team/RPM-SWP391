@@ -152,6 +152,9 @@
                                         <span class="badge badge-status" 
                                               th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
                                               th:text="${appt.status}">PENDING</span>
+                                        <div th:if="${appt.status == 'REJECTED' and appt.doctorNote != null}" class="small text-danger mt-1">
+                                            <i class="fa-solid fa-circle-info me-1"></i><span th:text="${appt.doctorNote}"></span>
+                                        </div>
                                     </td>
                                     <td>
                                         <form th:if="${appt.status == 'PENDING'}" th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');" style="display:inline;">
@@ -177,6 +180,9 @@
                                 <span class="badge badge-status" 
                                       th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
                                       th:text="${appt.status}">PENDING</span>
+                            </div>
+                            <div th:if="${appt.status == 'REJECTED' and appt.doctorNote != null}" class="small text-danger mb-2">
+                                <i class="fa-solid fa-circle-info me-1"></i><span th:text="${appt.doctorNote}"></span>
                             </div>
                             <h6 class="fw-bold mb-1" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                             <p class="mb-1 text-muted small">Bác sĩ phụ trách: <span th:text="${appt.doctor.fullName}">Bác sĩ B</span></p>

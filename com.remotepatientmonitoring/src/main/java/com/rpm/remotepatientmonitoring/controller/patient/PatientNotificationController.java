@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/patient/notifications")
@@ -46,7 +47,32 @@ public class PatientNotificationController {
 
     @GetMapping("/{id}/read-redirect")
     public String markAsReadAndRedirect(@PathVariable Integer id, HttpServletRequest request) {
-        patientNotificationService.markAsRead(id);
+        Optional<com.rpm.remotepatientmonitoring.model.Notification> notificationOptional = 
+                patientNotificationService.getNotificationById(id);
+
+        String targetUrl = null;
+
+        if (notificationOptional.isPresent()) {
+            com.rpm.remotepatientmonitoring.model.Notification notification = notificationOptional.get();
+            patientNotificationService.markAsRead(id);
+
+            String type = notification.getNotificationType();
+            if (type != null) {
+                if (type.startsWith("EXERCISE") || type.equals("EXERCISE_REMINDER") || type.equals("EXERCISE_STREAK_MILESTONE") || type.equals("EXERCISE_BP_REMINDER") || type.equals("EXERCISE_INACTIVITY_REMINDER")) {
+                    targetUrl = "/patient/exercise";
+                } else if (type.startsWith("DIET") || type.equals("DIET_REMINDER")) {
+                    targetUrl = "/patient/nutrition";
+                } else if (type.contains("MED_REMINDER")) {
+                    targetUrl = "/patient/adherence";
+                } else if (type.equals("HEALTH_LOG_REMINDER")) {
+                    targetUrl = "/patient/dashboard";
+                }
+            }
+        }
+
+        if (targetUrl != null) {
+            return "redirect:" + targetUrl;
+        }
 
         String referer = request.getHeader("Referer");
         if (referer != null) {

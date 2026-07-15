@@ -151,6 +151,20 @@ public class PatientInteractionService {
                 .build();
 
         appointmentRepository.save(appt);
+
+        // Notify Doctor
+        Notification notif = Notification.builder()
+                .doctor(doctor)
+                .patient(patient)
+                .recipientType("DOCTOR")
+                .title("Yêu cầu đặt lịch khám mới")
+                .content("Bệnh nhân " + patient.getFullName() + " vừa đặt lịch khám vào "
+                        + apptTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                        + ". Vui lòng xem xét và xác nhận.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(notif);
     }
 
     @Transactional
