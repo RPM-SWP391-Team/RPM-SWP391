@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class HospitalConfigService {
@@ -49,6 +50,25 @@ public class HospitalConfigService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    // --- CÁC HÀM HELPER KIỂM TRA THAY ĐỔI (Đặt ở đầu hoặc cuối service tùy bạn) ---
+    private void checkAndLogString(Map<String, Object> newLog, String field, String oldVal, String newVal) {
+        if (!Objects.equals(oldVal, newVal)) {
+            newLog.put(field, newVal);
+        }
+    }
+
+    private void checkAndLogInt(Map<String, Object> newLog, String field, Integer oldVal, Integer newVal) {
+        if (!Objects.equals(oldVal, newVal)) {
+            newLog.put(field, newVal);
+        }
+    }
+
+    private void checkAndLogBigDecimal(Map<String, Object> newLog, String field, BigDecimal oldVal, BigDecimal newVal) {
+        if (oldVal == null || newVal == null || oldVal.compareTo(newVal) != 0) {
+            newLog.put(field, newVal);
+        }
+    }
 
     public AlertThreshold getGlobalThreshold(Integer hospitalId) {
         return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL")
@@ -89,22 +109,47 @@ public class HospitalConfigService {
 
         validateThresholds(updated);
 
-        // --- ĐỒNG BỘ CÁCH LẤY LOG BẰNG MAP VÀ OBJECTMAPPER ---
-        String oldValueJson = "-";
-        try {
-            Map<String, Object> oldLog = new HashMap<>();
-            oldLog.put("glucoseHypo", existing.getGlucoseHypoThreshold());
-            oldLog.put("glucoseNormalMax", existing.getGlucoseNormalMax());
-            oldLog.put("glucoseHighMax", existing.getGlucoseHighMax());
-            oldLog.put("sysNormal", existing.getSystolicNormalMax());
-            oldLog.put("sysDanger", existing.getSystolicDangerMin());
-            oldLog.put("diaNormal", existing.getDiastolicNormalMax());
-            oldLog.put("diaDanger", existing.getDiastolicDangerMin());
-            oldValueJson = objectMapper.writeValueAsString(oldLog);
-        } catch (Exception e) {
-            oldValueJson = "{\"error\":\"Lỗi parse dữ liệu cũ\"}";
-        }
+        // 1. Đưa TOÀN BỘ dữ liệu cũ vào oldLog để làm sạch cột giá trị cũ
+        Map<String, Object> oldLog = new HashMap<>();
+        oldLog.put("glucoseHypo", existing.getGlucoseHypoThreshold());
+        oldLog.put("glucoseNormalMax", existing.getGlucoseNormalMax());
+        oldLog.put("glucoseHighMax", existing.getGlucoseHighMax());
 
+        oldLog.put("sysNormal", existing.getSystolicNormalMax());
+        oldLog.put("sysWarningMin", existing.getSystolicWarningMin());
+        oldLog.put("sysWarningMax", existing.getSystolicWarningMax());
+        oldLog.put("sysDangerMin", existing.getSystolicDangerMin());
+        oldLog.put("sysDangerMax", existing.getSystolicDangerMax());
+        oldLog.put("sysEmergency", existing.getSystolicEmergencyThreshold());
+
+        oldLog.put("diaNormal", existing.getDiastolicNormalMax());
+        oldLog.put("diaWarningMin", existing.getDiastolicWarningMin());
+        oldLog.put("diaWarningMax", existing.getDiastolicWarningMax());
+        oldLog.put("diaDangerMin", existing.getDiastolicDangerMin());
+        oldLog.put("diaDangerMax", existing.getDiastolicDangerMax());
+        oldLog.put("diaEmergency", existing.getDiastolicEmergencyThreshold());
+
+        // 2. Chỉ nhặt các trường CÓ THAY ĐỔI thực sự cho cột giá trị mới (newLog)
+        Map<String, Object> newLog = new HashMap<>();
+        checkAndLogBigDecimal(newLog, "glucoseHypo", existing.getGlucoseHypoThreshold(), updated.getGlucoseHypoThreshold());
+        checkAndLogBigDecimal(newLog, "glucoseNormalMax", existing.getGlucoseNormalMax(), updated.getGlucoseNormalMax());
+        checkAndLogBigDecimal(newLog, "glucoseHighMax", existing.getGlucoseHighMax(), updated.getGlucoseHighMax());
+
+        checkAndLogInt(newLog, "sysNormal", existing.getSystolicNormalMax(), updated.getSystolicNormalMax());
+        checkAndLogInt(newLog, "sysWarningMin", existing.getSystolicWarningMin(), updated.getSystolicWarningMin());
+        checkAndLogInt(newLog, "sysWarningMax", existing.getSystolicWarningMax(), updated.getSystolicWarningMax());
+        checkAndLogInt(newLog, "sysDangerMin", existing.getSystolicDangerMin(), updated.getSystolicDangerMin());
+        checkAndLogInt(newLog, "sysDangerMax", existing.getSystolicDangerMax(), updated.getSystolicDangerMax());
+        checkAndLogInt(newLog, "sysEmergency", existing.getSystolicEmergencyThreshold(), updated.getSystolicEmergencyThreshold());
+
+        checkAndLogInt(newLog, "diaNormal", existing.getDiastolicNormalMax(), updated.getDiastolicNormalMax());
+        checkAndLogInt(newLog, "diaWarningMin", existing.getDiastolicWarningMin(), updated.getDiastolicWarningMin());
+        checkAndLogInt(newLog, "diaWarningMax", existing.getDiastolicWarningMax(), updated.getDiastolicWarningMax());
+        checkAndLogInt(newLog, "diaDangerMin", existing.getDiastolicDangerMin(), updated.getDiastolicDangerMin());
+        checkAndLogInt(newLog, "diaDangerMax", existing.getDiastolicDangerMax(), updated.getDiastolicDangerMax());
+        checkAndLogInt(newLog, "diaEmergency", existing.getDiastolicEmergencyThreshold(), updated.getDiastolicEmergencyThreshold());
+
+        // 3. Thực hiện gán giá trị mới và lưu DB (Luồng gốc giữ nguyên)
         existing.setGlucoseHypoThreshold(updated.getGlucoseHypoThreshold());
         existing.setGlucoseNormalMax(updated.getGlucoseNormalMax());
         existing.setGlucoseHighMax(updated.getGlucoseHighMax());
@@ -126,18 +171,14 @@ public class HospitalConfigService {
         existing.setUpdatedAt(LocalDateTime.now());
         AlertThreshold savedThreshold = alertThresholdRepository.save(existing);
 
-        String newValueJson = "-";
+        // 4. Parse dữ liệu ra JSON
+        String oldValueJson;
+        String newValueJson;
         try {
-            Map<String, Object> newLog = new HashMap<>();
-            newLog.put("glucoseHypo", savedThreshold.getGlucoseHypoThreshold());
-            newLog.put("glucoseNormalMax", savedThreshold.getGlucoseNormalMax());
-            newLog.put("glucoseHighMax", savedThreshold.getGlucoseHighMax());
-            newLog.put("sysNormal", savedThreshold.getSystolicNormalMax());
-            newLog.put("sysDanger", savedThreshold.getSystolicDangerMin());
-            newLog.put("diaNormal", savedThreshold.getDiastolicNormalMax());
-            newLog.put("diaDanger", savedThreshold.getDiastolicDangerMin());
-            newValueJson = objectMapper.writeValueAsString(newLog);
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+            newValueJson = objectMapper.writeValueAsString(newLog); // Trả về dạng "{}" nếu không đổi gì, giao diện của bạn xử lý hiển thị rất mượt
         } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi parse dữ liệu cũ\"}";
             newValueJson = "{\"error\":\"Lỗi parse dữ liệu mới\"}";
         }
 
@@ -270,38 +311,39 @@ public class HospitalConfigService {
 
     @Transactional
     public EmergencyGuide editEmergencyGuideContent(Integer guideId, String instructionContent) {
+
+        if (instructionContent == null || instructionContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn không được để trống.");
+        }
+        if (instructionContent.trim().length() < 20 || instructionContent.trim().length() > 2000) {
+            throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn khẩn cấp phải từ 20 đến 2000 ký tự.");
+        }
         EmergencyGuide guide = emergencyGuideRepository.findById(guideId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hướng dẫn với ID: " + guideId));
 
-        if (instructionContent == null || instructionContent.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nội dung hướng dẫn không được để trống.");
-        }
+        // Lấy toàn bộ thông tin cũ
+        Map<String, Object> oldLog = new HashMap<>();
+        oldLog.put("title", guide.getTitle());
+        oldLog.put("alertLevel", guide.getAlertLevel());
+        oldLog.put("metricType", guide.getMetricType());
+        oldLog.put("instructionContent", guide.getInstructionContent());
 
-        String oldValueJson = "-";
-        try {
-            Map<String, Object> oldLog = new HashMap<>();
-            oldLog.put("title", guide.getTitle());
-            oldLog.put("alertLevel", guide.getAlertLevel());
-            oldLog.put("metricType", guide.getMetricType());
-            oldLog.put("instructionContent", guide.getInstructionContent());
-            oldValueJson = objectMapper.writeValueAsString(oldLog);
-        } catch (Exception e) {
-            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
-        }
+        // Kiểm tra thay đổi cho newLog
+        Map<String, Object> newLog = new HashMap<>();
+        String newInstruction = instructionContent.trim();
+        checkAndLogString(newLog, "instructionContent", guide.getInstructionContent(), newInstruction);
 
-        guide.setInstructionContent(instructionContent.trim());
+        guide.setInstructionContent(newInstruction);
         guide.setUpdatedAt(LocalDateTime.now());
         EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
 
-        String newValueJson = "-";
+        String oldValueJson;
+        String newValueJson;
         try {
-            Map<String, Object> newLog = new HashMap<>();
-            newLog.put("title", savedGuide.getTitle());
-            newLog.put("alertLevel", savedGuide.getAlertLevel());
-            newLog.put("metricType", savedGuide.getMetricType());
-            newLog.put("instructionContent", savedGuide.getInstructionContent());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
             newValueJson = objectMapper.writeValueAsString(newLog);
         } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
             newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
         }
 
@@ -360,43 +402,52 @@ public class HospitalConfigService {
 
     @Transactional
     public EmergencyProtocol editEmergencyProtocolContent(Integer protocolId, String warningSigns, String instructionContent) {
+        // Chốt chặn Validation an toàn y tế
+        if (warningSigns == null || warningSigns.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết không được để trống.");
+        }
+        if (warningSigns.trim().length() < 10 || warningSigns.trim().length() > 500) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 500 ký tự.");
+        }
+        if (instructionContent == null || instructionContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Nội dung cẩm nang không được để trống.");
+        }
+        if (instructionContent.trim().length() < 20 || instructionContent.trim().length() > 2000) {
+            throw new IllegalArgumentException("Thất bại: Nội dung cẩm nang xử lý phải từ 20 đến 2000 ký tự.");
+        }
+
         EmergencyProtocol protocol = emergencyProtocolRepository.findById(protocolId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cẩm nang với ID: " + protocolId));
 
-        if (warningSigns == null || warningSigns.trim().isEmpty()) {
-            throw new IllegalArgumentException("Dấu hiệu nhận biết không được để trống.");
-        }
-        if (instructionContent == null || instructionContent.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nội dung chỉ dẫn không được để trống.");
-        }
 
-        String oldValueJson = "-";
-        try {
-            Map<String, Object> oldLog = new HashMap<>();
-            oldLog.put("title", protocol.getTitle());
-            oldLog.put("conditionType", protocol.getConditionType());
-            oldLog.put("warningSigns", protocol.getWarningSigns());
-            oldLog.put("instructionContent", protocol.getInstructionContent());
-            oldValueJson = objectMapper.writeValueAsString(oldLog);
-        } catch (Exception e) {
-            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
-        }
+        // Lấy toàn bộ thông tin cũ
+        Map<String, Object> oldLog = new HashMap<>();
+        oldLog.put("title", protocol.getTitle());
+        oldLog.put("conditionType", protocol.getConditionType());
+        oldLog.put("warningSigns", protocol.getWarningSigns());
+        oldLog.put("instructionContent", protocol.getInstructionContent());
 
-        protocol.setWarningSigns(warningSigns.trim());
-        protocol.setInstructionContent(instructionContent.trim());
+        // Kiểm tra thay đổi cho newLog
+        Map<String, Object> newLog = new HashMap<>();
+        String newWarning = warningSigns.trim();
+        String newInstruction = instructionContent.trim();
+
+        checkAndLogString(newLog, "warningSigns", protocol.getWarningSigns(), newWarning);
+        checkAndLogString(newLog, "instructionContent", protocol.getInstructionContent(), newInstruction);
+
+        protocol.setWarningSigns(newWarning);
+        protocol.setInstructionContent(newInstruction);
         protocol.setUpdatedAt(LocalDateTime.now());
 
         EmergencyProtocol savedProtocol = emergencyProtocolRepository.save(protocol);
 
-        String newValueJson = "-";
+        String oldValueJson;
+        String newValueJson;
         try {
-            Map<String, Object> newLog = new HashMap<>();
-            newLog.put("title", savedProtocol.getTitle());
-            newLog.put("conditionType", savedProtocol.getConditionType());
-            newLog.put("warningSigns", savedProtocol.getWarningSigns());
-            newLog.put("instructionContent", savedProtocol.getInstructionContent());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
             newValueJson = objectMapper.writeValueAsString(newLog);
         } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
             newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
         }
 
@@ -425,7 +476,6 @@ public class HospitalConfigService {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated()) {
                 Object principal = auth.getPrincipal();
-                // LƯU Ý: Đảm bảo class CustomUserDetails nằm ĐÚNG đường dẫn import dưới đây trong project của bạn
                 if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
                     Account acc = ((com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal).getAccount();
                     adminId = acc.getId();
@@ -442,7 +492,7 @@ public class HospitalConfigService {
 
                     deviceInfo = request.getHeader("User-Agent");
                     if (deviceInfo != null && deviceInfo.length() > 250) {
-                        deviceInfo = deviceInfo.substring(0, 250); // Ép cứng độ dài chống vỡ CSDL
+                        deviceInfo = deviceInfo.substring(0, 250);
                     }
 
                     ipAddress = request.getHeader("X-Forwarded-For");

@@ -160,14 +160,18 @@ public class HospitalConfigController {
     @PostMapping("/config/guide/edit")
     public String editEmergencyGuide(@RequestParam("guideId") Integer guideId,
                                      @RequestParam("instructionContent") String instructionContent,
+                                     Model model,
                                      RedirectAttributes redirectAttributes) {
         try {
             configService.editEmergencyGuideContent(guideId, instructionContent);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật nội dung hướng dẫn khẩn cấp thành công!");
+            return "redirect:/hospital/config/protocols"; // Chỉ redirect khi thành công
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật: " + e.getMessage());
+            // Lỗi thì trả thẳng về View kèm thông báo lỗi
+            prepareModelForProtocolsPage(model);
+            model.addAttribute("errorMessage", "Không thể cập nhật: " + e.getMessage());
+            return "hospital/config-protocols";
         }
-        return "redirect:/hospital/config/protocols";
     }
 
     @PostMapping("/config/protocol/add")
@@ -203,14 +207,18 @@ public class HospitalConfigController {
     public String editEmergencyProtocol(@RequestParam("protocolId") Integer protocolId,
                                         @RequestParam("warningSigns") String warningSigns,
                                         @RequestParam("instructionContent") String instructionContent,
+                                        Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
             configService.editEmergencyProtocolContent(protocolId, warningSigns, instructionContent);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật cẩm nang nhận biết thành công!");
+            return "redirect:/hospital/config/protocols"; // Chỉ redirect khi thành công
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật cẩm nang: " + e.getMessage());
+            // Lỗi thì trả thẳng về View kèm thông báo lỗi
+            prepareModelForProtocolsPage(model);
+            model.addAttribute("errorMessage", "Không thể cập nhật cẩm nang: " + e.getMessage());
+            return "hospital/config-protocols";
         }
-        return "redirect:/hospital/config/protocols";
     }
 
     @DeleteMapping("/config/guide/delete/{id}")
