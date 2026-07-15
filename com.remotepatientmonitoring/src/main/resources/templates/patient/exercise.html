@@ -19,8 +19,8 @@
                  class="alert alert-dismissible fade show shadow-sm border-0 d-flex align-items-center py-3 px-4 rounded-3 mb-0" 
                  role="alert" 
                  th:id="'exercise-notif-' + ${notif.id}"
-                 th:classappend="${notif.notificationType == 'EXERCISE_SHORT_BURST_WARNING' ? 'alert-danger' : (notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'alert-warning' : 'alert-info')}"
-                 th:style="${notif.notificationType == 'EXERCISE_SHORT_BURST_WARNING' ? 'background-color: #fff5eb; border-left: 5px solid #fd7e14 !important;' : (notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'background-color: #fff9db; border-left: 5px solid #fcc419 !important;' : 'background-color: #eef2ff; border-left: 5px solid #6366f1 !important;')}"
+                 th:classappend="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'alert-warning' : 'alert-info'}"
+                 th:style="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'background-color: #fff9db; border-left: 5px solid #fcc419 !important;' : 'background-color: #eef2ff; border-left: 5px solid #6366f1 !important;'}"
             >
                 <div class="me-3">
                     <!-- Icon based on notification type -->
@@ -29,7 +29,6 @@
                     <i th:if="${notif.notificationType == 'EXERCISE_BP_REMINDER'}" class="fa-solid fa-heart-pulse text-danger fa-xl"></i>
                     <i th:if="${notif.notificationType == 'EXERCISE_INACTIVITY_REMINDER'}" class="fa-solid fa-couch text-secondary fa-xl"></i>
                     <i th:if="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK'}" class="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
-                    <i th:if="${notif.notificationType == 'EXERCISE_SHORT_BURST_WARNING'}" class="fa-solid fa-circle-exclamation fa-xl" style="color: #fd7e14 !important;"></i>
                 </div>
                 <div class="flex-grow-1">
                     <strong class="text-dark d-block mb-1" th:text="${notif.title}">Tiêu đề</strong>
@@ -88,6 +87,72 @@
                     </div>
 
                     <div class="col-md-6 col-lg-12">
+                        <!-- Card: Khuyến nghị vận động cho bạn (Tĩnh từ DB) -->
+                        <div class="card card-custom p-4 bg-white h-100 mb-0 border border-success-subtle">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-clipboard-list me-2 text-success"></i>Khuyến Nghị Vận Động Cho Bạn
+                            </h5>
+                            
+                            <!-- Nếu có guideline -->
+                            <div th:if="${exerciseGuideline != null}">
+                                <div class="mb-3 p-3 rounded-3" style="background-color: #f0fdf4; border-left: 4px solid #15803d;">
+                                    <h6 class="fw-bold text-success mb-2">✅ Nên làm</h6>
+                                    <p class="small text-dark mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseGuideline.recommendedContent}"></p>
+                                </div>
+                                
+                                <div class="mb-3 p-3 rounded-3" style="background-color: #fff7ed; border-left: 4px solid #c2410c;">
+                                    <h6 class="fw-bold text-danger mb-2" style="color: #c2410c !important;">⚠️ Cần tránh</h6>
+                                    <p class="small text-dark mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseGuideline.avoidContent}"></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Nếu không có guideline (hoặc chưa có disease_profile_id) -->
+                            <div th:if="${exerciseGuideline == null}" class="alert alert-warning py-3 px-4 mb-3 border-0 rounded-3 text-warning-emphasis" style="background-color: #fffbeb;">
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                <span class="small fw-semibold">Chưa có thông tin phân loại bệnh lý. Vui lòng liên hệ bác sĩ để được tư vấn vận động phù hợp.</span>
+                            </div>
+                            
+                            <div class="text-center mt-2">
+                                <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">
+                                    * Thông tin tham khảo chung, không thay thế chỉ định cụ thể của bác sĩ điều trị.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-12">
+                        <!-- Card: Khuyến nghị vận động cho bạn (compliance) -->
+                        <div class="card card-custom p-4 bg-white h-100 mb-0 border border-success-subtle">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-bullseye me-2 text-success"></i>Theo Dõi Tuân Thủ Mục Tiêu
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-success-subtle text-success py-1 px-2 rounded-pill fw-semibold mb-2" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-clipboard-list me-1"></i>Chỉ dẫn từ bác sĩ / cố vấn
+                                </span>
+                                <p class="text-muted small mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseRecommendation}">
+                                    Thực hiện vận động thể chất ít nhất 30 phút mỗi ngày giúp tăng cường sức khỏe tim mạch, cải thiện độ nhạy insulin và kiểm soát đường huyết hiệu quả. Hãy lựa chọn các bài tập vừa sức như đi bộ nhanh, đạp xe nhẹ nhàng hoặc tập yoga.
+                                </p>
+                            </div>
+                            
+                            <hr class="my-3 text-muted opacity-25">
+                            
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-success-subtle p-3 rounded-circle text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fa-solid fa-circle-check fa-lg text-success"></i>
+                                </div>
+                                <div>
+                                    <span class="small fw-semibold text-muted d-block">Mức độ tuân thủ (7 ngày qua)</span>
+                                    <strong class="text-dark small" th:text="'Tuần này: Bạn đã đạt mục tiêu ' + ${compliance.daysAchieved} + '/' + ${compliance.totalDays} + ' ngày theo khuyến nghị của bác sĩ'">
+                                        Tuần này: Bạn đã đạt mục tiêu 0/7 ngày theo khuyến nghị của bác sĩ
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-12">
                         <!-- Card: Chỉ Số BMI -->
                         <div class="card card-custom p-4 bg-white h-100 mb-0">
                             <h5 class="fw-bold text-dark mb-3">
@@ -137,15 +202,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="card card-custom p-4 bg-white border border-success-subtle">
-                    <h6 class="fw-bold text-dark mb-2">
-                        <i class="fa-solid fa-circle-info text-success me-2"></i>Lời khuyên vận động
-                    </h6>
-                    <p class="small text-muted mb-0">
-                        Thực hiện vận động thể chất ít nhất 30 phút mỗi ngày giúp tăng cường sức khỏe tim mạch, cải thiện độ nhạy insulin và kiểm soát đường huyết hiệu quả. Hãy lựa chọn các bài tập vừa sức như đi bộ nhanh, đạp xe nhẹ nhàng hoặc tập yoga.
-                    </p>
                 </div>
             </div>
 
