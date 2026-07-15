@@ -1,68 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theo Dõi Điều Trị (Thuốc & Nước Uống)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/patient.css">
-</head>
+<head th:replace="~{patient/fragments :: header-links('Theo Dõi Điều Trị (Thuốc & Nước Uống)')}"></head>
 <body>
-    <nav class="navbar navbar-dark navbar-custom py-3">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">
-                <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
-            </span>
-            <div class="d-flex align-items-center text-white">
-                <!-- Quả chuông thông báo (Thymeleaf) -->
-                <div class="dropdown notif-dropdown-container me-3">
-                    <button class="btn btn-link p-0 position-relative text-white dropdown-toggle" type="button" id="bellIcon" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" style="border: none; text-decoration: none;">
-                        <i class="fa-solid fa-bell fa-lg"></i>
-                        <span class="notification-badge" th:classappend="${patientUnreadCount == 0 ? ' d-none' : ''}" th:text="${patientUnreadCount}">0</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end shadow p-0" aria-labelledby="bellIcon" style="width: 330px; border-radius: var(--radius-md); border: none; overflow: hidden;">
-                        <div class="notif-header d-flex justify-content-between align-items-center bg-light">
-                            <span>Thông báo</span>
-                            <a href="/patient/notifications/read-all-redirect" class="text-primary small text-decoration-none" style="font-weight: normal; font-size: 0.8rem;">Đánh dấu đã đọc</a>
-                        </div>
-                        <div style="max-height: 400px; overflow-y: auto;">
-                            <div th:if="${#lists.isEmpty(patientNotifications)}" class="text-center py-4 text-muted small">Không có thông báo nào.</div>
-                            
-                            <a th:each="n : ${patientNotifications}" 
-                               th:href="@{/patient/notifications/{id}/read-redirect(id=${n.id})}"
-                               class="text-decoration-none d-block notif-item"
-                               th:classappend="${!n.isRead ? 'unread' : ''}">
-                                <div class="notif-item-title" th:text="${n.title}">Tiêu đề</div>
-                                <div class="text-dark small" th:text="${n.content}">Nội dung</div>
-                                <div class="notif-item-time"><i class="fa-regular fa-clock me-1"></i><span th:text="${#temporals.format(n.createdAt, 'HH:mm - dd/MM/yyyy')}"></span></div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dropdown">
-                    <div class="d-flex align-items-center text-white" 
-                         id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
-                        <i class="fa-regular fa-user-circle fa-2x me-2"></i>
-                        <div class="text-start me-2">
-                            <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
-                            <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
-                        </div>
-                        <i class="fa-solid fa-chevron-down small text-white-50"></i>
-                    </div>
-                    <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 150px;">
-                        <li>
-                            <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
-                                <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <nav th:replace="~{patient/fragments :: top-nav}"></nav>
 
     <div class="container my-4">
         <div class="mb-4 d-flex align-items-center justify-content-between">
@@ -410,11 +350,10 @@
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
     <!-- ==================== JAVASCRIPT ==================== -->
-    <script>
+    <script th:inline="javascript">
         const targetWater = [[${targetWater}]];
 
         // ==================== A. HÀM CHUNG & NƯỚC UỐNG ====================
@@ -620,51 +559,7 @@
         }
     </script>
     <!-- Bottom Navigation Bar -->
-    <div class="bottom-nav">
-        <a href="/patient/dashboard" class="nav-item">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ</span>
-        </a>
-        <a href="/patient/appointments" class="nav-item">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Nhật ký</span>
-        </a>
-        <a href="/patient/adherence" class="nav-item">
-            <i class="fa-solid fa-pills"></i>
-            <span>Thuốc uống</span>
-        </a>
-        <a href="/patient/log" class="nav-item fab-item">
-            <div class="fab-btn">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-        </a>
-        <a href="/patient/nutrition" class="nav-item">
-            <i class="fa-solid fa-utensils"></i>
-            <span>Dinh dưỡng</span>
-        </a>
-        <a href="/patient/exercise" class="nav-item">
-            <i class="fa-solid fa-person-running"></i>
-            <span>Tập luyện</span>
-        </a>
-        <a href="/patient/progress" class="nav-item">
-            <i class="fa-solid fa-user"></i>
-            <span>Hồ sơ</span>
-        </a>
-    </div>
-
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const currentPath = window.location.pathname;
-            document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
-                const href = item.getAttribute("href");
-                if (currentPath === href || (href === "/patient/appointments" && currentPath === "/patient/request-change")) {
-                    item.classList.add("active");
-                }
-            });
-        });
-    </script>
-    <script src="/js/patient.js"></script>
+    <div th:replace="~{patient/fragments :: bottom-nav}"></div>
+    <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
 </body>
 </html>

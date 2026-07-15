@@ -29,6 +29,12 @@ public class TreatmentPlanWorkflowService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private AuditTrailService auditTrailService;
+
+    @Autowired
+    private HealthLogRepository healthLogRepository;
+
     @Transactional
     public void createNewTreatmentPlan(
             Patient patient,
@@ -112,12 +118,18 @@ public class TreatmentPlanWorkflowService {
         newPlan.setPatient(patient);
         newPlan.setDoctor(doctor);
         newPlan.setNutritionRule(newRule);
+        // baseline (đo tại viện)
+        newPlan.setBaselineSystolicBp(baselineSystolicBp != null && baselineSystolicBp >= 50 && baselineSystolicBp <= 300 ? baselineSystolicBp : null);
+        newPlan.setBaselineDiastolicBp(baselineDiastolicBp != null && baselineDiastolicBp >= 30 && baselineDiastolicBp <= 200 ? baselineDiastolicBp : null);
+        newPlan.setBaselineFastingGlucose(baselineFastingGlucose != null && baselineFastingGlucose.compareTo(new BigDecimal("1.0")) >= 0 && baselineFastingGlucose.compareTo(new BigDecimal("33.3")) <= 0 ? baselineFastingGlucose : null);
+        newPlan.setBaselineHba1c(baselineHba1c != null && baselineHba1c.compareTo(BigDecimal.ZERO) > 0 ? baselineHba1c : null);
+        newPlan.setBaselineWeightKg(baselineWeightKg != null && baselineWeightKg.compareTo(BigDecimal.ZERO) > 0 ? baselineWeightKg : null);
         // target
-        newPlan.setTargetSystolicBp(targetSystolicBp);
-        newPlan.setTargetDiastolicBp(targetDiastolicBp);
-        newPlan.setTargetFastingGlucose(targetFastingGlucose);
-        newPlan.setTargetHba1c(targetHba1c);
-        newPlan.setTargetWeightKg(targetWeightKg);
+        newPlan.setTargetSystolicBp(targetSystolicBp != null && targetSystolicBp >= 50 && targetSystolicBp <= 300 ? targetSystolicBp : null);
+        newPlan.setTargetDiastolicBp(targetDiastolicBp != null && targetDiastolicBp >= 30 && targetDiastolicBp <= 200 ? targetDiastolicBp : null);
+        newPlan.setTargetFastingGlucose(targetFastingGlucose != null && targetFastingGlucose.compareTo(new BigDecimal("1.0")) >= 0 && targetFastingGlucose.compareTo(new BigDecimal("33.3")) <= 0 ? targetFastingGlucose : null);
+        newPlan.setTargetHba1c(targetHba1c != null && targetHba1c.compareTo(BigDecimal.ZERO) > 0 ? targetHba1c : null);
+        newPlan.setTargetWeightKg(targetWeightKg != null && targetWeightKg.compareTo(BigDecimal.ZERO) > 0 ? targetWeightKg : null);
         // goals
         newPlan.setMedicalOrder(medicalOrder);
         newPlan.setExerciseGoal(exerciseGoal);
@@ -128,6 +140,24 @@ public class TreatmentPlanWorkflowService {
         newPlan.setUpdatedAt(now);
         treatmentPlanRepository.save(newPlan);
 
+        // 5.5. Ghi nhận chỉ số khám tại viện vào Lịch sử sức khỏe (DailyHealthLog)
+        if (baselineSystolicBp != null || baselineDiastolicBp != null || baselineFastingGlucose != null) {
+            DailyHealthLog clinicLog = new DailyHealthLog();
+            clinicLog.setPatient(patient);
+            clinicLog.setLogDate(LocalDate.now());
+            clinicLog.setLogTime(now);
+            clinicLog.setLogType("RANDOM");
+            clinicLog.setInputMethod("MANUAL");
+            clinicLog.setSystolicBp(baselineSystolicBp != null && baselineSystolicBp >= 50 && baselineSystolicBp <= 300 ? baselineSystolicBp : null);
+            clinicLog.setDiastolicBp(baselineDiastolicBp != null && baselineDiastolicBp >= 30 && baselineDiastolicBp <= 200 ? baselineDiastolicBp : null);
+            clinicLog.setGlucoseLevel(baselineFastingGlucose != null && baselineFastingGlucose.compareTo(new BigDecimal("1.0")) >= 0 && baselineFastingGlucose.compareTo(new BigDecimal("33.3")) <= 0 ? baselineFastingGlucose : null);
+            
+            if (clinicLog.getSystolicBp() != null || clinicLog.getDiastolicBp() != null || clinicLog.getGlucoseLevel() != null) {
+                clinicLog.setPatientNotes("Khám định kỳ/nhập viện. Bác sĩ " + doctor.getFullName() + " ghi nhận.");
+                healthLogRepository.save(clinicLog);
+            }
+        }
+
         // 6. Tạo và lưu danh sách thuốc mới liên kết với phác đồ
         if (medNames != null) {
             for (int i = 0; i < medNames.size(); i++) {
@@ -137,8 +167,8 @@ public class TreatmentPlanWorkflowService {
                     med.setPatient(patient);
                     med.setTreatmentPlan(newPlan);
                     med.setMedicineName(name.trim());
-                    med.setDosage(medDosages.get(i));
-                    med.setScheduledTime(medScheduledTimes.get(i));
+                    med.setDosage((medDosages != null && medDosages.size() > i) ? medDosages.get(i) : "");
+                    med.setScheduledTime((medScheduledTimes != null && medScheduledTimes.size() > i) ? medScheduledTimes.get(i) : "");
                     med.setIsActive(true);
                     med.setCreatedAt(now);
                     med.setUpdatedAt(now);
@@ -168,5 +198,17 @@ public class TreatmentPlanWorkflowService {
             patient.setUpdatedAt(now);
             patientRepository.save(patient);
         }
+
+        // 8. Ghi Audit Trail
+        auditTrailService.logAction(
+                "DOCTOR",
+                doctor.getId(),
+                "CREATE_TREATMENT_PLAN",
+                "treatment_plans",
+                newPlan.getId(),
+                null,
+                newPlan,
+                "Bác sĩ " + doctor.getFullName() + " tạo/cập nhật phác đồ mới cho bệnh nhân " + patient.getFullName()
+        );
     }
 }

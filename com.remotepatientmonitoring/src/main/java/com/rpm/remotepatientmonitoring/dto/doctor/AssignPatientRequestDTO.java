@@ -5,6 +5,5 @@ import lombok.Data;
 @Data
 public class AssignPatientRequestDTO {
     private Integer patientId;
-    private Integer doctorId;
     private Integer diseaseProfileId;
 }

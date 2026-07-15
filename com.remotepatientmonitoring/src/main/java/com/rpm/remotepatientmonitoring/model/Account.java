@@ -35,6 +35,9 @@ public class Account {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "registration_details", length = 4000)
+    private String registrationDetails;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

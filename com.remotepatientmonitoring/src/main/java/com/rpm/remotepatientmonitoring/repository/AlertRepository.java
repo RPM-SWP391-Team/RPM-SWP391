@@ -1,6 +1,8 @@
 package com.rpm.remotepatientmonitoring.repository;
 
 import com.rpm.remotepatientmonitoring.model.Alert;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +20,7 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
 
     @Query("SELECT a FROM Alert a WHERE a.patient.hospital.id = :hospitalId AND a.isResolved = false AND UPPER(a.alertColor) = 'RED'")
     java.util.List<Alert> findUnresolvedRedAlertsByHospital(@Param("hospitalId") Integer hospitalId);
+
+    @Query("SELECT a FROM Alert a WHERE a.patient.hospital.id = :hospitalId AND a.isResolved = false AND UPPER(a.alertColor) = 'RED'")
+    Page<Alert> findUnresolvedRedAlertsByHospital(@Param("hospitalId") Integer hospitalId, Pageable pageable);
 }

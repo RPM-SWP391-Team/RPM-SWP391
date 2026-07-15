@@ -82,7 +82,7 @@ public class DoctorController {
         // Chặn đứng chữ rác: Nếu DTO dính lỗi Regex, dừng luồng dữ liệu lập tức và trả về giao diện kèm thông báo
         if (bindingResult.hasErrors()) {
             // SỬA CHUẨN: Đồng bộ phân trang khi trả về lỗi Validation tránh crash giao diện
-            Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "id"));
+            Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
             Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(null, null, pageable);
             model.addAttribute("doctors", doctorPage.getContent());
             model.addAttribute("doctorPage", doctorPage);
