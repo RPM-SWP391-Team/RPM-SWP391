@@ -43,4 +43,8 @@ public class PatientNotificationService {
             notificationRepository.saveAll(unreadNotifications);
         }
     }
+
+    public Optional<Notification> getNotificationById(Integer id) {
+        return notificationRepository.findById(id);
+    }
 }

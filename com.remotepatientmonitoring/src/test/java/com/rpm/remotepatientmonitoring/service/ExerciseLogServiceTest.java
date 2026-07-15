@@ -297,4 +297,147 @@ public class ExerciseLogServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
     }
+
+    @Test
+    public void testIsStreakAtRiskToday_True() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(3650);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        // Target: 30 minutes
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        // Logs: yesterday achieved (30 min), today logged only 10 min
+        ExerciseLog logYesterday = new ExerciseLog(patient, today.minusDays(1), "Đi bộ", 30, null, 120.0);
+        ExerciseLog logToday = new ExerciseLog(patient, today, "Chạy bộ", 10, null, 60.0);
+        List<ExerciseLog> dbLogs = Arrays.asList(logYesterday, logToday);
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(dbLogs);
+        when(exerciseLogRepository.findByPatientIdAndLogDate(patientId, today)).thenReturn(Collections.singletonList(logToday));
+
+        boolean atRisk = exerciseLogService.isStreakAtRiskToday(patientId);
+
+        assertTrue(atRisk);
+    }
+
+    @Test
+    public void testIsStreakAtRiskToday_False_MetTarget() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(3650);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        // Logs: yesterday achieved (30 min), today achieved (30 min)
+        ExerciseLog logYesterday = new ExerciseLog(patient, today.minusDays(1), "Đi bộ", 30, null, 120.0);
+        ExerciseLog logToday = new ExerciseLog(patient, today, "Chạy bộ", 30, null, 180.0);
+        List<ExerciseLog> dbLogs = Arrays.asList(logYesterday, logToday);
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(dbLogs);
+        when(exerciseLogRepository.findByPatientIdAndLogDate(patientId, today)).thenReturn(Collections.singletonList(logToday));
+
+        boolean atRisk = exerciseLogService.isStreakAtRiskToday(patientId);
+
+        assertFalse(atRisk);
+    }
+
+    @Test
+    public void testIsStreakAtRiskToday_False_NoStreak() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(3650);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        // Logs: yesterday achieved 0 min (no logs), today logged 10 min
+        ExerciseLog logToday = new ExerciseLog(patient, today, "Chạy bộ", 10, null, 60.0);
+        List<ExerciseLog> dbLogs = Collections.singletonList(logToday);
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(dbLogs);
+
+        boolean atRisk = exerciseLogService.isStreakAtRiskToday(patientId);
+
+        assertFalse(atRisk);
+    }
+
+    @Test
+    public void testGetWeeklyComplianceRate_FullCompliance() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        List<ExerciseLog> logs = new java.util.ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            logs.add(new ExerciseLog(patient, startDate.plusDays(i), "Đi bộ", 30, null, 120.0));
+        }
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(logs);
+
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patientId);
+
+        assertNotNull(compliance);
+        assertEquals(7, compliance.getDaysAchieved());
+        assertEquals(7, compliance.getTotalDays());
+    }
+
+    @Test
+    public void testGetWeeklyComplianceRate_PartialCompliance() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        Patient patient = new Patient();
+        patient.setId(patientId);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+
+        List<ExerciseLog> logs = new java.util.ArrayList<>();
+        // Achieved days: 0, 2, 4, 6 (total 4 days)
+        // Under target days: 1, 3 (e.g., 10 mins), and day 5 has no log
+        logs.add(new ExerciseLog(patient, startDate.plusDays(0), "Đi bộ", 30, null, 120.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(1), "Chạy bộ", 10, null, 60.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(2), "Đi bộ", 45, null, 180.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(3), "Đi bộ", 15, null, 60.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(4), "Yoga", 30, null, 90.0));
+        // day 5 has no logs
+        logs.add(new ExerciseLog(patient, startDate.plusDays(6), "Đi bộ", 40, null, 160.0));
+
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(logs);
+
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patientId);
+
+        assertNotNull(compliance);
+        assertEquals(4, compliance.getDaysAchieved());
+        assertEquals(7, compliance.getTotalDays());
+    }
+
+    @Test
+    public void testGetWeeklyComplianceRate_NoLogs() {
+        Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(Collections.emptyList());
+
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patientId);
+
+        assertNotNull(compliance);
+        assertEquals(0, compliance.getDaysAchieved());
+        assertEquals(7, compliance.getTotalDays());
+    }
 }
