@@ -75,6 +75,14 @@ public class ExerciseLogController {
         List<com.rpm.remotepatientmonitoring.model.Notification> exerciseNotifications = 
                 exerciseLogService.getUnreadExerciseNotificationsToday(patient.getId());
 
+        // Lấy khuyến nghị và mức độ tuân thủ
+        String exerciseRecommendation = exerciseLogService.getExerciseRecommendation(patient.getId());
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patient.getId());
+
+        // Lấy hướng dẫn vận động tĩnh từ DB
+        Optional<com.rpm.remotepatientmonitoring.model.ExerciseGuideline> guidelineOpt = 
+                exerciseLogService.getExerciseGuideline(patient.getId());
+
         int targetMinutesVal = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : ExerciseLogService.DAILY_GOAL_MINUTES;
         int recommendedCalories = targetMinutesVal * ExerciseLogService.AVERAGE_KCAL_PER_MINUTE;
 
@@ -91,6 +99,9 @@ public class ExerciseLogController {
         model.addAttribute("recommendedCalories", recommendedCalories);
         model.addAttribute("latestBmi", latestBmi);
         model.addAttribute("exerciseNotifications", exerciseNotifications);
+        model.addAttribute("exerciseRecommendation", exerciseRecommendation);
+        model.addAttribute("compliance", compliance);
+        model.addAttribute("exerciseGuideline", guidelineOpt.orElse(null));
 
         return "patient/exercise";
     }

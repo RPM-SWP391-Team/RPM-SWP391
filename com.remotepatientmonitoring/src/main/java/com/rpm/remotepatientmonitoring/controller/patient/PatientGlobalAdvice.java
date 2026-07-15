@@ -97,7 +97,6 @@ public class PatientGlobalAdvice {
         // Specific checks for Exercise and Diet reminders (to prevent duplicating different text with the same notification type)
         boolean hasMissedExerciseNotif = false;
         boolean hasAchievedExerciseNotif = false;
-        boolean hasExcessiveExerciseNotif = false;
 
         boolean hasBreakfastDietNotif = false;
         boolean hasLunchDietNotif = false;
@@ -119,8 +118,6 @@ public class PatientGlobalAdvice {
                         hasMissedExerciseNotif = true;
                     } else if (content.contains("đạt mục tiêu vận động")) {
                         hasAchievedExerciseNotif = true;
-                    } else if (content.contains("vận động khá nhiều")) {
-                        hasExcessiveExerciseNotif = true;
                     }
                 } else if ("DIET_REMINDER".equals(type)) {
                     String content = n.getContent();
@@ -283,23 +280,7 @@ public class PatientGlobalAdvice {
                 }
             }
 
-            if (totalMinutes > 120) {
-                if (!hasExcessiveExerciseNotif) {
-                    Notification notif = Notification.builder()
-                            .patient(patient)
-                            .recipientType("PATIENT")
-                            .recipientId(patient.getId())
-                            .notificationType("EXERCISE_REMINDER")
-                            .channel("IN_APP")
-                            .status("SENT")
-                            .title("Cảnh báo vận động quá mức")
-                            .content("Bạn đã vận động khá nhiều hôm nay (120+ phút). Hãy chú ý theo dõi huyết áp sau khi tập và nghỉ ngơi đầy đủ nhé.")
-                            .isRead(false)
-                            .createdAt(LocalDateTime.now())
-                            .build();
-                    notificationRepository.save(notif);
-                }
-            }
+
         } catch (Exception ignored) {
         }
 

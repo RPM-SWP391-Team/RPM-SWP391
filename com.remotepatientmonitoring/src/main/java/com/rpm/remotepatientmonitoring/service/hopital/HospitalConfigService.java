@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -35,6 +37,15 @@ public class HospitalConfigService {
 
     @Autowired
     private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private ExerciseGuidelineRepository exerciseGuidelineRepository;
+
+    @Autowired
+    private FoodDictionaryRepository foodDictionaryRepository;
+
+    @Autowired
+    private DiseaseProfileRepository diseaseProfileRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -462,5 +473,210 @@ public class HospitalConfigService {
         } catch (Exception e) {
             System.err.println("Cảnh báo: Lỗi hệ thống khi ghi Audit Log cấu hình (" + action + "): " + e.getMessage());
         }
+    }
+
+    // ==========================================
+    // KHUYẾN NGHỊ TẬP LUYỆN
+    // ==========================================
+    public List<ExerciseGuideline> getExerciseGuidelines(Integer hospitalId) {
+        return exerciseGuidelineRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
+    }
+
+    @Transactional
+    public ExerciseGuideline addExerciseGuideline(Integer hospitalId, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, hospitalId)
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("Đã tồn tại khuyến nghị tập luyện đang hoạt động cho nhóm bệnh này.");
+                });
+
+        DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm bệnh lý."));
+
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện."));
+
+        ExerciseGuideline guideline = new ExerciseGuideline();
+        guideline.setHospital(hospital);
+        guideline.setDiseaseProfile(profile);
+        guideline.setTitle(title);
+        guideline.setRecommendedContent(recommendedContent);
+        guideline.setAvoidContent(avoidContent);
+        guideline.setIsActive(true);
+        guideline.setCreatedAt(LocalDateTime.now());
+
+        ExerciseGuideline saved = exerciseGuidelineRepository.save(guideline);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(saved);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("CREATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), null, newValueJson, "Thêm mới khuyến nghị tập luyện");
+
+        return saved;
+    }
+
+    @Transactional
+    public ExerciseGuideline editExerciseGuideline(Integer id, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+
+        if (!existing.getDiseaseProfile().getId().equals(diseaseProfileId)) {
+            exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, existing.getHospital().getId())
+                    .ifPresent(other -> {
+                        if (!other.getId().equals(id)) {
+                            throw new IllegalArgumentException("Đã tồn tại khuyến nghị tập luyện đang hoạt động cho nhóm bệnh này.");
+                        }
+                    });
+        }
+
+        String oldValueJson = "-";
+        try {
+            oldValueJson = objectMapper.writeValueAsString(existing);
+        } catch (Exception ignored) {}
+
+        DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm bệnh lý."));
+
+        existing.setDiseaseProfile(profile);
+        existing.setTitle(title);
+        existing.setRecommendedContent(recommendedContent);
+        existing.setAvoidContent(avoidContent);
+
+        ExerciseGuideline saved = exerciseGuidelineRepository.save(existing);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(saved);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("UPDATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), oldValueJson, newValueJson, "Cập nhật khuyến nghị tập luyện");
+
+        return saved;
+    }
+
+    @Transactional
+    public void deleteExerciseGuideline(Integer id) {
+        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+
+        String oldValueJson = "-";
+        try {
+            oldValueJson = objectMapper.writeValueAsString(existing);
+        } catch (Exception ignored) {}
+
+        existing.setIsActive(false);
+        exerciseGuidelineRepository.save(existing);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(existing);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("DELETE_EXERCISE_GUIDELINE", "exercise_guidelines", id, oldValueJson, newValueJson, "Vô hiệu hóa khuyến nghị tập luyện");
+    }
+
+    // ==========================================
+    // DANH MỤC THỰC PHẨM
+    // ==========================================
+    public Page<FoodDictionary> searchFoods(String search, Pageable pageable) {
+        if (search == null || search.trim().isEmpty()) {
+            return foodDictionaryRepository.findAll(pageable);
+        }
+        return foodDictionaryRepository.findByFoodNameContainingIgnoreCaseOrEnglishNameContainingIgnoreCase(search, search, pageable);
+    }
+
+    @Transactional
+    public FoodDictionary addFood(FoodDictionary food) {
+        if (foodDictionaryRepository.existsByFoodCode(food.getFoodCode())) {
+            throw new IllegalArgumentException("Mã món ăn (food_code) đã tồn tại.");
+        }
+        validateFoodNutrients(food);
+
+        food.setIsActive(true);
+        food.setCreatedAt(LocalDateTime.now());
+        FoodDictionary saved = foodDictionaryRepository.save(food);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(saved);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("CREATE_FOOD", "foods_dictionary", saved.getId(), null, newValueJson, "Thêm mới món ăn vào danh mục");
+        return saved;
+    }
+
+    @Transactional
+    public FoodDictionary editFood(Integer id, FoodDictionary updated) {
+        FoodDictionary existing = foodDictionaryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
+
+        if (!existing.getFoodCode().equals(updated.getFoodCode())) {
+            if (foodDictionaryRepository.existsByFoodCode(updated.getFoodCode())) {
+                throw new IllegalArgumentException("Mã món ăn (food_code) đã tồn tại.");
+            }
+        }
+
+        validateFoodNutrients(updated);
+
+        String oldValueJson = "-";
+        try {
+            oldValueJson = objectMapper.writeValueAsString(existing);
+        } catch (Exception ignored) {}
+
+        existing.setFoodCode(updated.getFoodCode());
+        existing.setFoodName(updated.getFoodName());
+        existing.setEnglishName(updated.getEnglishName());
+        existing.setWaterG(updated.getWaterG());
+        existing.setEnergyKcal(updated.getEnergyKcal());
+        existing.setProteinG(updated.getProteinG());
+        existing.setLipidG(updated.getLipidG());
+        existing.setGlucidG(updated.getGlucidG());
+        existing.setCellulozaG(updated.getCellulozaG());
+        existing.setAshG(updated.getAshG());
+        existing.setIsActive(updated.getIsActive());
+
+        FoodDictionary saved = foodDictionaryRepository.save(existing);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(saved);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("UPDATE_FOOD", "foods_dictionary", saved.getId(), oldValueJson, newValueJson, "Cập nhật thông tin món ăn");
+        return saved;
+    }
+
+    @Transactional
+    public FoodDictionary toggleFoodActive(Integer id) {
+        FoodDictionary existing = foodDictionaryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
+
+        String oldValueJson = "-";
+        try {
+            oldValueJson = objectMapper.writeValueAsString(existing);
+        } catch (Exception ignored) {}
+
+        existing.setIsActive(!existing.getIsActive());
+        FoodDictionary saved = foodDictionaryRepository.save(existing);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(saved);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("TOGGLE_FOOD_ACTIVE", "foods_dictionary", saved.getId(), oldValueJson, newValueJson, 
+                     "Thay đổi trạng thái hoạt động món ăn thành: " + (saved.getIsActive() ? "Hoạt động" : "Vô hiệu hóa"));
+        return saved;
+    }
+
+    private void validateFoodNutrients(FoodDictionary food) {
+        if (food.getWaterG() != null && food.getWaterG().doubleValue() < 0) throw new IllegalArgumentException("Nước (g) phải >= 0");
+        if (food.getEnergyKcal() != null && food.getEnergyKcal() < 0) throw new IllegalArgumentException("Calo (kcal) phải >= 0");
+        if (food.getProteinG() != null && food.getProteinG().doubleValue() < 0) throw new IllegalArgumentException("Đạm (g) phải >= 0");
+        if (food.getLipidG() != null && food.getLipidG().doubleValue() < 0) throw new IllegalArgumentException("Béo (g) phải >= 0");
+        if (food.getGlucidG() != null && food.getGlucidG().doubleValue() < 0) throw new IllegalArgumentException("Tinh bột (g) phải >= 0");
+        if (food.getCellulozaG() != null && food.getCellulozaG().doubleValue() < 0) throw new IllegalArgumentException("Xơ (g) phải >= 0");
+        if (food.getAshG() != null && food.getAshG().doubleValue() < 0) throw new IllegalArgumentException("Tro (g) phải >= 0");
     }
 }

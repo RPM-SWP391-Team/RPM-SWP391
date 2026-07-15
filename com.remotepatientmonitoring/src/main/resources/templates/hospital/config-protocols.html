@@ -89,6 +89,12 @@
                 <button class="btn btn-outline-success rounded-pill px-3 fw-medium" data-bs-toggle="collapse" data-bs-target="#collapseProtocolForm">
                     <i class="bi bi-plus-lg"></i> Hiện form Cẩm nang
                 </button>
+                <button class="btn btn-outline-warning rounded-pill px-3 fw-medium" data-bs-toggle="collapse" data-bs-target="#collapseGuidelineForm">
+                    <i class="bi bi-plus-lg"></i> Hiện form Khuyến nghị
+                </button>
+                <button class="btn btn-outline-info rounded-pill px-3 fw-medium" data-bs-toggle="collapse" data-bs-target="#collapseFoodForm">
+                    <i class="bi bi-plus-lg"></i> Hiện form Món ăn
+                </button>
             </div>
         </div>
 
@@ -305,6 +311,237 @@
                 </div>
             </div>
         </div>
+
+        <!-- HÀNG 2: KHUYẾN NGHỊ TẬP LUYỆN & DANH MỤC THỰC PHẨM -->
+        <div class="row mt-4">
+            <!-- ========================================== -->
+            <!-- CỘT 3: KHUYẾN NGHỊ TẬP LUYỆN -->
+            <!-- ========================================== -->
+            <div class="col-xl-6 mb-4">
+                <div class="card card-custom shadow-sm border-0 h-100">
+                    <div class="card-header card-header-custom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f0932b 0%, #ffbe76 100%);">
+                        <h5 class="mb-0"><i class="fa-solid fa-person-running me-2"></i>Khuyến Nghị Vận Động</h5>
+                        <span class="badge bg-light text-warning rounded-pill"><span th:text="${#lists.size(exerciseGuidelines)}">0</span> Khuyến nghị</span>
+                    </div>
+                    <div class="card-body p-4">
+
+                        <!-- FORM SOẠN KHUYẾN NGHỊ (Gập/mở) -->
+                        <div class="collapse mb-4" id="collapseGuidelineForm">
+                            <form onsubmit="handleSaveGuideline(event, this)" class="p-4 bg-light rounded-3 border">
+                                <h6 class="fw-bold text-warning mb-3" id="glFormTitle"><i class="fa-solid fa-plus me-1"></i> Soạn Khuyến Nghị Mới</h6>
+                                <input type="hidden" id="guidelineId" name="guidelineId">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <select class="form-select form-select-sm" id="glDiseaseProfileId" name="diseaseProfileId" required>
+                                            <option value="">-- Chọn nhóm bệnh --</option>
+                                            <option th:each="dp : ${diseaseProfiles}" th:value="${dp.id}" th:text="${dp.profileName}"></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control form-control-sm" id="glTitle" name="title" required placeholder="Tiêu đề...">
+                                    </div>
+                                    <div class="col-12">
+                                        <textarea class="form-control form-control-sm" id="glRecommended" name="recommendedContent" rows="3" required placeholder="Nên làm..."></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <textarea class="form-control form-control-sm" id="glAvoid" name="avoidContent" rows="3" required placeholder="Cần tránh..."></textarea>
+                                    </div>
+                                    <div class="col-12 text-end">
+                                        <button type="button" class="btn btn-secondary btn-sm px-3 me-2" onclick="resetGuidelineForm()">Hủy</button>
+                                        <button type="submit" class="btn btn-warning text-white btn-sm px-4">Lưu Khuyến Nghị</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- HỘP BỘ LỌC NHÓM BỆNH CHO TẬP LUYỆN -->
+                        <div class="mb-4">
+                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC NHÓM BỆNH</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-green" onclick="filterGuidelinesList('ALL', this)">Tất cả</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuidelinesList('HYPERTENSION', this)">Tăng huyết áp</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuidelinesList('DIABETES', this)">Tiểu đường</button>
+                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuidelinesList('BOTH', this)">Cả hai</button>
+                            </div>
+                        </div>
+
+                        <!-- DANH SÁCH ĐÃ SOẠN (ACCORDION) -->
+                        <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
+                        <div class="scrollable-list">
+                            <div class="accordion" id="accordionGuidelines">
+                                <div th:each="gl : ${exerciseGuidelines}" class="accordion-item guideline-list-record shadow-sm" th:data-profile="${gl.diseaseProfile.profileCode}">
+                                    <h2 class="accordion-header" th:id="'headingGuideline-' + ${gl.id}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapseGuideline-' + ${gl.id}">
+                                            <div class="w-100 pe-3">
+                                                <div class="mb-2">
+                                                    <span th:if="${gl.diseaseProfile.profileCode == 'HYPERTENSION'}" class="badge bg-primary text-white px-2 py-1 rounded" th:text="${gl.diseaseProfile.profileName}">Tăng huyết áp</span>
+                                                    <span th:if="${gl.diseaseProfile.profileCode == 'DIABETES'}" class="badge bg-success text-white px-2 py-1 rounded" th:text="${gl.diseaseProfile.profileName}">Tiểu đường</span>
+                                                    <span th:if="${gl.diseaseProfile.profileCode == 'BOTH'}" class="badge bg-warning text-dark px-2 py-1 rounded" th:text="${gl.diseaseProfile.profileName}">Cả hai</span>
+                                                </div>
+                                                <div th:text="${gl.title}">Tiêu đề</div>
+                                            </div>
+                                        </button>
+                                    </h2>
+
+                                    <div th:id="'collapseGuideline-' + ${gl.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordionGuidelines'">
+                                        <div class="accordion-body p-3">
+                                            <!-- Chế độ xem -->
+                                            <div th:id="'viewModeGuideline-' + ${gl.id}">
+                                                <div class="p-2 mb-2 bg-white border border-success-subtle rounded text-start">
+                                                    <strong class="small text-success">✅ Nên làm:</strong>
+                                                    <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${gl.recommendedContent}"></p>
+                                                </div>
+                                                <div class="p-2 mb-3 bg-white border border-warning-subtle rounded text-start">
+                                                    <strong class="small text-warning" style="color: #c2410c !important;">⚠️ Cần tránh:</strong>
+                                                    <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${gl.avoidContent}"></p>
+                                                </div>
+                                                <div class="text-end border-top pt-2">
+                                                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill" th:onclick="'toggleEditGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-trash"></i> Xóa</button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Chế độ sửa -->
+                                            <form onsubmit="handleUpdateGuideline(event, this)" th:id="'editModeGuideline-' + ${gl.id}" style="display: none;" class="text-start">
+                                                <input type="hidden" name="guidelineId" th:value="${gl.id}">
+                                                <div class="mb-2">
+                                                    <label class="small text-muted fw-semibold">Nhóm bệnh:</label>
+                                                    <select class="form-select form-select-sm" name="diseaseProfileId" required>
+                                                        <option th:each="dp : ${diseaseProfiles}" th:value="${dp.id}" th:text="${dp.profileName}" th:selected="${dp.id == gl.diseaseProfile.id}"></option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="small text-muted fw-semibold">Tiêu đề:</label>
+                                                    <input type="text" class="form-control form-control-sm" name="title" th:value="${gl.title}" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="small text-muted fw-semibold">Nên làm:</label>
+                                                    <textarea class="form-control bg-white font-monospace fs-7" name="recommendedContent" rows="3" th:text="${gl.recommendedContent}" required></textarea>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="small text-muted fw-semibold">Cần tránh:</label>
+                                                    <textarea class="form-control bg-white font-monospace fs-7" name="avoidContent" rows="3" th:text="${gl.avoidContent}" required></textarea>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditGuideline(' + ${gl.id} + ')'">Hủy</button>
+                                                    <button type="submit" class="btn btn-warning text-white btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${#lists.isEmpty(exerciseGuidelines)}" class="text-center text-muted py-3">Chưa có dữ liệu</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- CỘT 4: DANH MỤC THỰC PHẨM -->
+            <!-- ========================================== -->
+            <div class="col-xl-6 mb-4">
+                <div class="card card-custom shadow-sm border-0 h-100">
+                    <div class="card-header card-header-custom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%);">
+                        <h5 class="mb-0"><i class="fa-solid fa-apple-whole me-2"></i>Danh Mục Thực Phẩm</h5>
+                        <span class="badge bg-light text-primary rounded-pill" id="totalFoodsBadge">0 Món</span>
+                    </div>
+                    <div class="card-body p-4">
+
+                        <!-- FORM THÊM MÓN ĂN (Gập/mở) -->
+                        <div class="collapse mb-4" id="collapseFoodForm">
+                            <form onsubmit="handleSaveFood(event, this)" class="p-4 bg-light rounded-3 border">
+                                <h6 class="fw-bold text-primary mb-3" id="foodFormTitle"><i class="fa-solid fa-plus me-1"></i> Thêm Món Ăn Mới</h6>
+                                <input type="hidden" id="foodId" name="foodId">
+                                <div class="row g-3">
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Mã món ăn:</label>
+                                        <input type="text" class="form-control form-control-sm" id="foodCode" name="foodCode" required placeholder="Ví dụ: COM_TAM">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Tên món ăn:</label>
+                                        <input type="text" class="form-control form-control-sm" id="foodName" name="foodName" required placeholder="Ví dụ: Cơm tấm sườn bì chả">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Tên tiếng Anh:</label>
+                                        <input type="text" class="form-control form-control-sm" id="englishName" name="englishName" placeholder="English name">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Nước (g):</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="waterG" name="waterG" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Năng lượng (kcal):</label>
+                                        <input type="number" class="form-control form-control-sm" id="energyKcal" name="energyKcal" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Đạm (g):</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="proteinG" name="proteinG" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Béo (g):</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="lipidG" name="lipidG" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Tinh bột (g):</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="glucidG" name="glucidG" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Xơ (g):</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="cellulozaG" name="cellulozaG" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-md-6 text-start">
+                                        <label class="small text-muted fw-semibold">Tro (g):</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="ashG" name="ashG" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-12 text-end">
+                                        <button type="button" class="btn btn-secondary btn-sm px-3 me-2" onclick="resetFoodForm()">Hủy</button>
+                                        <button type="submit" class="btn btn-primary btn-sm px-4">Lưu Món Ăn</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Ô TÌM KIẾM THỰC PHẨM -->
+                        <div class="mb-3 d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm" id="foodSearchInput" placeholder="Tìm kiếm theo tên món ăn..." oninput="triggerFoodSearch()">
+                            <button class="btn btn-primary btn-sm px-3" onclick="loadFoodPage(0)"><i class="bi bi-search"></i></button>
+                        </div>
+
+                        <!-- BẢNG DANH MỤC THỰC PHẨM -->
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-hover table-sm align-middle fs-7 text-start">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Mã</th>
+                                        <th>Tên món</th>
+                                        <th>English</th>
+                                        <th>Calo</th>
+                                        <th>Đạm</th>
+                                        <th>Béo</th>
+                                        <th>Carb</th>
+                                        <th>Xơ</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-center">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="foodsTableBody">
+                                    <!-- Populated via AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- PAGINATION -->
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center mb-0" id="foodsPagination">
+                                <!-- Populated via AJAX -->
+                            </ul>
+                        </nav>
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -422,6 +659,316 @@
                 });
         }
     }
+
+    // ==========================================
+    // JS CHO KHUYẾN NGHỊ TẬP LUYỆN
+    // ==========================================
+    function filterGuidelinesList(profileCode, btnElement) {
+        document.querySelectorAll('button[onclick^="filterGuidelinesList"]').forEach(btn => btn.classList.remove('active-green'));
+        btnElement.classList.add('active-green');
+
+        document.querySelectorAll('.guideline-list-record').forEach(item => {
+            const itemProfile = item.getAttribute('data-profile');
+            if (profileCode === 'ALL' || itemProfile === profileCode) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function toggleEditGuideline(id) {
+        const viewMode = document.getElementById('viewModeGuideline-' + id);
+        const editMode = document.getElementById('editModeGuideline-' + id);
+        if (viewMode.style.display === 'none') {
+            viewMode.style.display = 'block';
+            editMode.style.display = 'none';
+        } else {
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+        }
+    }
+
+    function handleSaveGuideline(event, form) {
+        event.preventDefault();
+        const id = document.getElementById('guidelineId').value;
+        const diseaseProfileId = document.getElementById('glDiseaseProfileId').value;
+        const title = document.getElementById('glTitle').value;
+        const recommendedContent = document.getElementById('glRecommended').value;
+        const avoidContent = document.getElementById('glAvoid').value;
+
+        const url = id ? `/hospital/exercise-guidelines/${id}` : '/hospital/exercise-guidelines';
+        const method = id ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ diseaseProfileId, title, recommendedContent, avoidContent })
+        })
+        .then(res => {
+            if (res.ok) {
+                location.reload();
+            } else {
+                res.text().then(text => alert(text || "Lỗi khi lưu khuyến nghị."));
+            }
+        })
+        .catch(err => alert("Lỗi kết nối máy chủ."));
+    }
+
+    function handleUpdateGuideline(event, form) {
+        event.preventDefault();
+        const id = form.elements['guidelineId'].value;
+        const diseaseProfileId = form.elements['diseaseProfileId'].value;
+        const title = form.elements['title'].value;
+        const recommendedContent = form.elements['recommendedContent'].value;
+        const avoidContent = form.elements['avoidContent'].value;
+
+        fetch(`/hospital/exercise-guidelines/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ diseaseProfileId, title, recommendedContent, avoidContent })
+        })
+        .then(res => {
+            if (res.ok) {
+                location.reload();
+            } else {
+                res.text().then(text => alert(text || "Lỗi khi cập nhật khuyến nghị."));
+            }
+        })
+        .catch(err => alert("Lỗi kết nối máy chủ."));
+    }
+
+    function handleDeleteGuideline(id) {
+        if (confirm("Bạn có chắc chắn muốn XÓA/VÔ HIỆU HÓA khuyến nghị này không?")) {
+            fetch(`/hospital/exercise-guidelines/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    res.text().then(text => alert(text || "Lỗi khi xóa."));
+                }
+            })
+            .catch(err => alert("Lỗi kết nối máy chủ."));
+        }
+    }
+
+    function resetGuidelineForm() {
+        document.getElementById('guidelineId').value = '';
+        document.getElementById('glDiseaseProfileId').value = '';
+        document.getElementById('glTitle').value = '';
+        document.getElementById('glRecommended').value = '';
+        document.getElementById('glAvoid').value = '';
+        document.getElementById('glFormTitle').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Soạn Khuyến Nghị Mới';
+        
+        const formCollapse = bootstrap.Collapse.getInstance(document.getElementById('collapseGuidelineForm'));
+        if (formCollapse) formCollapse.hide();
+    }
+
+    // ==========================================
+    // JS CHO DANH MỤC THỰC PHẨM
+    // ==========================================
+    let currentFoodPage = 0;
+    let foodSearchTimeout = null;
+
+    function triggerFoodSearch() {
+        clearTimeout(foodSearchTimeout);
+        foodSearchTimeout = setTimeout(() => {
+            loadFoodPage(0);
+        }, 300);
+    }
+
+    function loadFoodPage(page) {
+        currentFoodPage = page;
+        const search = document.getElementById('foodSearchInput').value;
+        const url = `/hospital/foods?page=${page}&size=20&search=${encodeURIComponent(search)}`;
+
+        fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('totalFoodsBadge').innerText = `${data.totalElements} Món`;
+            renderFoodsTable(data.content);
+            renderFoodsPagination(data.totalPages, data.number);
+        })
+        .catch(err => console.error("Lỗi khi tải danh sách món ăn:", err));
+    }
+
+    function renderFoodsTable(foods) {
+        const tbody = document.getElementById('foodsTableBody');
+        tbody.innerHTML = '';
+
+        if (!foods || foods.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">Không tìm thấy món ăn nào</td></tr>';
+            return;
+        }
+
+        foods.forEach(f => {
+            const tr = document.createElement('tr');
+            
+            const activeBadge = f.isActive 
+                ? '<span class="badge bg-success">Hoạt động</span>' 
+                : '<span class="badge bg-danger">Vô hiệu</span>';
+
+            const toggleBtnText = f.isActive ? 'Vô hiệu hóa' : 'Kích hoạt';
+            const toggleBtnClass = f.isActive ? 'btn-outline-danger' : 'btn-outline-success';
+
+            const escapedCode = escapeHtml(f.foodCode);
+            const escapedName = escapeHtml(f.foodName);
+            const escapedEng = f.englishName ? escapeHtml(f.englishName) : '';
+
+            tr.innerHTML = `
+                <td><code>${escapedCode}</code></td>
+                <td><strong>${escapedName}</strong></td>
+                <td><span class="text-muted small">${escapedEng}</span></td>
+                <td>${f.energyKcal || 0}</td>
+                <td>${f.proteinG || 0}</td>
+                <td>${f.lipidG || 0}</td>
+                <td>${f.glucidG || 0}</td>
+                <td>${f.cellulozaG || 0}</td>
+                <td>${activeBadge}</td>
+                <td class="text-center">
+                    <div class="d-flex gap-1 justify-content-center">
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="editFood(${f.id}, '${escapedCode}', '${escapedName}', '${escapedEng}', ${f.waterG || 0}, ${f.energyKcal || 0}, ${f.proteinG || 0}, ${f.lipidG || 0}, ${f.glucidG || 0}, ${f.cellulozaG || 0}, ${f.ashG || 0})">
+                            Sửa
+                        </button>
+                        <button type="button" class="btn btn-sm ${toggleBtnClass} py-0 px-2" onclick="toggleFoodActive(${f.id})">
+                            ${toggleBtnText}
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderFoodsPagination(totalPages, currentPage) {
+        const container = document.getElementById('foodsPagination');
+        container.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        // Prev button
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 0 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault(); loadFoodPage(${currentPage - 1})">Trước</a>`;
+        container.appendChild(prevLi);
+
+        // Page numbers
+        for (let i = 0; i < totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault(); loadFoodPage(${i})">${i + 1}</a>`;
+            container.appendChild(li);
+        }
+
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault(); loadFoodPage(${currentPage + 1})">Sau</a>`;
+        container.appendChild(nextLi);
+    }
+
+    function editFood(id, code, name, engName, water, energy, protein, lipid, glucid, celluloza, ash) {
+        document.getElementById('foodId').value = id;
+        document.getElementById('foodCode').value = code;
+        document.getElementById('foodName').value = name;
+        document.getElementById('englishName').value = engName;
+        document.getElementById('waterG').value = water;
+        document.getElementById('energyKcal').value = energy;
+        document.getElementById('proteinG').value = protein;
+        document.getElementById('lipidG').value = lipid;
+        document.getElementById('glucidG').value = glucid;
+        document.getElementById('cellulozaG').value = celluloza;
+        document.getElementById('ashG').value = ash;
+
+        document.getElementById('foodFormTitle').innerHTML = '<i class="fa-solid fa-pen-to-square me-1"></i> Cập Nhật Món Ăn';
+        
+        const formCollapse = bootstrap.Collapse.getOrCreateInstance(document.getElementById('collapseFoodForm'));
+        formCollapse.show();
+        document.getElementById('collapseFoodForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function handleSaveFood(event, form) {
+        event.preventDefault();
+        const id = document.getElementById('foodId').value;
+        const foodCode = document.getElementById('foodCode').value;
+        const foodName = document.getElementById('foodName').value;
+        const englishName = document.getElementById('englishName').value;
+        const waterG = document.getElementById('waterG').value ? parseFloat(document.getElementById('waterG').value) : null;
+        const energyKcal = document.getElementById('energyKcal').value ? parseInt(document.getElementById('energyKcal').value) : null;
+        const proteinG = document.getElementById('proteinG').value ? parseFloat(document.getElementById('proteinG').value) : null;
+        const lipidG = document.getElementById('lipidG').value ? parseFloat(document.getElementById('lipidG').value) : null;
+        const glucidG = document.getElementById('glucidG').value ? parseFloat(document.getElementById('glucidG').value) : null;
+        const cellulozaG = document.getElementById('cellulozaG').value ? parseFloat(document.getElementById('cellulozaG').value) : null;
+        const ashG = document.getElementById('ashG').value ? parseFloat(document.getElementById('ashG').value) : null;
+
+        const payload = { foodCode, foodName, englishName, waterG, energyKcal, proteinG, lipidG, glucidG, cellulozaG, ashG };
+        const url = id ? `/hospital/foods/${id}` : '/hospital/foods';
+        const method = id ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (res.ok) {
+                resetFoodForm();
+                loadFoodPage(currentFoodPage);
+            } else {
+                res.text().then(text => alert(text || "Lỗi khi lưu món ăn."));
+            }
+        })
+        .catch(err => alert("Lỗi kết nối máy chủ."));
+    }
+
+    function toggleFoodActive(id) {
+        fetch(`/hospital/foods/${id}/toggle-active`, {
+            method: 'PATCH'
+        })
+        .then(res => {
+            if (res.ok) {
+                loadFoodPage(currentFoodPage);
+            } else {
+                res.text().then(text => alert(text || "Lỗi khi đổi trạng thái món ăn."));
+            }
+        })
+        .catch(err => alert("Lỗi kết nối máy chủ."));
+    }
+
+    function resetFoodForm() {
+        document.getElementById('foodId').value = '';
+        document.getElementById('foodCode').value = '';
+        document.getElementById('foodName').value = '';
+        document.getElementById('englishName').value = '';
+        document.getElementById('waterG').value = '';
+        document.getElementById('energyKcal').value = '';
+        document.getElementById('proteinG').value = '';
+        document.getElementById('lipidG').value = '';
+        document.getElementById('glucidG').value = '';
+        document.getElementById('cellulozaG').value = '';
+        document.getElementById('ashG').value = '';
+
+        document.getElementById('foodFormTitle').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Thêm Món Ăn Mới';
+
+        const formCollapse = bootstrap.Collapse.getInstance(document.getElementById('collapseFoodForm'));
+        if (formCollapse) formCollapse.hide();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/'/g, "&#039;");
+    }
+
+    // Load initial foods on DOM ready
+    document.addEventListener("DOMContentLoaded", function() {
+        loadFoodPage(0);
+    });
 </script>
 </body>
 </html>
