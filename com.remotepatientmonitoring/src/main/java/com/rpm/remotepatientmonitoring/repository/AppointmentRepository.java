@@ -24,4 +24,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM Appointment a WHERE a.doctor.id = :doctorId AND a.appointmentTime >= :now")
     long countUpcoming(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("now") java.time.LocalDateTime now);
+
+    // Bổ sung hàm này để phục vụ luồng vô hiệu hóa bác sĩ
+    List<Appointment> findByPatientIdAndDoctorIdAndStatusIn(Integer patientId, Integer doctorId, List<String> statuses);
 }
