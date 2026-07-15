@@ -48,4 +48,6 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     long countTotalTreatingPatients(@Param("hospitalId") Integer hospitalId);
 
     List<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status);
+
+    Page<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status, Pageable pageable);
 }

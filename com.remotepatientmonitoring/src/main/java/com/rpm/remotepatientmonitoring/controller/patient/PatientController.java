@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,7 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
+import com.rpm.remotepatientmonitoring.service.patient.ExerciseLogService;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -57,14 +61,15 @@ public class PatientController {
     @Autowired
     private FoodDictionaryRepository foodDictionaryRepository;
 
+    @Autowired
+    private ExerciseLogService exerciseLogService;
+
     private Patient getCurrentPatient() {
-        org.springframework.security.core.Authentication auth = 
-            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principal = auth.getPrincipal();
-            if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
-                com.rpm.remotepatientmonitoring.config.CustomUserDetails userDetails = 
-                    (com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal;
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
                 java.util.Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
                 if (opt.isPresent()) {
                     return opt.get();
@@ -155,17 +160,24 @@ public class PatientController {
                 LocalDate today = LocalDate.now();
                 totalMeds = activeMeds.size();
                 for (PatientMedication med : activeMeds) {
-                    boolean taken = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean taken = false;
+                    Optional<MedicationLog> medLogOpt = medicationLogRepository
+                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (medLogOpt.isPresent()) {
+                        MedicationLog log = medLogOpt.get();
+                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                            taken = true;
+                        }
+                    }
                     if (taken) {
                         takenMeds++;
                     }
                 }
-                currentWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
-                        .map(WaterLog::getAmountMl)
-                        .orElse(null);
+                
+                Optional<WaterLog> waterLogOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                if (waterLogOpt.isPresent()) {
+                    currentWater = waterLogOpt.get().getAmountMl();
+                }
             }
         } catch (Exception ignored) {
         }
@@ -308,10 +320,15 @@ public class PatientController {
                     item.put("medicineName", med.getMedicineName());
                     item.put("dosage", med.getDosage());
                     item.put("scheduledTime", med.getScheduledTime());
-                    boolean taken = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today)
-                            .map(log -> Boolean.TRUE.equals(log.getIsTaken()))
-                            .orElse(false);
+                    boolean taken = false;
+                    Optional<MedicationLog> medLogOpt = medicationLogRepository
+                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    if (medLogOpt.isPresent()) {
+                        MedicationLog log = medLogOpt.get();
+                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                            taken = true;
+                        }
+                    }
                     item.put("isTaken", taken);
 
                     boolean isOverdue = false;
@@ -671,47 +688,7 @@ public class PatientController {
         return "patient/nutrition";
     }
 
-    @GetMapping("/exercise")
-    public String getExercisePage(Model model) {
-        Patient patient = getCurrentPatient();
-        if (patient == null) {
-            return "redirect:/auth/login";
-        }
-        if ("NEW".equals(patient.getStatus())) {
-            return "redirect:/patient/appointments";
-        }
 
-        List<PatientExercise> exercises = new ArrayList<>();
-        int totalMinutes = 0;
-        int totalCaloriesBurned = 0;
-        int targetMinutes = 30; // Default target
-
-        try {
-            if (patient.getId() != null) {
-                LocalDate today = LocalDate.now();
-                exercises = patientExerciseRepository.findByPatientIdAndLogDate(patient.getId(), today);
-                for (PatientExercise e : exercises) {
-                    totalMinutes += e.getDurationMinutes();
-                    totalCaloriesBurned += e.getCaloriesBurned();
-                }
-            }
-        } catch (Exception ignored) {
-        }
-
-        int exerciseProgress = targetMinutes > 0 ? (totalMinutes * 100 / targetMinutes) : 0;
-        if (exerciseProgress > 100) {
-            exerciseProgress = 100;
-        }
-
-        model.addAttribute("patient", patient);
-        model.addAttribute("exercises", exercises);
-        model.addAttribute("totalMinutes", totalMinutes);
-        model.addAttribute("totalCaloriesBurned", totalCaloriesBurned);
-        model.addAttribute("targetMinutes", targetMinutes);
-        model.addAttribute("exerciseProgress", exerciseProgress);
-
-        return "patient/exercise";
-    }
 
     // ==================== Progress Report (Patient Profile) ====================
 
@@ -740,6 +717,7 @@ public class PatientController {
         }
 
         model.addAttribute("patient", patient);
+        model.addAttribute("latestBmi", exerciseLogService.getLatestBmi(patient.getId()));
         return "patient/progress";
     }
 
@@ -747,44 +725,63 @@ public class PatientController {
     public String updateProfile(
             @RequestParam("phone") String phone,
             @RequestParam("address") String address,
-            @RequestParam("email") String email,
+            @RequestParam(value = "currentPassword", required = false) String currentPassword,
             @RequestParam(value = "password", required = false) String password,
-            @RequestParam("emergencyContactName") String emergencyContactName,
-            @RequestParam("emergencyContactPhone") String emergencyContactPhone,
+            @RequestParam(value = "emergencyContactName", required = false) String emergencyContactName,
+            @RequestParam(value = "emergencyContactPhone", required = false) String emergencyContactPhone,
             org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes
     ) {
-        if (!phone.matches("0[35789][0-9]{8}")) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        // Validate personal phone format
+        if (phone == null || !phone.matches("0[35789][0-9]{8}")) {
             redirectAttributes.addFlashAttribute("error", "Số điện thoại cá nhân không hợp lệ!");
             return "redirect:/patient/progress";
         }
-        if (!emergencyContactPhone.matches("0[35789][0-9]{8}")) {
-            redirectAttributes.addFlashAttribute("error", "Số điện thoại người thân không hợp lệ!");
-            return "redirect:/patient/progress";
-        }
-        if (!email.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")) {
-            redirectAttributes.addFlashAttribute("error", "Email không hợp lệ!");
-            return "redirect:/patient/progress";
-        }
-        if (password != null && !password.trim().isEmpty() && (password.length() < 6 || password.length() > 50)) {
-            redirectAttributes.addFlashAttribute("error", "Mật khẩu phải từ 6 đến 50 ký tự!");
-            return "redirect:/patient/progress";
-        }
-        Patient patient = patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No patient found in the database."));
 
-        patient.setPhone(phone);
-        patient.setAddress(address);
-        patient.setEmergencyContactName(emergencyContactName);
-        patient.setEmergencyContactPhone(emergencyContactPhone);
+
+        // Validate emergency phone format if provided
+        if (emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty()) {
+            if (!emergencyContactPhone.matches("0[35789][0-9]{8}")) {
+                redirectAttributes.addFlashAttribute("error", "Số điện thoại người thân không hợp lệ!");
+                return "redirect:/patient/progress";
+            }
+        }
+
+        // Check password change request and validate current password
+        boolean isChangingPassword = password != null && !password.trim().isEmpty();
+        if (isChangingPassword) {
+            if (password.length() < 6 || password.length() > 50) {
+                redirectAttributes.addFlashAttribute("error", "Mật khẩu mới phải từ 6 đến 50 ký tự!");
+                return "redirect:/patient/progress";
+            }
+            if (currentPassword == null || currentPassword.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Vui lòng nhập mật khẩu hiện tại để xác nhận đổi mật khẩu mới!");
+                return "redirect:/patient/progress";
+            }
+            Account account = patient.getAccount();
+            if (account == null || !passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+                redirectAttributes.addFlashAttribute("error", "Mật khẩu hiện tại không đúng!");
+                return "redirect:/patient/progress";
+            }
+        }
+
+        // Apply and save changes to Patient info
+        patient.setPhone(phone.trim());
+        patient.setAddress(address != null ? address.trim() : "");
+        patient.setEmergencyContactName(emergencyContactName != null && !emergencyContactName.trim().isEmpty() ? emergencyContactName.trim() : null);
+        patient.setEmergencyContactPhone(emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty() ? emergencyContactPhone.trim() : null);
         patient.setUpdatedAt(LocalDateTime.now());
         patientRepository.save(patient);
 
+        // Apply and save changes to Account info (Email is readonly and NOT updated)
         Account account = patient.getAccount();
         if (account != null) {
-            account.setEmail(email);
-            if (password != null && !password.trim().isEmpty()) {
-                account.setPasswordHash(passwordEncoder.encode(password));
+            if (isChangingPassword) {
+                account.setPasswordHash(passwordEncoder.encode(password.trim()));
             }
             account.setUpdatedAt(LocalDateTime.now());
             accountRepository.save(account);

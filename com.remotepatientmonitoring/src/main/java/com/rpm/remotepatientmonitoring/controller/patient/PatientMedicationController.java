@@ -3,20 +3,29 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 import com.rpm.remotepatientmonitoring.model.MedicationLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.PatientMedication;
+import com.rpm.remotepatientmonitoring.model.Notification;
+import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.repository.MedicationLogRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientMedicationRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import com.rpm.remotepatientmonitoring.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/patient/api/medications")
-public class PatientMedicationController {
+public class
+
+PatientMedicationController {
 
     @Autowired
     private PatientMedicationRepository medicationRepository;
@@ -28,13 +37,26 @@ public class PatientMedicationController {
     private PatientRepository patientRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+    private NotificationRepository notificationRepository;
 
-    // ===================== Lấy Patient mock đầu tiên =====================
+    // ===================== Lấy Patient =====================
     private Patient getCurrentPatient() {
-        return patientRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                if (opt.isPresent()) {
+                    return opt.get();
+                }
+            }
+        }
+        List<Patient> all = patientRepository.findAll();
+        if (all.isEmpty() == false) {
+            return all.get(0);
+        }
+        throw new IllegalStateException("Không tìm thấy bệnh nhân trong hệ thống.");
     }
 
     private String validateMedicationInput(String medicineName, String dosage, String scheduledTime) {
@@ -114,8 +136,11 @@ public class PatientMedicationController {
             ));
         }
 
-        PatientMedication medication = medicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + id));
+        Optional<PatientMedication> medOpt = medicationRepository.findById(id);
+        if (medOpt.isPresent() == false) {
+            throw new IllegalStateException("Không tìm thấy thuốc với ID: " + id);
+        }
+        PatientMedication medication = medOpt.get();
 
         medication.setMedicineName(medicineName.trim());
         medication.setDosage(dosage.trim());
@@ -138,8 +163,11 @@ public class PatientMedicationController {
     @PostMapping("/delete/{id}")
     public ResponseEntity<Map<String, Object>> deleteMedication(@PathVariable("id") Integer id) {
 
-        PatientMedication medication = medicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + id));
+        Optional<PatientMedication> medOpt = medicationRepository.findById(id);
+        if (medOpt.isPresent() == false) {
+            throw new IllegalStateException("Không tìm thấy thuốc với ID: " + id);
+        }
+        PatientMedication medication = medOpt.get();
 
         medication.setIsActive(false);
         medication.setUpdatedAt(LocalDateTime.now());
@@ -158,22 +186,28 @@ public class PatientMedicationController {
             @RequestParam("status") boolean status) {
 
         // Kiểm tra thuốc có tồn tại không
-        PatientMedication medication = medicationRepository.findById(medicationId)
-                .orElseThrow(() -> new IllegalStateException("Không tìm thấy thuốc với ID: " + medicationId));
+        Optional<PatientMedication> medOpt = medicationRepository.findById(medicationId);
+        if (medOpt.isPresent() == false) {
+            throw new IllegalStateException("Không tìm thấy thuốc với ID: " + medicationId);
+        }
+        PatientMedication medication = medOpt.get();
 
         LocalDate today = LocalDate.now();
 
         // Tìm hoặc tạo MedicationLog cho ngày hôm nay
-        MedicationLog log = medicationLogRepository
-                .findByPatientMedicationIdAndLogDate(medicationId, today)
-                .orElseGet(() -> {
-                    MedicationLog newLog = MedicationLog.builder()
-                            .patientMedication(medication)
-                            .logDate(today)
-                            .isTaken(false)
-                            .build();
-                    return medicationLogRepository.save(newLog);
-                });
+        Optional<MedicationLog> logOpt = medicationLogRepository
+                .findByPatientMedicationIdAndLogDate(medicationId, today);
+        MedicationLog log;
+        if (logOpt.isPresent()) {
+            log = logOpt.get();
+        } else {
+            MedicationLog newLog = MedicationLog.builder()
+                    .patientMedication(medication)
+                    .logDate(today)
+                    .isTaken(false)
+                    .build();
+            log = medicationLogRepository.save(newLog);
+        }
 
         // Cập nhật trạng thái
         log.setIsTaken(status);
@@ -186,10 +220,14 @@ public class PatientMedicationController {
                 String overdueTypeKey = "OVERDUE_MED_REMINDER_" + medicationId;
                 Patient patient = medication.getPatient();
                 if (patient != null) {
-                    notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId()).stream()
-                            .filter(n -> overdueTypeKey.equals(n.getNotificationType()) 
-                                    && n.getCreatedAt().toLocalDate().isEqual(today))
-                            .forEach(n -> notificationRepository.delete(n));
+                    List<Notification> allNotifications = 
+                        notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
+                    for (int i = 0; i < allNotifications.size(); i++) {
+                        Notification n = allNotifications.get(i);
+                        if (overdueTypeKey.equals(n.getNotificationType()) && n.getCreatedAt().toLocalDate().isEqual(today)) {
+                            notificationRepository.delete(n);
+                        }
+                    }
                 }
             } catch (Exception ignored) {}
         }

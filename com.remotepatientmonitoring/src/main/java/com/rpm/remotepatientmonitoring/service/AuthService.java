@@ -20,6 +20,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class AuthService {
@@ -44,12 +47,19 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private static final int OTP_LENGTH = 6;
     private static final int OTP_EXPIRY_MINUTES = 5;
     private static final SecureRandom secureRandom = new SecureRandom();
 
     public boolean emailExists(String email) {
-        return accountRepository.findByEmail(email).isPresent();
+        Optional<Account> opt = accountRepository.findByEmail(email);
+        if (opt.isPresent()) {
+            return opt.get().getIsEmailVerified();
+        }
+        return false;
     }
 
     public boolean phoneExists(String phone) {
@@ -69,53 +79,49 @@ public class AuthService {
     public String registerPatient(String email, String password, String fullName, String phone,
                                   String dateOfBirth, String gender, String address,
                                   String emergencyContactName, String emergencyContactPhone) {
-        log.info("Bắt đầu đăng ký tài khoản cho email={}", email);
-
-        // 1. Tạo Account
-        Account account = new Account();
-        account.setEmail(email);
-        account.setPasswordHash(passwordEncoder.encode(password));
-        account.setRole("PATIENT");
-        account.setIsEmailVerified(false);
-        account.setIsActive(true);
-        Account savedAccount = accountRepository.save(account);
-        log.info("Đã tạo Account id={} cho email={}", savedAccount.getId(), email);
-
-        // 2. Tìm Hospital
-        Hospital hospital = hospitalRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "Chưa có bệnh viện nào trong hệ thống! Vui lòng liên hệ quản trị viên."));
-
-        // 3. Parse ngày sinh nếu có
-        LocalDate dob = null;
-        if (dateOfBirth != null && !dateOfBirth.trim().isEmpty()) {
-            try {
-                dob = LocalDate.parse(dateOfBirth);
-            } catch (Exception e) {
-                log.warn("Không thể parse ngày sinh '{}', bỏ qua: {}", dateOfBirth, e.getMessage());
+        // 1. Tìm hoặc tạo Account
+        Optional<Account> existingOpt = accountRepository.findByEmail(email);
+        Account account;
+        if (existingOpt.isPresent()) {
+            account = existingOpt.get();
+            // Nếu đã xác thực email, chặn lại (phòng hờ race condition)
+            if (Boolean.TRUE.equals(account.getIsEmailVerified())) {
+                throw new IllegalStateException("Email này đã được xác thực và sử dụng!");
             }
+            account.setPasswordHash(passwordEncoder.encode(password));
+            account.setUpdatedAt(LocalDateTime.now());
+            log.info("Cập nhật lại Account id={} chưa xác thực cho email={}", account.getId(), email);
+        } else {
+            account = new Account();
+            account.setEmail(email);
+            account.setPasswordHash(passwordEncoder.encode(password));
+            account.setRole("PATIENT");
+            account.setIsEmailVerified(false);
+            account.setIsActive(true);
         }
 
-        // 4. Tạo Patient
-        Patient patient = Patient.builder()
-                .account(savedAccount)
-                .hospital(hospital)
-                .fullName(fullName)
-                .phone(phone)
-                .dateOfBirth(dob)
-                .gender(gender != null && !gender.trim().isEmpty() ? gender.trim() : null)
-                .address(address != null && !address.trim().isEmpty() ? address.trim() : null)
-                .emergencyContactName(emergencyContactName != null && !emergencyContactName.trim().isEmpty() ? emergencyContactName.trim() : null)
-                .emergencyContactPhone(emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty() ? emergencyContactPhone.trim() : null)
-                .status("NEW")
-                .registrationSource("ONLINE")
-                .isActive(true)
-                .build();
-        patientRepository.save(patient);
-        log.info("Đã tạo Patient cho Account id={}", savedAccount.getId());
+        // Serialize thông tin Patient và lưu vào registrationDetails
+        try {
+            Map<String, String> details = new HashMap<>();
+            details.put("fullName", fullName);
+            details.put("phone", phone);
+            details.put("dateOfBirth", dateOfBirth);
+            details.put("gender", gender);
+            details.put("address", address);
+            details.put("emergencyContactName", emergencyContactName);
+            details.put("emergencyContactPhone", emergencyContactPhone);
 
-        // 5. Tạo OTP record trong DB (KHÔNG gửi email ở đây)
+            String detailsJson = objectMapper.writeValueAsString(details);
+            account.setRegistrationDetails(detailsJson);
+        } catch (Exception e) {
+            log.error("Lỗi serialize registration details cho email={}: {}", email, e.getMessage());
+            throw new RuntimeException("Lỗi xử lý thông tin đăng ký: " + e.getMessage());
+        }
+
+        Account savedAccount = accountRepository.save(account);
+        log.info("Đã lưu Account id={} cho email={}", savedAccount.getId(), email);
+
+        // 2. Tạo OTP record trong DB (KHÔNG gửi email ở đây)
         String otp = createOtpRecord(email, "REGISTRATION");
         log.info("Đã tạo OTP record cho email={}", email);
 
@@ -216,12 +222,68 @@ public class AuthService {
         otpCode.setIsUsed(true);
         otpCodeRepository.save(otpCode);
 
-        // Nếu là OTP đăng ký, cập nhật trạng thái xác thực email
+        // Nếu là OTP đăng ký, cập nhật trạng thái xác thực email và tạo Patient record
         if ("REGISTRATION".equals(otpType)) {
             Optional<Account> optAccount = accountRepository.findByEmail(email);
             if (optAccount.isPresent()) {
                 Account account = optAccount.get();
                 account.setIsEmailVerified(true);
+
+                // Tạo Patient từ registrationDetails
+                String detailsJson = account.getRegistrationDetails();
+                if (detailsJson != null && !detailsJson.trim().isEmpty()) {
+                    try {
+                        Map<String, String> details = objectMapper.readValue(detailsJson, Map.class);
+                        String fullName = details.get("fullName");
+                        String phone = details.get("phone");
+                        String dateOfBirth = details.get("dateOfBirth");
+                        String gender = details.get("gender");
+                        String address = details.get("address");
+                        String emergencyContactName = details.get("emergencyContactName");
+                        String emergencyContactPhone = details.get("emergencyContactPhone");
+
+                        Hospital hospital = hospitalRepository.findAll().stream()
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Chưa có bệnh viện nào trong hệ thống! Vui lòng liên hệ quản trị viên."));
+
+                        LocalDate dob = null;
+                        if (dateOfBirth != null && !dateOfBirth.trim().isEmpty()) {
+                            try {
+                                dob = LocalDate.parse(dateOfBirth);
+                            } catch (Exception e) {
+                                log.warn("Không thể parse ngày sinh '{}', bỏ qua: {}", dateOfBirth, e.getMessage());
+                            }
+                        }
+
+                        Patient patient = Patient.builder()
+                                .account(account)
+                                .hospital(hospital)
+                                .fullName(fullName)
+                                .phone(phone)
+                                .dateOfBirth(dob)
+                                .gender(gender != null && !gender.trim().isEmpty() ? gender.trim() : null)
+                                .address(address != null && !address.trim().isEmpty() ? address.trim() : null)
+                                .emergencyContactName(emergencyContactName != null && !emergencyContactName.trim().isEmpty() ? emergencyContactName.trim() : null)
+                                .emergencyContactPhone(emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty() ? emergencyContactPhone.trim() : null)
+                                .status("NEW")
+                                .registrationSource("ONLINE")
+                                .isActive(true)
+                                .build();
+                        
+                        patientRepository.save(patient);
+                        log.info("Đã tạo Patient cho Account id={} sau khi xác thực OTP thành công", account.getId());
+                        
+                        // Clear registrationDetails để dọn dẹp DB
+                        account.setRegistrationDetails(null);
+                    } catch (Exception e) {
+                        log.error("Lỗi khi tạo Patient từ registrationDetails cho email={}: {}", email, e.getMessage(), e);
+                        throw new RuntimeException("Lỗi tạo thông tin bệnh nhân: " + e.getMessage());
+                    }
+                } else {
+                    log.warn("Không tìm thấy registrationDetails cho Account email={}", email);
+                }
+
                 accountRepository.save(account);
                 log.info("Đã xác thực email thành công cho Account id={}", account.getId());
             } else {
@@ -250,8 +312,11 @@ public class AuthService {
     @Transactional
     public void resetPassword(String email, String newPassword) {
         log.info("Đặt lại mật khẩu cho email={}", email);
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này!"));
+        Optional<Account> accountOpt = accountRepository.findByEmail(email);
+        if (accountOpt.isPresent() == false) {
+            throw new IllegalArgumentException("Không tìm thấy tài khoản với email này!");
+        }
+        Account account = accountOpt.get();
         account.setPasswordHash(passwordEncoder.encode(newPassword));
         account.setUpdatedAt(LocalDateTime.now());
         accountRepository.save(account);

@@ -1,40 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theo Dõi Tập Luyện</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/patient.css">
-</head>
+<head th:replace="~{patient/fragments :: header-links('Theo Dõi Tập Luyện')}"></head>
 <body>
-    <nav class="navbar navbar-dark navbar-custom py-3">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">
-                <i class="fa-solid fa-heart-pulse me-2"></i>Remote Patient Monitoring
-            </span>
-            <div class="dropdown">
-                <div class="d-flex align-items-center text-white" 
-                     id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
-                    <i class="fa-regular fa-user-circle fa-2x me-2"></i>
-                    <div class="text-start me-2">
-                        <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
-                        <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
-                    </div>
-                    <i class="fa-solid fa-chevron-down small text-white-50"></i>
-                </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 150px;">
-                    <li>
-                        <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
-                            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <nav th:replace="~{patient/fragments :: top-nav}"></nav>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <div class="container my-4">
         <div class="mb-4 d-flex align-items-center justify-content-between">
@@ -44,43 +13,195 @@
             <h3 class="fw-bold text-dark mb-0">Theo Dõi Tập Luyện Hàng Ngày</h3>
         </div>
 
+        <!-- Exercise Notifications Banner Area -->
+        <div th:if="${exerciseNotifications != null && !exerciseNotifications.isEmpty()}" class="mb-4 d-flex flex-column gap-2" id="exerciseNotifArea">
+            <div th:each="notif : ${exerciseNotifications}" 
+                 class="alert alert-dismissible fade show shadow-sm border-0 d-flex align-items-center py-3 px-4 rounded-3 mb-0" 
+                 role="alert" 
+                 th:id="'exercise-notif-' + ${notif.id}"
+                 th:classappend="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'alert-warning' : 'alert-info'}"
+                 th:style="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK' ? 'background-color: #fff9db; border-left: 5px solid #fcc419 !important;' : 'background-color: #eef2ff; border-left: 5px solid #6366f1 !important;'}"
+            >
+                <div class="me-3">
+                    <!-- Icon based on notification type -->
+                    <i th:if="${notif.notificationType == 'EXERCISE_STREAK_MILESTONE'}" class="fa-solid fa-fire text-warning fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_REMINDER'}" class="fa-solid fa-person-running text-primary fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_BP_REMINDER'}" class="fa-solid fa-heart-pulse text-danger fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_INACTIVITY_REMINDER'}" class="fa-solid fa-couch text-secondary fa-xl"></i>
+                    <i th:if="${notif.notificationType == 'EXERCISE_STREAK_AT_RISK'}" class="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <strong class="text-dark d-block mb-1" th:text="${notif.title}">Tiêu đề</strong>
+                    <span class="small text-muted" th:text="${notif.content}">Nội dung thông báo</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" th:onclick="'markNotifAsRead(' + ${notif.id} + ')'" aria-label="Close"></button>
+            </div>
+        </div>
+
         <div class="row g-4">
             <!-- Left panel: Thông tin tích lũy hôm nay -->
             <div class="col-lg-5">
-                <div class="card card-custom p-4 bg-white mb-4">
-                    <h5 class="fw-bold text-dark mb-3">
-                        <i class="fa-solid fa-chart-line me-2 text-success"></i>Tích Lũy Tập Luyện Hôm Nay
-                    </h5>
-
-                    <!-- Thời gian tập -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="small fw-semibold text-muted">Thời gian tập luyện</span>
-                            <span class="badge bg-success-subtle text-success" th:text="${totalMinutes} + ' / ' + ${targetMinutes} + ' phút'">0 / 30 phút</span>
-                        </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 th:style="'width: ' + ${exerciseProgress} + '%'" 
-                                 th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-
-                    <!-- Calo tiêu hao -->
-                    <div class="mb-2">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="small fw-semibold text-muted">Ước tính Calo tiêu hao</span>
-                            <span class="badge bg-danger-subtle text-danger"><i class="fa-solid fa-fire me-1"></i><span th:text="${totalCaloriesBurned}">0</span> kcal</span>
-                        </div>
-                    </div>
+                <!-- Alert cảnh báo vận động quá mức -->
+                <div id="overExertionWarning" class="alert alert-warning border border-warning-subtle shadow-sm mb-3 py-2 px-3 rounded-3" role="alert" 
+                     th:style="${totalCaloriesBurned > warningThreshold} ? 'display: block;' : 'display: none;'">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+                    <span class="small text-dark fw-semibold">Bạn đã tiêu hao khá nhiều calo hôm nay (600+ kcal). Hãy chú ý theo dõi huyết áp sau khi tập và nghỉ ngơi đầy đủ nhé.</span>
                 </div>
 
-                <div class="card card-custom p-4 bg-white border border-success-subtle">
-                    <h6 class="fw-bold text-dark mb-2">
-                        <i class="fa-solid fa-circle-info text-success me-2"></i>Lời khuyên vận động
-                    </h6>
-                    <p class="small text-muted mb-0">
-                        Thực hiện vận động thể chất ít nhất 30 phút mỗi ngày giúp tăng cường sức khỏe tim mạch, cải thiện độ nhạy insulin và kiểm soát đường huyết hiệu quả. Hãy lựa chọn các bài tập vừa sức như đi bộ nhanh, đạp xe nhẹ nhàng hoặc tập yoga.
-                    </p>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6 col-lg-12">
+                        <div class="card card-custom p-4 bg-white h-100 mb-0">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-chart-line me-2 text-success"></i>Tích Lũy Tập Luyện Hôm Nay
+                            </h5>
+
+                            <!-- Thời gian tập -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small fw-semibold text-muted">Thời gian tập luyện</span>
+                                    <span class="badge bg-success-subtle text-success" id="todayProgressBadge" th:text="${totalMinutes} + ' / ' + ${targetMinutes} + ' phút'">0 / 30 phút</span>
+                                </div>
+                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                    <div class="progress-bar bg-success" id="todayProgressBar" role="progressbar" 
+                                         th:style="'width: ' + ${exerciseProgress} + '%'" 
+                                         th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <!-- Calo tiêu hao -->
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small fw-semibold text-muted">Ước tính Calo tiêu hao</span>
+                                    <span class="badge bg-danger-subtle text-danger"><i class="fa-solid fa-fire me-1"></i><span id="todayCaloriesSpan" th:text="${#numbers.formatDecimal(totalCaloriesBurned, 1, 0)}">0</span> kcal</span>
+                                </div>
+                            </div>
+
+                            <!-- Streak đạt mục tiêu liên tiếp -->
+                            <div id="streakContainer" class="mt-3 text-center" 
+                                 th:style="${streak > 0} ? 'display: block;' : 'display: none;'">
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle py-2 px-3 rounded-pill fw-bold" style="font-size: 0.9rem;">
+                                    🔥 Bạn đã đạt mục tiêu <span id="streakDaysCount" th:text="${streak}">0</span> ngày liên tiếp!
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-12">
+                        <!-- Card: Khuyến nghị vận động cho bạn (Tĩnh từ DB) -->
+                        <div class="card card-custom p-4 bg-white h-100 mb-0 border border-success-subtle">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-clipboard-list me-2 text-success"></i>Khuyến Nghị Vận Động Cho Bạn
+                            </h5>
+                            
+                            <!-- Nếu có guideline -->
+                            <div th:if="${exerciseGuideline != null}">
+                                <div class="mb-3 p-3 rounded-3" style="background-color: #f0fdf4; border-left: 4px solid #15803d;">
+                                    <h6 class="fw-bold text-success mb-2">✅ Nên làm</h6>
+                                    <p class="small text-dark mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseGuideline.recommendedContent}"></p>
+                                </div>
+                                
+                                <div class="mb-3 p-3 rounded-3" style="background-color: #fff7ed; border-left: 4px solid #c2410c;">
+                                    <h6 class="fw-bold text-danger mb-2" style="color: #c2410c !important;">⚠️ Cần tránh</h6>
+                                    <p class="small text-dark mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseGuideline.avoidContent}"></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Nếu không có guideline (hoặc chưa có disease_profile_id) -->
+                            <div th:if="${exerciseGuideline == null}" class="alert alert-warning py-3 px-4 mb-3 border-0 rounded-3 text-warning-emphasis" style="background-color: #fffbeb;">
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                <span class="small fw-semibold">Chưa có thông tin phân loại bệnh lý. Vui lòng liên hệ bác sĩ để được tư vấn vận động phù hợp.</span>
+                            </div>
+                            
+                            <div class="text-center mt-2">
+                                <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">
+                                    * Thông tin tham khảo chung, không thay thế chỉ định cụ thể của bác sĩ điều trị.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-12">
+                        <!-- Card: Khuyến nghị vận động cho bạn (compliance) -->
+                        <div class="card card-custom p-4 bg-white h-100 mb-0 border border-success-subtle">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-bullseye me-2 text-success"></i>Theo Dõi Tuân Thủ Mục Tiêu
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-success-subtle text-success py-1 px-2 rounded-pill fw-semibold mb-2" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-clipboard-list me-1"></i>Chỉ dẫn từ bác sĩ / cố vấn
+                                </span>
+                                <p class="text-muted small mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseRecommendation}">
+                                    Thực hiện vận động thể chất ít nhất 30 phút mỗi ngày giúp tăng cường sức khỏe tim mạch, cải thiện độ nhạy insulin và kiểm soát đường huyết hiệu quả. Hãy lựa chọn các bài tập vừa sức như đi bộ nhanh, đạp xe nhẹ nhàng hoặc tập yoga.
+                                </p>
+                            </div>
+                            
+                            <hr class="my-3 text-muted opacity-25">
+                            
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-success-subtle p-3 rounded-circle text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    <i class="fa-solid fa-circle-check fa-lg text-success"></i>
+                                </div>
+                                <div>
+                                    <span class="small fw-semibold text-muted d-block">Mức độ tuân thủ (7 ngày qua)</span>
+                                    <strong class="text-dark small" th:text="'Tuần này: Bạn đã đạt mục tiêu ' + ${compliance.daysAchieved} + '/' + ${compliance.totalDays} + ' ngày theo khuyến nghị của bác sĩ'">
+                                        Tuần này: Bạn đã đạt mục tiêu 0/7 ngày theo khuyến nghị của bác sĩ
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-12">
+                        <!-- Card: Chỉ Số BMI -->
+                        <div class="card card-custom p-4 bg-white h-100 mb-0">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="fa-solid fa-weight-scale me-2 text-primary"></i>Chỉ Số BMI
+                            </h5>
+                            
+                            <div th:if="${latestBmi != null}">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div>
+                                        <span class="fs-2 fw-bold text-dark" th:text="${latestBmi.bmiValue}">22.5</span>
+                                        <span class="text-muted ms-1" style="font-size: 0.9rem;">kg/m²</span>
+                                    </div>
+                                    <!-- Phân loại theo WHO châu Á -->
+                                    <div>
+                                        <span th:if="${latestBmi.bmiCategory == 'Thiếu cân'}" class="badge bg-info fs-6 py-2 px-3 rounded-pill text-white" style="background-color: #0dcaf0 !important;">Thiếu cân</span>
+                                        <span th:if="${latestBmi.bmiCategory == 'Bình thường'}" class="badge bg-success fs-6 py-2 px-3 rounded-pill">Bình thường</span>
+                                        <span th:if="${latestBmi.bmiCategory == 'Thừa cân'}" class="badge bg-warning text-dark fs-6 py-2 px-3 rounded-pill">Thừa cân</span>
+                                        <span th:if="${latestBmi.bmiCategory == 'Béo phì'}" class="badge bg-danger fs-6 py-2 px-3 rounded-pill">Béo phì</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="small text-muted mb-3">
+                                    <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                        <span>Chiều cao:</span>
+                                        <span class="fw-semibold text-dark" th:text="${latestBmi.heightCm} + ' cm'">170 cm</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                        <span>Cân nặng:</span>
+                                        <span class="fw-semibold text-dark" th:text="${latestBmi.weightKg} + ' kg'">65 kg</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-1">
+                                        <span>Ngày đo gần nhất:</span>
+                                        <span class="fw-semibold text-dark" th:text="${latestBmi.examinationDate}">12/07/2026</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info py-2 px-3 mb-0 rounded-3" style="font-size: 0.8rem; border: none; background-color: #e0f2fe; color: #0369a1;">
+                                    <i class="fa-solid fa-circle-info me-1"></i>Số liệu y tế do bác sĩ đo lường tại phòng khám.
+                                </div>
+                            </div>
+                            
+                            <div th:if="${latestBmi == null}" class="d-flex align-items-center justify-content-center h-75 text-center py-4">
+                                <div>
+                                    <i class="fa-solid fa-triangle-exclamation text-warning mb-2 fa-2x"></i>
+                                    <p class="text-muted small mb-0 fw-semibold">Chưa có dữ liệu BMI. Vui lòng đến khám để bác sĩ cập nhật chỉ số cơ thể.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -91,33 +212,82 @@
                         <h4 class="fw-bold text-dark mb-0">
                             <i class="fa-solid fa-person-running me-2 text-success"></i>Nhật Ký Tập Luyện Hôm Nay
                         </h4>
-                        <button class="btn btn-success text-white rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addExerciseModal">
+                        <button class="btn btn-success text-white rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addExerciseModal" onclick="prepareAddModal()">
                             <i class="fa-solid fa-plus me-1"></i>Ghi nhận bài tập
                         </button>
                     </div>
 
-                    <div class="exercise-list d-flex flex-column gap-2">
+                    <div class="exercise-list d-flex flex-column gap-2" id="exerciseListContainer">
+                        <!-- Error Message Alert -->
+                        <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-3 shadow-sm" role="alert">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                            <div th:text="${errorMessage}">Đã xảy ra lỗi.</div>
+                        </div>
+
                         <div th:each="ex : ${exercises}" class="exercise-item p-3 border d-flex align-items-center justify-content-between bg-light" th:id="'exercise-item-' + ${ex.id}">
                             <div class="d-flex align-items-center gap-3">
                                 <div>
                                     <span class="badge bg-secondary mb-1" th:text="${ex.exerciseType}">Đi bộ</span>
                                     <div class="fw-bold text-dark" th:text="${ex.durationMinutes} + ' phút'">30 phút</div>
-                                    <div class="text-muted small mt-1" th:if="${ex.notes != null && ex.notes != ''}" th:text="${ex.notes}">Ghi chú</div>
+                                    <div class="text-muted small mt-1" th:if="${ex.stepsCount != null && ex.stepsCount > 0}" th:text="${ex.exerciseType} + ' (' + ${ex.stepsCount} + ' bước)'">Ghi chú</div>
                                     <div class="mt-1 d-flex gap-2">
-                                        <span class="badge bg-danger-subtle text-danger small"><i class="fa-solid fa-fire me-1"></i><span th:text="${ex.caloriesBurned}">120</span> kcal</span>
+                                        <span class="badge bg-danger-subtle text-danger small"><i class="fa-solid fa-fire me-1"></i><span th:text="${#numbers.formatDecimal(ex.caloriesBurned, 1, 0)}">120</span> kcal</span>
                                     </div>
                                 </div>
                             </div>
-                            <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-pen text-primary me-2 edit-btn" 
+                                   th:data-id="${ex.id}"
+                                   th:data-type="${ex.exerciseType}"
+                                   th:data-duration="${ex.durationMinutes}"
+                                   th:data-steps="${ex.stepsCount}"
+                                   th:data-calories="${ex.caloriesBurned}"
+                                   onclick="openEditModal(this)"
+                                   style="cursor: pointer;"></i>
                                 <i class="fa-solid fa-trash action-icon delete" 
                                    th:data-id="${ex.id}"
-                                   onclick="deleteExercise(this)"></i>
+                                   onclick="deleteExercise(this)"
+                                   style="cursor: pointer; color: #dc3545;"></i>
                             </div>
                         </div>
-                        <div th:if="${#lists.isEmpty(exercises)}" class="text-center text-muted py-5">
+                        <div th:if="${#lists.isEmpty(exercises)}" id="emptyListMessage" class="text-center text-muted py-5">
                             <i class="fa-solid fa-person-walking fa-3x mb-2 text-black-50"></i>
                             <p class="mb-0 small">Hôm nay bạn chưa ghi nhận bài tập nào.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Lịch Sử Vận Động & Biểu Đồ -->
+                <div class="card card-custom p-4 bg-white mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-clock-history me-2 text-success"></i>Lịch Sử Vận Động
+                        </h5>
+                        <div class="btn-group" role="group" aria-label="Time range toggle">
+                            <button type="button" class="btn btn-outline-success btn-sm active" id="btn7Days" onclick="changeRange(7)">7 ngày qua</button>
+                            <button type="button" class="btn btn-outline-success btn-sm" id="btn30Days" onclick="changeRange(30)">30 ngày qua</button>
+                        </div>
+                    </div>
+
+                    <!-- Biểu đồ -->
+                    <div class="mb-4" style="position: relative; height: 220px; width: 100%;">
+                        <canvas id="historyChart"></canvas>
+                    </div>
+
+                    <!-- Danh sách rút gọn theo từng ngày -->
+                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                        <table class="table table-hover table-borderless align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="small fw-semibold text-muted">Ngày</th>
+                                    <th scope="col" class="small fw-semibold text-muted text-center">Thời gian</th>
+                                    <th scope="col" class="small fw-semibold text-muted text-end">Calo tiêu hao</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <!-- Điền dữ liệu bằng Javascript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -129,7 +299,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
                 <div class="modal-header" style="background: linear-gradient(135deg, #198754, #157347); border: none;">
-                    <h5 class="modal-title text-white fw-bold" id="addExerciseLabel">
+                    <h5 class="modal-title text-white fw-bold" id="addExerciseModalTitle">
                         <i class="fa-solid fa-person-running me-2"></i>Ghi Nhận Bài Tập Mới
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -142,13 +312,12 @@
                             <option value="Chạy bộ">Chạy bộ</option>
                             <option value="Đạp xe">Đạp xe</option>
                             <option value="Yoga">Yoga</option>
-                            <option value="Thể dục nhịp điệu">Thể dục nhịp điệu</option>
-                            <option value="Khác">Khác</option>
+                            <option value="Bơi lội">Bơi lội</option>
                         </select>
                     </div>
                     <div class="mb-3" id="stepCountDiv">
                         <label for="stepCount" class="form-label fw-semibold">Số bước chân (Steps)</label>
-                        <input type="number" class="form-control" id="stepCount" value="3000" min="0" oninput="calculateFromSteps(this.value)">
+                        <input type="number" class="form-control" id="stepCount" value="3000" min="0">
                     </div>
                     <div class="mb-3">
                         <label for="durationMinutes" class="form-label fw-semibold">Thời lượng (phút)</label>
@@ -169,15 +338,91 @@
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
     <!-- ==================== JAVASCRIPT ==================== -->
-    <script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const history7 = /*[[${history7Days}]]*/ [];
+        const history30 = /*[[${history30Days}]]*/ [];
+        const warningThreshold = /*[[${warningThreshold}]]*/ 600;
+        const recommendedCalories = /*[[${recommendedCalories}]]*/ 120;
+        /*]]>*/
+
+        let editingExerciseId = null;
+
+        function prepareAddModal() {
+            editingExerciseId = null;
+            document.getElementById('addExerciseModalTitle').innerHTML = '<i class="fa-solid fa-person-running me-2"></i>Ghi Nhận Bài Tập Mới';
+            document.getElementById('exerciseType').value = 'Đi bộ';
+            document.getElementById('stepCount').value = '3000';
+            document.getElementById('durationMinutes').value = '30';
+            document.getElementById('caloriesBurned').value = '120';
+            updateEstimation();
+        }
+
+        function openEditModal(element) {
+            editingExerciseId = element.getAttribute('data-id');
+            const type = element.getAttribute('data-type');
+            const duration = element.getAttribute('data-duration');
+            const steps = element.getAttribute('data-steps');
+            const calories = element.getAttribute('data-calories');
+
+            document.getElementById('addExerciseModalTitle').innerHTML = '<i class="fa-solid fa-pen me-2"></i>Chỉnh Sửa Bài Tập';
+            document.getElementById('exerciseType').value = type;
+            document.getElementById('durationMinutes').value = duration;
+            document.getElementById('stepCount').value = steps || '0';
+            document.getElementById('caloriesBurned').value = Math.round(calories) || '0';
+
+            updateEstimation();
+
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('addExerciseModal'));
+            modal.show();
+        }
+
+        // Giá trị ước tính tham khảo, không phải chỉ số y khoa chính xác
+        function updateEstimation() {
+            const type = document.getElementById('exerciseType').value;
+            const stepDiv = document.getElementById('stepCountDiv');
+            const durationInput = document.getElementById('durationMinutes');
+            const caloriesInput = document.getElementById('caloriesBurned');
+            const stepInput = document.getElementById('stepCount');
+
+            if (type === 'Đi bộ' || type === 'Chạy bộ') {
+                stepDiv.style.display = 'block';
+                const steps = parseFloat(stepInput.value) || 0;
+                let duration = 30;
+                let calories = 0;
+                if (type === 'Đi bộ') {
+                    duration = Math.round(steps / 100);
+                    calories = Math.round(steps * 0.04);
+                } else if (type === 'Chạy bộ') {
+                    duration = Math.round(steps / 150);
+                    calories = Math.round(steps * 0.06);
+                }
+                durationInput.value = duration;
+                caloriesInput.value = calories;
+            } else {
+                stepDiv.style.display = 'none';
+                const duration = parseFloat(durationInput.value) || 0;
+                let calories = 0;
+                if (type === 'Đạp xe') {
+                    calories = Math.round(duration * 6);
+                } else if (type === 'Yoga') {
+                    calories = Math.round(duration * 3);
+                } else if (type === 'Bơi lội') {
+                    calories = Math.round(duration * 8);
+                }
+                caloriesInput.value = calories;
+            }
+        }
+
         function submitAddExerciseForm() {
             const exerciseType = document.getElementById('exerciseType').value;
             const durationMinutes = document.getElementById('durationMinutes').value.trim();
             const stepCount = document.getElementById('stepCount').value.trim();
+            const caloriesBurned = document.getElementById('caloriesBurned').value.trim();
 
             if (!durationMinutes) {
                 alert('Vui lòng nhập đầy đủ thông tin.');
@@ -190,10 +435,16 @@
             if (exerciseType === 'Đi bộ' || exerciseType === 'Chạy bộ') {
                 params.append('stepsCount', stepCount);
             }
+            params.append('caloriesBurned', caloriesBurned);
 
-            fetch('/patient/api/exercise/add', {
+            const url = editingExerciseId ? '/patient/exercise/update/' + editingExerciseId : '/patient/exercise';
+
+            fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: params.toString()
             })
             .then(res => res.json())
@@ -202,7 +453,7 @@
                     bootstrap.Modal.getInstance(document.getElementById('addExerciseModal')).hide();
                     location.reload();
                 } else {
-                    alert('Lỗi: ' + (data.message || 'Không thể thêm bài tập.'));
+                    alert('Lỗi: ' + (data.message || 'Không thể lưu bài tập.'));
                 }
             })
             .catch(err => {
@@ -213,14 +464,20 @@
 
         function deleteExercise(element) {
             const id = element.getAttribute('data-id');
-            if (!confirm('Xóa ghi nhận bài tập này?')) return;
+            if (!confirm('Bạn có chắc muốn xóa bài tập này?')) {
+                return;
+            }
 
-            fetch('/patient/api/exercise/delete/' + id, {
-                method: 'POST'
+            fetch('/patient/exercise/delete/' + id, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
+                    // Xóa phần tử trên giao diện với hiệu ứng mượt mà
                     const item = document.getElementById('exercise-item-' + id);
                     if (item) {
                         item.style.transition = 'all 0.3s ease';
@@ -228,8 +485,73 @@
                         item.style.transform = 'translateY(-20px)';
                         setTimeout(() => {
                             item.remove();
-                            location.reload(); // Reload to update stats
+                            // Kiểm tra danh sách rỗng để hiện thông báo
+                            const remainingItems = document.querySelectorAll('#exerciseListContainer .exercise-item');
+                            const emptyMsg = document.getElementById('emptyListMessage');
+                            if (remainingItems.length === 0 && emptyMsg) {
+                                emptyMsg.style.display = 'block';
+                            }
                         }, 300);
+                    }
+
+                    // Cập nhật động progress bar & calo hôm nay
+                    const badge = document.getElementById('todayProgressBadge');
+                    const progress = document.getElementById('todayProgressBar');
+                    const calories = document.getElementById('todayCaloriesSpan');
+
+                    if (badge) {
+                        badge.textContent = data.totalMinutes + ' / ' + data.targetMinutes + ' phút';
+                    }
+                    if (progress) {
+                        progress.style.width = data.exerciseProgress + '%';
+                        progress.setAttribute('aria-valuenow', data.exerciseProgress);
+                    }
+                    if (calories) {
+                        calories.textContent = Math.round(data.totalCaloriesBurned);
+                    }
+
+                    // Cập nhật dữ liệu lịch sử hôm nay (phần tử cuối cùng của mảng)
+                    if (history7 && history7.length > 0) {
+                        const todayEntry = history7[history7.length - 1];
+                        todayEntry.totalMinutes = data.totalMinutes;
+                        todayEntry.totalCaloriesBurned = data.totalCaloriesBurned;
+                    }
+                    if (history30 && history30.length > 0) {
+                        const todayEntry = history30[history30.length - 1];
+                        todayEntry.totalMinutes = data.totalMinutes;
+                        todayEntry.totalCaloriesBurned = data.totalCaloriesBurned;
+                    }
+
+                    // Vẽ lại biểu đồ và cập nhật bảng lịch sử
+                    const btn7 = document.getElementById('btn7Days');
+                    if (btn7 && btn7.classList.contains('active')) {
+                        populateTable(history7);
+                        renderChart(history7);
+                    } else {
+                        populateTable(history30);
+                        renderChart(history30);
+                    }
+
+                    // Cập nhật streak
+                    const streakContainer = document.getElementById('streakContainer');
+                    const streakDaysCount = document.getElementById('streakDaysCount');
+                    if (streakContainer && streakDaysCount) {
+                        if (data.streak > 0) {
+                            streakContainer.style.display = 'block';
+                            streakDaysCount.textContent = data.streak;
+                        } else {
+                            streakContainer.style.display = 'none';
+                        }
+                    }
+
+                    // Cập nhật over-exertion warning
+                    const warningBanner = document.getElementById('overExertionWarning');
+                    if (warningBanner) {
+                        if (data.totalCaloriesBurned > warningThreshold) {
+                            warningBanner.style.display = 'block';
+                        } else {
+                            warningBanner.style.display = 'none';
+                        }
                     }
                 } else {
                     alert('Lỗi: ' + (data.message || 'Không thể xóa bài tập.'));
@@ -237,93 +559,185 @@
             })
             .catch(err => {
                 console.error(err);
-                alert('Không thể kết nối server.');
+                alert('Lỗi kết nối hoặc không thể thực hiện thao tác.');
             });
         }
-        function calculateFromSteps(steps) {
-            const type = document.getElementById('exerciseType').value;
-            let duration = 30;
-            let calories = 150;
-            
-            if (steps && steps > 0) {
-                if (type === 'Đi bộ') {
-                    duration = Math.round(steps / 100);
-                    calories = Math.round(steps * 0.04);
-                } else if (type === 'Chạy bộ') {
-                    duration = Math.round(steps / 150);
-                    calories = Math.round(steps * 0.06);
-                }
+
+        // --- HÀM CHO BIỂU ĐỒ & LỊCH SỬ ---
+        let chartInstance = null;
+
+        function renderChart(data) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            const labels = data.map(item => item.formattedDate);
+            const values = data.map(item => item.totalCaloriesBurned);
+
+            if (chartInstance) {
+                chartInstance.destroy();
             }
-            
-            document.getElementById('durationMinutes').value = duration;
-            document.getElementById('caloriesBurned').value = calories;
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Calo tiêu hao (kcal)',
+                            data: values,
+                            borderColor: '#198754',
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            borderWidth: 2.5,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: values.map(val => val >= recommendedCalories ? '#dc3545' : '#198754'),
+                            pointBorderColor: values.map(val => val >= recommendedCalories ? '#dc3545' : '#198754'),
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Khuyến nghị (' + recommendedCalories + ' kcal)',
+                            data: labels.map(() => recommendedCalories),
+                            borderColor: '#fd7e14',
+                            borderWidth: 1.5,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Calo (kcal)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
         }
 
-        document.getElementById('exerciseType').addEventListener('change', function() {
-            const type = this.value;
-            const stepDiv = document.getElementById('stepCountDiv');
-            if (type === 'Đi bộ' || type === 'Chạy bộ') {
-                stepDiv.style.display = 'block';
-                calculateFromSteps(document.getElementById('stepCount').value);
+        function populateTable(data) {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            // Đảo ngược để hiển thị ngày gần nhất lên trên
+            const reversedData = [...data].reverse();
+
+            reversedData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="fw-semibold text-dark">${item.formattedDate}</td>
+                    <td class="text-center"><span class="badge bg-success-subtle text-success">${item.totalMinutes} phút</span></td>
+                    <td class="text-end text-danger fw-semibold"><i class="fa-solid fa-fire me-1 small"></i>${Math.round(item.totalCaloriesBurned)} kcal</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function changeRange(days) {
+            const btn7 = document.getElementById('btn7Days');
+            const btn30 = document.getElementById('btn30Days');
+            
+            if (days === 7) {
+                btn7.classList.add('active');
+                btn30.classList.remove('active');
+                populateTable(history7);
+                renderChart(history7);
             } else {
-                stepDiv.style.display = 'none';
+                btn7.classList.remove('active');
+                btn30.classList.add('active');
+                populateTable(history30);
+                renderChart(history30);
             }
-        });
-        
+        }
+
+        function markNotifAsRead(notifId) {
+            fetch(`/api/patient/notifications/${notifId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Marked notification as read successfully: ", notifId);
+                    
+                    // Remove the notification banner from the DOM
+                    const element = document.getElementById(`exercise-notif-${notifId}`);
+                    if (element) {
+                        element.remove();
+                    }
+                    
+                    // If no more notifications, remove the container
+                    const remainingNotifs = document.querySelectorAll('#exerciseNotifArea .alert');
+                    if (remainingNotifs.length === 0) {
+                        const container = document.getElementById('exerciseNotifArea');
+                        if (container) {
+                            container.remove();
+                        }
+                    }
+
+                    // Update the bell icon badge count
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        let currentCount = parseInt(badge.textContent) || 0;
+                        if (currentCount > 0) {
+                            currentCount--;
+                            badge.textContent = currentCount;
+                            if (currentCount === 0) {
+                                badge.classList.add('d-none');
+                            }
+                        }
+                    }
+                } else {
+                    console.error("Failed to mark notification as read");
+                }
+            })
+            .catch(error => {
+                console.error("Error calling mark as read API: ", error);
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
-            const type = document.getElementById('exerciseType').value;
-            const stepDiv = document.getElementById('stepCountDiv');
-            if (type !== 'Đi bộ' && type !== 'Chạy bộ') {
-                stepDiv.style.display = 'none';
+            const typeSelect = document.getElementById('exerciseType');
+            const stepInput = document.getElementById('stepCount');
+            const durationInput = document.getElementById('durationMinutes');
+
+            typeSelect.addEventListener('change', updateEstimation);
+            stepInput.addEventListener('input', updateEstimation);
+            durationInput.addEventListener('input', function() {
+                const type = typeSelect.value;
+                if (type !== 'Đi bộ' && type !== 'Chạy bộ') {
+                    updateEstimation();
+                }
+            });
+
+            // Khởi tạo ước lượng ban đầu trong modal
+            updateEstimation();
+
+            // Khởi tạo biểu đồ và bảng lịch sử (Mặc định 7 ngày)
+            populateTable(history7);
+            renderChart(history7);
+
+            // Kiểm tra ẩn hiện thông báo rỗng khi trang load
+            const items = document.querySelectorAll('#exerciseListContainer .exercise-item');
+            const emptyMsg = document.getElementById('emptyListMessage');
+            if (items.length > 0 && emptyMsg) {
+                emptyMsg.style.display = 'none';
             }
         });
     </script>
     <!-- Bottom Navigation Bar -->
-    <div class="bottom-nav">
-        <a href="/patient/dashboard" class="nav-item">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ</span>
-        </a>
-        <a href="/patient/appointments" class="nav-item">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Nhật ký</span>
-        </a>
-        <a href="/patient/adherence" class="nav-item">
-            <i class="fa-solid fa-pills"></i>
-            <span>Thuốc uống</span>
-        </a>
-        <a href="/patient/log" class="nav-item fab-item">
-            <div class="fab-btn">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-        </a>
-        <a href="/patient/nutrition" class="nav-item">
-            <i class="fa-solid fa-utensils"></i>
-            <span>Dinh dưỡng</span>
-        </a>
-        <a href="/patient/exercise" class="nav-item">
-            <i class="fa-solid fa-person-running"></i>
-            <span>Tập luyện</span>
-        </a>
-        <a href="/patient/progress" class="nav-item">
-            <i class="fa-solid fa-user"></i>
-            <span>Hồ sơ</span>
-        </a>
-    </div>
-
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const currentPath = window.location.pathname;
-            document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
-                const href = item.getAttribute("href");
-                if (currentPath === href || (href === "/patient/appointments" && currentPath === "/patient/request-change")) {
-                    item.classList.add("active");
-                }
-            });
-        });
-    </script>
-    <script src="/js/patient.js"></script>
+    <div th:replace="~{patient/fragments :: bottom-nav}"></div>
+    <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
 </body>
 </html>

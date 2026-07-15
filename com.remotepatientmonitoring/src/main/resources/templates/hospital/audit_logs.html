@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhật ký Hệ thống | Hospital Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1A73E8;
+            --primary-hover: #155cb4;
+            --primary-light: #E8F0FE;
+            --bg-light: #F4F7FE;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --sidebar-width: 260px;
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid #E2E8F0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .sidebar-footer {
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #F1F5F9;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding: 2rem;
+        }
+        .navbar-top {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-custom {
+            background-color: #ffffff;
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            margin-bottom: 2rem;
+        }
+        .card-custom-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #F1F5F9;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-custom-body {
+            padding: 1.5rem;
+        }
+
+        /* Mobile responsive toggle */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background-color: #F8FAFC;
+            color: #475569;
+            font-weight: 600;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Badge Customization cho các Action */
+        .badge-assign { background-color: #E6F4EA; color: #137333; }
+        .badge-unassign { background-color: #FEF7E0; color: #B06000; }
+        .badge-threshold { background-color: #E8F0FE; color: #1A73E8; }
+        .badge-protocol { background-color: #F3E8FF; color: #7E22CE; }
+        .badge-create { background-color: #E0F2FE; color: #0284C7; }
+        .badge-update { background-color: #FEF3C7; color: #D97706; }
+        .badge-activate { background-color: #D1FAE5; color: #059669; }
+        .badge-default { background-color: #F1F5F9; color: #475569; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-heart-pulse-fill"></i>
+        <span>RPM System</span>
+    </div>
+    <div class="sidebar-menu">
+        <a th:href="@{/hospital/dashboard}" class="menu-item">
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="@{/hospital/doctors}" class="menu-item">
+            <i class="bi bi-person-fill-gear"></i>
+            <span>Quản lý Bác sĩ</span>
+        </a>
+        <a th:href="@{/hospital/config/thresholds}" class="menu-item">
+            <i class="bi bi-sliders"></i>
+            <span>Cấu hình Ngưỡng</span>
+        </a>
+        <a th:href="@{/hospital/config/protocols}" class="menu-item">
+            <i class="bi bi-journal-medical"></i>
+            <span>Cẩm nang & Chỉ dẫn</span>
+        </a>
+        <a th:href="@{/hospital/audit-logs}" class="menu-item active">
+            <i class="bi bi-clock-history"></i>
+            <span>Nhật ký Hệ thống</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="navbar-top">
+        <div class="d-flex align-items-center gap-3">
+            <button class="sidebar-toggle" id="toggleSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-none d-md-block">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/hospital/dashboard}" class="text-decoration-none">Trang chủ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Nhật ký Hệ thống</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-end d-none d-sm-block">
+                <h6 class="mb-0 fw-semibold">Quản trị viên</h6>
+                <small class="text-muted">Hospital Admin</small>
+            </div>
+            <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-building"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1">Quản lý Nhật ký Hệ thống (Audit Log)</h2>
+            <p class="text-muted mb-0">Theo dõi toàn bộ các thao tác nghiệp vụ, điều chuyển bác sĩ, bệnh nhân và thay đổi cấu hình hệ thống.</p>
+        </div>
+    </div>
+
+    <div class="card card-custom mb-4">
+        <div class="card-custom-body">
+            <form th:action="@{/hospital/audit-logs}" method="GET" class="row g-3 align-items-end">
+                <input type="hidden" name="page" value="0"/>
+                <input type="hidden" name="size" th:value="${size}"/>
+                <div class="col-md-4 col-sm-6">
+                    <label for="fromDate" class="form-label small fw-bold text-muted">Từ ngày</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
+                        <input type="date" id="fromDate" name="fromDate" class="form-control" th:value="${fromDate}">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <label for="toDate" class="form-label small fw-bold text-muted">Đến ngày</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
+                        <input type="date" id="toDate" name="toDate" class="form-control" th:value="${toDate}">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4 w-50 fw-semibold"><i class="bi bi-funnel me-1"></i>Lọc</button>
+                    <a th:href="@{/hospital/audit-logs}" class="btn btn-outline-secondary w-50 fw-semibold"><i class="bi bi-arrow-counterclockwise me-1"></i>Xóa bộ lọc</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card card-custom">
+        <div class="card-custom-header">
+            <span><i class="bi bi-list-stars text-primary me-2"></i>Danh sách nhật ký hoạt động</span>
+            <span class="badge bg-primary-light text-primary fw-semibold" th:text="${logs.totalElements + ' bản ghi'}">0 bản ghi</span>
+        </div>
+        <div class="card-custom-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Người thực hiện</th>
+                        <th>Hành động</th>
+                        <th>Mục tiêu</th>
+                        <th>IP / Thiết bị</th>
+                        <th>Giải trình / Ghi chú</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${logs.content}">
+                        <td class="text-nowrap" th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm:ss')}">01/01/2026 00:00:00</td>
+                        <td>
+                            <div class="fw-semibold" th:text="${log.actorType}">ADMIN</div>
+                            <small class="text-muted" th:text="'ID: ' + ${log.actorId}">ID: 1</small>
+                        </td>
+                        <td>
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                                      th:classappend="${
+                                          #strings.contains(log.action, 'ASSIGN') ? 'badge-assign' :
+                                          (#strings.contains(log.action, 'CREATE') ? 'badge-create' :
+                                          (#strings.contains(log.action, 'UPDATE') ? 'badge-update' :
+                                          (#strings.contains(log.action, 'ACTIVATE') ? 'badge-activate' :
+                                          (#strings.contains(log.action, 'THRESHOLD') ? 'badge-threshold' :
+                                          (#strings.contains(log.action, 'PROTOCOL') ? 'badge-protocol' : 'badge-default')))))
+                                      }"
+                                      th:text="${log.action}">ACTION_NAME</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-capitalize" th:text="${log.targetTable}">patients</div>
+                            <small class="text-muted" th:text="'Record ID: ' + ${log.targetRecordId}">ID: 1</small>
+                        </td>
+                        <td>
+                            <div th:text="${log.ipAddress}">127.0.0.1</div>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" th:text="${log.deviceInfo}" th:title="${log.deviceInfo}">Browser</small>
+                        </td>
+                        <td>
+                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 250px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill btn-detail"
+                                    data-bs-toggle="modal" data-bs-target="#detailModal"
+                                    th:data-action="${log.action}"
+                                    th:data-target-table="${log.targetTable}"
+                                    th:data-target-id="${log.targetRecordId}"
+                                    th:data-actor-type="${log.actorType}"
+                                    th:data-actor-id="${log.actorId}"
+                                    th:data-notes="${log.notes}"
+                                    th:data-old="${log.oldValue}"
+                                    th:data-new="${log.newValue}">
+                                Xem chi tiết
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${logs.isEmpty()}">
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+                            Không tìm thấy dữ liệu nhật ký hệ thống nào trong khoảng thời gian đã chọn.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-2" th:if="${logs.totalPages > 1}">
+                <div class="small text-muted">
+                    Hiển thị trang <span class="fw-bold" th:text="${currentPage + 1}">1</span> / <span th:text="${logs.totalPages}">1</span>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/hospital/audit-logs(page=${currentPage - 1}, size=${size}, fromDate=${fromDate}, toDate=${toDate})}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, logs.totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/hospital/audit-logs(page=${i}, size=${size}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage + 1 == logs.totalPages} ? 'disabled'">
+                            <a class="page-link" th:href="@{/hospital/audit-logs(page=${currentPage + 1}, size=${size}, fromDate=${fromDate}, toDate=${toDate})}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-light border-0 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                <h5 class="modal-title fw-bold text-dark" id="detailModalLabel">
+                    <i class="bi bi-shield-shaded text-primary me-2"></i>Chi tiết Nhật ký Audit Log
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="small text-muted d-block">Hành động</label>
+                        <span id="modalActionBadge" class="badge bg-primary-light text-primary px-3 py-2 fw-semibold">ACTION_NAME</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted d-block">Đối tượng tác động</label>
+                        <span class="fw-bold" id="modalTargetInfo">Table: patients (ID: 1)</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted d-block">Người thực hiện</label>
+                        <span class="fw-bold" id="modalActorInfo">ADMIN (ID: 1)</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted d-block">Ghi chú / Giải trình</label>
+                        <span class="fw-bold text-secondary" id="modalNotes">-</span>
+                    </div>
+                </div>
+
+                <div id="changeDetailContainer" class="border rounded-3 p-3 bg-light">
+                </div>
+            </div>
+            <div class="modal-footer border-0 py-3 bg-light" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                <button type="button" class="btn btn-secondary px-4 fw-semibold rounded-pill" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Hàm bảo vệ HTML chống vỡ layout khi nội dung có ký tự đặc biệt (<, >)
+    function escapeHtml(unsafe) {
+        if (unsafe == null) return '-';
+        return unsafe
+            .toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Sidebar responsive toggle
+    const toggleSidebarBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleSidebarBtn && sidebar) {
+        toggleSidebarBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // XỬ LÝ ĐỔ DỮ LIỆU VÀO MODAL THÔNG MINH
+    const detailButtons = document.querySelectorAll('.btn-detail');
+    detailButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.getAttribute('data-action') || '';
+            const targetTable = this.getAttribute('data-target-table') || '';
+            const targetId = this.getAttribute('data-target-id') || '';
+            const actorType = this.getAttribute('data-actor-type') || '';
+            const actorId = this.getAttribute('data-actor-id') || '';
+            const notes = this.getAttribute('data-notes') || '-';
+            const oldValue = this.getAttribute('data-old') || '';
+            const newValue = this.getAttribute('data-new') || '';
+
+            // Update header info
+            document.getElementById('modalActionBadge').textContent = action;
+            document.getElementById('modalTargetInfo').textContent = `Bảng: ${targetTable} (ID: ${targetId})`;
+            document.getElementById('modalActorInfo').textContent = `${actorType} (ID: ${actorId})`;
+            document.getElementById('modalNotes').textContent = (notes === 'null' || !notes) ? '-' : notes;
+
+            const container = document.getElementById('changeDetailContainer');
+            container.innerHTML = '';
+
+            try {
+                // Kiểm tra an toàn xem dữ liệu có phải là JSON object hay không
+                const isOldJson = oldValue && typeof oldValue === 'string' && oldValue.trim().startsWith('{');
+                const isNewJson = newValue && typeof newValue === 'string' && newValue.trim().startsWith('{');
+
+                if (isOldJson || isNewJson) {
+                    let oldObj = isOldJson ? JSON.parse(oldValue) : {};
+                    let newObj = isNewJson ? JSON.parse(newValue) : {};
+
+                    let html = '';
+
+                    // 1. GIAO DIỆN RIÊNG CHO ĐIỀU CHUYỂN BỆNH NHÂN (ASSIGN_PATIENTS)
+                    // 1. GIAO DIỆN RIÊNG CHO ĐIỀU CHUYỂN BỆNH NHÂN (ASSIGN_PATIENTS)
+                    if (action === 'ASSIGN_PATIENTS') {
+                        let doctorIdStr = newObj.doctorId ? escapeHtml(newObj.doctorId) : 'N/A';
+                        // Hỗ trợ đọc key mới (patients) và key cũ (patientIds)
+                        let patientsArr = newObj.patients || newObj.patientIds || newObj.patient_ids || [];
+
+                        html += `<h6 class="fw-bold mb-3 text-success"><i class="bi bi-arrow-left-right me-1"></i>Chi tiết Điều chuyển bệnh nhân</h6>
+            <table class="table table-bordered mb-0 bg-white small">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã Bác sĩ tiếp nhận (ID)</th>
+                        <th>Danh sách Bệnh nhân được phân</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold fs-5 text-primary align-middle">${doctorIdStr}</td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">`;
+
+                        if (Array.isArray(patientsArr) && patientsArr.length > 0) {
+                            patientsArr.forEach(p => {
+                                // Nếu là log theo cấu trúc MỚI (Object JSON chứa id, code, name)
+                                if (typeof p === 'object' && p !== null) {
+                                    let pCode = p.code ? escapeHtml(p.code) : 'Chưa có mã';
+                                    let pName = p.name ? escapeHtml(p.name) : 'N/A';
+                                    html += `<span class="badge bg-light text-dark border p-2 text-start" style="min-width: 150px;">
+                            <strong class="text-primary">ID: ${escapeHtml(p.id)}</strong><br>
+                            <span class="text-muted small">${pCode}</span><br>
+                            <span class="fw-medium">${pName}</span>
+                         </span>`;
+                                }
+                                // Nếu là log theo cấu trúc CŨ (Chỉ lưu mảng số ID)
+                                else {
+                                    html += `<span class="badge bg-secondary py-2 px-3">BN ID: ${escapeHtml(p)}</span>`;
+                                }
+                            });
+                        } else {
+                            html += `<span class="text-muted">Không có bệnh nhân nào cần điều chuyển</span>`;
+                        }
+                        html += `               </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>`;
+                    }
+                    // 2. GIAO DIỆN CHUNG SO SÁNH JSON (TẠO MỚI, CẬP NHẬT, KÍCH HOẠT LẠI)
+                    else {
+                        html += `<h6 class="fw-bold mb-3 text-primary"><i class="bi bi-cpu-fill me-1"></i>Chi tiết thông số thay đổi cấu trúc</h6>
+                                <table class="table table-sm table-bordered bg-white mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 30%">Trường thông tin</th>
+                                            <th style="width: 35%">Giá trị cũ</th>
+                                            <th style="width: 35%">Giá trị mới</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+
+                        let allKeys = Array.from(new Set([...Object.keys(oldObj), ...Object.keys(newObj)]));
+                        allKeys.forEach(key => {
+                            let oldVal = (oldObj[key] !== undefined) ? String(oldObj[key]) : '-';
+                            let newVal = (newObj[key] !== undefined) ? String(newObj[key]) : '-';
+
+                            // Tô màu highlight nếu giá trị thay đổi
+                            let isChanged = (oldVal !== newVal && oldVal !== '-' && newVal !== '-');
+                            let highlightClass = isChanged ? 'bg-warning bg-opacity-10' : '';
+
+                            html += `<tr class="${highlightClass}">
+                                        <td class="fw-bold text-secondary text-capitalize">${escapeHtml(key)}</td>
+                                        <td class="text-danger">${escapeHtml(oldVal)}</td>
+                                        <td class="text-success fw-semibold">${escapeHtml(newVal)}</td>
+                                     </tr>`;
+                        });
+                        html += `</tbody></table>`;
+                    }
+                    container.innerHTML = html;
+                } else {
+                    // Nếu là văn bản bình thường (Không phải JSON), quăng lỗi xuống khối catch để xử lý hiển thị text thô
+                    throw new Error("Plain text data");
+                }
+            } catch (e) {
+                // 3. FALLBACK AN TOÀN: HIỂN THỊ TEXT THÔ CHO CÁC LUỒNG CẤU HÌNH NGƯỠNG/CẨM NANG
+                container.innerHTML = `
+                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-file-text me-1"></i>Chi tiết nội dung</h6>
+                    <div class="row g-2">
+                        <div class="col-md-6 border-end">
+                            <span class="small text-muted d-block fw-semibold mb-1">Giá trị cũ:</span>
+                            <div class="bg-white p-3 border rounded text-break" style="max-height: 200px; overflow-y: auto;">
+                                <p class="mb-0 text-secondary">${escapeHtml(oldValue)}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="small text-muted d-block fw-semibold mb-1">Giá trị mới:</span>
+                            <div class="bg-white p-3 border rounded text-break" style="max-height: 200px; overflow-y: auto;">
+                                <p class="mb-0 text-dark fw-medium">${escapeHtml(newValue)}</p>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        });
+    });
+</script>
+</body>
+</html>

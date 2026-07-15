@@ -3,7 +3,9 @@ package com.rpm.remotepatientmonitoring.controller.hopital;
 import com.rpm.remotepatientmonitoring.model.AlertThreshold;
 import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
 import com.rpm.remotepatientmonitoring.model.EmergencyProtocol;
+import com.rpm.remotepatientmonitoring.model.ExerciseGuideline;
 import com.rpm.remotepatientmonitoring.service.hopital.HospitalConfigService;
+import com.rpm.remotepatientmonitoring.repository.DiseaseProfileRepository;
 import com.rpm.remotepatientmonitoring.dto.hopital.AlertThresholdsDTO;
 import com.rpm.remotepatientmonitoring.dto.hopital.EmergencyGuideDTO;
 import com.rpm.remotepatientmonitoring.dto.hopital.EmergencyProtocolDTO;
@@ -23,6 +25,9 @@ public class HospitalConfigController {
 
     @Autowired
     private HospitalConfigService configService;
+
+    @Autowired
+    private DiseaseProfileRepository diseaseProfileRepository;
 
     // ==========================================
     // MÀN HÌNH 1: CẤU HÌNH NGƯỠNG LÂM SÀNG
@@ -107,6 +112,8 @@ public class HospitalConfigController {
         List<EmergencyProtocol> protocols = configService.getEmergencyProtocols(HARDCODED_HOSPITAL_ID);
         model.addAttribute("guides", guides);
         model.addAttribute("protocols", protocols);
+        model.addAttribute("exerciseGuidelines", configService.getExerciseGuidelines(HARDCODED_HOSPITAL_ID));
+        model.addAttribute("diseaseProfiles", diseaseProfileRepository.findAll());
         if (!model.containsAttribute("newGuide")) {
             model.addAttribute("newGuide", new EmergencyGuideDTO());
         }
@@ -204,5 +211,27 @@ public class HospitalConfigController {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật cẩm nang: " + e.getMessage());
         }
         return "redirect:/hospital/config/protocols";
+    }
+
+    @DeleteMapping("/config/guide/delete/{id}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> deleteEmergencyGuide(@PathVariable("id") Integer id) {
+        try {
+            configService.deleteEmergencyGuide(id);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/config/protocol/delete/{id}")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> deleteEmergencyProtocol(@PathVariable("id") Integer id) {
+        try {
+            configService.deleteEmergencyProtocol(id);
+            return org.springframework.http.ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
+        }
     }
 }

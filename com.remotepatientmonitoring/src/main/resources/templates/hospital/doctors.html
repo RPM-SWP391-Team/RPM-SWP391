@@ -286,6 +286,10 @@
             <i class="bi bi-journal-medical"></i>
             <span>Cẩm nang & Chỉ dẫn</span>
         </a>
+        <a th:href="@{/hospital/audit-logs}" class="menu-item">
+            <i class="bi bi-clock-history"></i>
+            <span>Nhật ký Hệ thống</span>
+        </a>
     </div>
     <div class="sidebar-footer">
         <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
@@ -723,8 +727,10 @@
                             <input type="text" class="form-control bg-light text-muted fw-bold" id="editDoctorCode" readonly disabled>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-muted">Email Đăng Nhập (Khóa sửa)</label>
-                            <input type="email" class="form-control bg-light text-muted" id="editEmail" readonly disabled>
+                            <label class="form-label fw-semibold">Email Đăng Nhập <span class="text-danger">*</span></label>
+                            <!-- Đã gỡ readonly, disabled và thêm th:field -->
+                            <input type="email" class="form-control" th:field="*{email}" id="editEmail" required placeholder="bacsi@gmail.com">
+                            <div class="form-text text-warning small"><i class="fa-solid fa-triangle-exclamation"></i> Nếu đổi email, mật khẩu mới sẽ được gửi về email này.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>

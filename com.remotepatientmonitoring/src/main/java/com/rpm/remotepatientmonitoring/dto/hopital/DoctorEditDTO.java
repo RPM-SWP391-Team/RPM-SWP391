@@ -76,4 +76,8 @@ public class DoctorEditDTO {
     @Min(value = 1, message = "Tối thiểu quản lý 1 bệnh nhân.")
     @Max(value = 500, message = "Tối đa quản lý 500 bệnh nhân.")
     private Integer capacityLimit = 50;
+
+    @NotBlank(message = "Email không được để trống.")
+    @Email(message = "Địa chỉ email không đúng định dạng.")
+    private String email;
 }
