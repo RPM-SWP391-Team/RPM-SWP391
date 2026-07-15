@@ -58,6 +58,7 @@
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item active"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
+        <a th:href="@{/hospital/profile}" class="menu-item "><i class="bi bi-hospital"></i><span>Hồ sơ Bệnh viện</span></a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item"><i class="bi bi-clock-history"></i><span>Nhật ký Hệ thống</span></a>
     </div>
     <div class="sidebar-footer"><a th:href="@{/auth/logout}" class="menu-item text-danger w-100"><i class="bi bi-box-arrow-left"></i><span>Đăng xuất</span></a></div>
@@ -128,7 +129,7 @@
                                         </select>
                                     </div>
                                     <div class="col-12"><input type="text" class="form-control form-control-sm" th:field="*{title}" required placeholder="Tiêu đề hiển thị..."></div>
-                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="4" required placeholder="Nội dung từng bước..."></textarea></div>
+                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="4" required minlength="20" maxlength="2000" placeholder="Nội dung từng bước..."></textarea></div>
                                     <div class="col-12 text-end">
                                         <button type="button" class="btn btn-secondary btn-sm px-3 me-2" data-bs-toggle="collapse" data-bs-target="#collapseGuideForm">Hủy</button>
                                         <button type="submit" class="btn btn-primary btn-sm px-4">Lưu Chỉ Dẫn</button>
@@ -183,7 +184,7 @@
                                             <!-- Chế độ sửa -->
                                             <form th:action="@{/hospital/config/guide/edit}" method="POST" th:id="'editModeGuide-' + ${guide.id}" style="display: none;">
                                                 <input type="hidden" name="guideId" th:value="${guide.id}">
-                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${guide.instructionContent}" required></textarea>
+                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${guide.instructionContent}" required minlength="20" maxlength="2000"></textarea>
                                                 <div class="text-end">
                                                     <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditGuide(' + ${guide.id} + ')'">Hủy</button>
                                                     <button type="submit" class="btn btn-primary btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
@@ -225,8 +226,8 @@
                                         </select>
                                     </div>
                                     <div class="col-12"><input type="text" class="form-control form-control-sm" th:field="*{title}" required placeholder="Tiêu đề cẩm nang..."></div>
-                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{warningSigns}" rows="2" required placeholder="Dấu hiệu nhận biết (Vã mồ hôi, chóng mặt...)"></textarea></div>
-                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="3" required placeholder="Hướng dẫn xử lý..."></textarea></div>
+                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{warningSigns}" rows="2" required minlength="10" maxlength="500" placeholder="Dấu hiệu nhận biết (Vã mồ hôi, chóng mặt...)"></textarea></div>
+                                    <div class="col-12"><textarea class="form-control form-control-sm" th:field="*{instructionContent}" rows="3" required minlength="20" maxlength="2000" placeholder="Hướng dẫn xử lý..."></textarea></div>
                                     <div class="col-12 text-end">
                                         <button type="button" class="btn btn-secondary btn-sm px-3 me-2" data-bs-toggle="collapse" data-bs-target="#collapseProtocolForm">Hủy</button>
                                         <button type="submit" class="btn btn-success btn-sm px-4">Lưu Cẩm Nang</button>
@@ -285,9 +286,9 @@
                                             <form th:action="@{/hospital/config/protocol/edit}" method="POST" th:id="'editModeProto-' + ${protocol.id}" style="display: none;">
                                                 <input type="hidden" name="protocolId" th:value="${protocol.id}">
                                                 <label class="small text-muted fw-semibold">Dấu hiệu:</label>
-                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="warningSigns" rows="2" th:text="${protocol.warningSigns}" required></textarea>
+                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="warningSigns" rows="2" th:text="${protocol.warningSigns}" required minlength="10" maxlength="500"></textarea>
                                                 <label class="small text-muted fw-semibold">Chỉ dẫn:</label>
-                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${protocol.instructionContent}" required></textarea>
+                                                <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${protocol.instructionContent}" required minlength="20" maxlength="2000"></textarea>
                                                 <div class="text-end mt-2">
                                                     <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditProtocol(' + ${protocol.id} + ')'">Hủy</button>
                                                     <button type="submit" class="btn btn-success btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
