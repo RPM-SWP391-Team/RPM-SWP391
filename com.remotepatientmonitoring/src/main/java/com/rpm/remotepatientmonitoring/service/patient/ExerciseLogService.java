@@ -409,4 +409,15 @@ public class ExerciseLogService {
             log.error("Lỗi khi thay đổi thông báo chưa tập luyện cho patient={}: {}", patientId, e.getMessage());
         }
     }
+
+    @Transactional
+    public void deleteExerciseLog(Integer id, Integer patientId) {
+        ExerciseLog log = exerciseLogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy ghi nhận bài tập."));
+        if (!log.getPatient().getId().equals(patientId)) {
+            throw new IllegalStateException("Bạn không có quyền xóa ghi nhận này!");
+        }
+        exerciseLogRepository.delete(log);
+        checkAndReplaceMissedExerciseNotification(patientId);
+    }
 }

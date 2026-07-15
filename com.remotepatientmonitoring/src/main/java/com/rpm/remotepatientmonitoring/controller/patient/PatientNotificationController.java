@@ -1,12 +1,9 @@
 package com.rpm.remotepatientmonitoring.controller.patient;
 
-import com.rpm.remotepatientmonitoring.model.Notification;
 import com.rpm.remotepatientmonitoring.model.Patient;
-import com.rpm.remotepatientmonitoring.model.Account;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
-import com.rpm.remotepatientmonitoring.repository.NotificationRepository;
-import com.rpm.remotepatientmonitoring.repository.AccountRepository;
-import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
+import com.rpm.remotepatientmonitoring.service.patient.PatientNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,43 +11,43 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/patient/notifications")
 public class PatientNotificationController {
 
     @Autowired
-    private NotificationRepository notificationRepository;
+    private PatientNotificationService patientNotificationService;
 
     @Autowired
-    private AccountRepository accountRepository;
+    private PatientHealthService patientHealthService;
 
-    @Autowired
-    private PatientRepository patientRepository;
-
-    // API 1: Đánh dấu một thông báo là đã đọc và chuyển hướng người dùng
-    @GetMapping("/{id}/read-redirect")
-    public String markAsReadAndRedirect(@PathVariable Integer id, HttpServletRequest request) {
-        // Tìm thông báo bằng ID
-        Optional<Notification> notificationOptional = notificationRepository.findById(id);
-
-        // Kiểm tra xem thông báo có tồn tại trong cơ sở dữ liệu hay không
-        if (notificationOptional.isPresent()) {
-            Notification notification = notificationOptional.get();
-            // Nếu thông báo chưa được đọc (isRead là false)
-            if (notification.getIsRead() == false) {
-                notification.setIsRead(true); // Đổi thành đã đọc
-                notificationRepository.save(notification); // Lưu lại vào cơ sở dữ liệu
-            }
+    private Patient getCurrentPatient() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
         }
 
-        // Chuyển hướng người dùng quay lại trang cũ hoặc trang chủ dashboard
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            return patientHealthService.getPatientByAccountId(userDetails.getAccount().getId());
+        }
+        
+        List<Patient> all = patientHealthService.getAllPatients();
+        if (!all.isEmpty()) {
+            return all.get(0);
+        }
+        return null;
+    }
+
+    @GetMapping("/{id}/read-redirect")
+    public String markAsReadAndRedirect(@PathVariable Integer id, HttpServletRequest request) {
+        patientNotificationService.markAsRead(id);
+
         String referer = request.getHeader("Referer");
         if (referer != null) {
             return "redirect:" + referer;
@@ -59,71 +56,13 @@ public class PatientNotificationController {
         }
     }
 
-    // Hàm phụ trợ: Lấy thông tin bệnh nhân đang đăng nhập hiện tại
-    private Patient getCurrentPatient() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            return null;
-        }
-        if (auth.isAuthenticated() == false) {
-            return null;
-        }
-        if (auth.getPrincipal().equals("anonymousUser")) {
-            return null;
-        }
-
-        Object principal = auth.getPrincipal();
-
-        if (principal instanceof Account) {
-            Account account = (Account) principal;
-            Optional<Patient> patientOpt = patientRepository.findByAccountId(account.getId());
-            if (patientOpt.isPresent()) {
-                return patientOpt.get();
-            }
-        } else if (principal instanceof User) {
-            User user = (User) principal;
-            String email = user.getUsername();
-            Optional<Account> accountOpt = accountRepository.findByEmail(email);
-            if (accountOpt.isPresent()) {
-                Account account = accountOpt.get();
-                Optional<Patient> patientOpt = patientRepository.findByAccountId(account.getId());
-                if (patientOpt.isPresent()) {
-                    return patientOpt.get();
-                }
-            }
-        }
-        return null;
-    }
-
-    // API 2: Đánh dấu TẤT CẢ thông báo là đã đọc và chuyển hướng người dùng
     @GetMapping("/read-all-redirect")
     public String markAllAsReadAndRedirect(HttpServletRequest request) {
-        // Lấy bệnh nhân hiện tại
         Patient patient = getCurrentPatient();
         if (patient != null) {
-            // Lấy danh sách tất cả thông báo của bệnh nhân này
-            List<Notification> allNotifications = notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
-
-            // Lọc ra các thông báo chưa đọc bằng vòng lặp for cơ bản
-            List<Notification> unreadNotifications = new ArrayList<Notification>();
-            for (int i = 0; i < allNotifications.size(); i++) {
-                Notification notification = allNotifications.get(i);
-                if (notification.getIsRead() == false) {
-                    unreadNotifications.add(notification);
-                }
-            }
-
-            // Duyệt danh sách các thông báo chưa đọc và đổi thành đã đọc
-            for (int i = 0; i < unreadNotifications.size(); i++) {
-                Notification notification = unreadNotifications.get(i);
-                notification.setIsRead(true);
-            }
-
-            // Lưu tất cả các thông báo đã sửa đổi vào cơ sở dữ liệu
-            notificationRepository.saveAll(unreadNotifications);
+            patientNotificationService.markAllAsRead(patient.getId());
         }
 
-        // Chuyển hướng người dùng quay lại trang cũ hoặc trang chủ dashboard
         String referer = request.getHeader("Referer");
         if (referer != null) {
             return "redirect:" + referer;
