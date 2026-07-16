@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* GIỮ NGUYÊN CSS GỐC CỦA BẠN */
         :root {
             --primary-color: #1A73E8; --primary-light: #E8F0FE; --bg-light: #F4F7FE; --text-dark: #1E293B; --text-muted: #64748B;
             --sidebar-width: 260px; --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -18,14 +17,20 @@
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: #ffffff; border-right: 1px solid #E2E8F0; z-index: 1000; display: flex; flex-direction: column; }
         .sidebar-brand { padding: 1.5rem; font-size: 1.25rem; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid #F1F5F9; }
         .sidebar-menu { padding: 1.5rem 1rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-        .menu-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.2s; }
-        .menu-item:hover, .menu-item.active { background-color: var(--primary-light); color: var(--primary-color); }
+        .menu-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.2s ease-in-out; }
+        .menu-item:hover, .menu-item.active { background-color: var(--primary-light); color: var(--primary-color); transform: translateX(3px); }
         .sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid #F1F5F9; }
         .main-content { margin-left: var(--sidebar-width); padding: 2rem; }
         .navbar-top { background-color: #ffffff; border-radius: 16px; padding: 1rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; justify-content: space-between; }
-        .card-custom { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); background: #ffffff; margin-bottom: 30px; }
+
+        /* Hiệu ứng mượt cho Card */
+        .card-custom { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); background: #ffffff; margin-bottom: 30px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-custom:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
         .card-header-custom { background: var(--primary-gradient); color: white; padding: 20px 24px; font-weight: 600; border-bottom: none; border-radius: 16px 16px 0 0;}
-        .form-control, .form-select { border-radius: 8px; padding: 10px 12px; }
+
+        /* Ô nhập phản hồi mượt */
+        .form-control, .form-select { border-radius: 8px; padding: 10px 12px; transition: all 0.2s ease-in-out; border: 1px solid #cbd5e1; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15); }
         .badge-level { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
 
         .bg-level-green { background-color: #d1e7dd; color: #0f5132; }
@@ -33,20 +38,39 @@
         .bg-level-orange { background-color: #ffe8cc; color: #d9480f; }
         .bg-level-red { background-color: #f8d7da; color: #842029; }
 
-        .scrollable-list { max-height: 500px; overflow-y: auto; padding-right: 10px;}
+        /* Smooth cuộn dải danh sách */
+        .scrollable-list { max-height: 500px; overflow-y: auto; padding-right: 10px; scroll-behavior: smooth; }
         .scrollable-list::-webkit-scrollbar { width: 6px; }
         .scrollable-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
 
-        /* BỔ SUNG CSS CHO BỘ LỌC VÀ ACCORDION (CHUẨN LIGHT MODE) */
-        .badge-filter { cursor: pointer; border: 1px solid #dee2e6; background-color: #ffffff; color: var(--text-muted); transition: all 0.2s; padding: 6px 14px; font-weight: 500; }
-        .badge-filter:hover { background-color: #f8f9fa; color: var(--text-dark); border-color: #ced4da; }
-        .badge-filter.active-blue { background-color: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; }
-        .badge-filter.active-green { background-color: #198754 !important; color: white !important; border-color: #198754 !important; }
+        /* BỔ SUNG CSS CHO BỘ LỌC VÀ ACCORDION */
+        .badge-filter { cursor: pointer; border: 1px solid #dee2e6; background-color: #ffffff; color: var(--text-muted); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); padding: 6px 14px; font-weight: 500; }
+        .badge-filter:hover { background-color: #f8f9fa; color: var(--text-dark); border-color: #ced4da; transform: translateY(-1px); }
+        .badge-filter.active-blue { background-color: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3); }
+        .badge-filter.active-green { background-color: #198754 !important; color: white !important; border-color: #198754 !important; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3); }
 
-        .accordion-item { border: 1px solid #e2e8f0; border-radius: 10px !important; margin-bottom: 10px; overflow: hidden; background: #fff; }
-        .accordion-button { background-color: #ffffff; color: var(--text-dark); box-shadow: none !important; padding: 1rem; font-weight: 600; }
+        /* Mượt hóa các Accordion */
+        .accordion-item { border: 1px solid #e2e8f0; border-radius: 10px !important; margin-bottom: 10px; overflow: hidden; background: #fff; transition: all 0.25s ease; }
+        .accordion-item:hover { border-color: #cbd5e1; }
+        .accordion-button { background-color: #ffffff; color: var(--text-dark); box-shadow: none !important; padding: 1rem; font-weight: 600; transition: all 0.2s ease; }
         .accordion-button:not(.collapsed) { background-color: var(--primary-light); color: var(--primary-color); }
         .accordion-body { background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
+
+        /* Hiệu ứng chuyển động mượt cho bộ lọc */
+        .guide-record, .protocol-record, .guideline-list-record {
+            transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease, margin 0.3s ease;
+            transform-origin: top center;
+        }
+
+        /* Nút tương tác nẩy nhẹ */
+        .btn { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(1px); }
+
+        /* Chế độ View/Edit mượt */
+        .toggle-view-block {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
     </style>
 </head>
 <body>
@@ -103,9 +127,6 @@
         <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show p-3" role="alert" th:text="${errorMessage}"></div>
 
         <div class="row">
-            <!-- ========================================== -->
-            <!-- CỘT 1: CHỈ DẪN XỬ LÝ THEO CẤP ĐỘ MÀU -->
-            <!-- ========================================== -->
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
                     <div class="card-header card-header-custom bg-secondary d-flex justify-content-between align-items-center">
@@ -114,8 +135,7 @@
                     </div>
                     <div class="card-body p-4">
 
-                        <!-- FORM SOẠN CHỈ DẪN (Gập/mở) -->
-                        <div class="collapse mb-4" id="collapseGuideForm">
+                        <div class="collapse mb-4" id="collapseGuideForm" style="transition: all 0.3s ease;">
                             <form th:action="@{/hospital/config/guide/add}" th:object="${newGuide}" method="POST" class="p-4 bg-light rounded-3 border">
                                 <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Chỉ Dẫn Mới</h6>
                                 <div class="row g-3">
@@ -144,26 +164,29 @@
                             </form>
                         </div>
 
-                        <!-- HỘP BỘ LỌC CHỈ SỐ -->
                         <div class="mb-4">
-                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC CHỈ SỐ</h6>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="badge rounded-pill badge-filter active-blue" onclick="filterGuides('METRIC', 'ALL', this)">Tất cả (All)</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('METRIC', 'BLOOD_PRESSURE', this)">Huyết áp</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('METRIC', 'GLUCOSE', this)">Đường huyết</button>
+                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC CHỈ DẪN</h6>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-blue guide-metric-btn" onclick="filterGuides('METRIC', 'ALL', this)">Tất cả (All)</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-metric-btn" onclick="filterGuides('METRIC', 'BLOOD_PRESSURE', this)">Huyết áp</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-metric-btn" onclick="filterGuides('METRIC', 'GLUCOSE', this)">Đường huyết</button>
                                 <div class="vr mx-1 text-muted"></div>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'RED', this)">Mức Đỏ (Khẩn cấp)</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'ORANGE', this)">Mức Cam</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'YELLOW', this)">Mức Vàng</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuides('LEVEL', 'GREEN', this)">Mức Xanh</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-level-btn" onclick="filterGuides('LEVEL', 'RED', this)">Mức Đỏ</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-level-btn" onclick="filterGuides('LEVEL', 'ORANGE', this)">Mức Cam</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-level-btn" onclick="filterGuides('LEVEL', 'YELLOW', this)">Mức Vàng</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-level-btn" onclick="filterGuides('LEVEL', 'GREEN', this)">Mức Xanh</button>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-blue guide-status-btn" onclick="filterGuides('STATUS', 'ALL', this)">Mọi trạng thái</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-status-btn" onclick="filterGuides('STATUS', 'true', this)">Đang hoạt động</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-status-btn" onclick="filterGuides('STATUS', 'false', this)">Đã vô hiệu hóa</button>
                             </div>
                         </div>
 
-                        <!-- DANH SÁCH ĐÃ SOẠN (ACCORDION) -->
                         <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
                         <div class="scrollable-list">
                             <div class="accordion" id="accordionGuides">
-                                <div th:each="guide : ${guides}" class="accordion-item guide-record shadow-sm" th:data-metric="${guide.metricType}" th:data-level="${guide.alertLevel}">
+                                <div th:each="guide : ${guides}" class="accordion-item guide-record shadow-sm" th:data-metric="${guide.metricType}" th:data-level="${guide.alertLevel}" th:data-active="${guide.isActive}">
 
                                     <h2 class="accordion-header" th:id="'headingGuide-' + ${guide.id}">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapseGuide-' + ${guide.id}">
@@ -173,25 +196,45 @@
                                                     <span class="small text-muted fw-bold" th:text="${guide.metricType}">GLUCOSE</span>
                                                 </div>
                                                 <div th:text="${guide.title}">Tiêu đề hiển thị</div>
+                                                <small th:if="${!guide.isActive}" class="text-danger d-block mt-1"><i class="fa-solid fa-ban me-1"></i>Vô hiệu hóa</small>
                                             </div>
                                         </button>
                                     </h2>
 
                                     <div th:id="'collapseGuide-' + ${guide.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordionGuides'">
                                         <div class="accordion-body p-3">
-                                            <!-- Chế độ xem -->
-                                            <div th:id="'viewModeGuide-' + ${guide.id}">
+                                            <div th:id="'viewModeGuide-' + ${guide.id}" class="toggle-view-block" style="opacity: 1;">
                                                 <p style="white-space: pre-line; font-size: 0.9rem; line-height: 1.6;" class="text-dark mb-3" th:text="${guide.instructionContent}">Nội dung</p>
                                                 <div class="text-end border-top pt-2">
                                                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" th:onclick="'toggleEditGuide(' + ${guide.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteAction(\'guide\', ' + ${guide.id} + ')'"><i class="fa-solid fa-trash"></i> Xóa</button>
+
+                                                    <th:block th:if="${guide.isActive}">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteAction(\'guide\', ' + ${guide.id} + ', this)'"><i class="fa-solid fa-ban"></i> Vô hiệu hóa</button>
+                                                    </th:block>
+
+                                                    <th:block th:unless="${guide.isActive}">
+                                                        <span class="badge bg-secondary me-2">Đã vô hiệu hóa</span>
+                                                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill" th:onclick="'handleRestoreAction(\'guide\', ' + ${guide.id} + ', this)'"><i class="fa-solid fa-rotate-left"></i> Khôi phục</button>
+                                                    </th:block>
                                                 </div>
                                             </div>
-                                            <!-- Chế độ sửa -->
-                                            <form th:action="@{/hospital/config/guide/edit}" method="POST" th:id="'editModeGuide-' + ${guide.id}" style="display: none;">
+                                            <form th:action="@{/hospital/config/guide/edit}" method="POST" th:id="'editModeGuide-' + ${guide.id}" class="toggle-view-block text-start" style="display: none; opacity: 0;">
                                                 <input type="hidden" name="guideId" th:value="${guide.id}">
+
+                                                <!-- Hiển thị Context (Không cho sửa) -->
+                                                <div class="mb-2 p-2 bg-light rounded border d-flex align-items-center">
+                                                    <span class="badge badge-level" th:classappend="'bg-level-' + ${#strings.toLowerCase(guide.alertLevel)}" th:text="${guide.alertLevel}"></span>
+                                                    <span class="small text-muted fw-bold ms-2" th:text="${guide.metricType}"></span>
+                                                </div>
+
+                                                <!-- Cho phép sửa Tiêu đề & Nội dung -->
+                                                <label class="small text-muted fw-semibold">Tiêu đề:</label>
+                                                <input type="text" class="form-control form-control-sm mb-2 font-monospace fs-7 text-dark" name="title" th:value="${guide.title}" required>
+
+                                                <label class="small text-muted fw-semibold">Nội dung chỉ dẫn:</label>
                                                 <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${guide.instructionContent}" required minlength="20" maxlength="2000"></textarea>
-                                                <div class="text-end">
+
+                                                <div class="text-end mt-2">
                                                     <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditGuide(' + ${guide.id} + ')'">Hủy</button>
                                                     <button type="submit" class="btn btn-primary btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
                                                 </div>
@@ -208,9 +251,6 @@
                 </div>
             </div>
 
-            <!-- ========================================== -->
-            <!-- CỘT 2: CẨM NANG DẤU HIỆU BỆNH LÝ -->
-            <!-- ========================================== -->
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
                     <div class="card-header card-header-custom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
@@ -219,8 +259,7 @@
                     </div>
                     <div class="card-body p-4">
 
-                        <!-- FORM SOẠN CẨM NANG (Gập/mở) -->
-                        <div class="collapse mb-4" id="collapseProtocolForm">
+                        <div class="collapse mb-4" id="collapseProtocolForm" style="transition: all 0.3s ease;">
                             <form th:action="@{/hospital/config/protocol/add}" th:object="${newProtocol}" method="POST" class="p-4 bg-light rounded-3 border">
                                 <h6 class="fw-bold text-success mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Cẩm Nang Mới</h6>
                                 <div class="row g-3">
@@ -242,22 +281,25 @@
                             </form>
                         </div>
 
-                        <!-- HỘP BỘ LỌC NHÓM BỆNH -->
                         <div class="mb-4">
-                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC NHÓM BỆNH</h6>
+                            <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC CẨM NANG</h6>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-green proto-condition-btn" onclick="filterProtocols('CONDITION', 'ALL', this)">Tất cả (All)</button>
+                                <button type="button" class="badge rounded-pill badge-filter proto-condition-btn" onclick="filterProtocols('CONDITION', 'HYPERTENSIVE_CRISIS', this)">Cơn tăng huyết áp</button>
+                                <button type="button" class="badge rounded-pill badge-filter proto-condition-btn" onclick="filterProtocols('CONDITION', 'HYPOGLYCEMIA', this)">Hạ đường huyết</button>
+                                <button type="button" class="badge rounded-pill badge-filter proto-condition-btn" onclick="filterProtocols('CONDITION', 'HYPERGLYCEMIA', this)">Tăng đường huyết</button>
+                            </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="badge rounded-pill badge-filter active-green" onclick="filterProtocols('ALL', this)">Tất cả (All)</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterProtocols('HYPERTENSIVE_CRISIS', this)">Cơn tăng huyết áp</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterProtocols('HYPOGLYCEMIA', this)">Hạ đường huyết</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterProtocols('HYPERGLYCEMIA', this)">Tăng đường huyết</button>
+                                <button type="button" class="badge rounded-pill badge-filter active-green proto-status-btn" onclick="filterProtocols('STATUS', 'ALL', this)">Mọi trạng thái</button>
+                                <button type="button" class="badge rounded-pill badge-filter proto-status-btn" onclick="filterProtocols('STATUS', 'true', this)">Đang hoạt động</button>
+                                <button type="button" class="badge rounded-pill badge-filter proto-status-btn" onclick="filterProtocols('STATUS', 'false', this)">Đã vô hiệu hóa</button>
                             </div>
                         </div>
 
-                        <!-- DANH SÁCH ĐÃ SOẠN (ACCORDION) -->
                         <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
                         <div class="scrollable-list">
                             <div class="accordion" id="accordionProtocols">
-                                <div th:each="protocol : ${protocols}" class="accordion-item protocol-record shadow-sm" th:data-condition="${protocol.conditionType}">
+                                <div th:each="protocol : ${protocols}" class="accordion-item protocol-record shadow-sm" th:data-condition="${protocol.conditionType}" th:data-active="${protocol.isActive}">
 
                                     <h2 class="accordion-header" th:id="'headingProto-' + ${protocol.id}">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapseProto-' + ${protocol.id}">
@@ -266,14 +308,14 @@
                                                     <span class="badge bg-success text-white px-2 py-1" th:text="${protocol.conditionType}">TYPE</span>
                                                 </div>
                                                 <div th:text="${protocol.title}">Tiêu đề Cẩm nang</div>
+                                                <small th:if="${!protocol.isActive}" class="text-danger d-block mt-1"><i class="fa-solid fa-ban me-1"></i>Vô hiệu hóa</small>
                                             </div>
                                         </button>
                                     </h2>
 
                                     <div th:id="'collapseProto-' + ${protocol.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordionProtocols'">
                                         <div class="accordion-body p-3">
-                                            <!-- Chế độ xem -->
-                                            <div th:id="'viewModeProto-' + ${protocol.id}">
+                                            <div th:id="'viewModeProto-' + ${protocol.id}" class="toggle-view-block" style="opacity: 1;">
                                                 <div class="p-2 mb-2 bg-white border border-success rounded">
                                                     <strong class="small text-success">Dấu hiệu:</strong>
                                                     <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${protocol.warningSigns}"></p>
@@ -284,17 +326,36 @@
                                                 </div>
                                                 <div class="text-end border-top pt-2">
                                                     <button type="button" class="btn btn-outline-success btn-sm rounded-pill" th:onclick="'toggleEditProtocol(' + ${protocol.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteAction(\'protocol\', ' + ${protocol.id} + ')'"><i class="fa-solid fa-trash"></i> Xóa</button>
+
+                                                    <th:block th:if="${protocol.isActive}">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteAction(\'protocol\', ' + ${protocol.id} + ', this)'"><i class="fa-solid fa-ban"></i> Vô hiệu hóa</button>
+                                                    </th:block>
+
+                                                    <th:block th:unless="${protocol.isActive}">
+                                                        <span class="badge bg-secondary me-2">Đã vô hiệu hóa</span>
+                                                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill" th:onclick="'handleRestoreAction(\'protocol\', ' + ${protocol.id} + ', this)'"><i class="fa-solid fa-rotate-left"></i> Khôi phục</button>
+                                                    </th:block>
                                                 </div>
                                             </div>
 
-                                            <!-- Chế độ sửa -->
-                                            <form th:action="@{/hospital/config/protocol/edit}" method="POST" th:id="'editModeProto-' + ${protocol.id}" style="display: none;">
+                                            <form th:action="@{/hospital/config/protocol/edit}" method="POST" th:id="'editModeProto-' + ${protocol.id}" class="toggle-view-block text-start" style="display: none; opacity: 0;">
                                                 <input type="hidden" name="protocolId" th:value="${protocol.id}">
+
+                                                <!-- Hiển thị Context (Không cho sửa) -->
+                                                <div class="mb-2 p-2 bg-light rounded border">
+                                                    <span class="badge bg-success text-white px-2 py-1" th:text="${protocol.conditionType}"></span>
+                                                </div>
+
+                                                <!-- Cho phép sửa Tiêu đề, Dấu hiệu & Nội dung -->
+                                                <label class="small text-muted fw-semibold">Tiêu đề:</label>
+                                                <input type="text" class="form-control form-control-sm mb-2 font-monospace fs-7 text-dark" name="title" th:value="${protocol.title}" required>
+
                                                 <label class="small text-muted fw-semibold">Dấu hiệu:</label>
                                                 <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="warningSigns" rows="2" th:text="${protocol.warningSigns}" required minlength="10" maxlength="500"></textarea>
+
                                                 <label class="small text-muted fw-semibold">Chỉ dẫn:</label>
                                                 <textarea class="form-control bg-white font-monospace fs-7 mb-2" name="instructionContent" rows="4" th:text="${protocol.instructionContent}" required minlength="20" maxlength="2000"></textarea>
+
                                                 <div class="text-end mt-2">
                                                     <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditProtocol(' + ${protocol.id} + ')'">Hủy</button>
                                                     <button type="submit" class="btn btn-success btn-sm rounded-pill"><i class="fa-solid fa-save"></i> Lưu lại</button>
@@ -313,11 +374,7 @@
             </div>
         </div>
 
-        <!-- HÀNG 2: KHUYẾN NGHỊ TẬP LUYỆN & DANH MỤC THỰC PHẨM -->
         <div class="row mt-4">
-            <!-- ========================================== -->
-            <!-- CỘT 3: KHUYẾN NGHỊ TẬP LUYỆN -->
-            <!-- ========================================== -->
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
                     <div class="card-header card-header-custom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f0932b 0%, #ffbe76 100%);">
@@ -326,8 +383,7 @@
                     </div>
                     <div class="card-body p-4">
 
-                        <!-- FORM SOẠN KHUYẾN NGHỊ (Gập/mở) -->
-                        <div class="collapse mb-4" id="collapseGuidelineForm">
+                        <div class="collapse mb-4" id="collapseGuidelineForm" style="transition: all 0.3s ease;">
                             <form onsubmit="handleSaveGuideline(event, this)" class="p-4 bg-light rounded-3 border">
                                 <h6 class="fw-bold text-warning mb-3" id="glFormTitle"><i class="fa-solid fa-plus me-1"></i> Soạn Khuyến Nghị Mới</h6>
                                 <input type="hidden" id="guidelineId" name="guidelineId">
@@ -355,7 +411,6 @@
                             </form>
                         </div>
 
-                        <!-- HỘP BỘ LỌC NHÓM BỆNH CHO TẬP LUYỆN -->
                         <div class="mb-4">
                             <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC NHÓM BỆNH</h6>
                             <div class="d-flex flex-wrap gap-2">
@@ -366,7 +421,6 @@
                             </div>
                         </div>
 
-                        <!-- DANH SÁCH ĐÃ SOẠN (ACCORDION) -->
                         <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
                         <div class="scrollable-list">
                             <div class="accordion" id="accordionGuidelines">
@@ -386,8 +440,7 @@
 
                                     <div th:id="'collapseGuideline-' + ${gl.id}" class="accordion-collapse collapse" th:data-bs-parent="'#accordionGuidelines'">
                                         <div class="accordion-body p-3">
-                                            <!-- Chế độ xem -->
-                                            <div th:id="'viewModeGuideline-' + ${gl.id}">
+                                            <div th:id="'viewModeGuideline-' + ${gl.id}" class="toggle-view-block" style="opacity: 1;">
                                                 <div class="p-2 mb-2 bg-white border border-success-subtle rounded text-start">
                                                     <strong class="small text-success">✅ Nên làm:</strong>
                                                     <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${gl.recommendedContent}"></p>
@@ -398,12 +451,11 @@
                                                 </div>
                                                 <div class="text-end border-top pt-2">
                                                     <button type="button" class="btn btn-outline-warning btn-sm rounded-pill" th:onclick="'toggleEditGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-trash"></i> Xóa</button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-ban"></i> Vô hiệu hóa</button>
                                                 </div>
                                             </div>
 
-                                            <!-- Chế độ sửa -->
-                                            <form onsubmit="handleUpdateGuideline(event, this)" th:id="'editModeGuideline-' + ${gl.id}" style="display: none;" class="text-start">
+                                            <form onsubmit="handleUpdateGuideline(event, this)" th:id="'editModeGuideline-' + ${gl.id}" class="toggle-view-block text-start" style="display: none; opacity: 0;">
                                                 <input type="hidden" name="guidelineId" th:value="${gl.id}">
                                                 <div class="mb-2">
                                                     <label class="small text-muted fw-semibold">Nhóm bệnh:</label>
@@ -438,9 +490,6 @@
                 </div>
             </div>
 
-            <!-- ========================================== -->
-            <!-- CỘT 4: DANH MỤC THỰC PHẨM -->
-            <!-- ========================================== -->
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
                     <div class="card-header card-header-custom d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%);">
@@ -449,8 +498,7 @@
                     </div>
                     <div class="card-body p-4">
 
-                        <!-- FORM THÊM MÓN ĂN (Gập/mở) -->
-                        <div class="collapse mb-4" id="collapseFoodForm">
+                        <div class="collapse mb-4" id="collapseFoodForm" style="transition: all 0.3s ease;">
                             <form onsubmit="handleSaveFood(event, this)" class="p-4 bg-light rounded-3 border">
                                 <h6 class="fw-bold text-primary mb-3" id="foodFormTitle"><i class="fa-solid fa-plus me-1"></i> Thêm Món Ăn Mới</h6>
                                 <input type="hidden" id="foodId" name="foodId">
@@ -503,39 +551,34 @@
                             </form>
                         </div>
 
-                        <!-- Ô TÌM KIẾM THỰC PHẨM -->
                         <div class="mb-3 d-flex gap-2">
                             <input type="text" class="form-control form-control-sm" id="foodSearchInput" placeholder="Tìm kiếm theo tên món ăn..." oninput="triggerFoodSearch()">
                             <button class="btn btn-primary btn-sm px-3" onclick="loadFoodPage(0)"><i class="bi bi-search"></i></button>
                         </div>
 
-                        <!-- BẢNG DANH MỤC THỰC PHẨM -->
                         <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-hover table-sm align-middle fs-7 text-start">
                                 <thead class="table-light sticky-top">
-                                    <tr>
-                                        <th>Mã</th>
-                                        <th>Tên món</th>
-                                        <th>English</th>
-                                        <th>Calo</th>
-                                        <th>Đạm</th>
-                                        <th>Béo</th>
-                                        <th>Carb</th>
-                                        <th>Xơ</th>
-                                        <th>Trạng thái</th>
-                                        <th class="text-center">Hành động</th>
-                                    </tr>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Tên món</th>
+                                    <th>English</th>
+                                    <th>Calo</th>
+                                    <th>Đạm</th>
+                                    <th>Béo</th>
+                                    <th>Carb</th>
+                                    <th>Xơ</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-center">Hành động</th>
+                                </tr>
                                 </thead>
                                 <tbody id="foodsTableBody">
-                                    <!-- Populated via AJAX -->
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- PAGINATION -->
                         <nav class="mt-3">
                             <ul class="pagination pagination-sm justify-content-center mb-0" id="foodsPagination">
-                                <!-- Populated via AJAX -->
                             </ul>
                         </nav>
 
@@ -547,118 +590,205 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+    // Smooth transition toggle helper
+    function toggleEditMode(viewId, editId) {
+        const viewMode = document.getElementById(viewId);
+        const editMode = document.getElementById(editId);
+        if (viewMode && editMode) {
+            viewMode.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+            editMode.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+
+            if (viewMode.style.display === 'none') {
+                viewMode.style.display = 'block';
+                setTimeout(() => {
+                    viewMode.style.opacity = '1';
+                    viewMode.style.transform = 'scale(1)';
+                }, 10);
+
+                editMode.style.opacity = '0';
+                editMode.style.transform = 'scale(0.98)';
+                setTimeout(() => { editMode.style.display = 'none'; }, 200);
+            } else {
+                viewMode.style.opacity = '0';
+                viewMode.style.transform = 'scale(0.98)';
+                setTimeout(() => { viewMode.style.display = 'none'; }, 200);
+
+                editMode.style.display = 'block';
+                setTimeout(() => {
+                    editMode.style.opacity = '1';
+                    editMode.style.transform = 'scale(1)';
+                }, 10);
+            }
+        }
+    }
+
+    function toggleEditGuide(id) {
+        toggleEditMode(`viewModeGuide-${id}`, `editModeGuide-${id}`);
+    }
+
+    function toggleEditProtocol(id) {
+        toggleEditMode(`viewModeProto-${id}`, `editModeProto-${id}`);
+    }
+
     // ==========================================
-    // LOGIC JAVASCRIPT: BỘ LỌC CỘT TRÁI (CHỈ DẪN)
+    // 2. XỬ LÝ VÔ HIỆU HÓA (XÓA MỀM)
+    // ==========================================
+    function handleDeleteAction(type, id, btnElement) {
+        const confirmMessage = (type === 'guide')
+            ? "Bạn có chắc chắn muốn VÔ HIỆU HÓA chỉ dẫn này không?"
+            : "Bạn có chắc chắn muốn VÔ HIỆU HÓA cẩm nang này không?";
+
+        if (!confirm(confirmMessage)) return;
+
+        const originalText = btnElement.innerHTML;
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+
+        fetch(`/hospital/config/${type}/delete/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(async response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const errorMsg = await response.text();
+                    throw new Error(errorMsg || "Lỗi xử lý hệ thống.");
+                }
+            })
+            .catch(error => {
+                alert("Thao tác thất bại: " + error.message);
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalText;
+            });
+    }
+
+    // ==========================================
+    // 3. XỬ LÝ KHÔI PHỤC (RESTORE)
+    // ==========================================
+    function handleRestoreAction(type, id, btnElement) {
+        if (!confirm("Bạn có chắc chắn muốn KHÔI PHỤC dữ liệu này không?")) return;
+
+        const originalText = btnElement.innerHTML;
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+
+        fetch(`/hospital/config/${type}/restore/${id}`, {
+            method: 'PUT',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(async response => {
+                if (response.ok) {
+                    alert("Khôi phục thành công!");
+                    location.reload();
+                } else {
+                    const errorMsg = await response.text();
+                    throw new Error(errorMsg || "Lỗi xử lý hệ thống.");
+                }
+            })
+            .catch(error => {
+                alert("Thao tác thất bại: \n" + error.message);
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalText;
+            });
+    }
+
+    // ==========================================
+    // 4. BỘ LỌC CỘT TRÁI (CHỈ DẪN) - ĐÃ FIX
     // ==========================================
     let currentMetric = 'ALL';
     let currentLevel = 'ALL';
+    let currentGuideStatus = 'ALL';
 
     function filterGuides(type, value, btnElement) {
+        const parent = btnElement.parentElement;
+
         if (type === 'METRIC') {
             currentMetric = value;
-            document.querySelectorAll('button[onclick^="filterGuides(\'METRIC\'"]').forEach(btn => btn.classList.remove('active-blue'));
+            parent.querySelectorAll('.guide-metric-btn').forEach(btn => btn.classList.remove('active-blue'));
             btnElement.classList.add('active-blue');
         }
-        if (type === 'LEVEL') {
-            if(btnElement.classList.contains('active-blue')) {
+        else if (type === 'LEVEL') {
+            if (btnElement.classList.contains('active-blue') && value !== 'ALL') {
                 currentLevel = 'ALL';
                 btnElement.classList.remove('active-blue');
+                // Bật lại nút "Tất cả Mức độ" (Dù ẩn hay không, ta reset về ALL)
             } else {
                 currentLevel = value;
-                document.querySelectorAll('button[onclick^="filterGuides(\'LEVEL\'"]').forEach(btn => btn.classList.remove('active-blue'));
+                parent.querySelectorAll('.guide-level-btn').forEach(btn => btn.classList.remove('active-blue'));
                 btnElement.classList.add('active-blue');
             }
+        }
+        else if (type === 'STATUS') {
+            currentGuideStatus = value;
+            parent.querySelectorAll('.guide-status-btn').forEach(btn => btn.classList.remove('active-blue'));
+            btnElement.classList.add('active-blue');
         }
 
         document.querySelectorAll('.guide-record').forEach(item => {
             const itemMetric = item.getAttribute('data-metric');
             const itemLevel = item.getAttribute('data-level');
+            const itemStatus = item.getAttribute('data-active'); // chuỗi "true" / "false"
 
-            const matchMetric = (currentMetric === 'ALL' || itemMetric === currentMetric);
+            const matchMetric = (currentMetric === 'ALL' || itemMetric === currentMetric || itemMetric === 'BOTH');
             const matchLevel = (currentLevel === 'ALL' || itemLevel === currentLevel);
+            const matchStatus = (currentGuideStatus === 'ALL' || itemStatus === currentGuideStatus);
 
-            if (matchMetric && matchLevel) {
+            if (matchMetric && matchLevel && matchStatus) {
                 item.style.display = 'block';
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1)';
+                }, 50);
             } else {
-                item.style.display = 'none';
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.95)';
+                setTimeout(() => { item.style.display = 'none'; }, 200);
             }
         });
     }
 
     // ==========================================
-    // LOGIC JAVASCRIPT: BỘ LỌC CỘT PHẢI (CẨM NANG)
+    // 5. BỘ LỌC CỘT PHẢI (CẨM NANG) - ĐÃ FIX
     // ==========================================
-    function filterProtocols(value, btnElement) {
-        document.querySelectorAll('button[onclick^="filterProtocols"]').forEach(btn => btn.classList.remove('active-green'));
-        btnElement.classList.add('active-green');
+    let currentProtoCondition = 'ALL';
+    let currentProtoStatus = 'ALL';
+
+    function filterProtocols(type, value, btnElement) {
+        const parent = btnElement.parentElement;
+
+        if (type === 'CONDITION') {
+            currentProtoCondition = value;
+            parent.querySelectorAll('.proto-condition-btn').forEach(btn => btn.classList.remove('active-green'));
+            btnElement.classList.add('active-green');
+        }
+        else if (type === 'STATUS') {
+            currentProtoStatus = value;
+            parent.querySelectorAll('.proto-status-btn').forEach(btn => btn.classList.remove('active-green'));
+            btnElement.classList.add('active-green');
+        }
 
         document.querySelectorAll('.protocol-record').forEach(item => {
             const itemCondition = item.getAttribute('data-condition');
-            if (value === 'ALL' || itemCondition === value) {
+            const itemStatus = item.getAttribute('data-active'); // chuỗi "true" / "false"
+
+            const matchCondition = (currentProtoCondition === 'ALL' || itemCondition === currentProtoCondition);
+            const matchStatus = (currentProtoStatus === 'ALL' || itemStatus === currentProtoStatus);
+
+            if (matchCondition && matchStatus) {
                 item.style.display = 'block';
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1)';
+                }, 50);
             } else {
-                item.style.display = 'none';
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.95)';
+                setTimeout(() => { item.style.display = 'none'; }, 200);
             }
         });
-    }
-
-    // ==========================================
-    // UI JAVASCRIPT: BẬT/TẮT FORM CHỈNH SỬA
-    // ==========================================
-    function toggleEditGuide(id) {
-        const viewMode = document.getElementById('viewModeGuide-' + id);
-        const editMode = document.getElementById('editModeGuide-' + id);
-        if(viewMode.style.display === 'none') {
-            viewMode.style.display = 'block';
-            editMode.style.display = 'none';
-        } else {
-            viewMode.style.display = 'none';
-            editMode.style.display = 'block';
-        }
-    }
-
-    function toggleEditProtocol(id) {
-        const viewMode = document.getElementById('viewModeProto-' + id);
-        const editMode = document.getElementById('editModeProto-' + id);
-        if(viewMode.style.display === 'none') {
-            viewMode.style.display = 'block';
-            editMode.style.display = 'none';
-        } else {
-            viewMode.style.display = 'none';
-            editMode.style.display = 'block';
-        }
-    }
-
-    // ==========================================
-    // XỬ LÝ XÓA AN TOÀN
-    // ==========================================
-    // ==========================================
-    // XỬ LÝ XÓA AN TOÀN (Đã kết nối Backend)
-    // ==========================================
-    function handleDeleteAction(type, id) {
-        const confirmMessage = type === 'guide'
-            ? "Bạn có chắc chắn muốn XÓA chỉ dẫn này không?"
-            : "Bạn có chắc chắn muốn XÓA cẩm nang này không?";
-
-        if (confirm(confirmMessage)) {
-            // Gọi API Delete xuống Spring Boot
-            fetch(`/hospital/config/${type}/delete/${id}`, {
-                method: 'DELETE'
-            })
-                .then(response => {
-                    if (response.ok) {
-                        // Xóa thành công thì tải lại trang để cập nhật danh sách
-                        location.reload();
-                    } else {
-                        alert("Có lỗi xảy ra khi xóa dữ liệu trong hệ thống.");
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert("Lỗi kết nối máy chủ.");
-                });
-        }
     }
 
     // ==========================================
@@ -670,10 +800,18 @@
 
         document.querySelectorAll('.guideline-list-record').forEach(item => {
             const itemProfile = item.getAttribute('data-profile');
-            if (profileCode === 'ALL' || itemProfile === profileCode) {
+            const isMatch = (profileCode === 'ALL' || itemProfile === profileCode);
+
+            if (isMatch) {
                 item.style.display = 'block';
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1)';
+                }, 50);
             } else {
-                item.style.display = 'none';
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.95)';
+                setTimeout(() => { item.style.display = 'none'; }, 200);
             }
         });
     }
@@ -681,12 +819,8 @@
     function toggleEditGuideline(id) {
         const viewMode = document.getElementById('viewModeGuideline-' + id);
         const editMode = document.getElementById('editModeGuideline-' + id);
-        if (viewMode.style.display === 'none') {
-            viewMode.style.display = 'block';
-            editMode.style.display = 'none';
-        } else {
-            viewMode.style.display = 'none';
-            editMode.style.display = 'block';
+        if (viewMode && editMode) {
+            toggleEditMode('viewModeGuideline-' + id, 'editModeGuideline-' + id);
         }
     }
 
@@ -706,14 +840,14 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ diseaseProfileId, title, recommendedContent, avoidContent })
         })
-        .then(res => {
-            if (res.ok) {
-                location.reload();
-            } else {
-                res.text().then(text => alert(text || "Lỗi khi lưu khuyến nghị."));
-            }
-        })
-        .catch(err => alert("Lỗi kết nối máy chủ."));
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    res.text().then(text => alert(text || "Lỗi khi lưu khuyến nghị."));
+                }
+            })
+            .catch(err => alert("Lỗi kết nối máy chủ."));
     }
 
     function handleUpdateGuideline(event, form) {
@@ -729,14 +863,14 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ diseaseProfileId, title, recommendedContent, avoidContent })
         })
-        .then(res => {
-            if (res.ok) {
-                location.reload();
-            } else {
-                res.text().then(text => alert(text || "Lỗi khi cập nhật khuyến nghị."));
-            }
-        })
-        .catch(err => alert("Lỗi kết nối máy chủ."));
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    res.text().then(text => alert(text || "Lỗi khi cập nhật khuyến nghị."));
+                }
+            })
+            .catch(err => alert("Lỗi kết nối máy chủ."));
     }
 
     function handleDeleteGuideline(id) {
@@ -744,14 +878,14 @@
             fetch(`/hospital/exercise-guidelines/${id}`, {
                 method: 'DELETE'
             })
-            .then(res => {
-                if (res.ok) {
-                    location.reload();
-                } else {
-                    res.text().then(text => alert(text || "Lỗi khi xóa."));
-                }
-            })
-            .catch(err => alert("Lỗi kết nối máy chủ."));
+                .then(res => {
+                    if (res.ok) {
+                        location.reload();
+                    } else {
+                        res.text().then(text => alert(text || "Lỗi khi xóa."));
+                    }
+                })
+                .catch(err => alert("Lỗi kết nối máy chủ."));
         }
     }
 
@@ -762,7 +896,7 @@
         document.getElementById('glRecommended').value = '';
         document.getElementById('glAvoid').value = '';
         document.getElementById('glFormTitle').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Soạn Khuyến Nghị Mới';
-        
+
         const formCollapse = bootstrap.Collapse.getInstance(document.getElementById('collapseGuidelineForm'));
         if (formCollapse) formCollapse.hide();
     }
@@ -786,13 +920,13 @@
         const url = `/hospital/foods?page=${page}&size=20&search=${encodeURIComponent(search)}`;
 
         fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('totalFoodsBadge').innerText = `${data.totalElements} Món`;
-            renderFoodsTable(data.content);
-            renderFoodsPagination(data.totalPages, data.number);
-        })
-        .catch(err => console.error("Lỗi khi tải danh sách món ăn:", err));
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('totalFoodsBadge').innerText = `${data.totalElements} Món`;
+                renderFoodsTable(data.content);
+                renderFoodsPagination(data.totalPages, data.number);
+            })
+            .catch(err => console.error("Lỗi khi tải danh sách món ăn:", err));
     }
 
     function renderFoodsTable(foods) {
@@ -806,9 +940,11 @@
 
         foods.forEach(f => {
             const tr = document.createElement('tr');
-            
-            const activeBadge = f.isActive 
-                ? '<span class="badge bg-success">Hoạt động</span>' 
+            tr.style.opacity = '0';
+            tr.style.transition = 'opacity 0.2s ease-in-out';
+
+            const activeBadge = f.isActive
+                ? '<span class="badge bg-success">Hoạt động</span>'
                 : '<span class="badge bg-danger">Vô hiệu</span>';
 
             const toggleBtnText = f.isActive ? 'Vô hiệu hóa' : 'Kích hoạt';
@@ -840,6 +976,7 @@
                 </td>
             `;
             tbody.appendChild(tr);
+            setTimeout(() => { tr.style.opacity = '1'; }, 10);
         });
     }
 
@@ -884,10 +1021,11 @@
         document.getElementById('ashG').value = ash;
 
         document.getElementById('foodFormTitle').innerHTML = '<i class="fa-solid fa-pen-to-square me-1"></i> Cập Nhật Món Ăn';
-        
+
         const formCollapse = bootstrap.Collapse.getOrCreateInstance(document.getElementById('collapseFoodForm'));
         formCollapse.show();
-        document.getElementById('collapseFoodForm').scrollIntoView({ behavior: 'smooth' });
+
+        document.getElementById('collapseFoodForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function handleSaveFood(event, form) {
@@ -913,29 +1051,29 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(res => {
-            if (res.ok) {
-                resetFoodForm();
-                loadFoodPage(currentFoodPage);
-            } else {
-                res.text().then(text => alert(text || "Lỗi khi lưu món ăn."));
-            }
-        })
-        .catch(err => alert("Lỗi kết nối máy chủ."));
+            .then(res => {
+                if (res.ok) {
+                    resetFoodForm();
+                    loadFoodPage(currentFoodPage);
+                } else {
+                    res.text().then(text => alert(text || "Lỗi khi lưu món ăn."));
+                }
+            })
+            .catch(err => alert("Lỗi kết nối máy chủ."));
     }
 
     function toggleFoodActive(id) {
         fetch(`/hospital/foods/${id}/toggle-active`, {
             method: 'PATCH'
         })
-        .then(res => {
-            if (res.ok) {
-                loadFoodPage(currentFoodPage);
-            } else {
-                res.text().then(text => alert(text || "Lỗi khi đổi trạng thái món ăn."));
-            }
-        })
-        .catch(err => alert("Lỗi kết nối máy chủ."));
+            .then(res => {
+                if (res.ok) {
+                    loadFoodPage(currentFoodPage);
+                } else {
+                    res.text().then(text => alert(text || "Lỗi khi đổi trạng thái món ăn."));
+                }
+            })
+            .catch(err => alert("Lỗi kết nối máy chủ."));
     }
 
     function resetFoodForm() {
@@ -960,13 +1098,12 @@
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/&/g, "&amp;")
-                  .replace(/</g, "&lt;")
-                  .replace(/>/g, "&gt;")
-                  .replace(/"/g, "&quot;")
-                  .replace(/'/g, "&#039;");
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
-    // Load initial foods on DOM ready
     document.addEventListener("DOMContentLoaded", function() {
         loadFoodPage(0);
     });
