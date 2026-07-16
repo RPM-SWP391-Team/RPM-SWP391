@@ -310,8 +310,13 @@ public class HospitalConfigService {
     }
 
     @Transactional
-    public EmergencyGuide editEmergencyGuideContent(Integer guideId, String instructionContent) {
-
+    public EmergencyGuide editEmergencyGuideContent(Integer guideId, String title, String instructionContent) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Tiêu đề không được để trống.");
+        }
+        if(title.trim().length()<10 || title.trim().length()>50) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 50 ký tự.");
+        }
         if (instructionContent == null || instructionContent.trim().isEmpty()) {
             throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn không được để trống.");
         }
@@ -330,9 +335,13 @@ public class HospitalConfigService {
 
         // Kiểm tra thay đổi cho newLog
         Map<String, Object> newLog = new HashMap<>();
+        String newTitle = title.trim();
         String newInstruction = instructionContent.trim();
+
+        checkAndLogString(newLog, "title", guide.getTitle(), newTitle);
         checkAndLogString(newLog, "instructionContent", guide.getInstructionContent(), newInstruction);
 
+        guide.setTitle(newTitle);
         guide.setInstructionContent(newInstruction);
         guide.setUpdatedAt(LocalDateTime.now());
         EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
@@ -347,7 +356,7 @@ public class HospitalConfigService {
             newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
         }
 
-        saveAuditLog("UPDATE_GUIDE", "emergency_guides", savedGuide.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Hướng dẫn xử lý khẩn cấp");
+        saveAuditLog("UPDATE_GUIDE", "emergency_guides", savedGuide.getId(), oldValueJson, newValueJson, "Cập nhật Tiêu đề và Nội dung Hướng dẫn xử lý khẩn cấp");
 
         return savedGuide;
     }
@@ -369,6 +378,9 @@ public class HospitalConfigService {
         }
         if (instructionContent == null || instructionContent.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung chỉ dẫn không được để trống.");
+        }
+        if (emergencyProtocolRepository.existsByHospitalIdAndConditionTypeAndIsActiveTrue(hospitalId, conditionType)) {
+            throw new IllegalArgumentException("Nhóm bệnh lý '" + conditionType + "' đã có cẩm nang đang hoạt động. Vui lòng chỉnh sửa bài cũ hoặc vô hiệu hóa nó trước khi tạo mới.");
         }
 
         EmergencyProtocol protocol = EmergencyProtocol.builder()
@@ -401,8 +413,13 @@ public class HospitalConfigService {
     }
 
     @Transactional
-    public EmergencyProtocol editEmergencyProtocolContent(Integer protocolId, String warningSigns, String instructionContent) {
-        // Chốt chặn Validation an toàn y tế
+    public EmergencyProtocol editEmergencyProtocolContent(Integer protocolId, String title, String warningSigns, String instructionContent) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Tiêu đề không được để trống.");
+        }
+        if(title.trim().length()<10 || title.trim().length()>50) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 50 ký tự.");
+        }
         if (warningSigns == null || warningSigns.trim().isEmpty()) {
             throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết không được để trống.");
         }
@@ -419,7 +436,6 @@ public class HospitalConfigService {
         EmergencyProtocol protocol = emergencyProtocolRepository.findById(protocolId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cẩm nang với ID: " + protocolId));
 
-
         // Lấy toàn bộ thông tin cũ
         Map<String, Object> oldLog = new HashMap<>();
         oldLog.put("title", protocol.getTitle());
@@ -429,12 +445,15 @@ public class HospitalConfigService {
 
         // Kiểm tra thay đổi cho newLog
         Map<String, Object> newLog = new HashMap<>();
+        String newTitle = title.trim();
         String newWarning = warningSigns.trim();
         String newInstruction = instructionContent.trim();
 
+        checkAndLogString(newLog, "title", protocol.getTitle(), newTitle);
         checkAndLogString(newLog, "warningSigns", protocol.getWarningSigns(), newWarning);
         checkAndLogString(newLog, "instructionContent", protocol.getInstructionContent(), newInstruction);
 
+        protocol.setTitle(newTitle);
         protocol.setWarningSigns(newWarning);
         protocol.setInstructionContent(newInstruction);
         protocol.setUpdatedAt(LocalDateTime.now());
@@ -451,21 +470,88 @@ public class HospitalConfigService {
             newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
         }
 
-        saveAuditLog("UPDATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Cẩm nang nhận biết bệnh lý");
+        saveAuditLog("UPDATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), oldValueJson, newValueJson, "Cập nhật Tiêu đề và Nội dung Cẩm nang nhận biết bệnh lý");
 
         return savedProtocol;
     }
-
     @Transactional
     public void deleteEmergencyGuide(Integer guideId) {
-        saveAuditLog("DELETE_GUIDE", "emergency_guides", guideId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Hướng dẫn xử lý khẩn cấp");
-        emergencyGuideRepository.deleteById(guideId);
+        // 1. Tìm bản ghi hiện tại
+        EmergencyGuide existing = emergencyGuideRepository.findById(guideId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId));
+
+        // 2. Thực hiện vô hiệu hóa (Soft Delete)
+        existing.setIsActive(false);
+        emergencyGuideRepository.save(existing);
+
+        // 3. Ghi log hệ thống với cấu trúc JSON đồng bộ
+        saveAuditLog(
+                "DELETE_GUIDE",
+                "emergency_guides",
+                guideId,
+                "{\"isActive\":true}",
+                "{\"isActive\":false}",
+                "Vô hiệu hóa Hướng dẫn xử lý khẩn cấp"
+        );
     }
 
     @Transactional
     public void deleteEmergencyProtocol(Integer protocolId) {
-        saveAuditLog("DELETE_PROTOCOL", "emergency_protocols", protocolId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Cẩm nang nhận biết bệnh lý");
-        emergencyProtocolRepository.deleteById(protocolId);
+        // 1. Tìm bản ghi hiện tại
+        EmergencyProtocol existing = emergencyProtocolRepository.findById(protocolId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Cẩm nang nhận biết bệnh lý với ID: " + protocolId));
+
+        // 2. Thực hiện vô hiệu hóa (Soft Delete)
+        existing.setIsActive(false);
+        emergencyProtocolRepository.save(existing);
+
+        // 3. Ghi log hệ thống với cấu trúc JSON đồng bộ
+        saveAuditLog(
+                "DELETE_PROTOCOL",
+                "emergency_protocols",
+                protocolId,
+                "{\"isActive\":true}",
+                "{\"isActive\":false}",
+                "Vô hiệu hóa Cẩm nang nhận biết bệnh lý"
+        );
+    }
+
+    @Transactional
+    public EmergencyGuide restoreEmergencyGuide(Integer guideId) {
+        EmergencyGuide existing = emergencyGuideRepository.findById(guideId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId));
+
+        // Kiểm tra xem vị trí này đã bị bản ghi mới nào chiếm chỗ chưa
+        if (emergencyGuideRepository.existsByHospitalIdAndAlertLevelAndMetricTypeAndIsActiveTrue(
+                existing.getHospital().getId(), existing.getAlertLevel(), existing.getMetricType())) {
+            throw new IllegalArgumentException("Không thể khôi phục! Đã có một chỉ dẫn khác đang hoạt động cho cấp độ này. Vui lòng vô hiệu hóa chỉ dẫn đang chạy trước.");
+        }
+
+        existing.setIsActive(true);
+        existing.setUpdatedAt(LocalDateTime.now());
+        EmergencyGuide restoredGuide = emergencyGuideRepository.save(existing);
+
+        saveAuditLog("RESTORE_GUIDE", "emergency_guides", guideId, "{\"isActive\":false}", "{\"isActive\":true}", "Khôi phục Hướng dẫn xử lý khẩn cấp");
+        return restoredGuide;
+    }
+
+    @Transactional
+    public EmergencyProtocol restoreEmergencyProtocol(Integer protocolId) {
+        EmergencyProtocol existing = emergencyProtocolRepository.findById(protocolId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Cẩm nang với ID: " + protocolId));
+
+        // Kiểm tra xem vị trí này đã bị bản ghi mới nào chiếm chỗ chưa
+        if (emergencyProtocolRepository.existsByHospitalIdAndConditionTypeAndIsActiveTrue(
+                existing.getHospital().getId(), existing.getConditionType())) {
+            throw new IllegalArgumentException("Không thể khôi phục! Đã có một cẩm nang khác đang hoạt động cho bệnh lý này. Vui lòng vô hiệu hóa cẩm nang đang chạy trước.");
+        }
+
+        existing.setIsActive(true);
+        existing.setUpdatedAt(LocalDateTime.now());
+        EmergencyProtocol restoredProtocol = emergencyProtocolRepository.save(existing);
+
+        saveAuditLog("RESTORE_PROTOCOL", "emergency_protocols", protocolId, "{\"isActive\":false}", "{\"isActive\":true}", "Khôi phục Cẩm nang nhận biết bệnh lý");
+        return restoredProtocol;
     }
 
     private void saveAuditLog(String action, String targetTable, Integer targetRecordId, String oldValue, String newValue, String notes) {
@@ -548,9 +634,9 @@ public class HospitalConfigService {
         ExerciseGuideline guideline = new ExerciseGuideline();
         guideline.setHospital(hospital);
         guideline.setDiseaseProfile(profile);
-        guideline.setTitle(title);
-        guideline.setRecommendedContent(recommendedContent);
-        guideline.setAvoidContent(avoidContent);
+        guideline.setTitle(title != null ? title.trim() : "");
+        guideline.setRecommendedContent(recommendedContent != null ? recommendedContent.trim() : "");
+        guideline.setAvoidContent(avoidContent != null ? avoidContent.trim() : "");
         guideline.setIsActive(true);
         guideline.setCreatedAt(LocalDateTime.now());
 
@@ -558,10 +644,15 @@ public class HospitalConfigService {
 
         String newValueJson = "-";
         try {
-            newValueJson = objectMapper.writeValueAsString(saved);
+            Map<String, Object> logMap = new HashMap<>();
+            logMap.put("diseaseProfile", profile.getProfileName() != null ? profile.getProfileName() : String.valueOf(diseaseProfileId));
+            logMap.put("title", saved.getTitle());
+            logMap.put("recommendedContent", saved.getRecommendedContent());
+            logMap.put("avoidContent", saved.getAvoidContent());
+            newValueJson = objectMapper.writeValueAsString(logMap);
         } catch (Exception ignored) {}
 
-        saveAuditLog("CREATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), null, newValueJson, "Thêm mới khuyến nghị tập luyện");
+        saveAuditLog("CREATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), "-", newValueJson, "Thêm mới khuyến nghị tập luyện");
 
         return saved;
     }
@@ -580,24 +671,39 @@ public class HospitalConfigService {
                     });
         }
 
-        String oldValueJson = "-";
-        try {
-            oldValueJson = objectMapper.writeValueAsString(existing);
-        } catch (Exception ignored) {}
+        // Snapshot dữ liệu cũ
+        String oldProfileName = existing.getDiseaseProfile().getProfileName();
+        String oldTitle = existing.getTitle();
+        String oldRec = existing.getRecommendedContent();
+        String oldAvoid = existing.getAvoidContent();
 
         DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm bệnh lý."));
 
         existing.setDiseaseProfile(profile);
-        existing.setTitle(title);
-        existing.setRecommendedContent(recommendedContent);
-        existing.setAvoidContent(avoidContent);
+        existing.setTitle(title != null ? title.trim() : "");
+        existing.setRecommendedContent(recommendedContent != null ? recommendedContent.trim() : "");
+        existing.setAvoidContent(avoidContent != null ? avoidContent.trim() : "");
 
         ExerciseGuideline saved = exerciseGuidelineRepository.save(existing);
 
+        String oldValueJson = "-";
         String newValueJson = "-";
         try {
-            newValueJson = objectMapper.writeValueAsString(saved);
+            Map<String, Object> oldLog = new HashMap<>();
+            oldLog.put("diseaseProfile", oldProfileName != null ? oldProfileName : String.valueOf(existing.getDiseaseProfile().getId()));
+            oldLog.put("title", oldTitle);
+            oldLog.put("recommendedContent", oldRec);
+            oldLog.put("avoidContent", oldAvoid);
+
+            Map<String, Object> newLog = new HashMap<>();
+            newLog.put("diseaseProfile", profile.getProfileName() != null ? profile.getProfileName() : String.valueOf(diseaseProfileId));
+            newLog.put("title", saved.getTitle());
+            newLog.put("recommendedContent", saved.getRecommendedContent());
+            newLog.put("avoidContent", saved.getAvoidContent());
+
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+            newValueJson = objectMapper.writeValueAsString(newLog);
         } catch (Exception ignored) {}
 
         saveAuditLog("UPDATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), oldValueJson, newValueJson, "Cập nhật khuyến nghị tập luyện");
@@ -610,20 +716,10 @@ public class HospitalConfigService {
         ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
 
-        String oldValueJson = "-";
-        try {
-            oldValueJson = objectMapper.writeValueAsString(existing);
-        } catch (Exception ignored) {}
-
         existing.setIsActive(false);
         exerciseGuidelineRepository.save(existing);
 
-        String newValueJson = "-";
-        try {
-            newValueJson = objectMapper.writeValueAsString(existing);
-        } catch (Exception ignored) {}
-
-        saveAuditLog("DELETE_EXERCISE_GUIDELINE", "exercise_guidelines", id, oldValueJson, newValueJson, "Vô hiệu hóa khuyến nghị tập luyện");
+        saveAuditLog("DELETE_EXERCISE_GUIDELINE", "exercise_guidelines", id, "{\"isActive\":true}", "{\"isActive\":false}", "Vô hiệu hóa khuyến nghị tập luyện");
     }
 
     // ==========================================
@@ -649,10 +745,10 @@ public class HospitalConfigService {
 
         String newValueJson = "-";
         try {
-            newValueJson = objectMapper.writeValueAsString(saved);
+            newValueJson = objectMapper.writeValueAsString(buildFoodLogMap(saved));
         } catch (Exception ignored) {}
 
-        saveAuditLog("CREATE_FOOD", "foods_dictionary", saved.getId(), null, newValueJson, "Thêm mới món ăn vào danh mục");
+        saveAuditLog("CREATE_FOOD", "foods_dictionary", saved.getId(), "-", newValueJson, "Thêm mới món ăn vào danh mục");
         return saved;
     }
 
@@ -669,10 +765,7 @@ public class HospitalConfigService {
 
         validateFoodNutrients(updated);
 
-        String oldValueJson = "-";
-        try {
-            oldValueJson = objectMapper.writeValueAsString(existing);
-        } catch (Exception ignored) {}
+        Map<String, Object> oldLogMap = buildFoodLogMap(existing);
 
         existing.setFoodCode(updated.getFoodCode());
         existing.setFoodName(updated.getFoodName());
@@ -688,9 +781,11 @@ public class HospitalConfigService {
 
         FoodDictionary saved = foodDictionaryRepository.save(existing);
 
+        String oldValueJson = "-";
         String newValueJson = "-";
         try {
-            newValueJson = objectMapper.writeValueAsString(saved);
+            oldValueJson = objectMapper.writeValueAsString(oldLogMap);
+            newValueJson = objectMapper.writeValueAsString(buildFoodLogMap(saved));
         } catch (Exception ignored) {}
 
         saveAuditLog("UPDATE_FOOD", "foods_dictionary", saved.getId(), oldValueJson, newValueJson, "Cập nhật thông tin món ăn");
@@ -702,22 +797,32 @@ public class HospitalConfigService {
         FoodDictionary existing = foodDictionaryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
 
-        String oldValueJson = "-";
-        try {
-            oldValueJson = objectMapper.writeValueAsString(existing);
-        } catch (Exception ignored) {}
-
+        boolean oldStatus = existing.getIsActive();
         existing.setIsActive(!existing.getIsActive());
         FoodDictionary saved = foodDictionaryRepository.save(existing);
 
-        String newValueJson = "-";
-        try {
-            newValueJson = objectMapper.writeValueAsString(saved);
-        } catch (Exception ignored) {}
+        String oldValueJson = "{\"isActive\":" + oldStatus + "}";
+        String newValueJson = "{\"isActive\":" + saved.getIsActive() + "}";
 
-        saveAuditLog("TOGGLE_FOOD_ACTIVE", "foods_dictionary", saved.getId(), oldValueJson, newValueJson, 
-                     "Thay đổi trạng thái hoạt động món ăn thành: " + (saved.getIsActive() ? "Hoạt động" : "Vô hiệu hóa"));
+        saveAuditLog("TOGGLE_FOOD_ACTIVE", "foods_dictionary", saved.getId(), oldValueJson, newValueJson,
+                "Thay đổi trạng thái hoạt động món ăn thành: " + (saved.getIsActive() ? "Hoạt động" : "Vô hiệu hóa"));
         return saved;
+    }
+
+    private Map<String, Object> buildFoodLogMap(FoodDictionary food) {
+        Map<String, Object> logMap = new HashMap<>();
+        logMap.put("foodCode", food.getFoodCode());
+        logMap.put("foodName", food.getFoodName());
+        logMap.put("englishName", food.getEnglishName());
+        logMap.put("waterG", food.getWaterG());
+        logMap.put("energyKcal", food.getEnergyKcal());
+        logMap.put("proteinG", food.getProteinG());
+        logMap.put("lipidG", food.getLipidG());
+        logMap.put("glucidG", food.getGlucidG());
+        logMap.put("cellulozaG", food.getCellulozaG());
+        logMap.put("ashG", food.getAshG());
+        logMap.put("isActive", food.getIsActive());
+        return logMap;
     }
 
     private void validateFoodNutrients(FoodDictionary food) {
