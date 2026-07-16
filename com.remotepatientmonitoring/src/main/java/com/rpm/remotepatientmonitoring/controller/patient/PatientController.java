@@ -3,8 +3,9 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
-import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
+import com.rpm.remotepatientmonitoring.service.patient.ExerciseLogService;
+import com.rpm.remotepatientmonitoring.service.patient.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import java.time.LocalDateTime;
-import com.rpm.remotepatientmonitoring.service.patient.ExerciseLogService;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
@@ -26,40 +27,10 @@ import java.util.*;
 public class PatientController {
 
     @Autowired
-    private HealthLogRepository healthLogRepository;
-
-    @Autowired
-    private AccountRepository accountRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private PatientRepository patientRepository;
-
-    @Autowired
-    private PatientMedicationRepository patientMedicationRepository;
-
-    @Autowired
-    private MedicationLogRepository medicationLogRepository;
-
-    @Autowired
-    private WaterLogRepository waterLogRepository;
-
-    @Autowired
-    private PatientMealRepository patientMealRepository;
-
-    @Autowired
-    private PatientExerciseRepository patientExerciseRepository;
-
-    @Autowired
-    private TreatmentPlanRepository treatmentPlanRepository;
-
-    @Autowired
-    private NutritionRuleRepository nutritionRuleRepository;
-
-    @Autowired
-    private FoodDictionaryRepository foodDictionaryRepository;
+    private PatientService patientService;
 
     @Autowired
     private ExerciseLogService exerciseLogService;
@@ -70,13 +41,13 @@ public class PatientController {
             Object principal = auth.getPrincipal();
             if (principal instanceof CustomUserDetails) {
                 CustomUserDetails userDetails = (CustomUserDetails) principal;
-                java.util.Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
+                Optional<Patient> opt = patientService.findByAccountId(userDetails.getAccount().getId());
                 if (opt.isPresent()) {
                     return opt.get();
                 }
             }
         }
-        List<Patient> all = patientRepository.findAll();
+        List<Patient> all = patientService.findAllPatients();
         if (all.size() > 0) {
             return all.get(0);
         }
@@ -96,7 +67,7 @@ public class PatientController {
         // Lấy phác đồ điều trị hiện hành của bệnh nhân từ DB
         TreatmentPlan plan = null;
         if (patient.getId() != null) {
-            plan = treatmentPlanRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+            plan = patientService.findCurrentTreatmentPlan(patient.getId()).orElse(null);
         }
         if (plan == null) {
             plan = new TreatmentPlan();
@@ -114,7 +85,7 @@ public class PatientController {
         Integer targetWater = null;
 
         if (patient.getId() != null) {
-            NutritionRule currentRule = nutritionRuleRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+            NutritionRule currentRule = patientService.findCurrentNutritionRule(patient.getId()).orElse(null);
             if (currentRule != null) {
                 targetCalories = currentRule.getMaxCaloriesPerDay();
                 targetCarbs = currentRule.getMaxCarbsG() != null ? currentRule.getMaxCarbsG().doubleValue() : null;
@@ -155,17 +126,15 @@ public class PatientController {
         Integer currentWater = null;
         try {
             if (patient.getId() != null) {
-                List<PatientMedication> activeMeds = patientMedicationRepository
-                        .findByPatientIdAndIsActiveTrue(patient.getId());
+                List<PatientMedication> activeMeds = patientService.findActiveMedications(patient.getId());
                 LocalDate today = LocalDate.now();
                 totalMeds = activeMeds.size();
                 for (PatientMedication med : activeMeds) {
                     boolean taken = false;
-                    Optional<MedicationLog> medLogOpt = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    Optional<MedicationLog> medLogOpt = patientService.findMedicationLog(med.getId(), today);
                     if (medLogOpt.isPresent()) {
-                        MedicationLog log = medLogOpt.get();
-                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                        MedicationLog logVal = medLogOpt.get();
+                        if (Boolean.TRUE.equals(logVal.getIsTaken())) {
                             taken = true;
                         }
                     }
@@ -174,7 +143,7 @@ public class PatientController {
                     }
                 }
                 
-                Optional<WaterLog> waterLogOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                Optional<WaterLog> waterLogOpt = patientService.findWaterLog(patient.getId(), today);
                 if (waterLogOpt.isPresent()) {
                     currentWater = waterLogOpt.get().getAmountMl();
                 }
@@ -196,7 +165,7 @@ public class PatientController {
         try {
             if (patient.getId() != null) {
                 LocalDate today = LocalDate.now();
-                List<PatientMeal> mealsToday = patientMealRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                List<PatientMeal> mealsToday = patientService.findMealsByDate(patient.getId(), today);
                 if (mealsToday != null && !mealsToday.isEmpty()) {
                     totalCalories = 0;
                     totalCarbs = 0.0;
@@ -236,7 +205,7 @@ public class PatientController {
         try {
             if (patient.getId() != null) {
                 LocalDate today = LocalDate.now();
-                List<PatientExercise> exercisesToday = patientExerciseRepository.findByPatientIdAndLogDate(patient.getId(), today);
+                List<PatientExercise> exercisesToday = patientService.findExercisesByDate(patient.getId(), today);
                 for (PatientExercise e : exercisesToday) {
                     totalExerciseMinutes += e.getDurationMinutes();
                 }
@@ -306,13 +275,12 @@ public class PatientController {
         int targetWater = 2000;
         try {
             if (patient.getId() != null) {
-                NutritionRule currentRule = nutritionRuleRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+                NutritionRule currentRule = patientService.findCurrentNutritionRule(patient.getId()).orElse(null);
                 if (currentRule != null && currentRule.getDailyWaterMl() != null) {
                     targetWater = currentRule.getDailyWaterMl();
                 }
 
-                List<PatientMedication> activeMeds = patientMedicationRepository
-                        .findByPatientIdAndIsActiveTrue(patient.getId());
+                List<PatientMedication> activeMeds = patientService.findActiveMedications(patient.getId());
                 LocalDate today = LocalDate.now();
                 for (PatientMedication med : activeMeds) {
                     Map<String, Object> item = new HashMap<>();
@@ -321,11 +289,10 @@ public class PatientController {
                     item.put("dosage", med.getDosage());
                     item.put("scheduledTime", med.getScheduledTime());
                     boolean taken = false;
-                    Optional<MedicationLog> medLogOpt = medicationLogRepository
-                            .findByPatientMedicationIdAndLogDate(med.getId(), today);
+                    Optional<MedicationLog> medLogOpt = patientService.findMedicationLog(med.getId(), today);
                     if (medLogOpt.isPresent()) {
-                        MedicationLog log = medLogOpt.get();
-                        if (Boolean.TRUE.equals(log.getIsTaken())) {
+                        MedicationLog logVal = medLogOpt.get();
+                        if (Boolean.TRUE.equals(logVal.getIsTaken())) {
                             taken = true;
                         }
                     }
@@ -350,7 +317,7 @@ public class PatientController {
                     medicationList.add(item);
                 }
 
-                currentWater = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today)
+                currentWater = patientService.findWaterLog(patient.getId(), today)
                         .map(WaterLog::getAmountMl)
                         .orElse(0);
             }
@@ -382,25 +349,20 @@ public class PatientController {
         try {
             if (patient.getId() != null) {
                 if (sDate != null) {
-                    List<MedicationLog> rawLogs = medicationLogRepository
-                            .findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), sDate);
-                    for (MedicationLog log : rawLogs) {
-                        if (log.getLogDate().equals(sDate)) {
-                            historyLogs.add(log);
+                    List<MedicationLog> rawLogs = patientService.findMedicationHistory(patient.getId(), sDate);
+                    for (MedicationLog logVal : rawLogs) {
+                        if (logVal.getLogDate().equals(sDate)) {
+                            historyLogs.add(logVal);
                         }
                     }
                 } else if ("today".equalsIgnoreCase(range)) {
-                    historyLogs = medicationLogRepository
-                            .findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), LocalDate.now());
+                    historyLogs = patientService.findMedicationHistory(patient.getId(), LocalDate.now());
                 } else if ("week".equalsIgnoreCase(range)) {
-                    historyLogs = medicationLogRepository
-                            .findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), LocalDate.now().minusDays(7));
+                    historyLogs = patientService.findMedicationHistory(patient.getId(), LocalDate.now().minusDays(7));
                 } else if ("month".equalsIgnoreCase(range)) {
-                    historyLogs = medicationLogRepository
-                            .findByPatientMedicationPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), LocalDate.now().minusDays(30));
+                    historyLogs = patientService.findMedicationHistory(patient.getId(), LocalDate.now().minusDays(30));
                 } else {
-                    historyLogs = medicationLogRepository
-                            .findByPatientMedicationPatientIdOrderByLogDateAsc(patient.getId());
+                    historyLogs = patientService.findMedicationHistory(patient.getId(), null);
                 }
             }
         } catch (Exception ignored) {
@@ -410,24 +372,25 @@ public class PatientController {
         Map<LocalDate, Map<String, Object>> historyGrouped = new TreeMap<>(Collections.reverseOrder());
         
         // 1. Initialize keys for all dates from medication logs
-        for (MedicationLog log : historyLogs) {
-            LocalDate date = log.getLogDate();
+        for (MedicationLog logVal : historyLogs) {
+            LocalDate date = logVal.getLogDate();
             historyGrouped.putIfAbsent(date, new HashMap<>());
             Map<String, Object> dateData = historyGrouped.get(date);
             dateData.putIfAbsent("meds", new ArrayList<Map<String, Object>>());
         }
         
         // 2. Populate medication logs
-        for (MedicationLog log : historyLogs) {
-            LocalDate date = log.getLogDate();
+        for (MedicationLog logVal : historyLogs) {
+            LocalDate date = logVal.getLogDate();
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> medsList = (List<Map<String, Object>>) historyGrouped.get(date).get("meds");
             
             Map<String, Object> logInfo = new HashMap<>();
-            logInfo.put("medicineName", log.getPatientMedication().getMedicineName());
-            logInfo.put("dosage", log.getPatientMedication().getDosage());
-            logInfo.put("scheduledTime", log.getPatientMedication().getScheduledTime());
-            logInfo.put("isTaken", log.getIsTaken());
-            logInfo.put("takenAt", log.getTakenAt());
+            logInfo.put("medicineName", logVal.getPatientMedication().getMedicineName());
+            logInfo.put("dosage", logVal.getPatientMedication().getDosage());
+            logInfo.put("scheduledTime", logVal.getPatientMedication().getScheduledTime());
+            logInfo.put("isTaken", logVal.getIsTaken());
+            logInfo.put("takenAt", logVal.getTakenAt());
             
             medsList.add(logInfo);
         }
@@ -437,7 +400,7 @@ public class PatientController {
         try {
             if (patient.getId() != null) {
                 if (sDate != null) {
-                    waterLogRepository.findByPatientIdAndLogDate(patient.getId(), sDate).ifPresent(historyWaterLogs::add);
+                    patientService.findWaterLog(patient.getId(), sDate).ifPresent(historyWaterLogs::add);
                 } else {
                     LocalDate oldestDate = LocalDate.now().minusDays(30); // default
                     if (!historyLogs.isEmpty()) {
@@ -448,8 +411,7 @@ public class PatientController {
                         else if ("month".equalsIgnoreCase(range)) oldestDate = LocalDate.now().minusDays(30);
                         else oldestDate = LocalDate.of(2000, 1, 1);
                     }
-                    historyWaterLogs = waterLogRepository
-                            .findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), oldestDate);
+                    historyWaterLogs = patientService.findWaterHistory(patient.getId(), oldestDate);
                 }
             }
         } catch (Exception ignored) {
@@ -492,14 +454,13 @@ public class PatientController {
                 }
 
                 // Batch fetch water logs for the chart period to optimize DB queries
-                List<WaterLog> chartWaterLogs = waterLogRepository
-                        .findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patient.getId(), chartDates.get(0));
+                List<WaterLog> chartWaterLogs = patientService.findWaterHistory(patient.getId(), chartDates.get(0));
                 Map<LocalDate, Integer> waterLogMap = new HashMap<>();
                 for (WaterLog wl : chartWaterLogs) {
                     waterLogMap.put(wl.getLogDate(), wl.getAmountMl());
                 }
 
-                List<PatientMedication> activeMeds = patientMedicationRepository.findByPatientIdAndIsActiveTrue(patient.getId());
+                List<PatientMedication> activeMeds = patientService.findActiveMedications(patient.getId());
 
                 for (LocalDate date : chartDates) {
                     Map<String, Object> dayInfo = new HashMap<>();
@@ -511,8 +472,7 @@ public class PatientController {
                     Map<Integer, Boolean> takenMap = new HashMap<>();
 
                     for (PatientMedication med : activeMeds) {
-                        Optional<MedicationLog> logOpt = medicationLogRepository
-                                .findByPatientMedicationIdAndLogDate(med.getId(), date);
+                        Optional<MedicationLog> logOpt = patientService.findMedicationLog(med.getId(), date);
                         
                         boolean isActive = false;
                         if (logOpt.isPresent()) {
@@ -618,7 +578,7 @@ public class PatientController {
         double targetProtein = 60.0;
 
         if (patient.getId() != null) {
-            NutritionRule currentRule = nutritionRuleRepository.findByPatientIdAndIsCurrent(patient.getId(), true).orElse(null);
+            NutritionRule currentRule = patientService.findCurrentNutritionRule(patient.getId()).orElse(null);
             if (currentRule != null) {
                 if (currentRule.getMaxCaloriesPerDay() != null) targetCalories = currentRule.getMaxCaloriesPerDay();
                 if (currentRule.getMaxSaltG() != null) targetSalt = currentRule.getMaxSaltG().doubleValue();
@@ -631,7 +591,7 @@ public class PatientController {
 
         try {
             if (patient.getId() != null) {
-                meals = patientMealRepository.findByPatientIdAndLogDate(patient.getId(), targetDate);
+                meals = patientService.findMealsByDate(patient.getId(), targetDate);
                 for (PatientMeal m : meals) {
                     if (m.getCalories() != null) totalCalories += m.getCalories();
                     if (m.getSaltG() != null) totalSalt += m.getSaltG();
@@ -682,13 +642,11 @@ public class PatientController {
         model.addAttribute("fatPercent", fatPercent);
         model.addAttribute("proteinPercent", proteinPercent);
         
-        List<FoodDictionary> foods = foodDictionaryRepository.findByIsActiveTrue();
+        List<FoodDictionary> foods = patientService.findActiveFoods();
         model.addAttribute("foods", foods);
 
         return "patient/nutrition";
     }
-
-
 
     // ==================== Progress Report (Patient Profile) ====================
 
@@ -729,7 +687,7 @@ public class PatientController {
             @RequestParam(value = "password", required = false) String password,
             @RequestParam(value = "emergencyContactName", required = false) String emergencyContactName,
             @RequestParam(value = "emergencyContactPhone", required = false) String emergencyContactPhone,
-            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes
     ) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
@@ -741,7 +699,6 @@ public class PatientController {
             redirectAttributes.addFlashAttribute("error", "Số điện thoại cá nhân không hợp lệ!");
             return "redirect:/patient/progress";
         }
-
 
         // Validate emergency phone format if provided
         if (emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty()) {
@@ -769,23 +726,7 @@ public class PatientController {
             }
         }
 
-        // Apply and save changes to Patient info
-        patient.setPhone(phone.trim());
-        patient.setAddress(address != null ? address.trim() : "");
-        patient.setEmergencyContactName(emergencyContactName != null && !emergencyContactName.trim().isEmpty() ? emergencyContactName.trim() : null);
-        patient.setEmergencyContactPhone(emergencyContactPhone != null && !emergencyContactPhone.trim().isEmpty() ? emergencyContactPhone.trim() : null);
-        patient.setUpdatedAt(LocalDateTime.now());
-        patientRepository.save(patient);
-
-        // Apply and save changes to Account info (Email is readonly and NOT updated)
-        Account account = patient.getAccount();
-        if (account != null) {
-            if (isChangingPassword) {
-                account.setPasswordHash(passwordEncoder.encode(password.trim()));
-            }
-            account.setUpdatedAt(LocalDateTime.now());
-            accountRepository.save(account);
-        }
+        patientService.updateProfile(patient, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
 
         return "redirect:/patient/progress?updateSuccess=true";
     }
