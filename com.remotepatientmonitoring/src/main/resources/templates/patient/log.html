@@ -159,6 +159,12 @@
             <div class="col-lg-5 col-md-7">
 
                 <form th:action="@{/patient/log}" th:object="${healthLog}" method="POST" id="healthLogForm">
+                    <div class="alert alert-danger border-0 shadow-sm mb-3" th:if="${#fields.hasErrors('global')}" style="border-radius: 12px; background-color: #fef2f2; border-left: 4px solid #ef4444 !important;">
+                        <div class="d-flex align-items-center text-danger">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                            <span th:errors="${healthLog}">Lỗi toàn cục</span>
+                        </div>
+                    </div>
                     <input type="hidden" th:field="*{inputMethod}" id="inputMethodField" value="MANUAL">
                     <input type="hidden" th:field="*{logType}" id="logTypeField">
 
@@ -318,17 +324,20 @@
                             <div class="row g-2 mb-2">
                                 <div class="col-6">
                                     <label>Tâm thu</label>
-                                    <input type="number" th:field="*{systolicBp}" id="systolicBp" class="form-control" placeholder="120" min="50" max="300">
+                                    <input type="number" th:field="*{systolicBp}" id="systolicBp" class="form-control" th:classappend="${#fields.hasErrors('systolicBp')} ? 'is-invalid'" placeholder="120" min="50" max="300">
+                                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('systolicBp')}" th:errors="*{systolicBp}">Lỗi tâm thu</div>
                                     <div class="unit-text">mmHg</div>
                                 </div>
                                 <div class="col-6">
                                     <label>Tâm trương</label>
-                                    <input type="number" th:field="*{diastolicBp}" id="diastolicBp" class="form-control" placeholder="80" min="30" max="200">
+                                    <input type="number" th:field="*{diastolicBp}" id="diastolicBp" class="form-control" th:classappend="${#fields.hasErrors('diastolicBp')} ? 'is-invalid'" placeholder="80" min="30" max="200">
+                                    <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('diastolicBp')}" th:errors="*{diastolicBp}">Lỗi tâm trương</div>
                                     <div class="unit-text">mmHg</div>
                                 </div>
                             </div>
                             <label>Nhịp tim</label>
-                            <input type="number" th:field="*{heartRate}" id="heartRate" class="form-control" placeholder="75" min="20" max="300">
+                            <input type="number" th:field="*{heartRate}" id="heartRate" class="form-control" th:classappend="${#fields.hasErrors('heartRate')} ? 'is-invalid'" placeholder="75" min="20" max="300">
+                            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('heartRate')}" th:errors="*{heartRate}">Lỗi nhịp tim</div>
                             <div class="unit-text">lần/phút</div>
                             <div class="range-badge"><i class="fa-solid fa-circle-info"></i> Bình thường: 90–140 / 60–90</div>
                         </div>
@@ -360,7 +369,8 @@
                                 <span class="fw-bold" style="font-size: 0.92rem;">Đường huyết (Glucose)</span>
                             </div>
                             <label>Chỉ số Glucose</label>
-                            <input type="number" step="0.1" th:field="*{glucoseLevel}" id="glucoseLevel" class="form-control" placeholder="6.5" min="1.0" max="33.3">
+                            <input type="number" step="0.1" th:field="*{glucoseLevel}" id="glucoseLevel" class="form-control" th:classappend="${#fields.hasErrors('glucoseLevel')} ? 'is-invalid'" placeholder="6.5" min="1.0" max="33.3">
+                            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('glucoseLevel')}" th:errors="*{glucoseLevel}">Lỗi đường huyết</div>
                             <div class="unit-text">mmol/L</div>
                             <div class="range-badge"><i class="fa-solid fa-circle-info"></i> Bình thường: 4.4 – 10.0</div>
                         </div>
@@ -519,38 +529,6 @@
 
         // ---- Submit handlers ----
         function submitBp() {
-            const logType = document.getElementById('logTypeField').value;
-            const sysVal = document.getElementById('systolicBp').value;
-            const diaVal = document.getElementById('diastolicBp').value;
-            const hrVal = document.getElementById('heartRate').value;
-
-            if (!sysVal || !diaVal) {
-                alert('Vui lòng nhập chỉ số Huyết áp (Tâm thu và Tâm trương).');
-                return;
-            }
-
-            if (sysVal) {
-                const sys = parseInt(sysVal);
-                if (sys < 50 || sys > 300) {
-                    alert('Chỉ số tâm thu phải từ 50 đến 300 mmHg.');
-                    return;
-                }
-            }
-            if (diaVal) {
-                const dia = parseInt(diaVal);
-                if (dia < 30 || dia > 200) {
-                    alert('Chỉ số tâm trương phải từ 30 đến 200 mmHg.');
-                    return;
-                }
-            }
-            if (hrVal) {
-                const hr = parseInt(hrVal);
-                if (hr < 20 || hr > 300) {
-                    alert('Nhịp tim phải từ 20 đến 300 lần/phút.');
-                    return;
-                }
-            }
-
             // Disable glucose input to prevent Spring Boot binding errors on empty values
             const glInput = document.getElementById('glucoseLevel');
             if (glInput) glInput.disabled = true;
@@ -559,22 +537,6 @@
         }
 
         function submitGl() {
-            const logType = document.getElementById('logTypeField').value;
-            const glVal = document.getElementById('glucoseLevel').value;
-
-            if (!glVal) {
-                alert('Vui lòng nhập chỉ số Đường huyết.');
-                return;
-            }
-
-            if (glVal) {
-                const gl = parseFloat(glVal);
-                if (gl < 1.0 || gl > 33.3) {
-                    alert('Chỉ số Đường huyết phải từ 1.0 đến 33.3 mmol/L.');
-                    return;
-                }
-            }
-
             // Disable BP inputs to prevent Spring Boot binding errors on empty values
             const sysInput = document.getElementById('systolicBp');
             const diaInput = document.getElementById('diastolicBp');
@@ -592,6 +554,22 @@
 
         // ---- Init ----
         document.addEventListener("DOMContentLoaded", function () {
+            /*[# th:if="${#fields.hasErrors('systolicBp') or #fields.hasErrors('diastolicBp') or #fields.hasErrors('heartRate')}"]*/
+            showPanel('panelBpInput');
+            document.getElementById('labelBp').textContent = bpLabels[document.getElementById('logTypeField').value] || '';
+            if (isBothGroups) setBars('done', 'done', 'active');
+            else setBars('done', 'active', null);
+            return;
+            /*[/]*/
+
+            /*[# th:if="${#fields.hasErrors('glucoseLevel')}"]*/
+            showPanel('panelGlInput');
+            document.getElementById('labelGl').textContent = glLabels[document.getElementById('logTypeField').value] || '';
+            if (isBothGroups) setBars('done', 'done', 'active');
+            else setBars('done', 'active', null);
+            return;
+            /*[/]*/
+
             if (isBothGroups) {
                 // Show category picker
                 document.getElementById('cat-bp-col').style.display = 'block';
