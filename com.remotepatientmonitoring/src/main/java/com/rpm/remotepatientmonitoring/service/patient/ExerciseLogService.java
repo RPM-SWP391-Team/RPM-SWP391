@@ -424,6 +424,17 @@ public class ExerciseLogService {
         }
     }
 
+    @Transactional
+    public void deleteExerciseLog(Integer id, Integer patientId) {
+        ExerciseLog log = exerciseLogRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy ghi nhận bài tập."));
+        if (!log.getPatient().getId().equals(patientId)) {
+            throw new IllegalStateException("Bạn không có quyền xóa ghi nhận này!");
+        }
+        exerciseLogRepository.delete(log);
+        checkAndReplaceMissedExerciseNotification(patientId);
+    }
+
     /**
      * Kiểm tra xem bệnh nhân có nguy cơ mất streak tập luyện hôm nay hay không.
      * Trả về true nếu streak hiện tại > 0 VÀ tổng phút vận động hôm nay < mục tiêu hôm nay.
