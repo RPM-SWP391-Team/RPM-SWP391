@@ -9,28 +9,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class EmergencyProtocolDTO {
-
     private Integer id;
 
-    @NotBlank(message = "Loại tình trạng bắt buộc phải chọn.")
-    @Pattern(regexp = "^(HYPERTENSIVE_CRISIS|HYPOGLYCEMIA|HYPERGLYCEMIA)$", message = "Loại tình trạng không hợp lệ.")
+    @NotBlank(message = "Nhóm bệnh lý không được để trống.")
+    @Pattern(regexp = "^(HYPERTENSIVE_CRISIS|HYPOGLYCEMIA|HYPERGLYCEMIA)$", message = "Nhóm bệnh lý không hợp lệ.")
     private String conditionType;
 
-    @NotBlank(message = "Tiêu đề không được để trống.")
+    @NotBlank(message = "Tiêu đề cẩm nang không được để trống.")
     @Size(min = 5, max = 150, message = "Tiêu đề phải từ 5 đến 150 ký tự.")
     private String title;
 
     @NotBlank(message = "Dấu hiệu nhận biết không được để trống.")
-    @Size(min = 10, message = "Dấu hiệu nhận biết phải từ 10 ký tự trở lên.")
+    @Size(min = 10, max = 500, message = "Dấu hiệu nhận biết phải từ 10 đến 500 ký tự.")
     private String warningSigns;
 
     @NotBlank(message = "Nội dung chỉ dẫn không được để trống.")
-    @Size(min = 20, message = "Nội dung chỉ dẫn xử lý khẩn cấp phải chi tiết (Tối thiểu 20 ký tự).")
+    @Size(min = 20, max = 2000, message = "Nội dung chỉ dẫn phải từ 20 đến 2000 ký tự.")
     private String instructionContent;
-
-    private Boolean isActive;
 }

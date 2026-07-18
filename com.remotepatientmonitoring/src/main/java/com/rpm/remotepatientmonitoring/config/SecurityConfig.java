@@ -39,9 +39,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
+            )
             .authorizeHttpRequests(auth -> auth
                 // Public: auth pages, static files, setup tool (xóa /setup/** sau khi setup xong)
-                .requestMatchers("/auth/**", "/css/**", "/js/**", "/images/**", "/setup/**").permitAll()
+                .requestMatchers("/auth/**", "/css/**", "/js/**", "/images/**", "/setup/**", "/uploads/**").permitAll()
 
                 // Trang Thymeleaf theo role
                 .requestMatchers("/hospital/**").hasRole("HOSPITAL_ADMIN")

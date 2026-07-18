@@ -152,6 +152,9 @@
                                         <span class="badge badge-status" 
                                               th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
                                               th:text="${appt.status}">PENDING</span>
+                                        <div th:if="${appt.status == 'REJECTED' and appt.doctorNote != null}" class="small text-danger mt-1">
+                                            <i class="fa-solid fa-circle-info me-1"></i><span th:text="${appt.doctorNote}"></span>
+                                        </div>
                                     </td>
                                     <td>
                                         <form th:if="${appt.status == 'PENDING'}" th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');" style="display:inline;">
@@ -177,6 +180,9 @@
                                 <span class="badge badge-status" 
                                       th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
                                       th:text="${appt.status}">PENDING</span>
+                            </div>
+                            <div th:if="${appt.status == 'REJECTED' and appt.doctorNote != null}" class="small text-danger mb-2">
+                                <i class="fa-solid fa-circle-info me-1"></i><span th:text="${appt.doctorNote}"></span>
                             </div>
                             <h6 class="fw-bold mb-1" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                             <p class="mb-1 text-muted small">Bác sĩ phụ trách: <span th:text="${appt.doctor.fullName}">Bác sĩ B</span></p>
@@ -281,7 +287,8 @@
                                      <th style="width: 130px;">Loại khám</th>
                                      <th>Lý do khám / Triệu chứng</th>
                                      <th style="width: 320px;">Kết luận của bác sĩ / Chỉ dẫn</th>
-                                     <th style="width: 150px;">Địa điểm</th>
+                                     <th style="width: 130px;">Địa điểm</th>
+                                     <th style="width: 120px; text-align: center;">Đánh giá</th>
                                  </tr>
                              </thead>
                              <tbody>
@@ -303,10 +310,14 @@
                                              </div>
                                          </td>
                                          <td th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</td>
+                                         <td style="text-align: center;">
+                                             <span th:if="${evaluatedAppointmentIds != null && evaluatedAppointmentIds.contains(appt.id)}" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1.5 rounded-pill small">Đã đánh giá</span>
+                                             <button th:if="${evaluatedAppointmentIds == null || !evaluatedAppointmentIds.contains(appt.id)}" class="btn btn-sm btn-primary rounded-pill px-3" th:onclick="'openDoctorRatingModal(' + ${appt.id} + ', ' + ${appt.doctor.id} + ', \'' + ${appt.doctor.fullName} + '\')'">Đánh giá</button>
+                                         </td>
                                      </tr>
                                  </th:block>
                                  <tr th:if="${#lists.isEmpty(appointments.?[status == 'COMPLETED'])}">
-                                     <td colspan="6" class="text-center text-muted py-4">Chưa có lịch sử khám bệnh nào hoàn thành</td>
+                                     <td colspan="7" class="text-center text-muted py-4">Chưa có lịch sử khám bệnh nào hoàn thành</td>
                                  </tr>
                              </tbody>
                          </table>
@@ -327,7 +338,11 @@
                                      <strong class="text-success small d-block mb-1"><i class="fa-solid fa-notes-medical me-1"></i>Kết luận của bác sĩ:</strong>
                                      <p class="mb-0 small text-dark" style="line-height: 1.4;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}"></p>
                                  </div>
-                                 <p class="mb-0 text-muted small"><i class="fa-solid fa-location-dot me-1"></i><span th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</span></p>
+                                 <p class="mb-2 text-muted small"><i class="fa-solid fa-location-dot me-1"></i><span th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</span></p>
+                                 <div class="mt-2 text-end pt-2 border-top">
+                                     <span th:if="${evaluatedAppointmentIds != null && evaluatedAppointmentIds.contains(appt.id)}" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1.5 rounded-pill small">Đã đánh giá</span>
+                                     <button th:if="${evaluatedAppointmentIds == null || !evaluatedAppointmentIds.contains(appt.id)}" class="btn btn-sm btn-primary rounded-pill px-3" th:onclick="'openDoctorRatingModal(' + ${appt.id} + ', ' + ${appt.doctor.id} + ', \'' + ${appt.doctor.fullName} + '\')'">Đánh giá bác sĩ</button>
+                                 </div>
                              </div>
                          </th:block>
                          <div th:if="${#lists.isEmpty(appointments.?[status == 'COMPLETED'])}" class="text-center text-muted py-4">Chưa có lịch sử khám bệnh nào hoàn thành</div>
@@ -653,7 +668,7 @@
                         <select class="form-select" id="doctorId" name="doctorId" required style="border-radius: var(--radius-sm);">
                             <option value="" disabled selected>-- Chọn bác sĩ --</option>
                             <option th:each="doc : ${doctors}" th:value="${doc.id}" 
-                                    th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
+                                    th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa') + ' (' + doc.ratingDisplay + ')'}"></option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -927,6 +942,108 @@
         function filterHistoryRange(range, element) {
             const activeTab = getActiveTab();
             window.location.href = `/patient/appointments?filterRange=${range}&activeTab=${activeTab}`;
+        }
+    </script>
+    
+    <!-- Doctor Rating Modal -->
+    <div class="modal fade" id="doctorRatingModal" tabindex="-1" aria-labelledby="doctorRatingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0" style="background: none; color: inherit;">
+                    <h5 class="modal-title fw-bold text-dark" id="doctorRatingModalLabel">Đánh giá Bác sĩ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pt-2">
+                    <p class="text-muted small mb-2">Đánh giá của bạn về bác sĩ <strong id="ratingDoctorName"></strong> cho lịch khám này.</p>
+                    
+                    <!-- Star rating selector -->
+                    <div class="d-flex justify-content-center gap-2 mb-3" id="doctorRatingStars">
+                        <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="1" style="color: #ffc107; cursor: pointer;"></i>
+                        <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="2" style="color: #ffc107; cursor: pointer;"></i>
+                        <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="3" style="color: #ffc107; cursor: pointer;"></i>
+                        <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="4" style="color: #ffc107; cursor: pointer;"></i>
+                        <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="5" style="color: #ffc107; cursor: pointer;"></i>
+                    </div>
+                    <input type="hidden" id="doctorRatingValue" value="0">
+                    <input type="hidden" id="ratingAppointmentId" value="0">
+                    <input type="hidden" id="ratingDoctorId" value="0">
+                    
+                    <div class="mb-3 text-start">
+                        <label for="doctorRatingComment" class="form-label small fw-semibold text-muted">Nhận xét của bạn (Không bắt buộc)</label>
+                        <textarea class="form-control" id="doctorRatingComment" rows="3" maxlength="1000" placeholder="Chia sẻ thêm chi tiết về buổi khám bệnh..." style="border-radius: 10px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitDoctorRating()">Gửi đánh giá</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let docModalObj = null;
+
+        function openDoctorRatingModal(apptId, docId, docName) {
+            if (!docModalObj) {
+                docModalObj = new bootstrap.Modal(document.getElementById('doctorRatingModal'));
+            }
+            // Reset fields
+            document.getElementById('ratingAppointmentId').value = apptId;
+            document.getElementById('ratingDoctorId').value = docId;
+            document.getElementById('ratingDoctorName').innerText = docName;
+            document.getElementById('doctorRatingValue').value = '0';
+            document.getElementById('doctorRatingComment').value = '';
+            resetStarDisplay('doctorRatingStars');
+            docModalObj.show();
+        }
+
+        // Star rating visual handlers for doctor
+        document.querySelectorAll('#doctorRatingStars .star-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const value = parseInt(this.getAttribute('data-value'));
+                document.getElementById('doctorRatingValue').value = value;
+                updateStarDisplay('doctorRatingStars', value);
+            });
+            btn.addEventListener('mouseover', function() {
+                const value = parseInt(this.getAttribute('data-value'));
+                updateStarDisplay('doctorRatingStars', value);
+            });
+            btn.addEventListener('mouseout', function() {
+                const selectedVal = parseInt(document.getElementById('doctorRatingValue').value);
+                updateStarDisplay('doctorRatingStars', selectedVal);
+            });
+        });
+
+        function submitDoctorRating() {
+            const apptId = parseInt(document.getElementById('ratingAppointmentId').value);
+            const val = parseInt(document.getElementById('doctorRatingValue').value);
+            const comment = document.getElementById('doctorRatingComment').value;
+
+            if (val < 1 || val > 5) {
+                alert('Vui lòng chọn số sao đánh giá (1-5 sao).');
+                return;
+            }
+
+            fetch('/api/ratings/doctor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ appointmentId: apptId, ratingValue: val, comment: comment })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    docModalObj.hide();
+                    window.location.reload(); // Reload to refresh rating status
+                } else {
+                    alert('Gửi đánh giá thất bại: ' + (data.message || 'Lỗi không xác định'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Đã xảy ra lỗi khi gửi đánh giá.');
+            });
         }
     </script>
     <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
