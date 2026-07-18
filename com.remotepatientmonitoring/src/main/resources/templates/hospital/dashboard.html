@@ -207,9 +207,9 @@
             <i class="bi bi-journal-medical"></i>
             <span>Cẩm nang & Chỉ dẫn</span>
         </a>
-        <a th:href="@{/hospital/ratings}" class="menu-item">
-            <i class="bi bi-star"></i>
-            <span>Quản lý Đánh giá</span>
+        <a th:href="@{/hospital/profile}" class="menu-item ">
+            <i class="bi bi-hospital"></i>
+            <span>Hồ sơ Bệnh viện</span>
         </a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item">
             <i class="bi bi-clock-history"></i>
@@ -244,9 +244,8 @@
                 <h6 class="mb-0 fw-semibold" th:text="${overview.hospitalName}">Tên Bệnh viện</h6>
                 <small class="text-muted">Hospital Admin</small>
             </div>
-            <div class="rounded-circle d-flex align-items-center justify-content-center border" style="width: 40px; height: 40px; overflow: hidden; background: #e8f0fe;">
-                <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="w-100 h-100" style="object-fit: cover;">
-                <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="bi bi-building text-primary fs-5"></i>
+            <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-building"></i>
             </div>
         </div>
     </div>

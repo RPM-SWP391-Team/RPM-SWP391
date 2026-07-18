@@ -195,10 +195,11 @@
             <i class="bi bi-journal-medical"></i>
             <span>Cẩm nang & Chỉ dẫn</span>
         </a>
-        <a th:href="@{/hospital/ratings}" class="menu-item">
-            <i class="bi bi-star"></i>
-            <span>Quản lý Đánh giá</span>
+        <a th:href="@{/hospital/profile}" class="menu-item ">
+            <i class="bi bi-hospital"></i>
+            <span>Hồ sơ Bệnh viện</span>
         </a>
+
         <a th:href="@{/hospital/audit-logs}" class="menu-item active">
             <i class="bi bi-clock-history"></i>
             <span>Nhật ký Hệ thống</span>
@@ -413,7 +414,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Hàm bảo vệ HTML chống vỡ layout khi nội dung có ký tự đặc biệt (<, >)
     function escapeHtml(unsafe) {
         if (unsafe == null) return '-';
         return unsafe
@@ -425,7 +425,6 @@
             .replace(/'/g, "&#039;");
     }
 
-    // Sidebar responsive toggle
     const toggleSidebarBtn = document.getElementById('toggleSidebar');
     const sidebar = document.getElementById('sidebar');
     if (toggleSidebarBtn && sidebar) {
@@ -434,7 +433,6 @@
         });
     }
 
-    // XỬ LÝ ĐỔ DỮ LIỆU VÀO MODAL THÔNG MINH
     const detailButtons = document.querySelectorAll('.btn-detail');
     detailButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -447,7 +445,6 @@
             const oldValue = this.getAttribute('data-old') || '';
             const newValue = this.getAttribute('data-new') || '';
 
-            // Update header info
             document.getElementById('modalActionBadge').textContent = action;
             document.getElementById('modalTargetInfo').textContent = `Bảng: ${targetTable} (ID: ${targetId})`;
             document.getElementById('modalActorInfo').textContent = `${actorType} (ID: ${actorId})`;
@@ -457,7 +454,6 @@
             container.innerHTML = '';
 
             try {
-                // Kiểm tra an toàn xem dữ liệu có phải là JSON object hay không
                 const isOldJson = oldValue && typeof oldValue === 'string' && oldValue.trim().startsWith('{');
                 const isNewJson = newValue && typeof newValue === 'string' && newValue.trim().startsWith('{');
 
@@ -467,54 +463,80 @@
 
                     let html = '';
 
-                    // 1. GIAO DIỆN RIÊNG CHO ĐIỀU CHUYỂN BỆNH NHÂN (ASSIGN_PATIENTS)
-                    // 1. GIAO DIỆN RIÊNG CHO ĐIỀU CHUYỂN BỆNH NHÂN (ASSIGN_PATIENTS)
-                    if (action === 'ASSIGN_PATIENTS') {
-                        let doctorIdStr = newObj.doctorId ? escapeHtml(newObj.doctorId) : 'N/A';
-                        // Hỗ trợ đọc key mới (patients) và key cũ (patientIds)
-                        let patientsArr = newObj.patients || newObj.patientIds || newObj.patient_ids || [];
+                    // ==========================================
+                    // 1. GIAO DIỆN RIÊNG CHO ĐIỀU CHUYỂN BỆNH NHÂN
+                    // ==========================================
+                    if (action === 'ASSIGN_PATIENTS' || action === 'DEACTIVATE_DOCTOR') {
+                        let transfersArr = newObj.transfers || [];
+                        let targetDocName = newObj.oldDoctorName || (notes && notes !== 'null' ? notes.split(' (Bởi:')[0] : 'Bác sĩ bị vô hiệu hóa');
 
-                        html += `<h6 class="fw-bold mb-3 text-success"><i class="bi bi-arrow-left-right me-1"></i>Chi tiết Điều chuyển bệnh nhân</h6>
-            <table class="table table-bordered mb-0 bg-white small">
-                <thead class="table-light">
-                    <tr>
-                        <th>Mã Bác sĩ tiếp nhận (ID)</th>
-                        <th>Danh sách Bệnh nhân được phân</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="fw-bold fs-5 text-primary align-middle">${doctorIdStr}</td>
-                        <td>
-                            <div class="d-flex flex-wrap gap-2">`;
+                        html += `<h6 class="fw-bold mb-3 text-danger"><i class="bi bi-arrow-left-right me-1"></i>Chi tiết Điều chuyển bệnh nhân & Vô hiệu hóa</h6>
+                        <table class="table table-bordered mb-0 bg-white small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 30%;">Bác sĩ bị vô hiệu hóa</th>
+                                    <th style="width: 35%;">Bác sĩ tiếp nhận</th>
+                                    <th style="width: 35%;">Danh sách bệnh nhân điều chuyển</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
 
-                        if (Array.isArray(patientsArr) && patientsArr.length > 0) {
-                            patientsArr.forEach(p => {
-                                // Nếu là log theo cấu trúc MỚI (Object JSON chứa id, code, name)
-                                if (typeof p === 'object' && p !== null) {
-                                    let pCode = p.code ? escapeHtml(p.code) : 'Chưa có mã';
-                                    let pName = p.name ? escapeHtml(p.name) : 'N/A';
-                                    html += `<span class="badge bg-light text-dark border p-2 text-start" style="min-width: 150px;">
-                            <strong class="text-primary">ID: ${escapeHtml(p.id)}</strong><br>
-                            <span class="text-muted small">${pCode}</span><br>
-                            <span class="fw-medium">${pName}</span>
-                         </span>`;
-                                }
-                                // Nếu là log theo cấu trúc CŨ (Chỉ lưu mảng số ID)
-                                else {
-                                    html += `<span class="badge bg-secondary py-2 px-3">BN ID: ${escapeHtml(p)}</span>`;
-                                }
+                        if (Array.isArray(transfersArr) && transfersArr.length > 0) {
+                            let doctorMap = {};
+                            transfersArr.forEach(t => {
+                                let docKey = t.newDoctorId ? `ID: ${t.newDoctorId} - ${t.newDoctorName || 'N/A'}` : 'Chưa rõ bác sĩ';
+                                if (!doctorMap[docKey]) doctorMap[docKey] = [];
+                                doctorMap[docKey].push(t);
                             });
+
+                            let rowCount = Object.keys(doctorMap).length;
+                            let isFirstRow = true;
+
+                            for (let doc in doctorMap) {
+                                html += `<tr>`;
+
+                                if (isFirstRow) {
+                                    html += `<td rowspan="${rowCount}" class="align-middle bg-light text-center">
+                                                <span class="text-danger fw-bold d-block">ID Bác sĩ: ${targetId}</span>
+                                                <span class="text-muted small d-block mt-1">${escapeHtml(targetDocName)}</span>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger mt-2">NGỪNG HOẠT ĐỘNG</span>
+                                             </td>`;
+                                    isFirstRow = false;
+                                }
+
+                                html += `   <td class="align-middle text-primary fw-bold"><i class="bi bi-person-check-fill text-success me-1"></i>${doc}</td>
+                                            <td class="align-middle">
+                                                <div class="d-flex flex-column gap-2">`;
+                                doctorMap[doc].forEach(p => {
+                                    let patientNameDisplay = p.patientName ? escapeHtml(p.patientName) : `Mã số BN: ID ${escapeHtml(p.patientId)}`;
+                                    let patientCodeStr = p.patientCode && p.patientCode !== 'Chưa có mã' ? ` (${escapeHtml(p.patientCode)})` : '';
+
+                                    html += `<div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="fw-bold text-dark d-block">${patientNameDisplay}${patientCodeStr}</span>
+                                                    <small class="text-muted text-success-emphasis"><i class="bi bi-shield-check me-1"></i>Hồ sơ, lịch hẹn và cảnh báo đã được bảo toàn bàn giao</small>
+                                                </div>
+                                             </div>`;
+                                });
+                                html += `       </div>
+                                            </td>
+                                         </tr>`;
+                            }
                         } else {
-                            html += `<span class="text-muted">Không có bệnh nhân nào cần điều chuyển</span>`;
+                            html += `<tr>
+                                        <td class="align-middle bg-light">
+                                            <span class="text-danger fw-bold">ID: ${targetId}</span>
+                                        </td>
+                                        <td colspan="2" class="align-middle text-muted py-3 text-center">
+                                            <i class="bi bi-info-circle me-1"></i> Không có bệnh nhân nào cần điều chuyển (Bác sĩ chưa có bệnh nhân phụ trách).
+                                        </td>
+                                     </tr>`;
                         }
-                        html += `               </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>`;
+                        html += `   </tbody></table>`;
                     }
-                    // 2. GIAO DIỆN CHUNG SO SÁNH JSON (TẠO MỚI, CẬP NHẬT, KÍCH HOẠT LẠI)
+                        // ==========================================
+                        // 2. GIAO DIỆN CHUNG SO SÁNH BIẾN ĐỘNG (JSON)
+                    // ==========================================
                     else {
                         html += `<h6 class="fw-bold mb-3 text-primary"><i class="bi bi-cpu-fill me-1"></i>Chi tiết thông số thay đổi cấu trúc</h6>
                                 <table class="table table-sm table-bordered bg-white mb-0">
@@ -529,28 +551,50 @@
 
                         let allKeys = Array.from(new Set([...Object.keys(oldObj), ...Object.keys(newObj)]));
                         allKeys.forEach(key => {
-                            let oldVal = (oldObj[key] !== undefined) ? String(oldObj[key]) : '-';
-                            let newVal = (newObj[key] !== undefined) ? String(newObj[key]) : '-';
+                            if (key === 'password') return; // Bảo mật: Không in password ra log
 
-                            // Tô màu highlight nếu giá trị thay đổi
-                            let isChanged = (oldVal !== newVal && oldVal !== '-' && newVal !== '-');
+                            let rawOldVal = oldObj[key];
+                            let rawNewVal = newObj[key];
+
+                            // Ép kiểu chuỗi để so sánh chính xác
+                            let oldValStr = (rawOldVal !== undefined && rawOldVal !== null) ? String(rawOldVal).trim() : '';
+                            let newValStr = (rawNewVal !== undefined && rawNewVal !== null) ? String(rawNewVal).trim() : '';
+
+                            let isChanged = false;
+
+                            // ĐIỀU KIỆN 1: Nếu có truyền giá trị mới, và giá trị mới KHÁC giá trị cũ -> Là THAY ĐỔI
+                            if (newValStr !== '' && newValStr !== oldValStr) {
+                                isChanged = true;
+                            }
+
+                            // ĐIỀU KIỆN 2: Render ra hiển thị
+                            let displayOld = oldValStr !== '' ? oldValStr : '-';
+
+                            // YÊU CẦU CỦA BẠN: Nếu KHÔNG thay đổi -> KHÔNG HIỆN giá trị mới (trả về '-')
+                            let displayNew = isChanged ? newValStr : '-';
+
                             let highlightClass = isChanged ? 'bg-warning bg-opacity-10' : '';
 
+                            // YÊU CẦU CỦA BẠN: Nếu KHÔNG thay đổi -> Giá trị cũ KHÔNG bị gạch ngang (dùng text-secondary)
+                            let oldTextClass = isChanged ? 'text-danger text-decoration-line-through' : 'text-secondary fw-medium';
+                            let newTextClass = isChanged ? 'text-success fw-bold' : 'text-muted';
+
                             html += `<tr class="${highlightClass}">
-                                        <td class="fw-bold text-secondary text-capitalize">${escapeHtml(key)}</td>
-                                        <td class="text-danger">${escapeHtml(oldVal)}</td>
-                                        <td class="text-success fw-semibold">${escapeHtml(newVal)}</td>
+                                        <td class="fw-bold text-secondary text-capitalize" style="padding-left: 10px;">${escapeHtml(key)}</td>
+                                        <td class="${oldTextClass}">${escapeHtml(displayOld)}</td>
+                                        <td class="${newTextClass}">${escapeHtml(displayNew)}</td>
                                      </tr>`;
                         });
                         html += `</tbody></table>`;
                     }
                     container.innerHTML = html;
                 } else {
-                    // Nếu là văn bản bình thường (Không phải JSON), quăng lỗi xuống khối catch để xử lý hiển thị text thô
                     throw new Error("Plain text data");
                 }
             } catch (e) {
-                // 3. FALLBACK AN TOÀN: HIỂN THỊ TEXT THÔ CHO CÁC LUỒNG CẤU HÌNH NGƯỠNG/CẨM NANG
+                // ==========================================
+                // 3. FALLBACK HIỂN THỊ TEXT THÔ
+                // ==========================================
                 container.innerHTML = `
                     <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-file-text me-1"></i>Chi tiết nội dung</h6>
                     <div class="row g-2">
