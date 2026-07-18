@@ -60,4 +60,27 @@ public class Doctor {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @Transient
+    private Double averageRating;
+
+    @Transient
+    private Long ratingCount;
+
+    public String getRatingDisplay() {
+        if (ratingCount == null || ratingCount == 0) {
+            return "Chưa có đánh giá";
+        }
+        double avg = averageRating != null ? averageRating : 0.0;
+        int stars = (int) Math.round(avg);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i <= 5; i++) {
+            if (i <= stars) {
+                sb.append("⭐");
+            } else {
+                sb.append("☆");
+            }
+        }
+        return String.format("%s %.1f/5 (%d đánh giá)", sb.toString(), avg, ratingCount);
+    }
 }

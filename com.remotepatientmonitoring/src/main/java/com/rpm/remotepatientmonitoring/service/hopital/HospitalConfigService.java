@@ -45,6 +45,9 @@ public class HospitalConfigService {
     private FoodDictionaryRepository foodDictionaryRepository;
 
     @Autowired
+    private PatientMealRepository patientMealRepository;
+
+    @Autowired
     private DiseaseProfileRepository diseaseProfileRepository;
 
     @Autowired
@@ -482,15 +485,41 @@ public class HospitalConfigService {
         return exerciseGuidelineRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
     }
 
+    private void validateGuideline(Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        if (diseaseProfileId == null) {
+            throw new IllegalArgumentException("diseaseProfileId:Vui lòng chọn nhóm bệnh.");
+        }
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("title:Tiêu đề không được để trống.");
+        }
+        if (title.trim().length() > 255) {
+            throw new IllegalArgumentException("title:Tiêu đề tối đa 255 ký tự.");
+        }
+        if (recommendedContent == null || recommendedContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("recommendedContent:Nội dung nên làm không được để trống.");
+        }
+        if (recommendedContent.trim().length() < 10) {
+            throw new IllegalArgumentException("recommendedContent:Nội dung nên làm phải có tối thiểu 10 ký tự.");
+        }
+        if (avoidContent == null || avoidContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("avoidContent:Nội dung cần tránh không được để trống.");
+        }
+        if (avoidContent.trim().length() < 10) {
+            throw new IllegalArgumentException("avoidContent:Nội dung cần tránh phải có tối thiểu 10 ký tự.");
+        }
+    }
+
     @Transactional
     public ExerciseGuideline addExerciseGuideline(Integer hospitalId, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        validateGuideline(diseaseProfileId, title, recommendedContent, avoidContent);
+
         exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, hospitalId)
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException("Đã tồn tại khuyến nghị tập luyện đang hoạt động cho nhóm bệnh này.");
+                    throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
                 });
 
         DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm bệnh lý."));
+                .orElseThrow(() -> new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý."));
 
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện."));
@@ -498,9 +527,9 @@ public class HospitalConfigService {
         ExerciseGuideline guideline = new ExerciseGuideline();
         guideline.setHospital(hospital);
         guideline.setDiseaseProfile(profile);
-        guideline.setTitle(title);
-        guideline.setRecommendedContent(recommendedContent);
-        guideline.setAvoidContent(avoidContent);
+        guideline.setTitle(title.trim());
+        guideline.setRecommendedContent(recommendedContent.trim());
+        guideline.setAvoidContent(avoidContent.trim());
         guideline.setIsActive(true);
         guideline.setCreatedAt(LocalDateTime.now());
 
@@ -521,11 +550,13 @@ public class HospitalConfigService {
         ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
 
+        validateGuideline(diseaseProfileId, title, recommendedContent, avoidContent);
+
         if (!existing.getDiseaseProfile().getId().equals(diseaseProfileId)) {
             exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, existing.getHospital().getId())
                     .ifPresent(other -> {
                         if (!other.getId().equals(id)) {
-                            throw new IllegalArgumentException("Đã tồn tại khuyến nghị tập luyện đang hoạt động cho nhóm bệnh này.");
+                            throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
                         }
                     });
         }
@@ -536,12 +567,12 @@ public class HospitalConfigService {
         } catch (Exception ignored) {}
 
         DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhóm bệnh lý."));
+                .orElseThrow(() -> new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý."));
 
         existing.setDiseaseProfile(profile);
-        existing.setTitle(title);
-        existing.setRecommendedContent(recommendedContent);
-        existing.setAvoidContent(avoidContent);
+        existing.setTitle(title.trim());
+        existing.setRecommendedContent(recommendedContent.trim());
+        existing.setAvoidContent(avoidContent.trim());
 
         ExerciseGuideline saved = exerciseGuidelineRepository.save(existing);
 
@@ -581,17 +612,57 @@ public class HospitalConfigService {
     // ==========================================
     public Page<FoodDictionary> searchFoods(String search, Pageable pageable) {
         if (search == null || search.trim().isEmpty()) {
-            return foodDictionaryRepository.findAll(pageable);
+            return foodDictionaryRepository.findByIsActiveTrue(pageable);
         }
-        return foodDictionaryRepository.findByFoodNameContainingIgnoreCaseOrEnglishNameContainingIgnoreCase(search, search, pageable);
+        return foodDictionaryRepository.findByIsActiveTrueAndFoodNameContainingIgnoreCaseOrIsActiveTrueAndEnglishNameContainingIgnoreCase(search, search, pageable);
+    }
+
+    public long getDietLogsCountByFoodId(Integer foodId) {
+        return patientMealRepository.countByFoodId(foodId);
+    }
+
+    private void validateFood(FoodDictionary food) {
+        if (food.getFoodCode() == null || food.getFoodCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("foodCode:Mã thực phẩm không được để trống.");
+        }
+        if (food.getFoodCode().trim().length() > 50) {
+            throw new IllegalArgumentException("foodCode:Mã thực phẩm tối đa 50 ký tự.");
+        }
+        if (food.getFoodName() == null || food.getFoodName().trim().isEmpty()) {
+            throw new IllegalArgumentException("foodName:Tên món ăn không được để trống.");
+        }
+        if (food.getFoodName().trim().length() > 255) {
+            throw new IllegalArgumentException("foodName:Tên món ăn tối đa 255 ký tự.");
+        }
+        if (food.getEnglishName() != null) {
+            String trimmedEng = food.getEnglishName().trim();
+            if (trimmedEng.length() > 255) {
+                throw new IllegalArgumentException("englishName:Tên tiếng Anh tối đa 255 ký tự.");
+            }
+            food.setEnglishName(trimmedEng.isEmpty() ? null : trimmedEng);
+        }
+        validateFoodNutrients(food);
+    }
+
+    private void validateFoodNutrients(FoodDictionary food) {
+        if (food.getWaterG() != null && food.getWaterG().doubleValue() < 0) throw new IllegalArgumentException("waterG:Nước (g) phải >= 0");
+        if (food.getEnergyKcal() != null && food.getEnergyKcal() < 0) throw new IllegalArgumentException("energyKcal:Calo (kcal) phải >= 0");
+        if (food.getProteinG() != null && food.getProteinG().doubleValue() < 0) throw new IllegalArgumentException("proteinG:Đạm (g) phải >= 0");
+        if (food.getLipidG() != null && food.getLipidG().doubleValue() < 0) throw new IllegalArgumentException("lipidG:Béo (g) phải >= 0");
+        if (food.getGlucidG() != null && food.getGlucidG().doubleValue() < 0) throw new IllegalArgumentException("glucidG:Tinh bột (g) phải >= 0");
+        if (food.getCellulozaG() != null && food.getCellulozaG().doubleValue() < 0) throw new IllegalArgumentException("cellulozaG:Xơ (g) phải >= 0");
+        if (food.getAshG() != null && food.getAshG().doubleValue() < 0) throw new IllegalArgumentException("ashG:Tro (g) phải >= 0");
     }
 
     @Transactional
     public FoodDictionary addFood(FoodDictionary food) {
+        validateFood(food);
+        food.setFoodCode(food.getFoodCode().trim());
+        food.setFoodName(food.getFoodName().trim());
+
         if (foodDictionaryRepository.existsByFoodCode(food.getFoodCode())) {
-            throw new IllegalArgumentException("Mã món ăn (food_code) đã tồn tại.");
+            throw new IllegalArgumentException("foodCode:Mã thực phẩm đã tồn tại.");
         }
-        validateFoodNutrients(food);
 
         food.setIsActive(true);
         food.setCreatedAt(LocalDateTime.now());
@@ -611,13 +682,15 @@ public class HospitalConfigService {
         FoodDictionary existing = foodDictionaryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
 
+        validateFood(updated);
+        updated.setFoodCode(updated.getFoodCode().trim());
+        updated.setFoodName(updated.getFoodName().trim());
+
         if (!existing.getFoodCode().equals(updated.getFoodCode())) {
             if (foodDictionaryRepository.existsByFoodCode(updated.getFoodCode())) {
-                throw new IllegalArgumentException("Mã món ăn (food_code) đã tồn tại.");
+                throw new IllegalArgumentException("foodCode:Mã thực phẩm đã tồn tại.");
             }
         }
-
-        validateFoodNutrients(updated);
 
         String oldValueJson = "-";
         try {
@@ -668,15 +741,5 @@ public class HospitalConfigService {
         saveAuditLog("TOGGLE_FOOD_ACTIVE", "foods_dictionary", saved.getId(), oldValueJson, newValueJson, 
                      "Thay đổi trạng thái hoạt động món ăn thành: " + (saved.getIsActive() ? "Hoạt động" : "Vô hiệu hóa"));
         return saved;
-    }
-
-    private void validateFoodNutrients(FoodDictionary food) {
-        if (food.getWaterG() != null && food.getWaterG().doubleValue() < 0) throw new IllegalArgumentException("Nước (g) phải >= 0");
-        if (food.getEnergyKcal() != null && food.getEnergyKcal() < 0) throw new IllegalArgumentException("Calo (kcal) phải >= 0");
-        if (food.getProteinG() != null && food.getProteinG().doubleValue() < 0) throw new IllegalArgumentException("Đạm (g) phải >= 0");
-        if (food.getLipidG() != null && food.getLipidG().doubleValue() < 0) throw new IllegalArgumentException("Béo (g) phải >= 0");
-        if (food.getGlucidG() != null && food.getGlucidG().doubleValue() < 0) throw new IllegalArgumentException("Tinh bột (g) phải >= 0");
-        if (food.getCellulozaG() != null && food.getCellulozaG().doubleValue() < 0) throw new IllegalArgumentException("Xơ (g) phải >= 0");
-        if (food.getAshG() != null && food.getAshG().doubleValue() < 0) throw new IllegalArgumentException("Tro (g) phải >= 0");
     }
 }
