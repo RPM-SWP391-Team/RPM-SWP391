@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PatientMealRepository extends JpaRepository<PatientMeal, Integer> {
     List<PatientMeal> findByPatientIdAndLogDate(Integer patientId, LocalDate date);
+    long countByFoodId(Integer foodId);
 }

@@ -58,6 +58,7 @@
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item active"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
+        <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item"><i class="bi bi-clock-history"></i><span>Nhật ký Hệ thống</span></a>
     </div>
     <div class="sidebar-footer"><a th:href="@{/auth/logout}" class="menu-item text-danger w-100"><i class="bi bi-box-arrow-left"></i><span>Đăng xuất</span></a></div>
@@ -331,20 +332,24 @@
                                 <h6 class="fw-bold text-warning mb-3" id="glFormTitle"><i class="fa-solid fa-plus me-1"></i> Soạn Khuyến Nghị Mới</h6>
                                 <input type="hidden" id="guidelineId" name="guidelineId">
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 text-start">
                                         <select class="form-select form-select-sm" id="glDiseaseProfileId" name="diseaseProfileId" required>
                                             <option value="">-- Chọn nhóm bệnh --</option>
                                             <option th:each="dp : ${diseaseProfiles}" th:value="${dp.id}" th:text="${dp.profileName}"></option>
                                         </select>
+                                        <div class="text-danger small mt-1 gl-error" id="error-add-diseaseProfileId" style="display:none;"></div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-6 text-start">
                                         <input type="text" class="form-control form-control-sm" id="glTitle" name="title" required placeholder="Tiêu đề...">
+                                        <div class="text-danger small mt-1 gl-error" id="error-add-title" style="display:none;"></div>
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-12 text-start">
                                         <textarea class="form-control form-control-sm" id="glRecommended" name="recommendedContent" rows="3" required placeholder="Nên làm..."></textarea>
+                                        <div class="text-danger small mt-1 gl-error" id="error-add-recommendedContent" style="display:none;"></div>
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-12 text-start">
                                         <textarea class="form-control form-control-sm" id="glAvoid" name="avoidContent" rows="3" required placeholder="Cần tránh..."></textarea>
+                                        <div class="text-danger small mt-1 gl-error" id="error-add-avoidContent" style="display:none;"></div>
                                     </div>
                                     <div class="col-12 text-end">
                                         <button type="button" class="btn btn-secondary btn-sm px-3 me-2" onclick="resetGuidelineForm()">Hủy</button>
@@ -409,18 +414,22 @@
                                                     <select class="form-select form-select-sm" name="diseaseProfileId" required>
                                                         <option th:each="dp : ${diseaseProfiles}" th:value="${dp.id}" th:text="${dp.profileName}" th:selected="${dp.id == gl.diseaseProfile.id}"></option>
                                                     </select>
+                                                    <div class="text-danger small mt-1 gl-error" th:id="'error-edit-diseaseProfileId-' + ${gl.id}" style="display:none;"></div>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="small text-muted fw-semibold">Tiêu đề:</label>
                                                     <input type="text" class="form-control form-control-sm" name="title" th:value="${gl.title}" required>
+                                                    <div class="text-danger small mt-1 gl-error" th:id="'error-edit-title-' + ${gl.id}" style="display:none;"></div>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="small text-muted fw-semibold">Nên làm:</label>
                                                     <textarea class="form-control bg-white font-monospace fs-7" name="recommendedContent" rows="3" th:text="${gl.recommendedContent}" required></textarea>
+                                                    <div class="text-danger small mt-1 gl-error" th:id="'error-edit-recommendedContent-' + ${gl.id}" style="display:none;"></div>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="small text-muted fw-semibold">Cần tránh:</label>
                                                     <textarea class="form-control bg-white font-monospace fs-7" name="avoidContent" rows="3" th:text="${gl.avoidContent}" required></textarea>
+                                                    <div class="text-danger small mt-1 gl-error" th:id="'error-edit-avoidContent-' + ${gl.id}" style="display:none;"></div>
                                                 </div>
                                                 <div class="text-end">
                                                     <button type="button" class="btn btn-secondary btn-sm rounded-pill" th:onclick="'toggleEditGuideline(' + ${gl.id} + ')'">Hủy</button>
@@ -457,42 +466,52 @@
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Mã món ăn:</label>
                                         <input type="text" class="form-control form-control-sm" id="foodCode" name="foodCode" required placeholder="Ví dụ: COM_TAM">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-foodCode" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Tên món ăn:</label>
                                         <input type="text" class="form-control form-control-sm" id="foodName" name="foodName" required placeholder="Ví dụ: Cơm tấm sườn bì chả">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-foodName" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Tên tiếng Anh:</label>
                                         <input type="text" class="form-control form-control-sm" id="englishName" name="englishName" placeholder="English name">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-englishName" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Nước (g):</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" id="waterG" name="waterG" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="waterG" name="waterG" placeholder="0.00">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-waterG" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Năng lượng (kcal):</label>
-                                        <input type="number" class="form-control form-control-sm" id="energyKcal" name="energyKcal" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="energyKcal" name="energyKcal" placeholder="0">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-energyKcal" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Đạm (g):</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" id="proteinG" name="proteinG" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="proteinG" name="proteinG" placeholder="0.00">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-proteinG" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Béo (g):</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" id="lipidG" name="lipidG" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="lipidG" name="lipidG" placeholder="0.00">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-lipidG" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Tinh bột (g):</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" id="glucidG" name="glucidG" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="glucidG" name="glucidG" placeholder="0.00">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-glucidG" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Xơ (g):</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" id="cellulozaG" name="cellulozaG" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="cellulozaG" name="cellulozaG" placeholder="0.00">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-cellulozaG" style="display:none;"></div>
                                     </div>
                                     <div class="col-md-6 text-start">
                                         <label class="small text-muted fw-semibold">Tro (g):</label>
-                                        <input type="number" step="0.01" class="form-control form-control-sm" id="ashG" name="ashG" min="0" placeholder="0">
+                                        <input type="text" class="form-control form-control-sm" id="ashG" name="ashG" placeholder="0.00">
+                                        <div class="text-danger small mt-1 food-error" id="error-food-ashG" style="display:none;"></div>
                                     </div>
                                     <div class="col-12 text-end">
                                         <button type="button" class="btn btn-secondary btn-sm px-3 me-2" onclick="resetFoodForm()">Hủy</button>
@@ -677,15 +696,176 @@
         });
     }
 
+    // ==========================================
+    // JS HELPER FUNCTIONS FOR VALIDATION
+    // ==========================================
+    function clearGuidelineErrors() {
+        document.querySelectorAll('.gl-error').forEach(div => {
+            div.innerText = '';
+            div.style.display = 'none';
+        });
+    }
+
+    function showGuidelineError(field, message, id = '') {
+        const suffix = id ? '-' + id : '';
+        const prefix = id ? 'error-edit-' : 'error-add-';
+        const errorDiv = document.getElementById(prefix + field + suffix);
+        if (errorDiv) {
+            errorDiv.innerText = message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            alert(message);
+        }
+    }
+
+    function validateGuidelineFields(diseaseProfileId, title, recommendedContent, avoidContent, id = '') {
+        clearGuidelineErrors();
+        let isValid = true;
+
+        if (!diseaseProfileId) {
+            showGuidelineError('diseaseProfileId', 'Vui lòng chọn nhóm bệnh.', id);
+            isValid = false;
+        }
+
+        const trimmedTitle = title ? title.trim() : '';
+        if (!trimmedTitle) {
+            showGuidelineError('title', 'Tiêu đề không được để trống.', id);
+            isValid = false;
+        } else if (trimmedTitle.length > 255) {
+            showGuidelineError('title', 'Tiêu đề tối đa 255 ký tự.', id);
+            isValid = false;
+        }
+
+        const trimmedRecommended = recommendedContent ? recommendedContent.trim() : '';
+        if (!trimmedRecommended) {
+            showGuidelineError('recommendedContent', 'Nội dung nên làm không được để trống.', id);
+            isValid = false;
+        } else if (trimmedRecommended.length < 10) {
+            showGuidelineError('recommendedContent', 'Nội dung nên làm phải có tối thiểu 10 ký tự.', id);
+            isValid = false;
+        }
+
+        const trimmedAvoid = avoidContent ? avoidContent.trim() : '';
+        if (!trimmedAvoid) {
+            showGuidelineError('avoidContent', 'Nội dung cần tránh không được để trống.', id);
+            isValid = false;
+        } else if (trimmedAvoid.length < 10) {
+            showGuidelineError('avoidContent', 'Nội dung cần tránh phải có tối thiểu 10 ký tự.', id);
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function clearFoodErrors() {
+        document.querySelectorAll('.food-error').forEach(div => {
+            div.innerText = '';
+            div.style.display = 'none';
+        });
+    }
+
+    function showFoodError(field, message) {
+        const errorDiv = document.getElementById('error-food-' + field);
+        if (errorDiv) {
+            errorDiv.innerText = message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            alert(message);
+        }
+    }
+
+    function validateFoodFields(foodCode, foodName, englishName, waterG, energyKcal, proteinG, lipidG, glucidG, cellulozaG, ashG) {
+        clearFoodErrors();
+        let isValid = true;
+
+        const trimmedCode = foodCode ? foodCode.trim() : '';
+        if (!trimmedCode) {
+            showFoodError('foodCode', 'Mã thực phẩm không được để trống.');
+            isValid = false;
+        } else if (trimmedCode.length > 50) {
+            showFoodError('foodCode', 'Mã thực phẩm tối đa 50 ký tự.');
+            isValid = false;
+        }
+
+        const trimmedName = foodName ? foodName.trim() : '';
+        if (!trimmedName) {
+            showFoodError('foodName', 'Tên món ăn không được để trống.');
+            isValid = false;
+        } else if (trimmedName.length > 255) {
+            showFoodError('foodName', 'Tên món ăn tối đa 255 ký tự.');
+            isValid = false;
+        }
+
+        const trimmedEng = englishName ? englishName.trim() : '';
+        if (trimmedEng && trimmedEng.length > 255) {
+            showFoodError('englishName', 'Tên tiếng Anh tối đa 255 ký tự.');
+            isValid = false;
+        }
+
+        // Helper check for positive decimals (DECIMAL(5,2))
+        const validateDecimal = (val, fieldName, fieldLabel) => {
+            if (val === null || val === undefined || val === '') return true;
+            const strVal = String(val).trim();
+            if (strVal === '') return true;
+            
+            if (!/^\d+(\.\d+)?$/.test(strVal)) {
+                showFoodError(fieldName, fieldLabel + ' phải là số không âm.');
+                return false;
+            }
+            const num = parseFloat(strVal);
+            if (num < 0) {
+                showFoodError(fieldName, fieldLabel + ' không được nhỏ hơn 0.');
+                return false;
+            }
+            if (!/^\d{1,3}(\.\d{1,2})?$/.test(strVal)) {
+                showFoodError(fieldName, fieldLabel + ' tối đa 3 chữ số phần nguyên và 2 chữ số thập phân (Ví dụ: 999.99).');
+                return false;
+            }
+            return true;
+        };
+
+        // Helper check for positive integer (INT)
+        const validateInt = (val, fieldName, fieldLabel) => {
+            if (val === null || val === undefined || val === '') return true;
+            const strVal = String(val).trim();
+            if (strVal === '') return true;
+
+            if (!/^\d+$/.test(strVal)) {
+                showFoodError(fieldName, fieldLabel + ' phải là số nguyên không âm.');
+                return false;
+            }
+            const num = parseInt(strVal, 10);
+            if (num < 0) {
+                showFoodError(fieldName, fieldLabel + ' không được nhỏ hơn 0.');
+                return false;
+            }
+            return true;
+        };
+
+        if (!validateDecimal(waterG, 'waterG', 'Nước (g)')) isValid = false;
+        if (!validateInt(energyKcal, 'energyKcal', 'Năng lượng (kcal)')) isValid = false;
+        if (!validateDecimal(proteinG, 'proteinG', 'Đạm (g)')) isValid = false;
+        if (!validateDecimal(lipidG, 'lipidG', 'Béo (g)')) isValid = false;
+        if (!validateDecimal(glucidG, 'glucidG', 'Tinh bột (g)')) isValid = false;
+        if (!validateDecimal(cellulozaG, 'cellulozaG', 'Xơ (g)')) isValid = false;
+        if (!validateDecimal(ashG, 'ashG', 'Tro (g)')) isValid = false;
+
+        return isValid;
+    }
+
     function toggleEditGuideline(id) {
         const viewMode = document.getElementById('viewModeGuideline-' + id);
         const editMode = document.getElementById('editModeGuideline-' + id);
         if (viewMode.style.display === 'none') {
             viewMode.style.display = 'block';
             editMode.style.display = 'none';
+            clearGuidelineErrors();
         } else {
             viewMode.style.display = 'none';
             editMode.style.display = 'block';
+            clearGuidelineErrors();
         }
     }
 
@@ -696,6 +876,10 @@
         const title = document.getElementById('glTitle').value;
         const recommendedContent = document.getElementById('glRecommended').value;
         const avoidContent = document.getElementById('glAvoid').value;
+
+        if (!validateGuidelineFields(diseaseProfileId, title, recommendedContent, avoidContent)) {
+            return;
+        }
 
         const url = id ? `/hospital/exercise-guidelines/${id}` : '/hospital/exercise-guidelines';
         const method = id ? 'PUT' : 'POST';
@@ -709,7 +893,14 @@
             if (res.ok) {
                 location.reload();
             } else {
-                res.text().then(text => alert(text || "Lỗi khi lưu khuyến nghị."));
+                res.text().then(text => {
+                    if (text && text.includes(':')) {
+                        const [field, msg] = text.split(/:(.*)/s);
+                        showGuidelineError(field, msg);
+                    } else {
+                        alert(text || "Lỗi khi lưu khuyến nghị.");
+                    }
+                });
             }
         })
         .catch(err => alert("Lỗi kết nối máy chủ."));
@@ -723,6 +914,10 @@
         const recommendedContent = form.elements['recommendedContent'].value;
         const avoidContent = form.elements['avoidContent'].value;
 
+        if (!validateGuidelineFields(diseaseProfileId, title, recommendedContent, avoidContent, id)) {
+            return;
+        }
+
         fetch(`/hospital/exercise-guidelines/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -732,14 +927,21 @@
             if (res.ok) {
                 location.reload();
             } else {
-                res.text().then(text => alert(text || "Lỗi khi cập nhật khuyến nghị."));
+                res.text().then(text => {
+                    if (text && text.includes(':')) {
+                        const [field, msg] = text.split(/:(.*)/s);
+                        showGuidelineError(field, msg, id);
+                    } else {
+                        alert(text || "Lỗi khi cập nhật khuyến nghị.");
+                    }
+                });
             }
         })
         .catch(err => alert("Lỗi kết nối máy chủ."));
     }
 
     function handleDeleteGuideline(id) {
-        if (confirm("Bạn có chắc chắn muốn XÓA/VÔ HIỆU HÓA khuyến nghị này không?")) {
+        if (confirm("Xác nhận vô hiệu hóa khuyến nghị tập luyện này? Khuyến nghị sẽ bị ẩn khỏi trang của bệnh nhân, nhưng lịch sử dữ liệu cũ sẽ không thay đổi.")) {
             fetch(`/hospital/exercise-guidelines/${id}`, {
                 method: 'DELETE'
             })
@@ -747,7 +949,7 @@
                 if (res.ok) {
                     location.reload();
                 } else {
-                    res.text().then(text => alert(text || "Lỗi khi xóa."));
+                    res.text().then(text => alert(text || "Lỗi khi vô hiệu hóa khuyến nghị."));
                 }
             })
             .catch(err => alert("Lỗi kết nối máy chủ."));
@@ -762,6 +964,8 @@
         document.getElementById('glAvoid').value = '';
         document.getElementById('glFormTitle').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Soạn Khuyến Nghị Mới';
         
+        clearGuidelineErrors();
+
         const formCollapse = bootstrap.Collapse.getInstance(document.getElementById('collapseGuidelineForm'));
         if (formCollapse) formCollapse.hide();
     }
@@ -832,7 +1036,7 @@
                         <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="editFood(${f.id}, '${escapedCode}', '${escapedName}', '${escapedEng}', ${f.waterG || 0}, ${f.energyKcal || 0}, ${f.proteinG || 0}, ${f.lipidG || 0}, ${f.glucidG || 0}, ${f.cellulozaG || 0}, ${f.ashG || 0})">
                             Sửa
                         </button>
-                        <button type="button" class="btn btn-sm ${toggleBtnClass} py-0 px-2" onclick="toggleFoodActive(${f.id})">
+                        <button type="button" class="btn btn-sm ${toggleBtnClass} py-0 px-2" onclick="toggleFoodActive(${f.id}, ${f.isActive})">
                             ${toggleBtnText}
                         </button>
                     </div>
@@ -870,6 +1074,7 @@
     }
 
     function editFood(id, code, name, engName, water, energy, protein, lipid, glucid, celluloza, ash) {
+        clearFoodErrors();
         document.getElementById('foodId').value = id;
         document.getElementById('foodCode').value = code;
         document.getElementById('foodName').value = name;
@@ -895,13 +1100,32 @@
         const foodCode = document.getElementById('foodCode').value;
         const foodName = document.getElementById('foodName').value;
         const englishName = document.getElementById('englishName').value;
-        const waterG = document.getElementById('waterG').value ? parseFloat(document.getElementById('waterG').value) : null;
-        const energyKcal = document.getElementById('energyKcal').value ? parseInt(document.getElementById('energyKcal').value) : null;
-        const proteinG = document.getElementById('proteinG').value ? parseFloat(document.getElementById('proteinG').value) : null;
-        const lipidG = document.getElementById('lipidG').value ? parseFloat(document.getElementById('lipidG').value) : null;
-        const glucidG = document.getElementById('glucidG').value ? parseFloat(document.getElementById('glucidG').value) : null;
-        const cellulozaG = document.getElementById('cellulozaG').value ? parseFloat(document.getElementById('cellulozaG').value) : null;
-        const ashG = document.getElementById('ashG').value ? parseFloat(document.getElementById('ashG').value) : null;
+        const waterRaw = document.getElementById('waterG').value;
+        const energyRaw = document.getElementById('energyKcal').value;
+        const proteinRaw = document.getElementById('proteinG').value;
+        const lipidRaw = document.getElementById('lipidG').value;
+        const glucidRaw = document.getElementById('glucidG').value;
+        const cellulozaRaw = document.getElementById('cellulozaG').value;
+        const ashRaw = document.getElementById('ashG').value;
+
+        if (!validateFoodFields(foodCode, foodName, englishName, waterRaw, energyRaw, proteinRaw, lipidRaw, glucidRaw, cellulozaRaw, ashRaw)) {
+            return;
+        }
+
+        const waterG = waterRaw ? parseFloat(waterRaw) : null;
+        const energyKcal = energyRaw ? parseInt(energyRaw, 10) : null;
+        const proteinG = proteinRaw ? parseFloat(proteinRaw) : null;
+        const lipidG = lipidRaw ? parseFloat(lipidRaw) : null;
+        const glucidG = glucidRaw ? parseFloat(glucidRaw) : null;
+        const cellulozaG = cellulozaRaw ? parseFloat(cellulozaRaw) : null;
+        const ashG = ashRaw ? parseFloat(ashRaw) : null;
+
+        // Warn user if energy > 900 kcal/100g
+        if (energyKcal !== null && energyKcal > 900) {
+            if (!confirm("Giá trị calo có vẻ cao bất thường, bạn có chắc muốn lưu?")) {
+                return;
+            }
+        }
 
         const payload = { foodCode, foodName, englishName, waterG, energyKcal, proteinG, lipidG, glucidG, cellulozaG, ashG };
         const url = id ? `/hospital/foods/${id}` : '/hospital/foods';
@@ -917,13 +1141,51 @@
                 resetFoodForm();
                 loadFoodPage(currentFoodPage);
             } else {
-                res.text().then(text => alert(text || "Lỗi khi lưu món ăn."));
+                res.text().then(text => {
+                    if (text && text.includes(':')) {
+                        const [field, msg] = text.split(/:(.*)/s);
+                        showFoodError(field, msg);
+                    } else {
+                        alert(text || "Lỗi khi lưu món ăn.");
+                    }
+                });
             }
         })
         .catch(err => alert("Lỗi kết nối máy chủ."));
     }
 
-    function toggleFoodActive(id) {
+    function toggleFoodActive(id, isActive) {
+        if (isActive) {
+            // Disabling the food, we need to check diet logs count first
+            fetch(`/hospital/foods/${id}/diet-logs-count`)
+            .then(res => res.json())
+            .then(count => {
+                let confirmMessage = "";
+                if (count > 0) {
+                    confirmMessage = `Món ăn này đã được ${count} bệnh nhân ghi nhận trong nhật ký ăn uống. Vô hiệu hóa sẽ không xóa dữ liệu cũ, chỉ ẩn khỏi danh sách chọn mới. Tiếp tục?`;
+                } else {
+                    confirmMessage = "Bạn có chắc chắn muốn vô hiệu hóa món ăn này không?";
+                }
+                
+                if (confirm(confirmMessage)) {
+                    executeToggleFoodActive(id);
+                }
+            })
+            .catch(err => {
+                console.error("Lỗi khi kiểm tra lịch sử ăn uống:", err);
+                if (confirm("Không thể kiểm tra lịch sử sử dụng món ăn. Bạn có chắc muốn tiếp tục vô hiệu hóa không?")) {
+                    executeToggleFoodActive(id);
+                }
+            });
+        } else {
+            // Enabling the food, show a simple confirm dialog
+            if (confirm("Bạn có chắc chắn muốn kích hoạt món ăn này không?")) {
+                executeToggleFoodActive(id);
+            }
+        }
+    }
+
+    function executeToggleFoodActive(id) {
         fetch(`/hospital/foods/${id}/toggle-active`, {
             method: 'PATCH'
         })
@@ -951,6 +1213,8 @@
         document.getElementById('ashG').value = '';
 
         document.getElementById('foodFormTitle').innerHTML = '<i class="fa-solid fa-plus me-1"></i> Thêm Món Ăn Mới';
+        
+        clearFoodErrors();
 
         const formCollapse = bootstrap.Collapse.getInstance(document.getElementById('collapseFoodForm'));
         if (formCollapse) formCollapse.hide();

@@ -4,6 +4,7 @@ import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.service.doctor.TreatmentPlanWorkflowService;
+import com.rpm.remotepatientmonitoring.service.RatingService;
 import com.rpm.remotepatientmonitoring.dto.hopital.AlertThresholdsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -58,6 +59,7 @@ public class DoctorViewController {
     private final MedicationLogRepository medicationLogRepository;
     private final PatientExerciseRepository patientExerciseRepository;
     private final WaterLogRepository waterLogRepository;
+    private final RatingService ratingService;
     private final ChangeRequestRepository changeRequestRepository;
     private final AlertThresholdRepository alertThresholdRepository;
     private final com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService auditTrailService;
@@ -343,6 +345,8 @@ public class DoctorViewController {
         // Fetch eagerly để tránh LazyInitializationException trong Thymeleaf
         String doctorEmail  = doctor.getAccount()  != null ? doctor.getAccount().getEmail()  : "N/A";
         String hospitalName = doctor.getHospital() != null ? doctor.getHospital().getFullName() : "N/A";
+
+        ratingService.populateDoctorRatings(doctor);
 
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("actualPatientCount", actualPatientCount);

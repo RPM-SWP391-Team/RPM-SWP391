@@ -24,6 +24,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
+import com.rpm.remotepatientmonitoring.service.RatingService;
+import com.rpm.remotepatientmonitoring.repository.DoctorRatingRepository;
+import com.rpm.remotepatientmonitoring.model.DoctorRating;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,6 +63,12 @@ public class PatientInteractionController {
 
     @Autowired
     private HealthLogRepository healthLogRepository;
+
+    @Autowired
+    private RatingService ratingService;
+
+    @Autowired
+    private DoctorRatingRepository doctorRatingRepository;
 
     @Autowired
     private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
@@ -195,11 +206,19 @@ public class PatientInteractionController {
         ObjectMapper objectMapper = new ObjectMapper();
 
         List<Doctor> doctors = doctorRepository.findAvailableDoctorsByHospital(patient.getHospital().getId());
+        ratingService.populateDoctorRatings(doctors);
+
+        // Fetch evaluated appointment IDs
+        List<DoctorRating> patientRatings = doctorRatingRepository.findByPatientId(patient.getId());
+        Set<Integer> evaluatedAppointmentIds = patientRatings.stream()
+                .map(r -> r.getAppointment().getId())
+                .collect(Collectors.toSet());
 
         model.addAttribute("patient", patient);
         model.addAttribute("doctors", doctors);
         model.addAttribute("appointments", appointments);
         model.addAttribute("changeRequests", changeRequests);
+        model.addAttribute("evaluatedAppointmentIds", evaluatedAppointmentIds);
         
         model.addAttribute("bpLogs", bpPageObj.getContent());
         model.addAttribute("bpPageObj", bpPageObj);

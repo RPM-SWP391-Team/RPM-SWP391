@@ -116,7 +116,8 @@
                     <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
                     <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa Tim mạch</small>
                 </div>
-                <i class="fa-solid fa-circle-user fa-2x"></i>
+                <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);">
+                <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-solid fa-circle-user fa-2x"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown" style="border-radius: 12px; min-width: 180px;">
                 <li>
