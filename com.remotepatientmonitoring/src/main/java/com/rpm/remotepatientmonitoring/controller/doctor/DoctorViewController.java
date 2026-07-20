@@ -62,6 +62,7 @@ public class DoctorViewController {
     private final RatingService ratingService;
     private final ChangeRequestRepository changeRequestRepository;
     private final AlertThresholdRepository alertThresholdRepository;
+    private final com.rpm.remotepatientmonitoring.repository.AuditTrailRepository auditTrailRepository;
     private final com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService auditTrailService;
 
     @ModelAttribute
@@ -70,6 +71,7 @@ public class DoctorViewController {
             doctorRepository.findByAccountId(userDetails.getAccount().getId()).ifPresent(doctor -> {
                 long unreadNotificationsCount = notificationRepository.countByDoctorIdAndIsReadFalse(doctor.getId());
                 model.addAttribute("unreadNotificationsCount", unreadNotificationsCount);
+                model.addAttribute("doctor", doctor);
             });
         }
     }
@@ -405,6 +407,7 @@ public class DoctorViewController {
                                      @RequestParam(value = "tab", defaultValue = "pending") String tab,
                                      @RequestParam(value = "startDate", required = false) String startDateStr,
                                      @RequestParam(value = "endDate", required = false) String endDateStr,
+                                     @RequestParam(value = "patientName", required = false) String patientName,
                                      @RequestParam(value = "page", defaultValue = "0") int page,
                                      @RequestParam(value = "size", defaultValue = "5") int size,
                                      Model model) {
@@ -422,19 +425,19 @@ public class DoctorViewController {
 
         if ("history".equals(tab)) {
             if (filterStart != null && filterEnd != null) {
-                changeRequestPage = changeRequestRepository.findHistoryByDate(doctor.getId(), filterStart, filterEnd, pageable);
+                changeRequestPage = changeRequestRepository.findHistoryByDate(doctor.getId(), patientName, filterStart, filterEnd, pageable);
             } else {
-                changeRequestPage = changeRequestRepository.findHistory(doctor.getId(), pageable);
+                changeRequestPage = changeRequestRepository.findHistory(doctor.getId(), patientName, pageable);
             }
         } else {
             if (filterStart != null && filterEnd != null) {
-                changeRequestPage = changeRequestRepository.findPendingByDate(doctor.getId(), filterStart, filterEnd, pageable);
+                changeRequestPage = changeRequestRepository.findPendingByDate(doctor.getId(), patientName, filterStart, filterEnd, pageable);
             } else {
-                changeRequestPage = changeRequestRepository.findPending(doctor.getId(), pageable);
+                changeRequestPage = changeRequestRepository.findPending(doctor.getId(), patientName, pageable);
             }
         }
 
-        long pendingCount = changeRequestRepository.findByDoctorIdAndStatusOrderByCreatedAtDesc(doctor.getId(), "PENDING").size();
+        long pendingCount = changeRequestRepository.countByDoctorIdAndStatus(doctor.getId(), "PENDING");
 
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("changeRequestPage", changeRequestPage);
@@ -442,6 +445,7 @@ public class DoctorViewController {
         model.addAttribute("activeTab", tab);
         model.addAttribute("startDate", startDateStr);
         model.addAttribute("endDate", endDateStr);
+        model.addAttribute("patientName", patientName);
 
         return "doctor/change-requests";
     }
@@ -451,57 +455,63 @@ public class DoctorViewController {
             @PathVariable("id") Integer id,
             @RequestParam("action") String action,
             @RequestParam("doctorResponse") String doctorResponse,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes redirectAttributes) {
-        
-        ChangeRequest request = changeRequestRepository.findById(id).orElse(null);
-        if (request != null) {
-            if ("APPROVE".equalsIgnoreCase(action)) {
-                request.setStatus("APPROVED");
-            } else if ("REJECT".equalsIgnoreCase(action)) {
-                request.setStatus("REJECTED");
-            }
-            request.setDoctorResponse(doctorResponse);
-            request.setProcessedAt(LocalDateTime.now());
-            request.setUpdatedAt(LocalDateTime.now());
-            changeRequestRepository.save(request);
 
-            // Optional: send notification back to patient
-            try {
-                String reqTypeStr = request.getRequestType() != null ? request.getRequestType() : "";
-                String title = "Phản hồi yêu cầu " + ("RESCHEDULE".equals(reqTypeStr) ? "đổi lịch" : "đổi phác đồ");
-                String content = "Bác sĩ đã " + ("APPROVED".equals(request.getStatus()) ? "duyệt" : "từ chối") + " yêu cầu của bạn: " + (doctorResponse != null ? doctorResponse : "");
-                
-                Notification notif = Notification.builder()
-                        .patient(request.getPatient())
-                        .doctor(request.getDoctor())
-                        .recipientType("PATIENT")
-                        .title(title)
-                        .content(content)
-                        .isRead(false)
-                        .createdAt(LocalDateTime.now())
-                        .build();
-                notificationRepository.save(notif);
-            } catch (Exception e) {
-                log.error("Error saving notification: " + e.getMessage());
-            }
-
-            // Ghi Audit Trail
-            auditTrailService.logAction(
-                    "DOCTOR",
-                    request.getDoctor() != null ? request.getDoctor().getId() : null,
-                    "PROCESS_CHANGE_REQUEST",
-                    "change_requests",
-                    request.getId(),
-                    null,
-                    request,
-                    "Bác sĩ " + action + " yêu cầu thay đổi với ghi chú: " + doctorResponse
-            );
-
-            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý yêu cầu thành công!");
-        } else {
-            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Không tìm thấy yêu cầu này.");
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return REDIRECT_LOGIN;
         }
 
+        ChangeRequest request = changeRequestRepository.findById(id).orElse(null);
+        if (request == null || request.getDoctor() == null || !request.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền xử lý yêu cầu này.");
+            return REDIRECT_CHANGE_REQUESTS;
+        }
+
+        if ("APPROVE".equalsIgnoreCase(action)) {
+            request.setStatus("APPROVED");
+        } else if ("REJECT".equalsIgnoreCase(action)) {
+            request.setStatus("REJECTED");
+        }
+        request.setDoctorResponse(doctorResponse);
+        request.setProcessedAt(LocalDateTime.now());
+        request.setUpdatedAt(LocalDateTime.now());
+        changeRequestRepository.save(request);
+
+        // Optional: send notification back to patient
+        try {
+            String reqTypeStr = request.getRequestType() != null ? request.getRequestType() : "";
+            String title = "Phản hồi yêu cầu " + ("RESCHEDULE".equals(reqTypeStr) ? "đổi lịch" : "đổi phác đồ");
+            String content = "Bác sĩ đã " + ("APPROVED".equals(request.getStatus()) ? "duyệt" : "từ chối") + " yêu cầu của bạn: " + (doctorResponse != null ? doctorResponse : "");
+
+            Notification notif = Notification.builder()
+                    .patient(request.getPatient())
+                    .doctor(request.getDoctor())
+                    .recipientType("PATIENT")
+                    .title(title)
+                    .content(content)
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        } catch (Exception e) {
+            log.error("Error saving notification: " + e.getMessage());
+        }
+
+        // Ghi Audit Trail
+        auditTrailService.logAction(
+                "DOCTOR",
+                request.getDoctor().getId(),
+                "PROCESS_CHANGE_REQUEST",
+                "change_requests",
+                request.getId(),
+                null,
+                request,
+                "Bác sĩ " + action + " yêu cầu thay đổi với ghi chú: " + doctorResponse
+        );
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý yêu cầu thành công!");
         return REDIRECT_CHANGE_REQUESTS;
     }
         // =========================================================
@@ -512,6 +522,7 @@ public class DoctorViewController {
                                    @RequestParam(value = "tab", defaultValue = "upcoming") String tab,
                                    @RequestParam(value = "startDate", required = false) String startDateStr,
                                    @RequestParam(value = "endDate", required = false) String endDateStr,
+                                   @RequestParam(value = "patientName", required = false) String patientName,
                                    @RequestParam(value = "page", defaultValue = "0") int page,
                                    @RequestParam(value = "size", defaultValue = "5") int size,
                                    Model model) {
@@ -530,19 +541,19 @@ public class DoctorViewController {
 
         if ("history".equals(tab)) {
             if (filterStart != null && filterEnd != null) {
-                appointmentPage = appointmentRepository.findHistoryByDate(doctor.getId(), filterStart, filterEnd, now, pageable);
+                appointmentPage = appointmentRepository.findHistoryByDate(doctor.getId(), patientName, filterStart, filterEnd, now, pageable);
             } else {
-                appointmentPage = appointmentRepository.findHistory(doctor.getId(), now, pageable);
+                appointmentPage = appointmentRepository.findHistory(doctor.getId(), patientName, now, pageable);
             }
         } else {
             if (filterStart != null && filterEnd != null) {
-                appointmentPage = appointmentRepository.findUpcomingByDate(doctor.getId(), filterStart, filterEnd, now, pageable);
+                appointmentPage = appointmentRepository.findUpcomingByDate(doctor.getId(), patientName, filterStart, filterEnd, now, pageable);
             } else {
-                appointmentPage = appointmentRepository.findUpcoming(doctor.getId(), now, pageable);
+                appointmentPage = appointmentRepository.findUpcoming(doctor.getId(), patientName, now, pageable);
             }
         }
 
-        long upcomingCount = appointmentRepository.countUpcoming(doctor.getId(), now);
+        long upcomingCount = appointmentRepository.countUpcoming(doctor.getId(), patientName, now);
 
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("patients", patientRepository.findByDoctorIdAndIsActiveTrue(doctor.getId()));
@@ -552,6 +563,7 @@ public class DoctorViewController {
         model.addAttribute("activeTab", tab);
         model.addAttribute("startDate", startDateStr);
         model.addAttribute("endDate", endDateStr);
+        model.addAttribute("patientName", patientName);
 
         return "doctor/appointments";
     }
@@ -569,7 +581,7 @@ public class DoctorViewController {
         }
 
         Patient patient = patientRepository.findById(patientId).orElse(null);
-        if (patient == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+        if (patient == null || patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
             redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Không thể lên lịch cho bệnh nhân này.");
             return REDIRECT_APPOINTMENTS;
         }
@@ -634,31 +646,31 @@ public class DoctorViewController {
         }
 
         com.rpm.remotepatientmonitoring.model.Alert alert = alertRepository.findById(id).orElse(null);
-        if (alert != null) {
-            alert.setIsResolved(true);
-            alert.setResolvedAt(java.time.LocalDateTime.now());
-            alert.setResolvedByDoctor(doctor);
-            alert.setResolutionNotes(resolutionNotes);
-            alertRepository.save(alert);
-
-            // Ghi Audit Trail
-            auditTrailService.logAction(
-                    "DOCTOR",
-                    doctor.getId(),
-                    "RESOLVE_ALERT",
-                    "alerts",
-                    alert.getId(),
-                    null,
-                    alert,
-                    "Bác sĩ " + doctor.getFullName() + " xử lý cảnh báo với ghi chú: " + resolutionNotes
-            );
-
-            redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý cảnh báo y tế.");
-            return "redirect:/doctor/patient-detail/" + alert.getPatient().getId() + "?success=alert-resolved";
-        } else {
-            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Không tìm thấy cảnh báo.");
+        if (alert == null || alert.getPatient() == null || alert.getPatient().getDoctor() == null || !alert.getPatient().getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền xử lý cảnh báo này.");
             return REDIRECT_DASHBOARD;
         }
+
+        alert.setIsResolved(true);
+        alert.setResolvedAt(java.time.LocalDateTime.now());
+        alert.setResolvedByDoctor(doctor);
+        alert.setResolutionNotes(resolutionNotes);
+        alertRepository.save(alert);
+
+        // Ghi Audit Trail
+        auditTrailService.logAction(
+                "DOCTOR",
+                doctor.getId(),
+                "RESOLVE_ALERT",
+                "alerts",
+                alert.getId(),
+                null,
+                alert,
+                "Bác sĩ " + doctor.getFullName() + " xử lý cảnh báo với ghi chú: " + resolutionNotes
+        );
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý cảnh báo y tế.");
+        return "redirect:/doctor/patient-detail/" + alert.getPatient().getId() + "?success=alert-resolved";
     }
     // =========================================================
     // 10. NOTIFICATIONS
@@ -921,6 +933,105 @@ public class DoctorViewController {
     }
 
     // =========================================================
+    // GET: Trang Cấu hình Ngưỡng Cảnh Báo Riêng Cho Bệnh Nhân và Lịch sử
+    // =========================================================
+    @GetMapping("/patient-detail/{id}/thresholds")
+    public String showPatientThresholds(
+            @PathVariable Integer id,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "date", required = false) @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd") java.time.LocalDate searchDate,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor doctor = doctorRepository.findByAccountId(accountId).orElse(null);
+        if (doctor == null) return REDIRECT_LOGIN;
+
+        Patient patient = patientRepository.findById(id).orElse(null);
+        if (patient == null || patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Không tìm thấy bệnh nhân hoặc bạn không có quyền.");
+            return REDIRECT_DASHBOARD;
+        }
+
+        model.addAttribute("patient", patient);
+        if (patient.getDateOfBirth() != null) {
+            model.addAttribute("patientAge", java.time.Period.between(patient.getDateOfBirth(), java.time.LocalDate.now()).getYears());
+        }
+
+        // Fetch current threshold
+        AlertThreshold threshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT")
+                .orElse(null);
+        
+        boolean isPersonalized = true;
+
+        if (threshold == null) {
+            isPersonalized = false;
+            // Get hospital default
+            if (doctor.getHospital() != null) {
+                threshold = alertThresholdRepository.findByHospitalIdAndScope(doctor.getHospital().getId(), "HOSPITAL")
+                        .orElse(new AlertThreshold());
+            } else {
+                threshold = new AlertThreshold();
+            }
+        }
+
+        if (!model.containsAttribute("threshold")) {
+            AlertThresholdsDTO thresholdDto = new AlertThresholdsDTO();
+            thresholdDto.setGlucoseHypoThreshold(threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold() : java.math.BigDecimal.valueOf(4.0));
+            thresholdDto.setGlucoseNormalMax(threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax() : java.math.BigDecimal.valueOf(7.8));
+            thresholdDto.setGlucoseHighMax(threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax() : java.math.BigDecimal.valueOf(11.1));
+            
+            thresholdDto.setSystolicNormalMax(threshold.getSystolicNormalMax() != null ? threshold.getSystolicNormalMax() : 120);
+            thresholdDto.setSystolicWarningMin(threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 121);
+            thresholdDto.setSystolicWarningMax(threshold.getSystolicWarningMax() != null ? threshold.getSystolicWarningMax() : 139);
+            thresholdDto.setSystolicDangerMin(threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140);
+            thresholdDto.setSystolicDangerMax(threshold.getSystolicDangerMax() != null ? threshold.getSystolicDangerMax() : 179);
+            thresholdDto.setSystolicEmergencyThreshold(threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180);
+            
+            thresholdDto.setDiastolicNormalMax(threshold.getDiastolicNormalMax() != null ? threshold.getDiastolicNormalMax() : 80);
+            thresholdDto.setDiastolicWarningMin(threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 81);
+            thresholdDto.setDiastolicWarningMax(threshold.getDiastolicWarningMax() != null ? threshold.getDiastolicWarningMax() : 89);
+            thresholdDto.setDiastolicDangerMin(threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90);
+            thresholdDto.setDiastolicDangerMax(threshold.getDiastolicDangerMax() != null ? threshold.getDiastolicDangerMax() : 119);
+            thresholdDto.setDiastolicEmergencyThreshold(threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 120);
+
+            model.addAttribute("threshold", thresholdDto);
+        }
+        model.addAttribute("isPersonalized", isPersonalized);
+        
+        // Fetch audit trails (history)
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<com.rpm.remotepatientmonitoring.model.AuditTrail> historyPage;
+        
+        // Target record ID is the threshold ID if it's personalized, otherwise we might not have a patient-specific threshold yet.
+        // Actually we only show history for the PATIENT scope threshold.
+        AlertThreshold patientThreshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT").orElse(null);
+        
+        if (patientThreshold != null) {
+            if (searchDate != null) {
+                java.time.LocalDateTime startOfDay = searchDate.atStartOfDay();
+                java.time.LocalDateTime endOfDay = searchDate.atTime(23, 59, 59, 999999999);
+                historyPage = auditTrailRepository.findByTargetTableAndTargetRecordIdAndActionAndCreatedAtBetweenOrderByCreatedAtDesc(
+                        "AlertThreshold", patientThreshold.getId(), "UPDATE_PATIENT_THRESHOLD", startOfDay, endOfDay, pageable);
+                model.addAttribute("searchDate", searchDate);
+            } else {
+                historyPage = auditTrailRepository.findByTargetTableAndTargetRecordIdAndActionOrderByCreatedAtDesc(
+                        "AlertThreshold", patientThreshold.getId(), "UPDATE_PATIENT_THRESHOLD", pageable);
+            }
+        } else {
+            historyPage = org.springframework.data.domain.Page.empty(pageable);
+        }
+        
+        model.addAttribute("historyPage", historyPage);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", historyPage.getTotalPages());
+
+        return "doctor/patient-thresholds";
+    }
+
+    // =========================================================
     // POST: Lưu Cấu hình Ngưỡng Cảnh Báo Riêng Cho Bệnh Nhân
     // =========================================================
     @PostMapping("/patient-detail/{id}/update-thresholds")
@@ -946,30 +1057,32 @@ public class DoctorViewController {
         }
 
         // Validate logic khoảng cảnh báo Tâm thu
+        String errorMsg = null;
         if (dto.getSystolicNormalMax() >= dto.getSystolicWarningMin() ||
             dto.getSystolicWarningMin() > dto.getSystolicWarningMax() ||
             dto.getSystolicWarningMax() >= dto.getSystolicDangerMin() ||
             dto.getSystolicDangerMin() > dto.getSystolicDangerMax() ||
             dto.getSystolicDangerMax() >= dto.getSystolicEmergencyThreshold()) {
-            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Logic khoảng huyết áp Tâm thu không hợp lệ (Cần tuân thủ: Bình thường < Cảnh báo < Nguy hiểm < Cấp cứu).");
-            return "redirect:/doctor/patient-detail/" + id;
+            errorMsg = "Logic khoảng huyết áp Tâm thu không hợp lệ (Cần tuân thủ: Bình thường < Cảnh báo < Nguy hiểm < Cấp cứu).";
         }
-
         // Validate logic khoảng cảnh báo Tâm trương
-        if (dto.getDiastolicNormalMax() >= dto.getDiastolicWarningMin() ||
+        else if (dto.getDiastolicNormalMax() >= dto.getDiastolicWarningMin() ||
             dto.getDiastolicWarningMin() > dto.getDiastolicWarningMax() ||
             dto.getDiastolicWarningMax() >= dto.getDiastolicDangerMin() ||
             dto.getDiastolicDangerMin() > dto.getDiastolicDangerMax() ||
             dto.getDiastolicDangerMax() >= dto.getDiastolicEmergencyThreshold()) {
-            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Logic khoảng huyết áp Tâm trương không hợp lệ (Cần tuân thủ: Bình thường < Cảnh báo < Nguy hiểm < Cấp cứu).");
-            return "redirect:/doctor/patient-detail/" + id;
+            errorMsg = "Logic khoảng huyết áp Tâm trương không hợp lệ (Cần tuân thủ: Bình thường < Cảnh báo < Nguy hiểm < Cấp cứu).";
+        }
+        // Validate logic khoảng đường huyết
+        else if (dto.getGlucoseHypoThreshold().compareTo(dto.getGlucoseNormalMax()) >= 0 ||
+            dto.getGlucoseNormalMax().compareTo(dto.getGlucoseHighMax()) >= 0) {
+            errorMsg = "Logic khoảng đường huyết không hợp lệ (Cần tuân thủ: Hạ < Bình thường < Cao).";
         }
 
-        // Validate logic khoảng đường huyết
-        if (dto.getGlucoseHypoThreshold().compareTo(dto.getGlucoseNormalMax()) >= 0 ||
-            dto.getGlucoseNormalMax().compareTo(dto.getGlucoseHighMax()) >= 0) {
-            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Logic khoảng đường huyết không hợp lệ (Cần tuân thủ: Hạ < Bình thường < Cao).");
-            return "redirect:/doctor/patient-detail/" + id;
+        if (errorMsg != null) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, errorMsg);
+            redirectAttributes.addFlashAttribute("threshold", dto);
+            return "redirect:/doctor/patient-detail/" + id + "/thresholds";
         }
 
         AlertThreshold entity = alertThresholdRepository.findByPatientIdAndScope(id, "PATIENT")
@@ -1017,6 +1130,6 @@ public class DoctorViewController {
         );
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã lưu ngưỡng cảnh báo riêng cho bệnh nhân.");
-        return "redirect:/doctor/patient-detail/" + id;
+        return "redirect:/doctor/patient-detail/" + id + "/thresholds";
     }
 }
