@@ -182,6 +182,7 @@
         <!-- Lọc theo ngày -->
         <form action="/doctor/change-requests" method="GET" class="d-flex gap-2 mb-0 align-items-center">
             <input type="hidden" name="tab" th:value="${activeTab}">
+            <input type="text" name="patientName" class="form-control form-control-sm" placeholder="Tên / Mã BN..." th:value="${patientName}" style="border-radius: 50px; width: 160px;">
             <span class="text-muted small fw-bold">Từ:</span>
             <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}" style="border-radius: 50px;">
             <span class="text-muted small fw-bold">Đến:</span>
@@ -189,7 +190,7 @@
             <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
                 <i class="fa-solid fa-filter me-1"></i> Lọc
             </button>
-            <a th:href="@{/doctor/change-requests(tab=${activeTab})}" th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '')}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="Xóa bộ lọc">
+            <a th:href="@{/doctor/change-requests(tab=${activeTab})}" th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '') or (patientName != null and patientName != '')}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="Xóa bộ lọc">
                 <i class="fa-solid fa-xmark"></i>
             </a>
         </form>
