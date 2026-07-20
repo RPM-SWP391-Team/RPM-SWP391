@@ -45,7 +45,9 @@ public class HealthLogController {
     }
 
     @GetMapping("/log")
-    public String showLogForm(Model model) {
+    public String showLogForm(
+            @org.springframework.web.bind.annotation.RequestParam(value = "id", required = false) Integer id,
+            Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
@@ -55,14 +57,37 @@ public class HealthLogController {
         }
 
         DailyHealthLogFormDto formDto = new DailyHealthLogFormDto();
-        formDto.setLogType("MORNING");
+        if (id != null) {
+            com.rpm.remotepatientmonitoring.model.DailyHealthLog existing = patientHealthService.getDailyHealthLogById(id);
+            if (existing != null && existing.getPatient().getId().equals(patient.getId())) {
+                formDto.setLogType(existing.getLogType());
+                formDto.setInputMethod(existing.getInputMethod());
+                formDto.setSystolicBp(existing.getSystolicBp());
+                formDto.setDiastolicBp(existing.getDiastolicBp());
+                formDto.setHeartRate(existing.getHeartRate());
+                formDto.setGlucoseLevel(existing.getGlucoseLevel());
+                formDto.setPatientNotes(existing.getPatientNotes());
+                model.addAttribute("logId", id);
+            } else {
+                formDto.setLogType("MORNING");
+            }
+        } else {
+            formDto.setLogType("MORNING");
+        }
         model.addAttribute("healthLog", formDto);
+        model.addAttribute("org.springframework.validation.BindingResult.healthLog", 
+            new org.springframework.validation.BeanPropertyBindingResult(formDto, "healthLog"));
         model.addAttribute("patient", patient);
+        model.addAttribute("healthLogs", patientHealthService.getRecentDailyHealthLogs(patient.getId()));
         return "patient/log";
     }
 
     @PostMapping("/log")
-    public String processLogForm(@Valid @ModelAttribute("healthLog") DailyHealthLogFormDto formDto, BindingResult bindingResult, Model model) {
+    public String processLogForm(
+            @org.springframework.web.bind.annotation.RequestParam(value = "id", required = false) Integer id,
+            @Valid @ModelAttribute("healthLog") DailyHealthLogFormDto formDto,
+            BindingResult bindingResult,
+            Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
@@ -73,11 +98,32 @@ public class HealthLogController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("patient", patient);
+            model.addAttribute("healthLogs", patientHealthService.getRecentDailyHealthLogs(patient.getId()));
+            if (id != null) {
+                model.addAttribute("logId", id);
+            }
             return "patient/log";
         }
 
-        patientHealthService.saveDailyHealthLog(patient, formDto);
+        patientHealthService.saveDailyHealthLog(id, patient, formDto);
 
-        return "redirect:/patient/dashboard?logSuccess=true";
+        return "redirect:/patient/log?saveSuccess=true";
+    }
+
+    @PostMapping("/log/delete")
+    public String deleteLog(
+            @org.springframework.web.bind.annotation.RequestParam("id") Integer id,
+            jakarta.servlet.http.HttpServletRequest request) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+        patientHealthService.deleteDailyHealthLog(id);
+        
+        String referer = request.getHeader("Referer");
+        if (referer != null && referer.contains("/appointments")) {
+            return "redirect:/patient/appointments?deleteLogSuccess=true";
+        }
+        return "redirect:/patient/log?deleteSuccess=true";
     }
 }

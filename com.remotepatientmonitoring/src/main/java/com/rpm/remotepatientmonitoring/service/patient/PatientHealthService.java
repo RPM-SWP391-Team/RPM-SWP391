@@ -123,8 +123,46 @@ public class PatientHealthService {
         }
     }
 
-    public void saveDailyHealthLog(com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
-        com.rpm.remotepatientmonitoring.model.DailyHealthLog log = com.rpm.remotepatientmonitoring.model.DailyHealthLog.builder()
+    @org.springframework.transaction.annotation.Transactional
+    public void saveDailyHealthLog(Integer id, com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
+        com.rpm.remotepatientmonitoring.model.DailyHealthLog log;
+        if (id != null) {
+            log = healthLogRepository.findById(id).orElse(null);
+            if (log != null) {
+                // Clear old alerts and notifications first since they are about to be re-evaluated
+                alertRepository.deleteByHealthLogId(id);
+                notificationRepository.deleteByDailyHealthLogId(id);
+                
+                log.setLogType(formDto.getLogType());
+                log.setSystolicBp(formDto.getSystolicBp());
+                log.setDiastolicBp(formDto.getDiastolicBp());
+                log.setHeartRate(formDto.getHeartRate());
+                log.setGlucoseLevel(formDto.getGlucoseLevel());
+                log.setPatientNotes(formDto.getPatientNotes());
+            } else {
+                log = createNewDailyHealthLogEntity(patient, formDto);
+            }
+        } else {
+            log = createNewDailyHealthLogEntity(patient, formDto);
+        }
+        
+        healthLogRepository.save(log);
+        
+        // Evaluate alerts for the log
+        HealthLogRequest alertReq = new HealthLogRequest();
+        alertReq.setPatientId(patient.getId());
+        alertReq.setLogType(log.getLogType());
+        alertReq.setInputMethod(log.getInputMethod());
+        alertReq.setSystolicBp(log.getSystolicBp());
+        alertReq.setDiastolicBp(log.getDiastolicBp());
+        alertReq.setHeartRate(log.getHeartRate());
+        alertReq.setGlucoseLevel(log.getGlucoseLevel());
+        alertReq.setPatientNotes(log.getPatientNotes());
+        evaluateAndGenerateAlerts(alertReq);
+    }
+
+    private com.rpm.remotepatientmonitoring.model.DailyHealthLog createNewDailyHealthLogEntity(com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
+        return com.rpm.remotepatientmonitoring.model.DailyHealthLog.builder()
                 .patient(patient)
                 .logDate(java.time.LocalDate.now())
                 .logTime(java.time.LocalDateTime.now())
@@ -139,8 +177,21 @@ public class PatientHealthService {
                 .isAlertProcessed(false)
                 .createdAt(java.time.LocalDateTime.now())
                 .build();
-        
-        healthLogRepository.save(log);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteDailyHealthLog(Integer id) {
+        alertRepository.deleteByHealthLogId(id);
+        notificationRepository.deleteByDailyHealthLogId(id);
+        healthLogRepository.deleteById(id);
+    }
+
+    public java.util.List<com.rpm.remotepatientmonitoring.model.DailyHealthLog> getRecentDailyHealthLogs(Integer patientId) {
+        return healthLogRepository.findByPatientIdOrderByLogTimeDesc(patientId);
+    }
+
+    public com.rpm.remotepatientmonitoring.model.DailyHealthLog getDailyHealthLogById(Integer id) {
+        return healthLogRepository.findById(id).orElse(null);
     }
 
     public com.rpm.remotepatientmonitoring.model.Patient getPatientByAccountId(Integer accountId) {

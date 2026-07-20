@@ -72,4 +72,22 @@ public class PatientNutritionController {
         response.put("message", "Đã xóa ghi nhận bữa ăn thành công!");
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/update/{id}")
+    public ResponseEntity<Map<String, Object>> updateMeal(
+            @PathVariable("id") Integer id,
+            @RequestParam("quantityG") Double quantityG) {
+        try {
+            patientService.updateMeal(id, quantityG);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Đã cập nhật ghi nhận bữa ăn thành công!");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException ex) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }
