@@ -18,10 +18,10 @@ public interface DoctorRatingRepository extends JpaRepository<DoctorRating, Inte
     List<DoctorRating> findByDoctorId(Integer doctorId);
     List<DoctorRating> findByPatientId(Integer patientId);
 
-    @Query("SELECT COUNT(r) FROM DoctorRating r WHERE r.doctor.id = :doctorId AND r.isHidden = false")
+    @Query("SELECT COUNT(r) FROM DoctorRating r WHERE r.doctor.id = :doctorId")
     long countByDoctorId(@Param("doctorId") Integer doctorId);
 
-    @Query("SELECT AVG(r.ratingValue) FROM DoctorRating r WHERE r.doctor.id = :doctorId AND r.isHidden = false")
+    @Query("SELECT AVG(r.ratingValue) FROM DoctorRating r WHERE r.doctor.id = :doctorId")
     Double getAverageRatingByDoctorId(@Param("doctorId") Integer doctorId);
 
     Page<DoctorRating> findByRatingValueIn(List<Integer> ratingValues, Pageable pageable);
