@@ -4,10 +4,12 @@ import com.rpm.remotepatientmonitoring.model.AlertThreshold;
 import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
 import com.rpm.remotepatientmonitoring.model.EmergencyProtocol;
 import com.rpm.remotepatientmonitoring.service.hopital.HospitalConfigService;
+import com.rpm.remotepatientmonitoring.repository.DiseaseProfileRepository;
 import com.rpm.remotepatientmonitoring.dto.hopital.AlertThresholdsDTO;
 import com.rpm.remotepatientmonitoring.dto.hopital.EmergencyGuideDTO;
 import com.rpm.remotepatientmonitoring.dto.hopital.EmergencyProtocolDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,9 @@ public class HospitalConfigController {
 
     @Autowired
     private HospitalConfigService configService;
+
+    @Autowired
+    private DiseaseProfileRepository diseaseProfileRepository;
 
     // ==========================================
     // MÀN HÌNH 1: CẤU HÌNH NGƯỠNG LÂM SÀNG
@@ -107,6 +112,8 @@ public class HospitalConfigController {
         List<EmergencyProtocol> protocols = configService.getEmergencyProtocols(HARDCODED_HOSPITAL_ID);
         model.addAttribute("guides", guides);
         model.addAttribute("protocols", protocols);
+        model.addAttribute("exerciseGuidelines", configService.getExerciseGuidelines(HARDCODED_HOSPITAL_ID));
+        model.addAttribute("diseaseProfiles", diseaseProfileRepository.findAll());
         if (!model.containsAttribute("newGuide")) {
             model.addAttribute("newGuide", new EmergencyGuideDTO());
         }
@@ -152,15 +159,19 @@ public class HospitalConfigController {
 
     @PostMapping("/config/guide/edit")
     public String editEmergencyGuide(@RequestParam("guideId") Integer guideId,
+                                     @RequestParam("title") String title,
                                      @RequestParam("instructionContent") String instructionContent,
+                                     Model model,
                                      RedirectAttributes redirectAttributes) {
         try {
-            configService.editEmergencyGuideContent(guideId, instructionContent);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật nội dung hướng dẫn khẩn cấp thành công!");
+            configService.editEmergencyGuideContent(guideId, title, instructionContent);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật hướng dẫn khẩn cấp thành công!");
+            return "redirect:/hospital/config/protocols";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật: " + e.getMessage());
+            prepareModelForProtocolsPage(model);
+            model.addAttribute("errorMessage", "Không thể cập nhật: " + e.getMessage());
+            return "hospital/config-protocols";
         }
-        return "redirect:/hospital/config/protocols";
     }
 
     @PostMapping("/config/protocol/add")
@@ -194,16 +205,20 @@ public class HospitalConfigController {
 
     @PostMapping("/config/protocol/edit")
     public String editEmergencyProtocol(@RequestParam("protocolId") Integer protocolId,
+                                        @RequestParam("title") String title,
                                         @RequestParam("warningSigns") String warningSigns,
                                         @RequestParam("instructionContent") String instructionContent,
+                                        Model model,
                                         RedirectAttributes redirectAttributes) {
         try {
-            configService.editEmergencyProtocolContent(protocolId, warningSigns, instructionContent);
+            configService.editEmergencyProtocolContent(protocolId, title, warningSigns, instructionContent);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật cẩm nang nhận biết thành công!");
+            return "redirect:/hospital/config/protocols";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật cẩm nang: " + e.getMessage());
+            prepareModelForProtocolsPage(model);
+            model.addAttribute("errorMessage", "Không thể cập nhật cẩm nang: " + e.getMessage());
+            return "hospital/config-protocols";
         }
-        return "redirect:/hospital/config/protocols";
     }
 
     @DeleteMapping("/config/guide/delete/{id}")
@@ -225,6 +240,31 @@ public class HospitalConfigController {
             return org.springframework.http.ResponseEntity.ok().build();
         } catch (Exception e) {
             return org.springframework.http.ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
+        }
+    }
+
+    // Thêm vào Controller của bạn
+    @PutMapping("/config/guide/restore/{id}")
+    public ResponseEntity<?> restoreGuide(@PathVariable Integer id) {
+        try {
+            configService.restoreEmergencyGuide(id);
+            return ResponseEntity.ok("Khôi phục chỉ dẫn thành công.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi máy chủ khi khôi phục chỉ dẫn.");
+        }
+    }
+
+    @PutMapping("/config/protocol/restore/{id}")
+    public ResponseEntity<?> restoreProtocol(@PathVariable Integer id) {
+        try {
+            configService.restoreEmergencyProtocol(id);
+            return ResponseEntity.ok("Khôi phục cẩm nang thành công.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi máy chủ khi khôi phục cẩm nang.");
         }
     }
 }

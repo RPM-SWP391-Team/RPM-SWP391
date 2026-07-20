@@ -370,52 +370,74 @@ public class ExerciseLogServiceTest {
     }
 
     @Test
-    public void testIsShortBurstOverexertion_True() {
+    public void testGetWeeklyComplianceRate_FullCompliance() {
         Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
         Patient patient = new Patient();
         patient.setId(patientId);
 
-        // Logs in the last 60 mins: total 310 kcal (> 300)
-        ExerciseLog log1 = new ExerciseLog(patient, LocalDate.now(), "Đạp xe", 30, null, 180.0);
-        ExerciseLog log2 = new ExerciseLog(patient, LocalDate.now(), "Bơi lội", 20, null, 130.0);
-        List<ExerciseLog> dbLogs = Arrays.asList(log1, log2);
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
 
-        when(exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(eq(patientId), any(LocalDateTime.class)))
-                .thenReturn(dbLogs);
+        List<ExerciseLog> logs = new java.util.ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            logs.add(new ExerciseLog(patient, startDate.plusDays(i), "Đi bộ", 30, null, 120.0));
+        }
 
-        boolean result = exerciseLogService.isShortBurstOverexertion(patientId);
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(logs);
 
-        assertTrue(result);
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patientId);
+
+        assertNotNull(compliance);
+        assertEquals(7, compliance.getDaysAchieved());
+        assertEquals(7, compliance.getTotalDays());
     }
 
     @Test
-    public void testIsShortBurstOverexertion_False() {
+    public void testGetWeeklyComplianceRate_PartialCompliance() {
         Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
+
         Patient patient = new Patient();
         patient.setId(patientId);
 
-        // Logs in the last 60 mins: total 200 kcal (<= 300)
-        ExerciseLog log1 = new ExerciseLog(patient, LocalDate.now(), "Yoga", 30, null, 90.0);
-        ExerciseLog log2 = new ExerciseLog(patient, LocalDate.now(), "Đi bộ", 30, 2500, 110.0);
-        List<ExerciseLog> dbLogs = Arrays.asList(log1, log2);
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
 
-        when(exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(eq(patientId), any(LocalDateTime.class)))
-                .thenReturn(dbLogs);
+        List<ExerciseLog> logs = new java.util.ArrayList<>();
+        // Achieved days: 0, 2, 4, 6 (total 4 days)
+        // Under target days: 1, 3 (e.g., 10 mins), and day 5 has no log
+        logs.add(new ExerciseLog(patient, startDate.plusDays(0), "Đi bộ", 30, null, 120.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(1), "Chạy bộ", 10, null, 60.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(2), "Đi bộ", 45, null, 180.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(3), "Đi bộ", 15, null, 60.0));
+        logs.add(new ExerciseLog(patient, startDate.plusDays(4), "Yoga", 30, null, 90.0));
+        // day 5 has no logs
+        logs.add(new ExerciseLog(patient, startDate.plusDays(6), "Đi bộ", 40, null, 160.0));
 
-        boolean result = exerciseLogService.isShortBurstOverexertion(patientId);
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(logs);
 
-        assertFalse(result);
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patientId);
+
+        assertNotNull(compliance);
+        assertEquals(4, compliance.getDaysAchieved());
+        assertEquals(7, compliance.getTotalDays());
     }
 
     @Test
-    public void testIsShortBurstOverexertion_False_NoLogs() {
+    public void testGetWeeklyComplianceRate_NoLogs() {
         Integer patientId = 1;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(6);
 
-        when(exerciseLogRepository.findByPatientIdAndLoggedAtGreaterThanEqual(eq(patientId), any(LocalDateTime.class)))
-                .thenReturn(Collections.emptyList());
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(patientId, true)).thenReturn(java.util.Optional.empty());
+        when(exerciseLogRepository.findByPatientIdAndLogDateBetween(patientId, startDate, today)).thenReturn(Collections.emptyList());
 
-        boolean result = exerciseLogService.isShortBurstOverexertion(patientId);
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patientId);
 
-        assertFalse(result);
+        assertNotNull(compliance);
+        assertEquals(0, compliance.getDaysAchieved());
+        assertEquals(7, compliance.getTotalDays());
     }
 }

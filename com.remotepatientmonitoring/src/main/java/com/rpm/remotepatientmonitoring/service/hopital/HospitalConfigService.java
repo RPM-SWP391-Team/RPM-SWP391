@@ -13,11 +13,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class HospitalConfigService {
@@ -37,7 +40,38 @@ public class HospitalConfigService {
     private HospitalRepository hospitalRepository;
 
     @Autowired
+    private ExerciseGuidelineRepository exerciseGuidelineRepository;
+
+    @Autowired
+    private FoodDictionaryRepository foodDictionaryRepository;
+
+    @Autowired
+    private PatientMealRepository patientMealRepository;
+
+    @Autowired
+    private DiseaseProfileRepository diseaseProfileRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    // --- CÁC HÀM HELPER KIỂM TRA THAY ĐỔI (Đặt ở đầu hoặc cuối service tùy bạn) ---
+    private void checkAndLogString(Map<String, Object> newLog, String field, String oldVal, String newVal) {
+        if (!Objects.equals(oldVal, newVal)) {
+            newLog.put(field, newVal);
+        }
+    }
+
+    private void checkAndLogInt(Map<String, Object> newLog, String field, Integer oldVal, Integer newVal) {
+        if (!Objects.equals(oldVal, newVal)) {
+            newLog.put(field, newVal);
+        }
+    }
+
+    private void checkAndLogBigDecimal(Map<String, Object> newLog, String field, BigDecimal oldVal, BigDecimal newVal) {
+        if (oldVal == null || newVal == null || oldVal.compareTo(newVal) != 0) {
+            newLog.put(field, newVal);
+        }
+    }
 
     public AlertThreshold getGlobalThreshold(Integer hospitalId) {
         return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL")
@@ -78,22 +112,47 @@ public class HospitalConfigService {
 
         validateThresholds(updated);
 
-        // --- ĐỒNG BỘ CÁCH LẤY LOG BẰNG MAP VÀ OBJECTMAPPER ---
-        String oldValueJson = "-";
-        try {
-            Map<String, Object> oldLog = new HashMap<>();
-            oldLog.put("glucoseHypo", existing.getGlucoseHypoThreshold());
-            oldLog.put("glucoseNormalMax", existing.getGlucoseNormalMax());
-            oldLog.put("glucoseHighMax", existing.getGlucoseHighMax());
-            oldLog.put("sysNormal", existing.getSystolicNormalMax());
-            oldLog.put("sysDanger", existing.getSystolicDangerMin());
-            oldLog.put("diaNormal", existing.getDiastolicNormalMax());
-            oldLog.put("diaDanger", existing.getDiastolicDangerMin());
-            oldValueJson = objectMapper.writeValueAsString(oldLog);
-        } catch (Exception e) {
-            oldValueJson = "{\"error\":\"Lỗi parse dữ liệu cũ\"}";
-        }
+        // 1. Đưa TOÀN BỘ dữ liệu cũ vào oldLog để làm sạch cột giá trị cũ
+        Map<String, Object> oldLog = new HashMap<>();
+        oldLog.put("glucoseHypo", existing.getGlucoseHypoThreshold());
+        oldLog.put("glucoseNormalMax", existing.getGlucoseNormalMax());
+        oldLog.put("glucoseHighMax", existing.getGlucoseHighMax());
 
+        oldLog.put("sysNormal", existing.getSystolicNormalMax());
+        oldLog.put("sysWarningMin", existing.getSystolicWarningMin());
+        oldLog.put("sysWarningMax", existing.getSystolicWarningMax());
+        oldLog.put("sysDangerMin", existing.getSystolicDangerMin());
+        oldLog.put("sysDangerMax", existing.getSystolicDangerMax());
+        oldLog.put("sysEmergency", existing.getSystolicEmergencyThreshold());
+
+        oldLog.put("diaNormal", existing.getDiastolicNormalMax());
+        oldLog.put("diaWarningMin", existing.getDiastolicWarningMin());
+        oldLog.put("diaWarningMax", existing.getDiastolicWarningMax());
+        oldLog.put("diaDangerMin", existing.getDiastolicDangerMin());
+        oldLog.put("diaDangerMax", existing.getDiastolicDangerMax());
+        oldLog.put("diaEmergency", existing.getDiastolicEmergencyThreshold());
+
+        // 2. Chỉ nhặt các trường CÓ THAY ĐỔI thực sự cho cột giá trị mới (newLog)
+        Map<String, Object> newLog = new HashMap<>();
+        checkAndLogBigDecimal(newLog, "glucoseHypo", existing.getGlucoseHypoThreshold(), updated.getGlucoseHypoThreshold());
+        checkAndLogBigDecimal(newLog, "glucoseNormalMax", existing.getGlucoseNormalMax(), updated.getGlucoseNormalMax());
+        checkAndLogBigDecimal(newLog, "glucoseHighMax", existing.getGlucoseHighMax(), updated.getGlucoseHighMax());
+
+        checkAndLogInt(newLog, "sysNormal", existing.getSystolicNormalMax(), updated.getSystolicNormalMax());
+        checkAndLogInt(newLog, "sysWarningMin", existing.getSystolicWarningMin(), updated.getSystolicWarningMin());
+        checkAndLogInt(newLog, "sysWarningMax", existing.getSystolicWarningMax(), updated.getSystolicWarningMax());
+        checkAndLogInt(newLog, "sysDangerMin", existing.getSystolicDangerMin(), updated.getSystolicDangerMin());
+        checkAndLogInt(newLog, "sysDangerMax", existing.getSystolicDangerMax(), updated.getSystolicDangerMax());
+        checkAndLogInt(newLog, "sysEmergency", existing.getSystolicEmergencyThreshold(), updated.getSystolicEmergencyThreshold());
+
+        checkAndLogInt(newLog, "diaNormal", existing.getDiastolicNormalMax(), updated.getDiastolicNormalMax());
+        checkAndLogInt(newLog, "diaWarningMin", existing.getDiastolicWarningMin(), updated.getDiastolicWarningMin());
+        checkAndLogInt(newLog, "diaWarningMax", existing.getDiastolicWarningMax(), updated.getDiastolicWarningMax());
+        checkAndLogInt(newLog, "diaDangerMin", existing.getDiastolicDangerMin(), updated.getDiastolicDangerMin());
+        checkAndLogInt(newLog, "diaDangerMax", existing.getDiastolicDangerMax(), updated.getDiastolicDangerMax());
+        checkAndLogInt(newLog, "diaEmergency", existing.getDiastolicEmergencyThreshold(), updated.getDiastolicEmergencyThreshold());
+
+        // 3. Thực hiện gán giá trị mới và lưu DB (Luồng gốc giữ nguyên)
         existing.setGlucoseHypoThreshold(updated.getGlucoseHypoThreshold());
         existing.setGlucoseNormalMax(updated.getGlucoseNormalMax());
         existing.setGlucoseHighMax(updated.getGlucoseHighMax());
@@ -115,18 +174,14 @@ public class HospitalConfigService {
         existing.setUpdatedAt(LocalDateTime.now());
         AlertThreshold savedThreshold = alertThresholdRepository.save(existing);
 
-        String newValueJson = "-";
+        // 4. Parse dữ liệu ra JSON
+        String oldValueJson;
+        String newValueJson;
         try {
-            Map<String, Object> newLog = new HashMap<>();
-            newLog.put("glucoseHypo", savedThreshold.getGlucoseHypoThreshold());
-            newLog.put("glucoseNormalMax", savedThreshold.getGlucoseNormalMax());
-            newLog.put("glucoseHighMax", savedThreshold.getGlucoseHighMax());
-            newLog.put("sysNormal", savedThreshold.getSystolicNormalMax());
-            newLog.put("sysDanger", savedThreshold.getSystolicDangerMin());
-            newLog.put("diaNormal", savedThreshold.getDiastolicNormalMax());
-            newLog.put("diaDanger", savedThreshold.getDiastolicDangerMin());
-            newValueJson = objectMapper.writeValueAsString(newLog);
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+            newValueJson = objectMapper.writeValueAsString(newLog); // Trả về dạng "{}" nếu không đổi gì, giao diện của bạn xử lý hiển thị rất mượt
         } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi parse dữ liệu cũ\"}";
             newValueJson = "{\"error\":\"Lỗi parse dữ liệu mới\"}";
         }
 
@@ -258,43 +313,53 @@ public class HospitalConfigService {
     }
 
     @Transactional
-    public EmergencyGuide editEmergencyGuideContent(Integer guideId, String instructionContent) {
+    public EmergencyGuide editEmergencyGuideContent(Integer guideId, String title, String instructionContent) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Tiêu đề không được để trống.");
+        }
+        if(title.trim().length()<10 || title.trim().length()>50) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 50 ký tự.");
+        }
+        if (instructionContent == null || instructionContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn không được để trống.");
+        }
+        if (instructionContent.trim().length() < 20 || instructionContent.trim().length() > 2000) {
+            throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn khẩn cấp phải từ 20 đến 2000 ký tự.");
+        }
         EmergencyGuide guide = emergencyGuideRepository.findById(guideId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hướng dẫn với ID: " + guideId));
 
-        if (instructionContent == null || instructionContent.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nội dung hướng dẫn không được để trống.");
-        }
+        // Lấy toàn bộ thông tin cũ
+        Map<String, Object> oldLog = new HashMap<>();
+        oldLog.put("title", guide.getTitle());
+        oldLog.put("alertLevel", guide.getAlertLevel());
+        oldLog.put("metricType", guide.getMetricType());
+        oldLog.put("instructionContent", guide.getInstructionContent());
 
-        String oldValueJson = "-";
-        try {
-            Map<String, Object> oldLog = new HashMap<>();
-            oldLog.put("title", guide.getTitle());
-            oldLog.put("alertLevel", guide.getAlertLevel());
-            oldLog.put("metricType", guide.getMetricType());
-            oldLog.put("instructionContent", guide.getInstructionContent());
-            oldValueJson = objectMapper.writeValueAsString(oldLog);
-        } catch (Exception e) {
-            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
-        }
+        // Kiểm tra thay đổi cho newLog
+        Map<String, Object> newLog = new HashMap<>();
+        String newTitle = title.trim();
+        String newInstruction = instructionContent.trim();
 
-        guide.setInstructionContent(instructionContent.trim());
+        checkAndLogString(newLog, "title", guide.getTitle(), newTitle);
+        checkAndLogString(newLog, "instructionContent", guide.getInstructionContent(), newInstruction);
+
+        guide.setTitle(newTitle);
+        guide.setInstructionContent(newInstruction);
         guide.setUpdatedAt(LocalDateTime.now());
         EmergencyGuide savedGuide = emergencyGuideRepository.save(guide);
 
-        String newValueJson = "-";
+        String oldValueJson;
+        String newValueJson;
         try {
-            Map<String, Object> newLog = new HashMap<>();
-            newLog.put("title", savedGuide.getTitle());
-            newLog.put("alertLevel", savedGuide.getAlertLevel());
-            newLog.put("metricType", savedGuide.getMetricType());
-            newLog.put("instructionContent", savedGuide.getInstructionContent());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
             newValueJson = objectMapper.writeValueAsString(newLog);
         } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
             newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
         }
 
-        saveAuditLog("UPDATE_GUIDE", "emergency_guides", savedGuide.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Hướng dẫn xử lý khẩn cấp");
+        saveAuditLog("UPDATE_GUIDE", "emergency_guides", savedGuide.getId(), oldValueJson, newValueJson, "Cập nhật Tiêu đề và Nội dung Hướng dẫn xử lý khẩn cấp");
 
         return savedGuide;
     }
@@ -316,6 +381,9 @@ public class HospitalConfigService {
         }
         if (instructionContent == null || instructionContent.trim().isEmpty()) {
             throw new IllegalArgumentException("Nội dung chỉ dẫn không được để trống.");
+        }
+        if (emergencyProtocolRepository.existsByHospitalIdAndConditionTypeAndIsActiveTrue(hospitalId, conditionType)) {
+            throw new IllegalArgumentException("Nhóm bệnh lý '" + conditionType + "' đã có cẩm nang đang hoạt động. Vui lòng chỉnh sửa bài cũ hoặc vô hiệu hóa nó trước khi tạo mới.");
         }
 
         EmergencyProtocol protocol = EmergencyProtocol.builder()
@@ -348,62 +416,145 @@ public class HospitalConfigService {
     }
 
     @Transactional
-    public EmergencyProtocol editEmergencyProtocolContent(Integer protocolId, String warningSigns, String instructionContent) {
+    public EmergencyProtocol editEmergencyProtocolContent(Integer protocolId, String title, String warningSigns, String instructionContent) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Tiêu đề không được để trống.");
+        }
+        if(title.trim().length()<10 || title.trim().length()>50) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 50 ký tự.");
+        }
+        if (warningSigns == null || warningSigns.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết không được để trống.");
+        }
+        if (warningSigns.trim().length() < 10 || warningSigns.trim().length() > 500) {
+            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 500 ký tự.");
+        }
+        if (instructionContent == null || instructionContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("Thất bại: Nội dung cẩm nang không được để trống.");
+        }
+        if (instructionContent.trim().length() < 20 || instructionContent.trim().length() > 2000) {
+            throw new IllegalArgumentException("Thất bại: Nội dung cẩm nang xử lý phải từ 20 đến 2000 ký tự.");
+        }
+
         EmergencyProtocol protocol = emergencyProtocolRepository.findById(protocolId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cẩm nang với ID: " + protocolId));
 
-        if (warningSigns == null || warningSigns.trim().isEmpty()) {
-            throw new IllegalArgumentException("Dấu hiệu nhận biết không được để trống.");
-        }
-        if (instructionContent == null || instructionContent.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nội dung chỉ dẫn không được để trống.");
-        }
+        // Lấy toàn bộ thông tin cũ
+        Map<String, Object> oldLog = new HashMap<>();
+        oldLog.put("title", protocol.getTitle());
+        oldLog.put("conditionType", protocol.getConditionType());
+        oldLog.put("warningSigns", protocol.getWarningSigns());
+        oldLog.put("instructionContent", protocol.getInstructionContent());
 
-        String oldValueJson = "-";
-        try {
-            Map<String, Object> oldLog = new HashMap<>();
-            oldLog.put("title", protocol.getTitle());
-            oldLog.put("conditionType", protocol.getConditionType());
-            oldLog.put("warningSigns", protocol.getWarningSigns());
-            oldLog.put("instructionContent", protocol.getInstructionContent());
-            oldValueJson = objectMapper.writeValueAsString(oldLog);
-        } catch (Exception e) {
-            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
-        }
+        // Kiểm tra thay đổi cho newLog
+        Map<String, Object> newLog = new HashMap<>();
+        String newTitle = title.trim();
+        String newWarning = warningSigns.trim();
+        String newInstruction = instructionContent.trim();
 
-        protocol.setWarningSigns(warningSigns.trim());
-        protocol.setInstructionContent(instructionContent.trim());
+        checkAndLogString(newLog, "title", protocol.getTitle(), newTitle);
+        checkAndLogString(newLog, "warningSigns", protocol.getWarningSigns(), newWarning);
+        checkAndLogString(newLog, "instructionContent", protocol.getInstructionContent(), newInstruction);
+
+        protocol.setTitle(newTitle);
+        protocol.setWarningSigns(newWarning);
+        protocol.setInstructionContent(newInstruction);
         protocol.setUpdatedAt(LocalDateTime.now());
 
         EmergencyProtocol savedProtocol = emergencyProtocolRepository.save(protocol);
 
-        String newValueJson = "-";
+        String oldValueJson;
+        String newValueJson;
         try {
-            Map<String, Object> newLog = new HashMap<>();
-            newLog.put("title", savedProtocol.getTitle());
-            newLog.put("conditionType", savedProtocol.getConditionType());
-            newLog.put("warningSigns", savedProtocol.getWarningSigns());
-            newLog.put("instructionContent", savedProtocol.getInstructionContent());
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
             newValueJson = objectMapper.writeValueAsString(newLog);
         } catch (Exception e) {
+            oldValueJson = "{\"error\":\"Lỗi định dạng dữ liệu cũ\"}";
             newValueJson = "{\"error\":\"Lỗi định dạng dữ liệu mới\"}";
         }
 
-        saveAuditLog("UPDATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), oldValueJson, newValueJson, "Cập nhật nội dung Cẩm nang nhận biết bệnh lý");
+        saveAuditLog("UPDATE_PROTOCOL", "emergency_protocols", savedProtocol.getId(), oldValueJson, newValueJson, "Cập nhật Tiêu đề và Nội dung Cẩm nang nhận biết bệnh lý");
 
         return savedProtocol;
     }
-
     @Transactional
     public void deleteEmergencyGuide(Integer guideId) {
-        saveAuditLog("DELETE_GUIDE", "emergency_guides", guideId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Hướng dẫn xử lý khẩn cấp");
-        emergencyGuideRepository.deleteById(guideId);
+        // 1. Tìm bản ghi hiện tại
+        EmergencyGuide existing = emergencyGuideRepository.findById(guideId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId));
+
+        // 2. Thực hiện vô hiệu hóa (Soft Delete)
+        existing.setIsActive(false);
+        emergencyGuideRepository.save(existing);
+
+        // 3. Ghi log hệ thống với cấu trúc JSON đồng bộ
+        saveAuditLog(
+                "DELETE_GUIDE",
+                "emergency_guides",
+                guideId,
+                "{\"isActive\":true}",
+                "{\"isActive\":false}",
+                "Vô hiệu hóa Hướng dẫn xử lý khẩn cấp"
+        );
     }
 
     @Transactional
     public void deleteEmergencyProtocol(Integer protocolId) {
-        saveAuditLog("DELETE_PROTOCOL", "emergency_protocols", protocolId, "{\"status\":\"ACTIVE\"}", "{\"status\":\"DELETED\"}", "Xóa Cẩm nang nhận biết bệnh lý");
-        emergencyProtocolRepository.deleteById(protocolId);
+        // 1. Tìm bản ghi hiện tại
+        EmergencyProtocol existing = emergencyProtocolRepository.findById(protocolId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Cẩm nang nhận biết bệnh lý với ID: " + protocolId));
+
+        // 2. Thực hiện vô hiệu hóa (Soft Delete)
+        existing.setIsActive(false);
+        emergencyProtocolRepository.save(existing);
+
+        // 3. Ghi log hệ thống với cấu trúc JSON đồng bộ
+        saveAuditLog(
+                "DELETE_PROTOCOL",
+                "emergency_protocols",
+                protocolId,
+                "{\"isActive\":true}",
+                "{\"isActive\":false}",
+                "Vô hiệu hóa Cẩm nang nhận biết bệnh lý"
+        );
+    }
+
+    @Transactional
+    public EmergencyGuide restoreEmergencyGuide(Integer guideId) {
+        EmergencyGuide existing = emergencyGuideRepository.findById(guideId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId));
+
+        // Kiểm tra xem vị trí này đã bị bản ghi mới nào chiếm chỗ chưa
+        if (emergencyGuideRepository.existsByHospitalIdAndAlertLevelAndMetricTypeAndIsActiveTrue(
+                existing.getHospital().getId(), existing.getAlertLevel(), existing.getMetricType())) {
+            throw new IllegalArgumentException("Không thể khôi phục! Đã có một chỉ dẫn khác đang hoạt động cho cấp độ này. Vui lòng vô hiệu hóa chỉ dẫn đang chạy trước.");
+        }
+
+        existing.setIsActive(true);
+        existing.setUpdatedAt(LocalDateTime.now());
+        EmergencyGuide restoredGuide = emergencyGuideRepository.save(existing);
+
+        saveAuditLog("RESTORE_GUIDE", "emergency_guides", guideId, "{\"isActive\":false}", "{\"isActive\":true}", "Khôi phục Hướng dẫn xử lý khẩn cấp");
+        return restoredGuide;
+    }
+
+    @Transactional
+    public EmergencyProtocol restoreEmergencyProtocol(Integer protocolId) {
+        EmergencyProtocol existing = emergencyProtocolRepository.findById(protocolId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Cẩm nang với ID: " + protocolId));
+
+        // Kiểm tra xem vị trí này đã bị bản ghi mới nào chiếm chỗ chưa
+        if (emergencyProtocolRepository.existsByHospitalIdAndConditionTypeAndIsActiveTrue(
+                existing.getHospital().getId(), existing.getConditionType())) {
+            throw new IllegalArgumentException("Không thể khôi phục! Đã có một cẩm nang khác đang hoạt động cho bệnh lý này. Vui lòng vô hiệu hóa cẩm nang đang chạy trước.");
+        }
+
+        existing.setIsActive(true);
+        existing.setUpdatedAt(LocalDateTime.now());
+        EmergencyProtocol restoredProtocol = emergencyProtocolRepository.save(existing);
+
+        saveAuditLog("RESTORE_PROTOCOL", "emergency_protocols", protocolId, "{\"isActive\":false}", "{\"isActive\":true}", "Khôi phục Cẩm nang nhận biết bệnh lý");
+        return restoredProtocol;
     }
 
     private void saveAuditLog(String action, String targetTable, Integer targetRecordId, String oldValue, String newValue, String notes) {
@@ -414,7 +565,6 @@ public class HospitalConfigService {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated()) {
                 Object principal = auth.getPrincipal();
-                // LƯU Ý: Đảm bảo class CustomUserDetails nằm ĐÚNG đường dẫn import dưới đây trong project của bạn
                 if (principal instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
                     Account acc = ((com.rpm.remotepatientmonitoring.config.CustomUserDetails) principal).getAccount();
                     adminId = acc.getId();
@@ -431,7 +581,7 @@ public class HospitalConfigService {
 
                     deviceInfo = request.getHeader("User-Agent");
                     if (deviceInfo != null && deviceInfo.length() > 250) {
-                        deviceInfo = deviceInfo.substring(0, 250); // Ép cứng độ dài chống vỡ CSDL
+                        deviceInfo = deviceInfo.substring(0, 250);
                     }
 
                     ipAddress = request.getHeader("X-Forwarded-For");
@@ -462,5 +612,301 @@ public class HospitalConfigService {
         } catch (Exception e) {
             System.err.println("Cảnh báo: Lỗi hệ thống khi ghi Audit Log cấu hình (" + action + "): " + e.getMessage());
         }
+    }
+
+    // ==========================================
+    // KHUYẾN NGHỊ TẬP LUYỆN
+    // ==========================================
+    public List<ExerciseGuideline> getExerciseGuidelines(Integer hospitalId) {
+        return exerciseGuidelineRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
+    }
+
+    private void validateGuideline(Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        if (diseaseProfileId == null) {
+            throw new IllegalArgumentException("diseaseProfileId:Vui lòng chọn nhóm bệnh.");
+        }
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("title:Tiêu đề không được để trống.");
+        }
+        if (title.trim().length() > 255) {
+            throw new IllegalArgumentException("title:Tiêu đề tối đa 255 ký tự.");
+        }
+        if (recommendedContent == null || recommendedContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("recommendedContent:Nội dung nên làm không được để trống.");
+        }
+        if (recommendedContent.trim().length() < 10) {
+            throw new IllegalArgumentException("recommendedContent:Nội dung nên làm phải có tối thiểu 10 ký tự.");
+        }
+        if (avoidContent == null || avoidContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("avoidContent:Nội dung cần tránh không được để trống.");
+        }
+        if (avoidContent.trim().length() < 10) {
+            throw new IllegalArgumentException("avoidContent:Nội dung cần tránh phải có tối thiểu 10 ký tự.");
+        }
+    }
+
+    @Transactional
+    public ExerciseGuideline addExerciseGuideline(Integer hospitalId, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        validateGuideline(diseaseProfileId, title, recommendedContent, avoidContent);
+
+        exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, hospitalId)
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
+                });
+
+        DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
+                .orElseThrow(() -> new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý."));
+
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện."));
+
+        ExerciseGuideline guideline = new ExerciseGuideline();
+        guideline.setHospital(hospital);
+        guideline.setDiseaseProfile(profile);
+        guideline.setTitle(title != null ? title.trim() : "");
+        guideline.setRecommendedContent(recommendedContent != null ? recommendedContent.trim() : "");
+        guideline.setAvoidContent(avoidContent != null ? avoidContent.trim() : "");
+        guideline.setIsActive(true);
+        guideline.setCreatedAt(LocalDateTime.now());
+
+        ExerciseGuideline saved = exerciseGuidelineRepository.save(guideline);
+
+        String newValueJson = "-";
+        try {
+            Map<String, Object> logMap = new HashMap<>();
+            logMap.put("diseaseProfile", profile.getProfileName() != null ? profile.getProfileName() : String.valueOf(diseaseProfileId));
+            logMap.put("title", saved.getTitle());
+            logMap.put("recommendedContent", saved.getRecommendedContent());
+            logMap.put("avoidContent", saved.getAvoidContent());
+            newValueJson = objectMapper.writeValueAsString(logMap);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("CREATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), "-", newValueJson, "Thêm mới khuyến nghị tập luyện");
+
+        return saved;
+    }
+
+    @Transactional
+    public ExerciseGuideline editExerciseGuideline(Integer id, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
+        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+
+        validateGuideline(diseaseProfileId, title, recommendedContent, avoidContent);
+
+        if (!existing.getDiseaseProfile().getId().equals(diseaseProfileId)) {
+            exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, existing.getHospital().getId())
+                    .ifPresent(other -> {
+                        if (!other.getId().equals(id)) {
+                            throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
+                        }
+                    });
+        }
+
+        // Snapshot dữ liệu cũ
+        String oldProfileName = existing.getDiseaseProfile().getProfileName();
+        String oldTitle = existing.getTitle();
+        String oldRec = existing.getRecommendedContent();
+        String oldAvoid = existing.getAvoidContent();
+
+        DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
+                .orElseThrow(() -> new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý."));
+
+        existing.setDiseaseProfile(profile);
+        existing.setTitle(title != null ? title.trim() : "");
+        existing.setRecommendedContent(recommendedContent != null ? recommendedContent.trim() : "");
+        existing.setAvoidContent(avoidContent != null ? avoidContent.trim() : "");
+
+        ExerciseGuideline saved = exerciseGuidelineRepository.save(existing);
+
+        String oldValueJson = "-";
+        String newValueJson = "-";
+        try {
+            Map<String, Object> oldLog = new HashMap<>();
+            oldLog.put("diseaseProfile", oldProfileName != null ? oldProfileName : String.valueOf(existing.getDiseaseProfile().getId()));
+            oldLog.put("title", oldTitle);
+            oldLog.put("recommendedContent", oldRec);
+            oldLog.put("avoidContent", oldAvoid);
+
+            Map<String, Object> newLog = new HashMap<>();
+            newLog.put("diseaseProfile", profile.getProfileName() != null ? profile.getProfileName() : String.valueOf(diseaseProfileId));
+            newLog.put("title", saved.getTitle());
+            newLog.put("recommendedContent", saved.getRecommendedContent());
+            newLog.put("avoidContent", saved.getAvoidContent());
+
+            oldValueJson = objectMapper.writeValueAsString(oldLog);
+            newValueJson = objectMapper.writeValueAsString(newLog);
+        } catch (Exception ignored) {}
+
+        saveAuditLog("UPDATE_EXERCISE_GUIDELINE", "exercise_guidelines", saved.getId(), oldValueJson, newValueJson, "Cập nhật khuyến nghị tập luyện");
+
+        return saved;
+    }
+
+    @Transactional
+    public void deleteExerciseGuideline(Integer id) {
+        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+
+        existing.setIsActive(false);
+        exerciseGuidelineRepository.save(existing);
+
+        saveAuditLog("DELETE_EXERCISE_GUIDELINE", "exercise_guidelines", id, "{\"isActive\":true}", "{\"isActive\":false}", "Vô hiệu hóa khuyến nghị tập luyện");
+    }
+
+    // ==========================================
+    // DANH MỤC THỰC PHẨM
+    // ==========================================
+    public Page<FoodDictionary> searchFoods(String search, Pageable pageable) {
+        if (search == null || search.trim().isEmpty()) {
+            return foodDictionaryRepository.findByIsActiveTrue(pageable);
+        }
+        return foodDictionaryRepository.findByIsActiveTrueAndFoodNameContainingIgnoreCaseOrIsActiveTrueAndEnglishNameContainingIgnoreCase(search, search, pageable);
+    }
+
+    public long getDietLogsCountByFoodId(Integer foodId) {
+        return patientMealRepository.countByFoodId(foodId);
+    }
+
+    private void validateFood(FoodDictionary food) {
+        if (food.getFoodCode() == null || food.getFoodCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("foodCode:Mã thực phẩm không được để trống.");
+        }
+        if (food.getFoodCode().trim().length() > 50) {
+            throw new IllegalArgumentException("foodCode:Mã thực phẩm tối đa 50 ký tự.");
+        }
+        if (food.getFoodName() == null || food.getFoodName().trim().isEmpty()) {
+            throw new IllegalArgumentException("foodName:Tên món ăn không được để trống.");
+        }
+        if (food.getFoodName().trim().length() > 255) {
+            throw new IllegalArgumentException("foodName:Tên món ăn tối đa 255 ký tự.");
+        }
+        if (food.getEnglishName() != null) {
+            String trimmedEng = food.getEnglishName().trim();
+            if (trimmedEng.length() > 255) {
+                throw new IllegalArgumentException("englishName:Tên tiếng Anh tối đa 255 ký tự.");
+            }
+            food.setEnglishName(trimmedEng.isEmpty() ? null : trimmedEng);
+        }
+        validateFoodNutrients(food);
+    }
+
+    private void validateFoodNutrients(FoodDictionary food) {
+        if (food.getWaterG() != null && food.getWaterG().doubleValue() < 0) throw new IllegalArgumentException("waterG:Nước (g) phải >= 0");
+        if (food.getEnergyKcal() != null && food.getEnergyKcal() < 0) throw new IllegalArgumentException("energyKcal:Calo (kcal) phải >= 0");
+        if (food.getProteinG() != null && food.getProteinG().doubleValue() < 0) throw new IllegalArgumentException("proteinG:Đạm (g) phải >= 0");
+        if (food.getLipidG() != null && food.getLipidG().doubleValue() < 0) throw new IllegalArgumentException("lipidG:Béo (g) phải >= 0");
+        if (food.getGlucidG() != null && food.getGlucidG().doubleValue() < 0) throw new IllegalArgumentException("glucidG:Tinh bột (g) phải >= 0");
+        if (food.getCellulozaG() != null && food.getCellulozaG().doubleValue() < 0) throw new IllegalArgumentException("cellulozaG:Xơ (g) phải >= 0");
+        if (food.getAshG() != null && food.getAshG().doubleValue() < 0) throw new IllegalArgumentException("ashG:Tro (g) phải >= 0");
+    }
+
+    @Transactional
+    public FoodDictionary addFood(FoodDictionary food) {
+        validateFood(food);
+        food.setFoodCode(food.getFoodCode().trim());
+        food.setFoodName(food.getFoodName().trim());
+
+        if (foodDictionaryRepository.existsByFoodCode(food.getFoodCode())) {
+            throw new IllegalArgumentException("foodCode:Mã thực phẩm đã tồn tại.");
+        }
+
+        food.setIsActive(true);
+        food.setCreatedAt(LocalDateTime.now());
+        FoodDictionary saved = foodDictionaryRepository.save(food);
+
+        String newValueJson = "-";
+        try {
+            newValueJson = objectMapper.writeValueAsString(buildFoodLogMap(saved));
+        } catch (Exception ignored) {}
+
+        saveAuditLog("CREATE_FOOD", "foods_dictionary", saved.getId(), "-", newValueJson, "Thêm mới món ăn vào danh mục");
+        return saved;
+    }
+
+    @Transactional
+    public FoodDictionary editFood(Integer id, FoodDictionary updated) {
+        FoodDictionary existing = foodDictionaryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
+
+        validateFood(updated);
+        updated.setFoodCode(updated.getFoodCode().trim());
+        updated.setFoodName(updated.getFoodName().trim());
+
+        if (!existing.getFoodCode().equals(updated.getFoodCode())) {
+            if (foodDictionaryRepository.existsByFoodCode(updated.getFoodCode())) {
+                throw new IllegalArgumentException("foodCode:Mã thực phẩm đã tồn tại.");
+            }
+        }
+
+        validateFoodNutrients(updated);
+
+        Map<String, Object> oldLogMap = buildFoodLogMap(existing);
+
+        existing.setFoodCode(updated.getFoodCode());
+        existing.setFoodName(updated.getFoodName());
+        existing.setEnglishName(updated.getEnglishName());
+        existing.setWaterG(updated.getWaterG());
+        existing.setEnergyKcal(updated.getEnergyKcal());
+        existing.setProteinG(updated.getProteinG());
+        existing.setLipidG(updated.getLipidG());
+        existing.setGlucidG(updated.getGlucidG());
+        existing.setCellulozaG(updated.getCellulozaG());
+        existing.setAshG(updated.getAshG());
+        existing.setIsActive(updated.getIsActive());
+
+        FoodDictionary saved = foodDictionaryRepository.save(existing);
+
+        String oldValueJson = "-";
+        String newValueJson = "-";
+        try {
+            oldValueJson = objectMapper.writeValueAsString(oldLogMap);
+            newValueJson = objectMapper.writeValueAsString(buildFoodLogMap(saved));
+        } catch (Exception ignored) {}
+
+        saveAuditLog("UPDATE_FOOD", "foods_dictionary", saved.getId(), oldValueJson, newValueJson, "Cập nhật thông tin món ăn");
+        return saved;
+    }
+
+    @Transactional
+    public FoodDictionary toggleFoodActive(Integer id) {
+        FoodDictionary existing = foodDictionaryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
+
+        boolean oldStatus = existing.getIsActive();
+        existing.setIsActive(!existing.getIsActive());
+        FoodDictionary saved = foodDictionaryRepository.save(existing);
+
+        String oldValueJson = "{\"isActive\":" + oldStatus + "}";
+        String newValueJson = "{\"isActive\":" + saved.getIsActive() + "}";
+
+        saveAuditLog("TOGGLE_FOOD_ACTIVE", "foods_dictionary", saved.getId(), oldValueJson, newValueJson,
+                "Thay đổi trạng thái hoạt động món ăn thành: " + (saved.getIsActive() ? "Hoạt động" : "Vô hiệu hóa"));
+        return saved;
+    }
+
+    private Map<String, Object> buildFoodLogMap(FoodDictionary food) {
+        Map<String, Object> logMap = new HashMap<>();
+        logMap.put("foodCode", food.getFoodCode());
+        logMap.put("foodName", food.getFoodName());
+        logMap.put("englishName", food.getEnglishName());
+        logMap.put("waterG", food.getWaterG());
+        logMap.put("energyKcal", food.getEnergyKcal());
+        logMap.put("proteinG", food.getProteinG());
+        logMap.put("lipidG", food.getLipidG());
+        logMap.put("glucidG", food.getGlucidG());
+        logMap.put("cellulozaG", food.getCellulozaG());
+        logMap.put("ashG", food.getAshG());
+        logMap.put("isActive", food.getIsActive());
+        return logMap;
+    }
+
+    private void validateFoodNutrients(FoodDictionary food) {
+        if (food.getWaterG() != null && food.getWaterG().doubleValue() < 0) throw new IllegalArgumentException("Nước (g) phải >= 0");
+        if (food.getEnergyKcal() != null && food.getEnergyKcal() < 0) throw new IllegalArgumentException("Calo (kcal) phải >= 0");
+        if (food.getProteinG() != null && food.getProteinG().doubleValue() < 0) throw new IllegalArgumentException("Đạm (g) phải >= 0");
+        if (food.getLipidG() != null && food.getLipidG().doubleValue() < 0) throw new IllegalArgumentException("Béo (g) phải >= 0");
+        if (food.getGlucidG() != null && food.getGlucidG().doubleValue() < 0) throw new IllegalArgumentException("Tinh bột (g) phải >= 0");
+        if (food.getCellulozaG() != null && food.getCellulozaG().doubleValue() < 0) throw new IllegalArgumentException("Xơ (g) phải >= 0");
+        if (food.getAshG() != null && food.getAshG().doubleValue() < 0) throw new IllegalArgumentException("Tro (g) phải >= 0");
     }
 }
