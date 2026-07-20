@@ -3,8 +3,8 @@ package com.rpm.remotepatientmonitoring.controller.patient;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.model.ExerciseLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
-import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import com.rpm.remotepatientmonitoring.service.patient.ExerciseLogService;
+import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +28,7 @@ public class ExerciseLogController {
     private ExerciseLogService exerciseLogService;
 
     @Autowired
-    private PatientRepository patientRepository;
-
-    @Autowired
-    private com.rpm.remotepatientmonitoring.repository.ExerciseLogRepository exerciseLogRepository;
+    private PatientHealthService patientHealthService;
 
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -39,13 +36,13 @@ public class ExerciseLogController {
             Object principal = auth.getPrincipal();
             if (principal instanceof CustomUserDetails) {
                 CustomUserDetails userDetails = (CustomUserDetails) principal;
-                Optional<Patient> opt = patientRepository.findByAccountId(userDetails.getAccount().getId());
-                if (opt.isPresent()) {
-                    return opt.get();
+                Patient patient = patientHealthService.getPatientByAccountId(userDetails.getAccount().getId());
+                if (patient != null) {
+                    return patient;
                 }
             }
         }
-        List<Patient> all = patientRepository.findAll();
+        List<Patient> all = patientHealthService.getAllPatients();
         if (all.size() > 0) {
             return all.get(0);
         }
@@ -75,6 +72,14 @@ public class ExerciseLogController {
         List<com.rpm.remotepatientmonitoring.model.Notification> exerciseNotifications = 
                 exerciseLogService.getUnreadExerciseNotificationsToday(patient.getId());
 
+        // Lấy khuyến nghị và mức độ tuân thủ
+        String exerciseRecommendation = exerciseLogService.getExerciseRecommendation(patient.getId());
+        ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patient.getId());
+
+        // Lấy hướng dẫn vận động tĩnh từ DB
+        Optional<com.rpm.remotepatientmonitoring.model.ExerciseGuideline> guidelineOpt = 
+                exerciseLogService.getExerciseGuideline(patient.getId());
+
         int targetMinutesVal = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : ExerciseLogService.DAILY_GOAL_MINUTES;
         int recommendedCalories = targetMinutesVal * ExerciseLogService.AVERAGE_KCAL_PER_MINUTE;
 
@@ -91,6 +96,9 @@ public class ExerciseLogController {
         model.addAttribute("recommendedCalories", recommendedCalories);
         model.addAttribute("latestBmi", latestBmi);
         model.addAttribute("exerciseNotifications", exerciseNotifications);
+        model.addAttribute("exerciseRecommendation", exerciseRecommendation);
+        model.addAttribute("compliance", compliance);
+        model.addAttribute("exerciseGuideline", guidelineOpt.orElse(null));
 
         return "patient/exercise";
     }
@@ -152,33 +160,26 @@ public class ExerciseLogController {
 
         Patient patient = getCurrentPatient();
 
-        Optional<ExerciseLog> logOpt = exerciseLogRepository.findById(id);
-        if (!logOpt.isPresent()) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy ghi nhận bài tập."));
+        try {
+            exerciseLogService.deleteExerciseLog(id, patient.getId());
+
+            // Tính toán lại chỉ số hôm nay để cập nhật động ở giao diện
+            Map<String, Object> summary = exerciseLogService.getTodaySummary(patient.getId());
+            int streak = exerciseLogService.getCurrentStreak(patient.getId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Đã xóa bài tập thành công!");
+            response.put("totalMinutes", summary.get("totalMinutes"));
+            response.put("totalCaloriesBurned", summary.get("totalCaloriesBurned"));
+            response.put("targetMinutes", summary.get("targetMinutes"));
+            response.put("exerciseProgress", summary.get("exerciseProgress"));
+            response.put("streak", streak);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
         }
-
-        ExerciseLog log = logOpt.get();
-        // Kiểm tra quyền sở hữu (Bảo mật ownership)
-        if (!log.getPatient().getId().equals(patient.getId())) {
-            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Bạn không có quyền xóa ghi nhận này!"));
-        }
-
-        exerciseLogRepository.delete(log);
-
-        // Tính toán lại chỉ số hôm nay để cập nhật động ở giao diện
-        Map<String, Object> summary = exerciseLogService.getTodaySummary(patient.getId());
-        int streak = exerciseLogService.getCurrentStreak(patient.getId());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Đã xóa bài tập thành công!");
-        response.put("totalMinutes", summary.get("totalMinutes"));
-        response.put("totalCaloriesBurned", summary.get("totalCaloriesBurned"));
-        response.put("targetMinutes", summary.get("targetMinutes"));
-        response.put("exerciseProgress", summary.get("exerciseProgress"));
-        response.put("streak", streak);
-
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/exercise/update/{id}")

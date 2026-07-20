@@ -23,6 +23,12 @@ public class PatientHealthService {
     @Autowired
     private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository emergencyGuideRepository;
+
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.EmergencyProtocolRepository emergencyProtocolRepository;
+
     public Map<String, Object> submitDailyHealthLog(HealthLogRequest req) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName("sp_record_daily_health_log");
         MapSqlParameterSource inParams = new MapSqlParameterSource();
@@ -115,5 +121,112 @@ public class PatientHealthService {
             
             notificationRepository.save(notif);
         }
+    }
+
+    public void saveDailyHealthLog(com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
+        com.rpm.remotepatientmonitoring.model.DailyHealthLog log = com.rpm.remotepatientmonitoring.model.DailyHealthLog.builder()
+                .patient(patient)
+                .logDate(java.time.LocalDate.now())
+                .logTime(java.time.LocalDateTime.now())
+                .logType(formDto.getLogType())
+                .systolicBp(formDto.getSystolicBp())
+                .diastolicBp(formDto.getDiastolicBp())
+                .heartRate(formDto.getHeartRate())
+                .glucoseLevel(formDto.getGlucoseLevel())
+                .patientNotes(formDto.getPatientNotes())
+                .inputMethod("MANUAL")
+                .isOcrValidated(false)
+                .isAlertProcessed(false)
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        
+        healthLogRepository.save(log);
+    }
+
+    public com.rpm.remotepatientmonitoring.model.Patient getPatientByAccountId(Integer accountId) {
+        return patientRepository.findByAccountId(accountId).orElse(null);
+    }
+
+    public java.util.List<com.rpm.remotepatientmonitoring.model.Patient> getAllPatients() {
+        return patientRepository.findAll();
+    }
+
+    public Map<String, Object> getEmergencyStatus(com.rpm.remotepatientmonitoring.model.Patient patient) {
+        int level = 1; // 1 = Green, 2 = Yellow, 3 = Orange, 4 = Red
+        Integer latestSystolic = null;
+        Integer latestDiastolic = null;
+        Double latestGlucose = null;
+
+        java.util.Optional<com.rpm.remotepatientmonitoring.model.DailyHealthLog> latestBpLogOpt = 
+            healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId());
+        if (latestBpLogOpt.isPresent()) {
+            com.rpm.remotepatientmonitoring.model.DailyHealthLog bpLog = latestBpLogOpt.get();
+            if (bpLog.getSystolicBp() != null) {
+                latestSystolic = bpLog.getSystolicBp();
+                if (latestSystolic >= 180 || latestSystolic < 90) {
+                    level = Math.max(level, 4);
+                } else if (latestSystolic >= 140) {
+                    level = Math.max(level, 3);
+                } else if (latestSystolic >= 130) {
+                    level = Math.max(level, 2);
+                }
+            }
+            if (bpLog.getDiastolicBp() != null) {
+                latestDiastolic = bpLog.getDiastolicBp();
+                if (latestDiastolic >= 110 || latestDiastolic < 60) {
+                    level = Math.max(level, 4);
+                } else if (latestDiastolic >= 90) {
+                    level = Math.max(level, 3);
+                } else if (latestDiastolic >= 85) {
+                    level = Math.max(level, 2);
+                }
+            }
+        }
+
+        java.util.Optional<com.rpm.remotepatientmonitoring.model.DailyHealthLog> latestGlucoseLogOpt = 
+            healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId());
+        if (latestGlucoseLogOpt.isPresent()) {
+            com.rpm.remotepatientmonitoring.model.DailyHealthLog glucoseLog = latestGlucoseLogOpt.get();
+            if (glucoseLog.getGlucoseLevel() != null) {
+                latestGlucose = glucoseLog.getGlucoseLevel().doubleValue();
+                if (latestGlucose < 4.4 || latestGlucose > 16.0) {
+                    level = Math.max(level, 4);
+                } else if (latestGlucose > 10.0) {
+                    level = Math.max(level, 3);
+                }
+            }
+        }
+
+        boolean isEmergency = (level >= 3);
+
+        java.util.List<Map<String, Object>> guidesList = new java.util.ArrayList<>();
+        if (patient.getHospital() != null) {
+            java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyGuide> dbGuides = 
+                emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
+            for (com.rpm.remotepatientmonitoring.model.EmergencyGuide g : dbGuides) {
+                Map<String, Object> gMap = new java.util.HashMap<>();
+                gMap.put("title", g.getTitle());
+                gMap.put("content", g.getInstructionContent());
+                gMap.put("alertLevel", g.getAlertLevel());
+                gMap.put("metricType", g.getMetricType());
+                guidesList.add(gMap);
+            }
+        }
+
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("isEmergency", isEmergency);
+        response.put("level", level);
+        response.put("latestSystolic", latestSystolic);
+        response.put("latestDiastolic", latestDiastolic);
+        response.put("latestGlucose", latestGlucose);
+        response.put("emergencyContactName", patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Chưa thiết lập");
+        response.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
+        response.put("guides", guidesList);
+
+        return response;
+    }
+
+    public java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyProtocol> getEmergencyProtocols(Integer hospitalId) {
+        return emergencyProtocolRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
     }
 }

@@ -38,8 +38,14 @@
             <!-- Left Column: Biography & Medical Info (Non-editable) -->
             <div class="col-lg-5">
                 <div class="card card-custom p-4 text-center mb-4" style="border-top: 4px solid #667eea;">
-                    <div class="profile-avatar-container" style="width:100px;height:100px;border-radius:50%;background:var(--gradient-primary);color:white;display:flex;align-items:center;justify-content:center;font-size:2.8rem;margin:0 auto 15px;box-shadow:0 8px 24px rgba(102,126,234,.35);">
-                        <i class="fa-solid fa-user"></i>
+                    <div class="profile-avatar-container position-relative overflow-hidden cursor-pointer" 
+                         style="width:100px;height:100px;border-radius:50%;background:var(--gradient-primary);color:white;display:flex;align-items:center;justify-content:center;font-size:2.8rem;margin:0 auto 15px;box-shadow:0 8px 24px rgba(102,126,234,.35); cursor: pointer;"
+                         onclick="triggerAvatarUpload()">
+                        <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="w-100 h-100" style="object-fit: cover;">
+                        <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-solid fa-user"></i>
+                        <div class="avatar-hover-overlay position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-50 text-white py-1" style="font-size: 0.75rem; transition: 0.3s; opacity: 0; text-align: center;">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
                     </div>
                     <h3 class="fw-bold mb-1" th:text="${patient.fullName}">Nguyễn Văn A</h3>
                     <p class="text-muted mb-3" th:text="'Mã BN: ' + (${patient.patientCode != null && !patient.patientCode.isEmpty() ? patient.patientCode : 'Chưa cấp mã'})">PAT-0001</p>
@@ -75,10 +81,15 @@
 
                     <div class="mb-3">
                         <label class="form-label text-muted small mb-1">Bác sĩ phụ trách</label>
-                        <div class="readonly-field">
-                            <i class="fa-solid fa-user-doctor text-primary me-2"></i>
-                            <span th:if="${patient.doctor != null}" th:text="'BS. ' + ${patient.doctor.fullName}">BS. Nguyễn Văn B</span>
-                            <span th:if="${patient.doctor == null}">Chưa phân công</span>
+                        <div class="readonly-field d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div>
+                                <i class="fa-solid fa-user-doctor text-primary me-2"></i>
+                                <span th:if="${patient.doctor != null}" th:text="'BS. ' + ${patient.doctor.fullName}">BS. Nguyễn Văn B</span>
+                                <span th:if="${patient.doctor == null}">Chưa phân công</span>
+                            </div>
+                            <div th:if="${patient.doctor != null}" class="text-warning small fw-bold">
+                                <span th:text="${patient.doctor.ratingDisplay}">⭐⭐⭐⭐☆ 4.2/5</span>
+                            </div>
                         </div>
                     </div>
 
@@ -205,6 +216,50 @@
 
     <!-- Bottom Navigation Bar -->
     <div th:replace="~{patient/fragments :: bottom-nav}"></div>
+    
+    <style>
+        .profile-avatar-container:hover .avatar-hover-overlay {
+            opacity: 1 !important;
+        }
+    </style>
+    
+    <script>
+        function triggerAvatarUpload() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/png, image/jpeg, image/webp';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Kích thước ảnh đại diện không được vượt quá 10MB.');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                fetch('/api/account/avatar', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert('Tải ảnh đại diện lên thất bại: ' + (data.message || 'Lỗi hệ thống'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Đã xảy ra lỗi khi tải ảnh lên.');
+                });
+            };
+            input.click();
+        }
+    </script>
+    
     <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
 </body>
 </html>

@@ -3,6 +3,7 @@ package com.rpm.remotepatientmonitoring.controller.hopital;
 import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.service.hopital.DoctorService;
+import com.rpm.remotepatientmonitoring.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,6 +35,9 @@ public class DoctorController {
     @Autowired
     private DoctorService doctorService;
 
+    @Autowired
+    private RatingService ratingService;
+
     @GetMapping
     public String listDoctors(@RequestParam(value = "search", required = false) String search,
                               @RequestParam(value = "specialty", required = false) String specialty,
@@ -46,6 +50,7 @@ public class DoctorController {
 
         Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(search, specialty, pageable);
 
+        ratingService.populateDoctorRatings(doctorPage.getContent());
         model.addAttribute("doctors", doctorPage.getContent());
         model.addAttribute("doctorPage", doctorPage);
         model.addAttribute("currentPage", page);
@@ -84,6 +89,7 @@ public class DoctorController {
             // SỬA CHUẨN: Đồng bộ phân trang khi trả về lỗi Validation tránh crash giao diện
             Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
             Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(null, null, pageable);
+            ratingService.populateDoctorRatings(doctorPage.getContent());
             model.addAttribute("doctors", doctorPage.getContent());
             model.addAttribute("doctorPage", doctorPage);
             model.addAttribute("currentPage", 0);
@@ -128,12 +134,14 @@ public class DoctorController {
             }
 
             List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
+            ratingService.populateDoctorRatings(doctors);
             model.addAttribute("doctors", doctors);
             model.addAttribute("doctorDto", doctorDto);
             model.addAttribute("doctorEditDto", new DoctorEditDTO());
             return "hospital/doctors";
         } catch (Exception e) {
             List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
+            ratingService.populateDoctorRatings(doctors);
             model.addAttribute("doctors", doctors);
             model.addAttribute("doctorDto", doctorDto);
             model.addAttribute("doctorEditDto", new DoctorEditDTO());
