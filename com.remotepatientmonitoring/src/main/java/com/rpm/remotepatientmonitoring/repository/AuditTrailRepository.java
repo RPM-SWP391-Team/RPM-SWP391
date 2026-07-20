@@ -13,4 +13,6 @@ import java.util.List;
 public interface AuditTrailRepository extends JpaRepository<AuditTrail, Long> {
     Page<AuditTrail> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime start, LocalDateTime end, Pageable pageable);
     List<AuditTrail> findByTargetTableAndTargetRecordIdOrderByCreatedAtDesc(String targetTable, Integer targetRecordId);
+    Page<AuditTrail> findByTargetTableAndTargetRecordIdAndActionOrderByCreatedAtDesc(String targetTable, Integer targetRecordId, String action, Pageable pageable);
+    Page<AuditTrail> findByTargetTableAndTargetRecordIdAndActionAndCreatedAtBetweenOrderByCreatedAtDesc(String targetTable, Integer targetRecordId, String action, LocalDateTime start, LocalDateTime end, Pageable pageable);
 }
