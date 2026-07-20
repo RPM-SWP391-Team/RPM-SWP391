@@ -1,0 +1,4 @@
+question_id,question,reference_answer,ground_truth_ids
+1,Bệnh đái tháo đường là gì?,Đái tháo đường là một bệnh mạn tính liên quan đến rối loạn chuyển hóa đường.,"['id1']"
+2,Triệu chứng của viêm phổi?,"Ho, sốt, khó thở.","['id2']"
+3,Tôi bị đau đầu thì uống thuốc gì?,"Bạn có thể dùng Paracetamol theo chỉ định của bác sĩ.","['id3']"

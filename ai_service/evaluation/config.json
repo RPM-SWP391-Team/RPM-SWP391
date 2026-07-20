@@ -1,0 +1,6 @@
+{
+    "rouge_correct": 0.7,
+    "rouge_partial": 0.4,
+    "bleu_correct": 0.5,
+    "bleu_partial": 0.2
+}

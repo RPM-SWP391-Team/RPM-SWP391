@@ -1,0 +1,15 @@
+{
+    "parser_version": "1.0.0",
+    "schema_version": "2.0.0",
+    "chunking_version": "1.0.0",
+    "retriever_version": "2.0.0",
+    "embedding_model": "BAAI/bge-small-en-v1.5",
+    "embedding_dimension": 384,
+    "total_documents": 19,
+    "total_chunks": 1889,
+    "average_chunk_length": 1463.96,
+    "max_chunk_length": 7784,
+    "build_time": 401.93,
+    "embedding_cache_hit_rate": 0.0,
+    "created_at": "2026-07-20T02:00:19.943724+00:00"
+}

@@ -1,0 +1,39 @@
+[
+    {
+        "query_id": "q1",
+        "question": "Li\u1ec1u l\u01b0\u1ee3ng Insulin cho b\u1ec7nh nh\u00e2n \u0111\u00e1i th\u00e1o \u0111\u01b0\u1eddng tu\u00fdp 2 l\u00e0 bao nhi\u00eau?",
+        "expected_ids": [
+            "c_insulin_001",
+            "c_insulin_002"
+        ],
+        "retrieved_ids": [
+            "id2",
+            "id1"
+        ],
+        "failure_reason": "Missed all expected chunks in top K"
+    },
+    {
+        "query_id": "q2",
+        "question": "Ch\u1ed1ng ch\u1ec9 \u0111\u1ecbnh c\u1ee7a Metformin?",
+        "expected_ids": [
+            "c_metformin_contra"
+        ],
+        "retrieved_ids": [
+            "id1",
+            "id3",
+            "id2"
+        ],
+        "failure_reason": "Missed all expected chunks in top K"
+    },
+    {
+        "query_id": "q3",
+        "question": "M\u1ee5c ti\u00eau HbA1c \u1edf b\u1ec7nh nh\u00e2n l\u1edbn tu\u1ed5i?",
+        "expected_ids": [
+            "c_hba1c_elderly"
+        ],
+        "retrieved_ids": [
+            "id1"
+        ],
+        "failure_reason": "Missed all expected chunks in top K"
+    }
+]

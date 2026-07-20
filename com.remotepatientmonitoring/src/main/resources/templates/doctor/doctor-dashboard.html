@@ -301,6 +301,202 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
+<!-- CHATBOT WIDGET START -->
+    <style>
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 80px; 
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 9999;
+            transition: transform 0.3s;
+        }
+        .ai-chat-btn:hover {
+            transform: scale(1.1);
+        }
+        .ai-chat-window {
+            position: fixed;
+            bottom: 150px;
+            right: 20px;
+            width: 450px;
+            max-width: calc(100vw - 40px);
+            height: 550px;
+            max-height: calc(100vh - 180px);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 9998;
+            overflow: hidden;
+            font-family: inherit;
+        }
+        .ai-chat-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ai-chat-close {
+            cursor: pointer;
+        }
+        .ai-chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        .ai-msg {
+            margin-bottom: 15px;
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .ai-msg-bot {
+            background: white;
+            color: #333;
+            border: 1px solid #eee;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .ai-msg-user {
+            background: #eef2ff;
+            color: #0d6efd;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .ai-chat-footer {
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background: white;
+            display: flex;
+            gap: 10px;
+        }
+        .ai-chat-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+        }
+        .ai-chat-send {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .ai-msg-bot strong { font-weight: bold; color: #0d6efd; }
+    </style>
+
+    <div class="ai-chat-btn" id="aiChatBtn">
+        <i class="fa-solid fa-brain"></i>
+    </div>
+
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-chat-header">
+            <span><i class="fa-solid fa-brain me-2"></i> Trợ lý Trí tuệ Nhân tạo (Dành cho Bác sĩ)</span>
+            <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg ai-msg-bot">
+                Xin chào Bác sĩ! Tôi là Trợ lý AI y khoa dựa trên dữ liệu RAG. Tôi có thể hỗ trợ tra cứu phác đồ điều trị, thông tin thuốc, và tư vấn y khoa dựa trên tài liệu hướng dẫn. Bác sĩ cần tôi hỗ trợ gì ạ?
+            </div>
+        </div>
+        <div class="ai-chat-footer">
+            <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Nhập câu hỏi chuyên môn...">
+            <button class="ai-chat-send" id="aiChatSend"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('aiChatBtn');
+            const windowEl = document.getElementById('aiChatWindow');
+            const closeBtn = document.getElementById('aiChatClose');
+            const sendBtn = document.getElementById('aiChatSend');
+            const inputEl = document.getElementById('aiChatInput');
+            const bodyEl = document.getElementById('aiChatBody');
+
+            btn.addEventListener('click', () => {
+                windowEl.style.display = windowEl.style.display === 'flex' ? 'none' : 'flex';
+            });
+
+            closeBtn.addEventListener('click', () => {
+                windowEl.style.display = 'none';
+            });
+
+            function addMessage(text, isUser) {
+                const div = document.createElement('div');
+                div.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
+                if (!isUser) {
+                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    text = text.replace(/\n/g, '<br>');
+                }
+                div.innerHTML = text;
+                bodyEl.appendChild(div);
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+            }
+
+            function sendMessage() {
+                const text = inputEl.value.trim();
+                if (!text) return;
+
+                addMessage(text, true);
+                inputEl.value = '';
+
+                const loadingId = 'loading-' + Date.now();
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = loadingId;
+                loadingDiv.className = 'ai-msg ai-msg-bot';
+                loadingDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang truy xuất tài liệu Y khoa...';
+                bodyEl.appendChild(loadingDiv);
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+
+                fetch('/api/chatbot/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: text })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById(loadingId).remove();
+                    addMessage(data.answer, false);
+                })
+                .catch(err => {
+                    document.getElementById(loadingId).remove();
+                    addMessage('Xin lỗi, đã có lỗi kết nối đến máy chủ AI.', false);
+                });
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            inputEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        });
+    </script>
+    <!-- CHATBOT WIDGET END -->
 
 </body>
 </html>

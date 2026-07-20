@@ -1,0 +1,37 @@
+{
+    "timestamp": "2026-07-17T18:05:38.148633",
+    "total_questions": 220,
+    "average_metrics": {
+        "exact_match": 0.0,
+        "answer_length": 32.0,
+        "rouge_l": 0.0,
+        "bleu": 0.0
+    },
+    "average_latency": 0.21135290319269354,
+    "average_retrieval_time": 0.210028629953211,
+    "average_generation_time": 0.001324273239482533,
+    "top_10_correct": [
+        "Sử dụng Comiaryl với Cimetidin thì có tác dụng gì?",
+        "Thuốc atorvastatin có tác dụng hỗ trợ điều trị những bệnh gì?",
+        "Sử dụng Comiaryl với những thuốc nào thì cần tránh?",
+        "Mục đích của việc sử dụng thuốc atorvastatin trong điều trị tình trạng tăng cholesterol máu của bệnh nhân đái tháo đường là gì?",
+        "Thuốc atorvastatin có tác dụng gì?",
+        "Comiaryl tương tác thuốc theo cơ chế nào?",
+        "Càng cua hỗ trợ điều trị đái tháo đường như thế nào?",
+        "Những kết quả khác liên quan đến tác dụng tích cực của hoa đậu biếc đối với tình trạng đái tháo đường là gì?",
+        "Theo một số nghiên cứu gần đây, tác dụng dược lý của hoa đậu biếc ở người là gì?",
+        "Đan sâm có những tác dụng dược lý nào?"
+    ],
+    "top_10_wrong": [
+        "Làm thế nào để chẩn đoán đái tháo đường típ 1?",
+        "Đái tháo đường sơ sinh có phải là dạng đái tháo đường hiếm gặp không?",
+        "Biến chứng tiểu đường gây loét da chân là nguyên nhân phổ biến nhất của tình trạng gì hiện nay?",
+        "Trong điều trị bệnh tiểu đường thai kỳ, mẹ bầu yếu tố nào cần lưu ý?",
+        "Bệnh nhân tiểu đường type 1 và 2 có thể liên quan như thế nào?",
+        "Việc xét nghiệm đường huyết bất kỳ để chẩn đoán bệnh đái tháo đường type 1 có ý nghĩa như thế nào?",
+        "Statin là lựa chọn ưu tiên hàng đầu trong điều trị rối loạn lipid máu ở bệnh nhân đái tháo đường type 2 không?",
+        "Dấu gai đen có ở những vị trí nào trên cơ thể?",
+        "Kiểm tra nước tiểu cần thực hiện bao lâu một lần?",
+        "Điều gì sẽ xảy ra nếu phụ nữ mắc bệnh tiểu đường thai kỳ nhưng không kiểm soát tốt tình trạng bệnh?"
+    ]
+}
