@@ -9,26 +9,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class EmergencyGuideDTO {
+    private Integer id;
 
-    @NotBlank(message = "Mức cảnh báo bắt buộc phải chọn.")
-    @Pattern(regexp = "^(GREEN|YELLOW|ORANGE|RED)$", message = "Mức cảnh báo phải là GREEN, YELLOW, ORANGE hoặc RED.")
-    @Size(max = 10, message = "Mức cảnh báo không được quá 10 ký tự.")
+    @NotBlank(message = "Cấp độ cảnh báo không được để trống.")
+    @Pattern(regexp = "^(GREEN|YELLOW|ORANGE|RED)$", message = "Cấp độ cảnh báo không hợp lệ.")
     private String alertLevel;
 
-    @NotBlank(message = "Chỉ số áp dụng bắt buộc phải chọn.")
-    @Pattern(regexp = "^(GLUCOSE|BLOOD_PRESSURE|BOTH)$", message = "Chỉ số áp dụng phải là GLUCOSE, BLOOD_PRESSURE hoặc BOTH.")
-    @Size(max = 30, message = "Tên chỉ số không được quá 30 ký tự.")
+    @NotBlank(message = "Loại chỉ số không được để trống.")
+    @Pattern(regexp = "^(GLUCOSE|BLOOD_PRESSURE|BOTH)$", message = "Loại chỉ số không hợp lệ.")
     private String metricType;
 
-    @NotBlank(message = "Tiêu đề hướng dẫn không được để trống.")
-    @Size(min = 5, max = 150, message = "Tiêu đề hướng dẫn phải từ 5 đến 150 ký tự.")
+    @NotBlank(message = "Tiêu đề chỉ dẫn không được để trống.")
+    @Size(min = 5, max = 150, message = "Tiêu đề phải từ 5 đến 150 ký tự.")
     private String title;
 
     @NotBlank(message = "Nội dung chỉ dẫn không được để trống.")
-    @Size(min = 20, message = "Nội dung chỉ dẫn xử lý khẩn cấp phải chi tiết (Tối thiểu 20 ký tự).")
+    @Size(min = 20, max = 2000, message = "Nội dung chỉ dẫn phải từ 20 đến 2000 ký tự.")
     private String instructionContent;
 }

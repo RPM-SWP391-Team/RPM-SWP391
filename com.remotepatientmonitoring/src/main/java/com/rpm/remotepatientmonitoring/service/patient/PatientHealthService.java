@@ -96,9 +96,9 @@ public class PatientHealthService {
             alert.setHealthLog(latestLog);
             alert.setAlertLevel(finalLevel);
             alert.setAlertColor(finalLevel == 3 ? "RED" : "ORANGE");
-            alert.setMetricType(metricType.isEmpty() ? "UNKNOWN" : metricType);
+            alert.setMetricType(metricType);
+            alert.setThresholdViolated(thresholdViolated);
             alert.setMetricValue(metricValue.isEmpty() ? "N/A" : metricValue);
-            alert.setThresholdViolated(thresholdViolated.isEmpty() ? "N/A" : thresholdViolated);
             alert.setAlertMessage(alertMessage.trim());
             alert.setIsResolved(false);
             alert.setTriggeredAt(java.time.LocalDateTime.now());
