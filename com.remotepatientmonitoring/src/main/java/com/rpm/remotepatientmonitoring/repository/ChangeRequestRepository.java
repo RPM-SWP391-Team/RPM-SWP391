@@ -15,16 +15,17 @@ public interface ChangeRequestRepository extends JpaRepository<ChangeRequest, In
     List<ChangeRequest> findByDoctorIdOrderByCreatedAtDesc(Integer doctorId);
     List<ChangeRequest> findByDoctorIdAndStatusOrderByCreatedAtDesc(Integer doctorId, String status);
     List<ChangeRequest> findByDoctorIdAndStatusNotOrderByCreatedAtDesc(Integer doctorId, String status);
+    long countByDoctorIdAndStatus(Integer doctorId, String status);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND c.status != 'PENDING' AND c.createdAt BETWEEN :filterStart AND :filterEnd ORDER BY c.createdAt DESC")
-    Page<ChangeRequest> findHistoryByDate(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("filterStart") LocalDateTime filterStart, @org.springframework.data.repository.query.Param("filterEnd") LocalDateTime filterEnd, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND (:patientName IS NULL OR :patientName = '' OR LOWER(c.patient.fullName) LIKE LOWER(CONCAT('%', :patientName, '%')) OR LOWER(c.patient.patientCode) LIKE LOWER(CONCAT('%', :patientName, '%'))) AND c.status != 'PENDING' AND c.createdAt BETWEEN :filterStart AND :filterEnd ORDER BY c.createdAt DESC")
+    Page<ChangeRequest> findHistoryByDate(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("patientName") String patientName, @org.springframework.data.repository.query.Param("filterStart") LocalDateTime filterStart, @org.springframework.data.repository.query.Param("filterEnd") LocalDateTime filterEnd, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND c.status != 'PENDING' ORDER BY c.createdAt DESC")
-    Page<ChangeRequest> findHistory(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND (:patientName IS NULL OR :patientName = '' OR LOWER(c.patient.fullName) LIKE LOWER(CONCAT('%', :patientName, '%')) OR LOWER(c.patient.patientCode) LIKE LOWER(CONCAT('%', :patientName, '%'))) AND c.status != 'PENDING' ORDER BY c.createdAt DESC")
+    Page<ChangeRequest> findHistory(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("patientName") String patientName, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND c.status = 'PENDING' AND c.createdAt BETWEEN :filterStart AND :filterEnd ORDER BY c.createdAt DESC")
-    Page<ChangeRequest> findPendingByDate(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("filterStart") LocalDateTime filterStart, @org.springframework.data.repository.query.Param("filterEnd") LocalDateTime filterEnd, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND (:patientName IS NULL OR :patientName = '' OR LOWER(c.patient.fullName) LIKE LOWER(CONCAT('%', :patientName, '%')) OR LOWER(c.patient.patientCode) LIKE LOWER(CONCAT('%', :patientName, '%'))) AND c.status = 'PENDING' AND c.createdAt BETWEEN :filterStart AND :filterEnd ORDER BY c.createdAt DESC")
+    Page<ChangeRequest> findPendingByDate(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("patientName") String patientName, @org.springframework.data.repository.query.Param("filterStart") LocalDateTime filterStart, @org.springframework.data.repository.query.Param("filterEnd") LocalDateTime filterEnd, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND c.status = 'PENDING' ORDER BY c.createdAt DESC")
-    Page<ChangeRequest> findPending(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, Pageable pageable);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM ChangeRequest c WHERE c.doctor.id = :doctorId AND (:patientName IS NULL OR :patientName = '' OR LOWER(c.patient.fullName) LIKE LOWER(CONCAT('%', :patientName, '%')) OR LOWER(c.patient.patientCode) LIKE LOWER(CONCAT('%', :patientName, '%'))) AND c.status = 'PENDING' ORDER BY c.createdAt DESC")
+    Page<ChangeRequest> findPending(@org.springframework.data.repository.query.Param("doctorId") Integer doctorId, @org.springframework.data.repository.query.Param("patientName") String patientName, Pageable pageable);
 }
