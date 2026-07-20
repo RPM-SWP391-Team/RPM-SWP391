@@ -48,14 +48,21 @@
                 <div class="dropdown">
                     <div class="d-flex align-items-center text-white" 
                          id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
-                        <i class="fa-regular fa-user-circle fa-2x me-2"></i>
+                        <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);">
+                        <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-regular fa-user-circle fa-2x me-2"></i>
                         <div class="text-start me-2">
                             <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
                             <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
                         </div>
                         <i class="fa-solid fa-chevron-down small text-white-50"></i>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 150px;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 170px;">
+                        <li>
+                            <a class="dropdown-item py-2 fw-semibold" href="#" onclick="openAppRatingModal(); return false;">
+                                <i class="fa-regular fa-star text-warning me-2"></i>Đánh giá ứng dụng
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
                                 <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
@@ -113,6 +120,122 @@
                 });
             });
         </script>
+        
+        <!-- App Rating Modal -->
+        <div class="modal fade" id="appRatingModal" tabindex="-1" aria-labelledby="appRatingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 16px;">
+                    <div class="modal-header border-0 pb-0" style="background: none; color: inherit;">
+                        <h5 class="modal-title fw-bold text-dark" id="appRatingModalLabel">Đánh giá ứng dụng</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center pt-2">
+                        <p class="text-muted small mb-3">Hãy chia sẻ trải nghiệm sử dụng ứng dụng của bạn để giúp chúng tôi hoàn thiện dịch vụ tốt hơn.</p>
+                        
+                        <!-- Star rating selector -->
+                        <div class="d-flex justify-content-center gap-2 mb-3" id="appRatingStars">
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="1" style="color: #ffc107; cursor: pointer;"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="2" style="color: #ffc107; cursor: pointer;"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="3" style="color: #ffc107; cursor: pointer;"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="4" style="color: #ffc107; cursor: pointer;"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="5" style="color: #ffc107; cursor: pointer;"></i>
+                        </div>
+                        <input type="hidden" id="appRatingValue" value="0">
+                        
+                        <div class="mb-3 text-start">
+                            <label for="appRatingComment" class="form-label small fw-semibold text-muted">Nhận xét của bạn (Không bắt buộc)</label>
+                            <textarea class="form-control" id="appRatingComment" rows="3" maxlength="1000" placeholder="Nhập ý kiến đóng góp tại đây..." style="border-radius: 10px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitAppRating()">Gửi đánh giá</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let appModalObj = null;
+
+            function openAppRatingModal() {
+                if (!appModalObj) {
+                    appModalObj = new bootstrap.Modal(document.getElementById('appRatingModal'));
+                }
+                // Reset fields
+                document.getElementById('appRatingValue').value = '0';
+                document.getElementById('appRatingComment').value = '';
+                resetStarDisplay('appRatingStars');
+                appModalObj.show();
+            }
+
+            // Star rating visual handlers
+            document.querySelectorAll('#appRatingStars .star-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const value = parseInt(this.getAttribute('data-value'));
+                    document.getElementById('appRatingValue').value = value;
+                    updateStarDisplay('appRatingStars', value);
+                });
+                btn.addEventListener('mouseover', function() {
+                    const value = parseInt(this.getAttribute('data-value'));
+                    updateStarDisplay('appRatingStars', value);
+                });
+                btn.addEventListener('mouseout', function() {
+                    const selectedVal = parseInt(document.getElementById('appRatingValue').value);
+                    updateStarDisplay('appRatingStars', selectedVal);
+                });
+            });
+
+            function updateStarDisplay(containerId, value) {
+                document.querySelectorAll('#' + containerId + ' .star-btn').forEach(btn => {
+                    const btnVal = parseInt(btn.getAttribute('data-value'));
+                    if (btnVal <= value) {
+                        btn.classList.remove('fa-regular');
+                        btn.classList.add('fa-solid');
+                    } else {
+                        btn.classList.remove('fa-solid');
+                        btn.classList.add('fa-regular');
+                    }
+                });
+            }
+
+            function resetStarDisplay(containerId) {
+                document.querySelectorAll('#' + containerId + ' .star-btn').forEach(btn => {
+                    btn.classList.remove('fa-solid');
+                    btn.classList.add('fa-regular');
+                });
+            }
+
+            function submitAppRating() {
+                const val = parseInt(document.getElementById('appRatingValue').value);
+                const comment = document.getElementById('appRatingComment').value;
+
+                if (val < 1 || val > 5) {
+                    alert('Vui lòng chọn số sao đánh giá (1-5 sao).');
+                    return;
+                }
+
+                fetch('/api/ratings/app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ratingValue: val, comment: comment })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        appModalObj.hide();
+                    } else {
+                        alert('Gửi đánh giá thất bại: ' + (data.message || 'Lỗi không xác định'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Đã xảy ra lỗi khi gửi đánh giá.');
+                });
+            }
+        </script>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/js/patient.js?v=1.3"></script>
     </th:block>

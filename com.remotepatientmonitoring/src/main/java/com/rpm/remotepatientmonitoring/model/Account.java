@@ -38,6 +38,9 @@ public class Account {
     @Column(name = "registration_details", length = 4000)
     private String registrationDetails;
 
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

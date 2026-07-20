@@ -39,11 +39,6 @@ public class HospitalConfigRestController {
     @PostMapping("/exercise-guidelines")
     public ResponseEntity<?> createGuideline(@RequestBody GuidelineRequest req) {
         try {
-            if (req.getDiseaseProfileId() == null || req.getTitle() == null || req.getTitle().trim().isEmpty()
-                || req.getRecommendedContent() == null || req.getRecommendedContent().trim().isEmpty()
-                || req.getAvoidContent() == null || req.getAvoidContent().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Vui lòng điền đầy đủ các thông tin bắt buộc.");
-            }
             ExerciseGuideline created = configService.addExerciseGuideline(
                     HARDCODED_HOSPITAL_ID,
                     req.getDiseaseProfileId(),
@@ -62,11 +57,6 @@ public class HospitalConfigRestController {
     @PutMapping("/exercise-guidelines/{id}")
     public ResponseEntity<?> updateGuideline(@PathVariable("id") Integer id, @RequestBody GuidelineRequest req) {
         try {
-            if (req.getDiseaseProfileId() == null || req.getTitle() == null || req.getTitle().trim().isEmpty()
-                || req.getRecommendedContent() == null || req.getRecommendedContent().trim().isEmpty()
-                || req.getAvoidContent() == null || req.getAvoidContent().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Vui lòng điền đầy đủ các thông tin bắt buộc.");
-            }
             ExerciseGuideline updated = configService.editExerciseGuideline(
                     id,
                     req.getDiseaseProfileId(),
@@ -113,13 +103,19 @@ public class HospitalConfigRestController {
         }
     }
 
+    @GetMapping("/foods/{id}/diet-logs-count")
+    public ResponseEntity<Long> getDietLogsCount(@PathVariable("id") Integer id) {
+        try {
+            long count = configService.getDietLogsCountByFoodId(id);
+            return ResponseEntity.ok(count);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(0L);
+        }
+    }
+
     @PostMapping("/foods")
     public ResponseEntity<?> createFood(@RequestBody FoodDictionary food) {
         try {
-            if (food.getFoodCode() == null || food.getFoodCode().trim().isEmpty()
-                || food.getFoodName() == null || food.getFoodName().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Mã món ăn và tên món ăn bắt buộc phải nhập.");
-            }
             FoodDictionary created = configService.addFood(food);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (IllegalArgumentException e) {
@@ -132,10 +128,6 @@ public class HospitalConfigRestController {
     @PutMapping("/foods/{id}")
     public ResponseEntity<?> updateFood(@PathVariable("id") Integer id, @RequestBody FoodDictionary food) {
         try {
-            if (food.getFoodCode() == null || food.getFoodCode().trim().isEmpty()
-                || food.getFoodName() == null || food.getFoodName().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Mã món ăn và tên món ăn bắt buộc phải nhập.");
-            }
             FoodDictionary updated = configService.editFood(id, food);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
