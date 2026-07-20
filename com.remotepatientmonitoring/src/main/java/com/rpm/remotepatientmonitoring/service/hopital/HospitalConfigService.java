@@ -900,13 +900,4 @@ public class HospitalConfigService {
         return logMap;
     }
 
-    private void validateFoodNutrients(FoodDictionary food) {
-        if (food.getWaterG() != null && food.getWaterG().doubleValue() < 0) throw new IllegalArgumentException("Nước (g) phải >= 0");
-        if (food.getEnergyKcal() != null && food.getEnergyKcal() < 0) throw new IllegalArgumentException("Calo (kcal) phải >= 0");
-        if (food.getProteinG() != null && food.getProteinG().doubleValue() < 0) throw new IllegalArgumentException("Đạm (g) phải >= 0");
-        if (food.getLipidG() != null && food.getLipidG().doubleValue() < 0) throw new IllegalArgumentException("Béo (g) phải >= 0");
-        if (food.getGlucidG() != null && food.getGlucidG().doubleValue() < 0) throw new IllegalArgumentException("Tinh bột (g) phải >= 0");
-        if (food.getCellulozaG() != null && food.getCellulozaG().doubleValue() < 0) throw new IllegalArgumentException("Xơ (g) phải >= 0");
-        if (food.getAshG() != null && food.getAshG().doubleValue() < 0) throw new IllegalArgumentException("Tro (g) phải >= 0");
-    }
 }

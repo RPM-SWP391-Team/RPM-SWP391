@@ -1,0 +1,11 @@
+{
+    "q1": {
+        "expected_answer_keywords": ["10 unit", "0.1-0.2 U/kg/ngày", "insulin nền"]
+    },
+    "q2": {
+        "expected_answer_keywords": ["eGFR < 30", "suy thận nặng", "nhiễm toan lactic"]
+    },
+    "q3": {
+        "expected_answer_keywords": ["< 8.0%", "< 8.5%", "kỳ vọng sống"]
+    }
+}
