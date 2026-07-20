@@ -271,6 +271,7 @@ public class PatientController {
         }
 
         List<Map<String, Object>> medicationList = new ArrayList<>();
+        List<PatientMedication> activeMeds = new ArrayList<>();
         int currentWater = 0;
         int targetWater = 2000;
         try {
@@ -280,7 +281,7 @@ public class PatientController {
                     targetWater = currentRule.getDailyWaterMl();
                 }
 
-                List<PatientMedication> activeMeds = patientService.findActiveMedications(patient.getId());
+                activeMeds = patientService.findActiveMedications(patient.getId());
                 LocalDate today = LocalDate.now();
                 for (PatientMedication med : activeMeds) {
                     Map<String, Object> item = new HashMap<>();
@@ -386,6 +387,8 @@ public class PatientController {
             List<Map<String, Object>> medsList = (List<Map<String, Object>>) historyGrouped.get(date).get("meds");
             
             Map<String, Object> logInfo = new HashMap<>();
+            logInfo.put("id", logVal.getId());
+            logInfo.put("medicationId", logVal.getPatientMedication().getId());
             logInfo.put("medicineName", logVal.getPatientMedication().getMedicineName());
             logInfo.put("dosage", logVal.getPatientMedication().getDosage());
             logInfo.put("scheduledTime", logVal.getPatientMedication().getScheduledTime());
@@ -421,6 +424,7 @@ public class PatientController {
             LocalDate date = wl.getLogDate();
             historyGrouped.putIfAbsent(date, new HashMap<>());
             Map<String, Object> dateData = historyGrouped.get(date);
+            dateData.put("waterId", wl.getId());
             dateData.put("waterAmount", wl.getAmountMl());
             dateData.put("waterTarget", targetWater);
             int waterPercent = targetWater > 0 ? (wl.getAmountMl() * 100 / targetWater) : 0;
@@ -460,7 +464,7 @@ public class PatientController {
                     waterLogMap.put(wl.getLogDate(), wl.getAmountMl());
                 }
 
-                List<PatientMedication> activeMeds = patientService.findActiveMedications(patient.getId());
+                List<PatientMedication> activeMedsForChart = patientService.findActiveMedications(patient.getId());
 
                 for (LocalDate date : chartDates) {
                     Map<String, Object> dayInfo = new HashMap<>();
@@ -471,7 +475,7 @@ public class PatientController {
                     List<PatientMedication> activeOnDate = new ArrayList<>();
                     Map<Integer, Boolean> takenMap = new HashMap<>();
 
-                    for (PatientMedication med : activeMeds) {
+                    for (PatientMedication med : activeMedsForChart) {
                         Optional<MedicationLog> logOpt = patientService.findMedicationLog(med.getId(), date);
                         
                         boolean isActive = false;
@@ -519,6 +523,15 @@ public class PatientController {
         } catch (Exception ignored) {
         }
 
+        // Build water log for the target date for display under "Theo Dõi Uống Nước"
+        List<WaterLog> recentWaterLogs = new ArrayList<>();
+        try {
+            if (patient.getId() != null) {
+                LocalDate targetDate = (sDate != null) ? sDate : LocalDate.now();
+                recentWaterLogs = patientService.findWaterLogs(patient.getId(), targetDate);
+            }
+        } catch (Exception ignored) {}
+
         model.addAttribute("patient", patient);
         model.addAttribute("medications", medicationList);
         model.addAttribute("currentWater", currentWater);
@@ -527,6 +540,8 @@ public class PatientController {
         model.addAttribute("totalMeds", totalMeds);
         model.addAttribute("takenMeds", takenMeds);
         model.addAttribute("range", range);
+        model.addAttribute("activeMedsList", activeMeds);
+        model.addAttribute("waterLogs", recentWaterLogs);
         model.addAttribute("history", historyGrouped);
         model.addAttribute("chartData", chartData);
         model.addAttribute("searchDate", searchDateStr);

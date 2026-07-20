@@ -120,6 +120,7 @@ public class PatientInteractionService {
         if (doctor != null) {
             Notification notif = Notification.builder()
                     .doctor(doctor)
+                    .patient(patient)
                     .recipientType("DOCTOR")
                     .title("Yêu cầu thay đổi mới")
                     .content("Bệnh nhân " + patient.getFullName() + " vừa gửi một yêu cầu " + 
@@ -168,6 +169,49 @@ public class PatientInteractionService {
     }
 
     @Transactional
+    public void updateAppointment(Integer id, Integer patientId, Integer doctorId, String appointmentType, String patientRequestReason, LocalDateTime apptTime) {
+        Optional<Appointment> apptOpt = appointmentRepository.findById(id);
+        if (apptOpt.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy lịch hẹn với ID: " + id);
+        }
+        Appointment appt = apptOpt.get();
+        if (!appt.getPatient().getId().equals(patientId)) {
+            throw new IllegalStateException("Bạn không có quyền chỉnh sửa lịch hẹn này!");
+        }
+        if (!"PENDING".equals(appt.getStatus())) {
+            throw new IllegalStateException("Chỉ có thể chỉnh sửa lịch hẹn ở trạng thái chờ duyệt!");
+        }
+
+        Optional<Doctor> doctorOpt = doctorRepository.findById(doctorId);
+        if (doctorOpt.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId);
+        }
+        Doctor doctor = doctorOpt.get();
+
+        appt.setDoctor(doctor);
+        appt.setAppointmentTime(apptTime);
+        appt.setAppointmentType(appointmentType);
+        appt.setPatientRequestReason(patientRequestReason);
+        appt.setUpdatedAt(LocalDateTime.now());
+
+        appointmentRepository.save(appt);
+
+        // Notify Doctor
+        Notification notif = Notification.builder()
+                .doctor(doctor)
+                .patient(appt.getPatient())
+                .recipientType("DOCTOR")
+                .title("Lịch khám được cập nhật bởi bệnh nhân")
+                .content("Bệnh nhân " + appt.getPatient().getFullName() + " vừa cập nhật lịch khám sang "
+                        + apptTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                        + ". Vui lòng xem xét.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(notif);
+    }
+
+    @Transactional
     public void deleteAppointment(Integer id, Integer patientId) {
         Optional<Appointment> apptOpt = appointmentRepository.findById(id);
         if (apptOpt.isEmpty()) {
@@ -191,5 +235,38 @@ public class PatientInteractionService {
             throw new IllegalStateException("Bạn không có quyền xóa yêu cầu này!");
         }
         changeRequestRepository.delete(req);
+    }
+
+    @Transactional
+    public void updateChangeRequest(Integer id, String requestType, String patientReason, Integer patientId) {
+        Optional<ChangeRequest> reqOpt = changeRequestRepository.findById(id);
+        if (reqOpt.isEmpty()) {
+            throw new IllegalArgumentException("Yêu cầu thay đổi không tồn tại!");
+        }
+        ChangeRequest req = reqOpt.get();
+        if (!req.getPatient().getId().equals(patientId)) {
+            throw new IllegalStateException("Bạn không có quyền chỉnh sửa yêu cầu này!");
+        }
+        if (!"PENDING".equals(req.getStatus())) {
+            throw new IllegalStateException("Chỉ có thể chỉnh sửa yêu cầu ở trạng thái Chờ duyệt!");
+        }
+        req.setRequestType(requestType);
+        req.setPatientReason(patientReason);
+        req.setUpdatedAt(LocalDateTime.now());
+        changeRequestRepository.save(req);
+
+        // Notify Doctor
+        Doctor doctor = req.getDoctor();
+        if (doctor != null) {
+            Notification notif = Notification.builder()
+                    .doctor(doctor)
+                    .patient(req.getPatient())
+                    .recipientType("DOCTOR")
+                    .title("Cập nhật yêu cầu thay đổi")
+                    .content("Bệnh nhân " + req.getPatient().getFullName() + " vừa cập nhật yêu cầu thay đổi phác đồ.")
+                    .isRead(false)
+                    .build();
+            notificationRepository.save(notif);
+        }
     }
 }
