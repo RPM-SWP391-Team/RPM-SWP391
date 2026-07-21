@@ -31,14 +31,14 @@ class CrossEncoderModelLoader(Protocol):
     def predict(self, sentences: List[List[str]], batch_size: int) -> List[float]: ...
 
 class CrossEncoderModelLoaderImpl:
-    def __init__(self, model_name: str = "BAAI/bge-reranker-v2-m3", device: str = "cpu"):
+    def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2", device: str = "cpu"):
         from sentence_transformers import CrossEncoder
         logger.info(f"Đang tải Reranker Model: {model_name} vào {device}...")
         self.model = CrossEncoder(model_name, device=device)
         logger.info("Tải Reranker model thành công.")
         
     def predict(self, sentences: List[List[str]], batch_size: int) -> List[float]:
-        return self.model.predict(sentences, batch_size=batch_size).tolist()
+        return self.model.predict(sentences, batch_size=batch_size, show_progress_bar=False).tolist()
 
 class CrossEncoderReranker:
     """

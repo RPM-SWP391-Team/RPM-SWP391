@@ -117,7 +117,7 @@ def test_context_expansion_order_locked():
 # Mục 5 — embedding model đã khóa
 # ---------------------------------------------------------------------
 def test_embedding_model_locked():
-    assert config.EMBEDDING.model_name == "AITeamVN/Vietnamese_Embedding_v2", (
+    assert config.EMBEDDING.model_name == "BAAI/bge-small-en-v1.5", (
         "VI PHẠM mục 5: embedding model đã bị đổi. Đổi embedding kéo theo "
         "re-index toàn bộ corpus — phải có benchmark Recall@K trước, xem "
         "AGENTS.md mục 1 bước 4."

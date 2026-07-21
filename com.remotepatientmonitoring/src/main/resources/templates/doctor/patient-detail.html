@@ -520,6 +520,9 @@
                         <span th:if="${hasCustomThreshold}" class="badge bg-warning text-dark ms-1">Cá nhân</span>
                         <span th:unless="${hasCustomThreshold}" class="badge bg-secondary ms-1">Mặc định BV</span>
                     </a>
+                    <button type="button" id="btnAiSummary" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 ms-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#aiSummaryModal">
+                        <i class="fa-solid fa-robot text-primary me-1"></i> AI Phân tích Lâm sàng (ESC / ADA / AHA)
+                    </button>
                 </div>
             </div>
         </div>
@@ -590,6 +593,32 @@
                             <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-check me-2"></i>Đánh dấu Đã xử lý</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AI PHÂN TÍCH LÂM SÀNG ADA/AHA -->
+    <div class="modal fade" id="aiSummaryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fa-solid fa-brain me-2 text-warning"></i> Báo cáo Đánh giá Lâm sàng bằng AI
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="aiSummaryLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="fw-semibold text-muted">Đang tính toán số liệu ADA/AHA và truy xuất AI RAG...</p>
+                    </div>
+                    <div id="aiSummaryContent" style="display: none; line-height: 1.7; font-size: 0.95rem;">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-between">
+                    <small class="text-muted"><i class="fa-solid fa-shield-halved me-1 text-success"></i> Dữ liệu phân tích chuẩn ADA (Đường huyết) & AHA (Huyết áp) dành riêng cho Bác sĩ</small>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
@@ -1739,6 +1768,9 @@
                 div.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
                 if (!isUser) {
                     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    text = text.replace(/\[Source\s*(\d+)\]/gi, '<a href="/docs/ehae178.pdf" target="_blank" class="badge bg-primary text-decoration-none ms-1 me-1" title="Click để mở tài liệu PDF gốc"><i class="fa-solid fa-file-pdf"></i> Nguồn $1</a>');
+                    text = text.replace(/\[(\d+)\]/g, '<a href="/docs/ehae178.pdf" target="_blank" class="badge bg-primary text-decoration-none ms-1 me-1" title="Click để mở tài liệu PDF gốc"><i class="fa-solid fa-file-pdf"></i> Nguồn $1</a>');
+                    text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-primary fw-bold text-decoration-underline ms-1 me-1" title="Click để mở toàn văn PDF gốc"><i class="fa-solid fa-file-pdf text-danger"></i> $1 <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i></a>');
                     text = text.replace(/\n/g, '<br>');
                 }
                 div.innerHTML = text;
@@ -1805,5 +1837,47 @@
     </script>
     <!-- CHATBOT WIDGET END -->
 
+    <!-- AI SUMMARY MODAL JS -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiModalEl = document.getElementById('aiSummaryModal');
+            if (aiModalEl) {
+                aiModalEl.addEventListener('show.bs.modal', function() {
+                    const loadingEl = document.getElementById('aiSummaryLoading');
+                    const contentEl = document.getElementById('aiSummaryContent');
+                    const patientId = /*[[${patient.id}]]*/ 0;
+
+                    loadingEl.style.display = 'block';
+                    contentEl.style.display = 'none';
+                    contentEl.innerHTML = '';
+
+                    fetch('/api/chatbot/summary/' + patientId)
+                        .then(res => res.json())
+                        .then(data => {
+                            loadingEl.style.display = 'none';
+                            contentEl.style.display = 'block';
+                            if (data && data.clinicalSummary) {
+                                let formattedText = data.clinicalSummary
+                                    .replace(/^### (.*$)/gim, '<h5 class="fw-bold text-primary mt-3 mb-2"><i class="fa-solid fa-file-medical me-2"></i>$1</h5>')
+                                    .replace(/^## (.*$)/gim, '<h4 class="fw-bold text-dark mt-3 mb-2">$1</h4>')
+                                    .replace(/^\- (.*$)/gim, '<li class="ms-3 mb-1">$1</li>')
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\n/g, '<br/>');
+                                contentEl.innerHTML = '<div class="p-4 rounded-3" style="background:#f8fafe; border:1px solid #cbd5e1; color:#1e293b;">' + formattedText + '</div>';
+                            } else {
+                                contentEl.innerHTML = '<div class="alert alert-warning">Không nhận được báo cáo phân tích từ AI.</div>';
+                            }
+                        })
+                        .catch(err => {
+                            loadingEl.style.display = 'none';
+                            contentEl.style.display = 'block';
+                            contentEl.innerHTML = '<div class="alert alert-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Không thể kết nối đến máy chủ AI. Vui lòng kiểm tra lại dịch vụ AI Service trên Port 8000.</div>';
+                        });
+                });
+            }
+        });
+        /*]]>*/
+    </script>
 </body>
 </html>

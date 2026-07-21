@@ -35,7 +35,7 @@ class RetrievalConfig:
 @dataclass(frozen=True)
 class RerankConfig:
     # RESEARCH_FOUNDATION.md mục 4.
-    model_name: str = "BAAI/bge-reranker-v2-m3"
+    model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     top_k_final: int = 5
     # Bắt buộc: nếu model load lỗi, KHÔNG được crash — fallback về RRF-only.
     fail_open_to_rrf: bool = True
