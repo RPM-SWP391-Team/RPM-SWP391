@@ -31,4 +31,19 @@ public class DailyHealthLogFormDto {
     private BigDecimal glucoseLevel;
 
     private String patientNotes;
+
+    public String getLogType() { return logType; }
+    public void setLogType(String logType) { this.logType = logType; }
+    public String getInputMethod() { return inputMethod; }
+    public void setInputMethod(String inputMethod) { this.inputMethod = inputMethod; }
+    public Integer getSystolicBp() { return systolicBp; }
+    public void setSystolicBp(Integer systolicBp) { this.systolicBp = systolicBp; }
+    public Integer getDiastolicBp() { return diastolicBp; }
+    public void setDiastolicBp(Integer diastolicBp) { this.diastolicBp = diastolicBp; }
+    public Integer getHeartRate() { return heartRate; }
+    public void setHeartRate(Integer heartRate) { this.heartRate = heartRate; }
+    public BigDecimal getGlucoseLevel() { return glucoseLevel; }
+    public void setGlucoseLevel(BigDecimal glucoseLevel) { this.glucoseLevel = glucoseLevel; }
+    public String getPatientNotes() { return patientNotes; }
+    public void setPatientNotes(String patientNotes) { this.patientNotes = patientNotes; }
 }

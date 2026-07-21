@@ -77,4 +77,21 @@ public class DoctorDTO {
     @Min(value = 1, message = "Tối thiểu quản lý 1 bệnh nhân.")
     @Max(value = 500, message = "Tối đa quản lý 500 bệnh nhân.")
     private Integer capacityLimit = 50;
+
+    public String getDoctorCode() { return doctorCode; }
+    public void setDoctorCode(String doctorCode) { this.doctorCode = doctorCode; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getSpecialty() { return specialty; }
+    public void setSpecialty(String specialty) { this.specialty = specialty; }
+    public Integer getCapacityLimit() { return capacityLimit; }
+    public void setCapacityLimit(Integer capacityLimit) { this.capacityLimit = capacityLimit; }
 }

@@ -146,12 +146,14 @@ public class PatientInteractionController {
         }
 
         // --- Xử lý phân trang phía máy chủ (Server-side Pagination) ---
+        System.out.println("DEBUG PatientInteractionController /appointments - filterDateStr: " + filterDateStr);
         LocalDate filterDate = null;
         if (filterDateStr != null && !filterDateStr.trim().isEmpty()) {
             try {
                 filterDate = LocalDate.parse(filterDateStr);
+                System.out.println("DEBUG PatientInteractionController /appointments - parsed filterDate: " + filterDate);
             } catch (Exception e) {
-                // ignore
+                System.out.println("DEBUG PatientInteractionController /appointments - parsing failed: " + e.getMessage());
             }
         }
 

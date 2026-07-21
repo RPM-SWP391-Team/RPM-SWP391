@@ -33,4 +33,15 @@ public class MedicationLog {
 
     @Column(name = "taken_at")
     private LocalDateTime takenAt;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public PatientMedication getPatientMedication() { return patientMedication; }
+    public void setPatientMedication(PatientMedication patientMedication) { this.patientMedication = patientMedication; }
+    public LocalDate getLogDate() { return logDate; }
+    public void setLogDate(LocalDate logDate) { this.logDate = logDate; }
+    public Boolean getIsTaken() { return isTaken; }
+    public void setIsTaken(Boolean isTaken) { this.isTaken = isTaken; }
+    public LocalDateTime getTakenAt() { return takenAt; }
+    public void setTakenAt(LocalDateTime takenAt) { this.takenAt = takenAt; }
 }

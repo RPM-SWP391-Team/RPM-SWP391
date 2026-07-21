@@ -456,22 +456,24 @@
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <!-- Date Search Picker -->
-                            <div class="d-flex align-items-center gap-1">
+                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-1" style="position: relative; z-index: 10000;">
+                                <input type="hidden" name="activeTab" th:value="${activeTab != null ? activeTab : 'bp'}">
+                                <input type="hidden" name="filterRange" value="all">
                                 <label for="historyDateInput" class="small text-muted fw-semibold" style="font-size: 11px; white-space: nowrap;">Chọn ngày:</label>
                                 <div class="input-group input-group-sm" style="max-width: 180px;">
-                                    <input type="date" id="historyDateInput" th:value="${filterDate}" class="form-control rounded-start-pill px-2 border-primary text-center" 
+                                    <input type="date" id="historyDateInput" name="filterDate" th:value="${filterDate}" class="form-control rounded-start-pill px-2 border-primary text-center" 
                                            style="font-size: 12px; height: 30px;">
-                                    <button class="btn btn-primary rounded-end-pill px-2" type="button" onclick="filterHistoryByDate()" style="height: 30px; display: flex; align-items: center; justify-content: center;">
+                                    <button class="btn btn-primary rounded-end-pill px-2" type="submit" style="height: 30px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10001;" title="Tìm kiếm theo ngày">
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </button>
                                 </div>
-                            </div>
+                            </form>
                             <!-- Button Filters -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc lịch sử">
-                                <button type="button" class="btn px-3 rounded-start-pill filter-btn" th:classappend="${filterRange == 'all' || filterRange == null} ? 'btn-primary active' : 'btn-outline-primary'" onclick="filterHistoryRange('all', this)">Tất cả</button>
-                                <button type="button" class="btn px-3 filter-btn" th:classappend="${filterRange == 'today'} ? 'btn-primary active' : 'btn-outline-primary'" onclick="filterHistoryRange('today', this)">Hôm nay</button>
-                                <button type="button" class="btn px-3 filter-btn" th:classappend="${filterRange == 'week'} ? 'btn-primary active' : 'btn-outline-primary'" onclick="filterHistoryRange('week', this)">Tuần</button>
-                                <button type="button" class="btn px-3 rounded-end-pill filter-btn" th:classappend="${filterRange == 'month'} ? 'btn-primary active' : 'btn-outline-primary'" onclick="filterHistoryRange('month', this)">Tháng</button>
+                                <a th:href="@{/patient/appointments(filterRange='all', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 rounded-start-pill filter-btn text-decoration-none" th:classappend="${filterRange == 'all' || filterRange == null} ? 'btn-primary active' : 'btn-outline-primary'">Tất cả</a>
+                                <a th:href="@{/patient/appointments(filterRange='today', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 filter-btn text-decoration-none" th:classappend="${filterRange == 'today'} ? 'btn-primary active' : 'btn-outline-primary'">Hôm nay</a>
+                                <a th:href="@{/patient/appointments(filterRange='week', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 filter-btn text-decoration-none" th:classappend="${filterRange == 'week'} ? 'btn-primary active' : 'btn-outline-primary'">Tuần</a>
+                                <a th:href="@{/patient/appointments(filterRange='month', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 rounded-end-pill filter-btn text-decoration-none" th:classappend="${filterRange == 'month'} ? 'btn-primary active' : 'btn-outline-primary'">Tháng</a>
                             </div>
                         </div>
                     </div>
@@ -479,14 +481,14 @@
                     <!-- Sub-pills for separating BP and Glucose -->
                     <ul class="nav nav-pills mb-3" id="logHistoryTabs" role="tablist">
                         <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 1 or patient.diseaseProfile.id == 3)}">
-                            <button class="nav-link me-2" id="bp-history-tab" data-bs-toggle="pill" data-bs-target="#bp-history-pane" type="button" role="tab" aria-controls="bp-history-pane" th:aria-selected="${activeTab == 'bp'}" th:classappend="${activeTab == 'bp'} ? ' active' : ''" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
+                            <a th:href="@{/patient/appointments(activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}" class="nav-link me-2 text-decoration-none" id="bp-history-tab" th:aria-selected="${activeTab == 'bp'}" th:classappend="${activeTab == 'bp'} ? ' active' : ''" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
                                 <i class="fa-solid fa-heart-pulse me-1"></i> Lịch Sử Huyết Áp
-                            </button>
+                            </a>
                         </li>
                         <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 2 or patient.diseaseProfile.id == 3)}">
-                            <button class="nav-link me-2" id="glucose-history-tab" data-bs-toggle="pill" data-bs-target="#glucose-history-pane" type="button" role="tab" aria-controls="glucose-history-pane" th:aria-selected="${activeTab == 'glucose'}" th:classappend="${activeTab == 'glucose'} ? ' active' : ''" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
+                            <a th:href="@{/patient/appointments(activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}" class="nav-link me-2 text-decoration-none" id="glucose-history-tab" th:aria-selected="${activeTab == 'glucose'}" th:classappend="${activeTab == 'glucose'} ? ' active' : ''" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
                                 <i class="fa-solid fa-droplet me-1"></i> Lịch Sử Đường Huyết
-                            </button>
+                            </a>
                         </li>
                     </ul>
 
@@ -984,42 +986,22 @@
             return true;
         }
         
-        document.getElementById('appointmentTime').addEventListener('change', validateAppointmentTime);
-        document.getElementById('appointmentType').addEventListener('change', validateAppointmentTime);
-        
-        document.getElementById('bookAppointmentForm').addEventListener('submit', function(e) {
-            if (!validateAppointmentTime()) {
-                e.preventDefault(); // Ngăn form gửi đi nếu không hợp lệ
-            }
-        });
+        const apptTimeEl = document.getElementById('appointmentTime');
+        const apptTypeEl = document.getElementById('appointmentType');
+        const bookFormEl = document.getElementById('bookAppointmentForm');
+        if (apptTimeEl) apptTimeEl.addEventListener('change', validateAppointmentTime);
+        if (apptTypeEl) apptTypeEl.addEventListener('change', validateAppointmentTime);
+        if (bookFormEl) {
+            bookFormEl.addEventListener('submit', function(e) {
+                if (!validateAppointmentTime()) {
+                    e.preventDefault(); // Ngăn form gửi đi nếu không hợp lệ
+                }
+            });
+        }
     </script>
 
     <!-- Health Log History Filtering Logic -->
     <script>
-        function getActiveTab() {
-            const bpTab = document.getElementById('bp-history-tab');
-            if (bpTab && bpTab.classList.contains('active')) {
-                return 'bp';
-            }
-            const glucoseTab = document.getElementById('glucose-history-tab');
-            if (glucoseTab && glucoseTab.classList.contains('active')) {
-                return 'glucose';
-            }
-            return 'bp';
-        }
-
-        function filterHistoryByDate() {
-            const inputVal = document.getElementById('historyDateInput').value; // format: YYYY-MM-DD
-            if (!inputVal) return;
-            const activeTab = getActiveTab();
-            window.location.href = `/patient/appointments?filterRange=all&filterDate=${inputVal}&activeTab=${activeTab}`;
-        }
-
-        function filterHistoryRange(range, element) {
-            const activeTab = getActiveTab();
-            window.location.href = `/patient/appointments?filterRange=${range}&activeTab=${activeTab}`;
-        }
-
         function deleteHealthLog(id) {
             if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đo sức khỏe này?')) return;
             const form = document.createElement('form');
