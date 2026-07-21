@@ -18,7 +18,7 @@ public class ExerciseGuideline {
     @JoinColumn(name = "disease_profile_id", nullable = false)
     private DiseaseProfile diseaseProfile;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "title", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
     @Column(name = "recommended_content", nullable = false, columnDefinition = "NVARCHAR(MAX)")

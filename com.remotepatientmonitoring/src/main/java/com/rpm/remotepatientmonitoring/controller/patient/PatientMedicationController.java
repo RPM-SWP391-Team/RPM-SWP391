@@ -13,6 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Map;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @RestController
 @RequestMapping("/patient/api/medications")
@@ -143,6 +146,56 @@ public class PatientMedicationController {
                 "message", status ? "Đã đánh dấu uống thuốc thành công" : "Đã hủy đánh dấu thành công",
                 "medicationId", medicationId,
                 "status", status
+        ));
+    }
+
+    @PostMapping("/history/save")
+    public ResponseEntity<Map<String, Object>> saveMedicationHistory(
+            @RequestParam("medicationId") Integer medicationId,
+            @RequestParam("date") String dateStr,
+            @RequestParam("isTaken") boolean isTaken,
+            @RequestParam(value = "takenTime", required = false) String takenTimeStr) {
+        
+        LocalDate date;
+        try {
+            date = LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Định dạng ngày không hợp lệ."
+            ));
+        }
+
+        LocalDateTime takenAt = null;
+        if (isTaken) {
+            if (takenTimeStr != null && !takenTimeStr.trim().isEmpty()) {
+                try {
+                    LocalTime time = LocalTime.parse(takenTimeStr.trim());
+                    takenAt = LocalDateTime.of(date, time);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "message", "Định dạng giờ không hợp lệ (HH:mm)."
+                    ));
+                }
+            } else {
+                takenAt = LocalDateTime.of(date, LocalTime.now());
+            }
+        }
+
+        patientMedicationService.addOrUpdateMedicationLog(medicationId, date, isTaken, takenAt);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Lưu lịch sử uống thuốc thành công!"
+        ));
+    }
+
+    @PostMapping("/history/delete/{id}")
+    public ResponseEntity<Map<String, Object>> deleteMedicationHistory(@PathVariable("id") Integer id) {
+        patientMedicationService.deleteMedicationLog(id);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Xóa lịch sử uống thuốc thành công!"
         ));
     }
 }

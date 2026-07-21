@@ -18,23 +18,34 @@
 
         <!-- Greeting Hero Card -->
         <div class="greeting-card mb-4">
-            <div class="row align-items-center">
-                <div class="col">
+            <div class="row align-items-center g-3">
+                <div class="col-md-7">
                     <p class="mb-1 opacity-75" style="font-size:.9rem;" id="greetingTime">Chào buổi sáng! 👋</p>
                     <h3 class="fw-bold mb-1" th:text="'Xin chào, ' + ${patient.fullName}">Xin chào, Bệnh nhân</h3>
-                    <p class="mb-0 opacity-75" style="font-size:.88rem;">
-                        <i class="fa-solid fa-calendar-days me-1"></i>
-                        <span id="todayDate">Hôm nay</span>
-                        <span th:if="${patient.diseaseProfile != null}" class="ms-3">
+                    <p class="mb-0 opacity-75 d-flex align-items-center gap-2 flex-wrap" style="font-size:.88rem;">
+                        <span><i class="fa-solid fa-calendar-days me-1"></i><span id="todayDate" th:text="${selectedDate}">Hôm nay</span></span>
+                        <span th:if="${!isToday}" class="badge bg-warning text-dark font-weight-bold">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i>Dữ liệu ngày cũ
+                        </span>
+                        <span th:if="${patient.diseaseProfile != null}" class="ms-1">
                             <i class="fa-solid fa-heart-pulse me-1"></i>
                             <span th:text="${patient.diseaseProfile.profileName}"></span>
                         </span>
                     </p>
                 </div>
-                <div class="col-auto d-none d-md-block">
-                    <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:2.2rem;border:2px solid rgba(255,255,255,.3);">
-                        <i class="fa-solid fa-user-doctor"></i>
-                    </div>
+                <div class="col-md-5">
+                    <form th:action="@{/patient/dashboard}" method="GET" class="d-flex align-items-center justify-content-md-end gap-2" style="position: relative; z-index: 10000;">
+                        <div class="bg-white bg-opacity-25 p-2 rounded-3 border border-white border-opacity-25 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-calendar-check text-white ms-1"></i>
+                            <input type="date" name="date" th:value="${selectedDate}" class="form-control form-control-sm border-0 bg-transparent text-white fw-bold" style="max-width: 140px; cursor: pointer; color-scheme: dark;">
+                            <button type="submit" class="btn btn-light btn-sm fw-bold px-3 text-primary shadow-sm rounded-pill" style="position: relative; z-index: 10001;">
+                                <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
+                            </button>
+                        </div>
+                        <a th:if="${!isToday}" href="/patient/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-2" title="Quay về Hôm nay" style="position: relative; z-index: 10001;">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </a>
+                    </form>
                 </div>
             </div>
         </div>
@@ -43,8 +54,6 @@
                 var h = new Date().getHours();
                 var greeting = h < 12 ? 'Chào buổi sáng! ☀️' : h < 18 ? 'Chào buổi chiều! 🌤️' : 'Chào buổi tối! 🌙';
                 document.getElementById('greetingTime').textContent = greeting;
-                var now = new Date();
-                document.getElementById('todayDate').textContent = now.toLocaleDateString('vi-VN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
             })();
         </script>
 

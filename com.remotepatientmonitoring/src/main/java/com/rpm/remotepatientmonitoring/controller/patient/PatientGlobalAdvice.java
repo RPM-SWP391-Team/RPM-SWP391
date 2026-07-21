@@ -53,6 +53,7 @@ public class PatientGlobalAdvice {
             List<Notification> patientNotifications = patientGlobalService.getTop10Notifications(patient.getId());
             long patientUnreadCount = patientGlobalService.getUnreadCount(patient.getId());
             
+            model.addAttribute("patient", patient);
             model.addAttribute("patientNotifications", patientNotifications);
             model.addAttribute("patientUnreadCount", patientUnreadCount);
         } else {

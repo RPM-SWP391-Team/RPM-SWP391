@@ -109,4 +109,36 @@ public class PatientMedicationService {
             } catch (Exception ignored) {}
         }
     }
+
+    @Transactional
+    public MedicationLog addOrUpdateMedicationLog(Integer medicationId, LocalDate date, boolean isTaken, LocalDateTime takenAt) {
+        Optional<PatientMedication> medOpt = medicationRepository.findById(medicationId);
+        if (medOpt.isEmpty()) {
+            throw new IllegalStateException("Không tìm thấy thuốc với ID: " + medicationId);
+        }
+        PatientMedication medication = medOpt.get();
+        Optional<MedicationLog> logOpt = medicationLogRepository.findByPatientMedicationIdAndLogDate(medicationId, date);
+        MedicationLog logVal;
+        if (logOpt.isPresent()) {
+            logVal = logOpt.get();
+            logVal.setIsTaken(isTaken);
+            logVal.setTakenAt(isTaken ? takenAt : null);
+        } else {
+            logVal = MedicationLog.builder()
+                    .patientMedication(medication)
+                    .logDate(date)
+                    .isTaken(isTaken)
+                    .takenAt(isTaken ? takenAt : null)
+                    .build();
+        }
+        return medicationLogRepository.save(logVal);
+    }
+
+    @Transactional
+    public void deleteMedicationLog(Integer id) {
+        Optional<MedicationLog> logOpt = medicationLogRepository.findById(id);
+        if (logOpt.isPresent()) {
+            medicationLogRepository.delete(logOpt.get());
+        }
+    }
 }

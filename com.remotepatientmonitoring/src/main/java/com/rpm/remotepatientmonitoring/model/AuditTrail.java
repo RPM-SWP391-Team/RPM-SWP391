@@ -50,7 +50,8 @@ public class AuditTrail {
     private String notes;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt= LocalDateTime.now();;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @PrePersist
     protected void onCreate() {
@@ -58,4 +59,29 @@ public class AuditTrail {
             this.createdAt = LocalDateTime.now();
         }
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getActorType() { return actorType; }
+    public void setActorType(String actorType) { this.actorType = actorType; }
+    public Integer getActorId() { return actorId; }
+    public void setActorId(Integer actorId) { this.actorId = actorId; }
+    public String getAction() { return action; }
+    public void setAction(String action) { this.action = action; }
+    public String getTargetTable() { return targetTable; }
+    public void setTargetTable(String targetTable) { this.targetTable = targetTable; }
+    public Integer getTargetRecordId() { return targetRecordId; }
+    public void setTargetRecordId(Integer targetRecordId) { this.targetRecordId = targetRecordId; }
+    public String getOldValue() { return oldValue; }
+    public void setOldValue(String oldValue) { this.oldValue = oldValue; }
+    public String getNewValue() { return newValue; }
+    public void setNewValue(String newValue) { this.newValue = newValue; }
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public String getDeviceInfo() { return deviceInfo; }
+    public void setDeviceInfo(String deviceInfo) { this.deviceInfo = deviceInfo; }
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
