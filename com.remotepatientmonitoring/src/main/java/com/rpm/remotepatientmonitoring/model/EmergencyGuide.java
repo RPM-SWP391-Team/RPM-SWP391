@@ -28,7 +28,7 @@ public class EmergencyGuide {
     @Column(name = "metric_type", nullable = false, length = 30)
     private String metricType; // 'GLUCOSE', 'BLOOD_PRESSURE', 'BOTH'
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "title", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
     @Column(name = "instruction_content", nullable = false, columnDefinition = "NVARCHAR(MAX)")

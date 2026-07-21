@@ -355,7 +355,7 @@
                                           (#strings.contains(log.action, 'THRESHOLD') ? 'badge-threshold' :
                                           (#strings.contains(log.action, 'PROTOCOL') ? 'badge-protocol' : 'badge-default')))))
                                       }"
-                                      th:text="${log.action}">ACTION_NAME</span>
+                                      th:text="${log.action == 'UPDATE_HOSPITAL_PROFILE' ? 'UPDATE_ADMIN_PROFILE' : log.action}">ACTION_NAME</span>
                         </td>
                         <td>
                             <div class="fw-semibold text-capitalize" th:text="${log.targetTable}">patients</div>
@@ -443,11 +443,6 @@
                         <label class="small text-muted d-block">Ghi chú / Giải trình</label>
                         <span class="fw-bold text-secondary" id="modalNotes">-</span>
                     </div>
-                </div>
-
-                <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
-                    <i class="bi bi-lock-fill me-2 fs-5"></i>
-                    <span><strong>Bảo mật thông tin y tế (Mục 1.4 BRD):</strong> Các chỉ số y tế riêng tư của bệnh nhân đã được hệ thống che mờ tự động (<span class="masked-indicator">***MASKED***</span>).</span>
                 </div>
 
                 <div id="changeDetailContainer" class="border rounded-3 p-3 bg-light">
@@ -648,7 +643,8 @@
             const oldValue = this.getAttribute('data-old') || '';
             const newValue = this.getAttribute('data-new') || '';
 
-            document.getElementById('modalActionBadge').textContent = action;
+            const displayAction = (action === 'UPDATE_HOSPITAL_PROFILE') ? 'UPDATE_ADMIN_PROFILE' : action;
+            document.getElementById('modalActionBadge').textContent = displayAction;
             document.getElementById('modalTargetInfo').textContent = `Bảng: ${targetTable} (ID: ${targetId})`;
             document.getElementById('modalActorInfo').textContent = `${actorType} (ID: ${actorId})`;
             document.getElementById('modalNotes').textContent = notes;

@@ -63,15 +63,11 @@ public class HospitalProfileService {
         Account account = hospital.getAccount();
 
         // -------------------------------------------------------------
-        // TẠO SNAPSHOT (BẢN SAO CHỤP) DỮ LIỆU ĐỂ GHI LOG GIỐNG BÁC SĨ
+        // TẠO SNAPSHOT DỮ LIỆU CHỈ GHI EMAIL (VÀ PASSWORD NẾU ĐỔI)
         // -------------------------------------------------------------
         Map<String, Object> oldLog = new HashMap<>();
         oldLog.put("email", account.getEmail());
-        oldLog.put("fullName", hospital.getFullName());
-        oldLog.put("phone", hospital.getPhone());
-        oldLog.put("address", hospital.getAddress());
 
-        // newLog lấy nguyên bản từ oldLog, sau đó trường nào thay đổi thì put đè lên
         Map<String, Object> newLog = new HashMap<>(oldLog);
         boolean isChanged = false;
 
@@ -108,26 +104,7 @@ public class HospitalProfileService {
             isChanged = true;
         }
 
-        // 3. Xử lý thông tin Bệnh viện (Kiểm tra null trước khi trim)
-        if (dto.getFullName() != null && !dto.getFullName().trim().isEmpty() && !Objects.equals(hospital.getFullName(), dto.getFullName().trim())) {
-            newLog.put("fullName", dto.getFullName().trim());
-            hospital.setFullName(dto.getFullName().trim());
-            isChanged = true;
-        }
-
-        if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty() && !Objects.equals(hospital.getPhone(), dto.getPhone().trim())) {
-            newLog.put("phone", dto.getPhone().trim());
-            hospital.setPhone(dto.getPhone().trim());
-            isChanged = true;
-        }
-
-        if (dto.getAddress() != null && !dto.getAddress().trim().isEmpty() && !Objects.equals(hospital.getAddress(), dto.getAddress().trim())) {
-            newLog.put("address", dto.getAddress().trim());
-            hospital.setAddress(dto.getAddress().trim());
-            isChanged = true;
-        }
-
-        // 4. Lưu vào Database và Ghi Log
+        // 3. Lưu vào Database và Ghi Log
         if (isChanged) {
             hospital.setUpdatedAt(LocalDateTime.now());
             account.setUpdatedAt(LocalDateTime.now());
@@ -139,7 +116,7 @@ public class HospitalProfileService {
             try {
                 String oldValueJson = objectMapper.writeValueAsString(oldLog);
                 String newValueJson = objectMapper.writeValueAsString(newLog);
-                saveAuditLog("UPDATE_HOSPITAL_PROFILE", hospital.getId(), oldValueJson, newValueJson, "Cập nhật hồ sơ bệnh viện & tài khoản quản trị");
+                saveAuditLog("UPDATE_ADMIN_PROFILE", hospital.getId(), oldValueJson, newValueJson, "Cập nhật hồ sơ cá nhân admin (Email: " + account.getEmail() + ")");
             } catch (Exception e) {
                 System.err.println("Lỗi ghi log Audit Trail: " + e.getMessage());
             }

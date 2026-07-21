@@ -24,7 +24,8 @@ public interface AuditTrailRepository extends JpaRepository<AuditTrail, Long> {
            "(:actorType IS NULL OR :actorType = '' OR a.actorType = :actorType) AND " +
            "(:action IS NULL OR :action = '' OR a.action LIKE %:action%) AND " +
            "(:keyword IS NULL OR :keyword = '' OR a.notes LIKE %:keyword% OR a.ipAddress LIKE %:keyword% OR CAST(a.targetRecordId AS string) LIKE %:keyword%) AND " +
-           "(a.createdAt BETWEEN :start AND :end) " +
+           "(a.createdAt BETWEEN :start AND :end) AND " +
+           "NOT (a.actorType = 'DOCTOR' AND a.action = 'ASSIGN_PATIENT_TO_DOCTOR') " +
            "ORDER BY a.createdAt DESC")
     Page<AuditTrail> filterAuditLogs(
             @Param("actorType") String actorType,
@@ -38,7 +39,8 @@ public interface AuditTrailRepository extends JpaRepository<AuditTrail, Long> {
            "(:actorType IS NULL OR :actorType = '' OR a.actorType = :actorType) AND " +
            "(:action IS NULL OR :action = '' OR a.action LIKE %:action%) AND " +
            "(:keyword IS NULL OR :keyword = '' OR a.notes LIKE %:keyword% OR a.ipAddress LIKE %:keyword% OR CAST(a.targetRecordId AS string) LIKE %:keyword%) AND " +
-           "(a.createdAt BETWEEN :start AND :end) " +
+           "(a.createdAt BETWEEN :start AND :end) AND " +
+           "NOT (a.actorType = 'DOCTOR' AND a.action = 'ASSIGN_PATIENT_TO_DOCTOR') " +
            "ORDER BY a.createdAt DESC")
     List<AuditTrail> filterAuditLogsForExport(
             @Param("actorType") String actorType,

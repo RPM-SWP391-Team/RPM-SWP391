@@ -25,7 +25,7 @@ public class EmergencyProtocol {
     @Column(name = "condition_type", nullable = false, length = 30)
     private String conditionType; // HYPERTENSIVE_CRISIS, HYPOGLYCEMIA, HYPERGLYCEMIA
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "title", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String title;
 
     @Column(name = "warning_signs", nullable = false, columnDefinition = "NVARCHAR(MAX)")
