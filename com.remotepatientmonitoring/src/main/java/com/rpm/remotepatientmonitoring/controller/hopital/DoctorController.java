@@ -41,6 +41,7 @@ public class DoctorController {
     @GetMapping
     public String listDoctors(@RequestParam(value = "search", required = false) String search,
                               @RequestParam(value = "specialty", required = false) String specialty,
+                              @RequestParam(value = "status", required = false) String status,
                               @RequestParam(value = "page", defaultValue = "0") int page,
                               Model model) {
 
@@ -48,7 +49,7 @@ public class DoctorController {
         // Tạo phân trang và KÈM THEO sắp xếp ID giảm dần (mới nhất lên đầu)
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "id"));
 
-        Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(search, specialty, pageable);
+        Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(search, specialty, status, pageable);
 
         ratingService.populateDoctorRatings(doctorPage.getContent());
         model.addAttribute("doctors", doctorPage.getContent());
@@ -59,6 +60,7 @@ public class DoctorController {
 
         model.addAttribute("searchKeyword", search != null ? search : "");
         model.addAttribute("selectedSpecialty", specialty != null ? specialty : "");
+        model.addAttribute("selectedStatus", status != null ? status : "");
 
         if (!model.containsAttribute("doctorDto")) {
             DoctorDTO newDto = new DoctorDTO();
@@ -78,32 +80,19 @@ public class DoctorController {
                             Model model,
                             RedirectAttributes redirectAttributes) {
 
-        // BỔ SUNG ĐOẠN NÀY: Nếu lỗi rơi vào hàm check AsserTrue thì gán nó vào ô fullName luôn
+        // 1. Chuyển lỗi Custom từ @AssertTrue vào ô fullName
         if (bindingResult.hasFieldErrors("fullNameValid")) {
             bindingResult.rejectValue("fullName", "error.doctorDto",
                     bindingResult.getFieldError("fullNameValid").getDefaultMessage());
         }
 
-        // Chặn đứng chữ rác: Nếu DTO dính lỗi Regex, dừng luồng dữ liệu lập tức và trả về giao diện kèm thông báo
+        // 2. Chặn lỗi Validation (Thông tin rác)
         if (bindingResult.hasErrors()) {
-            // SỬA CHUẨN: Đồng bộ phân trang khi trả về lỗi Validation tránh crash giao diện
-            Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
-            Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(null, null, pageable);
-            ratingService.populateDoctorRatings(doctorPage.getContent());
-            model.addAttribute("doctors", doctorPage.getContent());
-            model.addAttribute("doctorPage", doctorPage);
-            model.addAttribute("currentPage", 0);
-            model.addAttribute("totalPages", doctorPage.getTotalPages());
-            model.addAttribute("totalItems", doctorPage.getTotalElements());
-
-            model.addAttribute("searchKeyword", "");
-            model.addAttribute("selectedSpecialty", "");
-            model.addAttribute("doctorDto", doctorDto);
-            model.addAttribute("doctorEditDto", new DoctorEditDTO());
-            model.addAttribute("errorMessage", "Đăng ký thất bại: Biểu mẫu chứa thông tin rác hoặc sai định dạng chữ cái Tiếng Việt!");
+            populateModelData(model, doctorDto, "Đăng ký thất bại: Biểu mẫu chứa thông tin rác hoặc sai định dạng chữ cái Tiếng Việt!");
             return "hospital/doctors";
         }
 
+        // 3. Xử lý lưu Database & Bắt lỗi nghiệp vụ
         try {
             doctorService.createDoctor(
                     HARDCODED_HOSPITAL_ID,
@@ -119,8 +108,11 @@ public class DoctorController {
 
             redirectAttributes.addFlashAttribute("successMessage", "Thêm bác sĩ mới và gửi mail kích hoạt thành công!");
             return "redirect:/hospital/doctors";
+
         } catch (IllegalArgumentException e) {
             // Đẩy lỗi trùng lặp/nghiệp vụ từ DB về đúng ô input trên form
+            String globalErrorMessage = null;
+
             if (e.getMessage().contains("Mã bác sĩ")) {
                 bindingResult.rejectValue("doctorCode", "error.doctorDto", e.getMessage());
             } else if (e.getMessage().contains("Họ và tên")) {
@@ -130,25 +122,46 @@ public class DoctorController {
             } else if (e.getMessage().contains("Email")) {
                 bindingResult.rejectValue("email", "error.doctorDto", e.getMessage());
             } else {
-                model.addAttribute("errorMessage", e.getMessage());
+                globalErrorMessage = e.getMessage();
             }
 
-            List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
-            ratingService.populateDoctorRatings(doctors);
-            model.addAttribute("doctors", doctors);
-            model.addAttribute("doctorDto", doctorDto);
-            model.addAttribute("doctorEditDto", new DoctorEditDTO());
+            populateModelData(model, doctorDto, globalErrorMessage);
             return "hospital/doctors";
+
         } catch (Exception e) {
-            List<Doctor> doctors = doctorService.getDoctorsByHospital(HARDCODED_HOSPITAL_ID);
-            ratingService.populateDoctorRatings(doctors);
-            model.addAttribute("doctors", doctors);
-            model.addAttribute("doctorDto", doctorDto);
-            model.addAttribute("doctorEditDto", new DoctorEditDTO());
-            model.addAttribute("errorMessage", "Hệ thống gặp sự cố mạng: " + e.getMessage());
+            // Lỗi hệ thống mạng
+            populateModelData(model, doctorDto, "Hệ thống gặp sự cố mạng: " + e.getMessage());
             return "hospital/doctors";
         }
     }
+
+    // ================== HÀM PHỤ TRỢ (MỚI THÊM) ==================
+    /**
+     * Hàm dùng chung để đổ dữ liệu phân trang ra View khi Form Add bị lỗi
+     * Chống sập (crash) giao diện do thiếu biến phân trang.
+     */
+    private void populateModelData(Model model, DoctorDTO doctorDto, String errorMessage) {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Doctor> doctorPage = doctorService.searchAndFilterAllDoctors(null, null, pageable);
+
+        ratingService.populateDoctorRatings(doctorPage.getContent());
+
+        model.addAttribute("doctors", doctorPage.getContent());
+        model.addAttribute("doctorPage", doctorPage);
+        model.addAttribute("currentPage", 0);
+        model.addAttribute("totalPages", doctorPage.getTotalPages());
+        model.addAttribute("totalItems", doctorPage.getTotalElements());
+
+        model.addAttribute("searchKeyword", "");
+        model.addAttribute("selectedSpecialty", "");
+        model.addAttribute("doctorDto", doctorDto);
+        model.addAttribute("doctorEditDto", new DoctorEditDTO());
+
+        if (errorMessage != null && !errorMessage.trim().isEmpty()) {
+            model.addAttribute("errorMessage", errorMessage);
+        }
+    }
+    // ============================================================
 
     @PostMapping("/deactivate/{id}")
     public String deactivateDoctor(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {

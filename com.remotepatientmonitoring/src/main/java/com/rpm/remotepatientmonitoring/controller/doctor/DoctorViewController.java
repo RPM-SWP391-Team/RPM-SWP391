@@ -485,18 +485,6 @@ public class DoctorViewController {
                 log.error("Error saving notification: " + e.getMessage());
             }
 
-            // Ghi Audit Trail
-            auditTrailService.logAction(
-                    "DOCTOR",
-                    request.getDoctor() != null ? request.getDoctor().getId() : null,
-                    "PROCESS_CHANGE_REQUEST",
-                    "change_requests",
-                    request.getId(),
-                    null,
-                    request,
-                    "Bác sĩ " + action + " yêu cầu thay đổi với ghi chú: " + doctorResponse
-            );
-
             redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý yêu cầu thành công!");
         } else {
             redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Không tìm thấy yêu cầu này.");
@@ -642,16 +630,30 @@ public class DoctorViewController {
             alertRepository.save(alert);
 
             // Ghi Audit Trail
-            auditTrailService.logAction(
-                    "DOCTOR",
-                    doctor.getId(),
-                    "RESOLVE_ALERT",
-                    "alerts",
-                    alert.getId(),
-                    null,
-                    alert,
-                    "Bác sĩ " + doctor.getFullName() + " xử lý cảnh báo với ghi chú: " + resolutionNotes
-            );
+            if (auditTrailService != null) {
+                try {
+                    java.util.Map<String, Object> aLog = new java.util.HashMap<>();
+                    aLog.put("alertId", alert.getId());
+                    aLog.put("alertLevel", alert.getAlertLevel() != null ? alert.getAlertLevel() : (alert.getAlertColor() != null ? alert.getAlertColor() : "LEVEL 3"));
+                    aLog.put("patientId", alert.getPatient() != null ? alert.getPatient().getId() : null);
+                    aLog.put("patientName", alert.getPatient() != null ? alert.getPatient().getFullName() : "Bệnh nhân");
+                    aLog.put("status", "RESOLVED");
+                    aLog.put("resolutionNotes", resolutionNotes);
+
+                    auditTrailService.logAction(
+                            "DOCTOR",
+                            doctor.getId(),
+                            "RESOLVE_ALERT",
+                            "alerts",
+                            alert.getId(),
+                            null,
+                            aLog,
+                            "Bác sĩ xác nhận đã kiểm tra và xử lý cảnh báo"
+                    );
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
 
             redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý cảnh báo y tế.");
             return "redirect:/doctor/patient-detail/" + alert.getPatient().getId() + "?success=alert-resolved";
@@ -1004,17 +1006,6 @@ public class DoctorViewController {
         entity.setDiastolicEmergencyThreshold(dto.getDiastolicEmergencyThreshold());
 
         alertThresholdRepository.save(entity);
-
-        auditTrailService.logAction(
-                "DOCTOR",
-                doctor.getId(),
-                "UPDATE_PATIENT_THRESHOLD",
-                "AlertThreshold",
-                entity.getId(),
-                null,
-                null,
-                "Bác sĩ " + doctor.getFullName() + " đã cập nhật ngưỡng cảnh báo cá nhân hóa cho bệnh nhân " + patient.getFullName()
-        );
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã lưu ngưỡng cảnh báo riêng cho bệnh nhân.");
         return "redirect:/doctor/patient-detail/" + id;
