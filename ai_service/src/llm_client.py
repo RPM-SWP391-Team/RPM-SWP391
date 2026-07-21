@@ -10,7 +10,7 @@ class LLMClient(Protocol):
     Trách nhiệm: Nhận prompt thuần, trả về text thuần. Xử lý retry ngầm.
     Cấm build prompt hoặc parse output tại đây.
     """
-    def generate(self, prompt: str, api_key: str = None) -> str: ...
+    def generate(self, prompt: str, api_key: str = None, system_prompt: str = None) -> str: ...
 
 
 import requests
@@ -32,10 +32,11 @@ class GeminiLLMClient:
         self.model_name = config.LLM.model_name
         self.url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, system_prompt: str = None) -> str:
         t0 = time.time()
+        text_content = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
         payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
+            "contents": [{"parts": [{"text": text_content}]}],
             "generationConfig": {
                 "temperature": config.LLM.temperature,
                 "maxOutputTokens": config.LLM.max_output_tokens,
@@ -78,11 +79,16 @@ class GroqLLMClient:
         self.model_name = model_name
         self.url = "https://api.groq.com/openai/v1/chat/completions"
 
-    def generate(self, prompt: str, api_key: str = None) -> str:
+    def generate(self, prompt: str, api_key: str = None, system_prompt: str = None) -> str:
         t0 = time.time()
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
         payload = {
             "model": self.model_name,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
             "temperature": config.LLM.temperature,
             "max_tokens": config.LLM.max_output_tokens,
         }

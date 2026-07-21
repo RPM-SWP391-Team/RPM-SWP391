@@ -183,6 +183,37 @@
         </div>
     </div>
 
+    <!-- SEMANTIC SEARCH SECTION START -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card card-custom p-4 bg-white" style="border-top: 4px solid #2a5298;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0 text-primary">
+                        <i class="fa-solid fa-book-medical me-2"></i>Tra cứu Phác đồ Y khoa (Semantic Search)
+                    </h4>
+                </div>
+                <div class="input-group mb-3 shadow-sm" style="border-radius: 50px; overflow: hidden; border: 2px solid #e0e0e0;">
+                    <input type="text" id="semanticSearchInput" class="form-control border-0 px-4 py-3" placeholder="Nhập tên thuốc, bệnh lý hoặc triệu chứng để tra cứu nhanh phác đồ..." style="box-shadow: none;">
+                    <button class="btn btn-primary px-4 fw-bold" type="button" id="semanticSearchBtn" style="border-radius: 0 50px 50px 0;">
+                        <i class="fa-solid fa-search me-1"></i> Tìm
+                    </button>
+                </div>
+                
+                <!-- Kết quả tìm kiếm -->
+                <div id="semanticSearchResults" class="mt-3" style="display: none;">
+                    <!-- Loading state -->
+                    <div id="semanticSearchLoading" class="text-center py-4 text-muted" style="display: none;">
+                        <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Đang lục tìm trong hàng ngàn trang tài liệu y khoa...</p>
+                    </div>
+                    <!-- Data container -->
+                    <div id="semanticSearchData"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- SEMANTIC SEARCH SECTION END -->
+
     <div class="row">
         <div class="col-12">
             <div class="card card-custom p-4 bg-white">
@@ -300,203 +331,82 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
-<!-- CHATBOT WIDGET START -->
-    <style>
-        .ai-chat-btn {
-            position: fixed;
-            bottom: 80px; 
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            cursor: pointer;
-            z-index: 9999;
-            transition: transform 0.3s;
-        }
-        .ai-chat-btn:hover {
-            transform: scale(1.1);
-        }
-        .ai-chat-window {
-            position: fixed;
-            bottom: 150px;
-            right: 20px;
-            width: 450px;
-            max-width: calc(100vw - 40px);
-            height: 550px;
-            max-height: calc(100vh - 180px);
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            display: none;
-            flex-direction: column;
-            z-index: 9998;
-            overflow: hidden;
-            font-family: inherit;
-        }
-        .ai-chat-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
-            color: white;
-            padding: 15px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .ai-chat-close {
-            cursor: pointer;
-        }
-        .ai-chat-body {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: #f8f9fa;
-        }
-        .ai-msg {
-            margin-bottom: 15px;
-            max-width: 85%;
-            padding: 10px 15px;
-            border-radius: 15px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        .ai-msg-bot {
-            background: white;
-            color: #333;
-            border: 1px solid #eee;
-            align-self: flex-start;
-            border-bottom-left-radius: 0;
-        }
-        .ai-msg-user {
-            background: #eef2ff;
-            color: #0d6efd;
-            align-self: flex-end;
-            margin-left: auto;
-            border-bottom-right-radius: 0;
-        }
-        .ai-chat-footer {
-            padding: 10px;
-            border-top: 1px solid #eee;
-            background: white;
-            display: flex;
-            gap: 10px;
-        }
-        .ai-chat-input {
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            padding: 8px 15px;
-            outline: none;
-        }
-        .ai-chat-send {
-            background: #0d6efd;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .ai-msg-bot strong { font-weight: bold; color: #0d6efd; }
-    </style>
-
-    <div class="ai-chat-btn" id="aiChatBtn">
-        <i class="fa-solid fa-brain"></i>
-    </div>
-
-    <div class="ai-chat-window" id="aiChatWindow">
-        <div class="ai-chat-header">
-            <span><i class="fa-solid fa-brain me-2"></i> Trợ lý Trí tuệ Nhân tạo (Dành cho Bác sĩ)</span>
-            <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
-        </div>
-        <div class="ai-chat-body" id="aiChatBody">
-            <div class="ai-msg ai-msg-bot">
-                Xin chào Bác sĩ! Tôi là Trợ lý AI y khoa dựa trên dữ liệu RAG. Tôi có thể hỗ trợ tra cứu phác đồ điều trị, thông tin thuốc, và tư vấn y khoa dựa trên tài liệu hướng dẫn. Bác sĩ cần tôi hỗ trợ gì ạ?
-            </div>
-        </div>
-        <div class="ai-chat-footer">
-            <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Nhập câu hỏi chuyên môn...">
-            <button class="ai-chat-send" id="aiChatSend"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-    </div>
-
+    <!-- SEMANTIC SEARCH JS START -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('aiChatBtn');
-            const windowEl = document.getElementById('aiChatWindow');
-            const closeBtn = document.getElementById('aiChatClose');
-            const sendBtn = document.getElementById('aiChatSend');
-            const inputEl = document.getElementById('aiChatInput');
-            const bodyEl = document.getElementById('aiChatBody');
+            const searchInput = document.getElementById('semanticSearchInput');
+            const searchBtn = document.getElementById('semanticSearchBtn');
+            const resultsContainer = document.getElementById('semanticSearchResults');
+            const loadingEl = document.getElementById('semanticSearchLoading');
+            const dataEl = document.getElementById('semanticSearchData');
 
-            btn.addEventListener('click', () => {
-                windowEl.style.display = windowEl.style.display === 'flex' ? 'none' : 'flex';
-            });
+            function performSemanticSearch() {
+                const keyword = searchInput.value.trim();
+                if (!keyword) return;
 
-            closeBtn.addEventListener('click', () => {
-                windowEl.style.display = 'none';
-            });
+                resultsContainer.style.display = 'block';
+                loadingEl.style.display = 'block';
+                dataEl.innerHTML = '';
 
-            function addMessage(text, isUser) {
-                const div = document.createElement('div');
-                div.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
-                if (!isUser) {
-                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    text = text.replace(/\n/g, '<br>');
-                }
-                div.innerHTML = text;
-                bodyEl.appendChild(div);
-                bodyEl.scrollTop = bodyEl.scrollHeight;
-            }
-
-            function sendMessage() {
-                const text = inputEl.value.trim();
-                if (!text) return;
-
-                addMessage(text, true);
-                inputEl.value = '';
-
-                const loadingId = 'loading-' + Date.now();
-                const loadingDiv = document.createElement('div');
-                loadingDiv.id = loadingId;
-                loadingDiv.className = 'ai-msg ai-msg-bot';
-                loadingDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang truy xuất tài liệu Y khoa...';
-                bodyEl.appendChild(loadingDiv);
-                bodyEl.scrollTop = bodyEl.scrollHeight;
-
-                fetch('/api/chatbot/ask', {
+                fetch('/api/chatbot/search', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: text })
+                    body: JSON.stringify({ query: keyword })
                 })
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById(loadingId).remove();
-                    addMessage(data.answer, false);
+                    loadingEl.style.display = 'none';
+                    if (!data.results || data.results.length === 0) {
+                        dataEl.innerHTML = '<div class="alert alert-warning">Không tìm thấy tài liệu nào khớp với yêu cầu.</div>';
+                        return;
+                    }
+
+                    let html = `<div class="mb-3 text-success fw-bold"><i class="fa-solid fa-bolt text-warning"></i> Tìm thấy ${data.total_found} kết quả trong ${data.latency_seconds} giây</div>`;
+                    
+                    data.results.forEach(chunk => {
+                        const searchTerms = keyword.split(' ').filter(t => t.length > 2);
+                        let highlightedText = chunk.text;
+                        searchTerms.forEach(term => {
+                            try {
+                                const regex = new RegExp(term, 'gi');
+                                highlightedText = highlightedText.replace(regex, match => `<mark style="background-color: #ffeeb2; font-weight: bold; padding: 0 2px; border-radius: 3px;">${match}</mark>`);
+                            } catch(e) {}
+                        });
+
+                        html += `
+                            <div class="search-result-card mb-3" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background: #fafafa; transition: 0.2s;">
+                                <div style="color: #3b82f6; font-size: 13px; margin-bottom: 5px; font-weight: 600;">
+                                    <i class="fa-solid fa-folder-tree"></i> ${chunk.path}
+                                </div>
+                                <h5 style="color: #1e293b; font-size: 16px; margin: 0 0 10px 0; font-weight: 700;">
+                                    <i class="fa-solid fa-file-pdf text-danger me-2"></i>
+                                    <a href="${chunk.pdf_url || chunk.pdfUrl || '/docs/ehae178.pdf'}" target="_blank" class="text-decoration-none text-primary fw-bold" title="Click để mở tài liệu PDF gốc">
+                                        ${chunk.source} <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 12px;"></i>
+                                    </a>
+                                </h5>
+                                <p style="color: #475569; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
+                                    ${highlightedText}
+                                </p>
+                            </div>
+                        `;
+                    });
+                    dataEl.innerHTML = html;
                 })
                 .catch(err => {
-                    document.getElementById(loadingId).remove();
-                    addMessage('Xin lỗi, đã có lỗi kết nối đến máy chủ AI.', false);
+                    loadingEl.style.display = 'none';
+                    dataEl.innerHTML = '<div class="alert alert-danger">Có lỗi xảy ra khi tra cứu. Vui lòng kiểm tra lại server Python hoặc kết nối mạng.</div>';
                 });
             }
 
-            sendBtn.addEventListener('click', sendMessage);
-            inputEl.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
+            if(searchBtn && searchInput) {
+                searchBtn.addEventListener('click', performSemanticSearch);
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') performSemanticSearch();
+                });
+            }
         });
     </script>
-    <!-- CHATBOT WIDGET END -->
+    <!-- SEMANTIC SEARCH JS END -->
 
 </body>
 </html>

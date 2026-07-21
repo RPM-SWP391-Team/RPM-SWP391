@@ -18,6 +18,12 @@ class ModelLoader:
         self.device = device
         self._model = None
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
+        try:
+            torch.set_num_threads(1)
+        except Exception:
+            pass
 
     def load(self):
         if self._model is None:
@@ -41,7 +47,7 @@ class ModelLoader:
         embeddings = self._model.encode(
             texts,
             batch_size=batch_size,
-            show_progress_bar=True,
+            show_progress_bar=False,
             convert_to_numpy=True,
             normalize_embeddings=True
         )
