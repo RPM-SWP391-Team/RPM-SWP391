@@ -99,6 +99,9 @@ public class RatingService {
 
     @Transactional
     public AppRating submitAppRating(Integer ratingValue, String comment, Account currentAccount) {
+        if ("HOSPITAL_ADMIN".equals(currentAccount.getRole())) {
+            throw new IllegalArgumentException("Chức năng này không áp dụng cho tài khoản quản trị viên.");
+        }
         checkBannedWords(comment);
         if (comment != null && comment.length() > 1000) {
             throw new IllegalArgumentException("Nhận xét không được vượt quá 1000 ký tự.");

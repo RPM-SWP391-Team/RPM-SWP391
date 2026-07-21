@@ -55,21 +55,31 @@
                             <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
                         </div>
                         <i class="fa-solid fa-chevron-down small text-white-50"></i>
-                    </div>
-                    <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 170px;">
-                        <li>
-                            <a class="dropdown-item py-2 fw-semibold" href="#" onclick="openAppRatingModal(); return false;">
-                                <i class="fa-regular fa-star text-warning me-2"></i>Đánh giá ứng dụng
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
-                                <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
-                            </a>
-                        </li>
-                    </ul>
                 </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow mt-2" aria-labelledby="userProfileDropdown" style="border-radius: var(--radius-md); border: none; min-width: 170px;">
+                    <li>
+                        <a class="dropdown-item py-2 fw-semibold" href="#" onclick="openAppRatingModal(); return false;">
+                            <i class="fa-regular fa-star text-warning me-2"></i>Đánh giá ứng dụng
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2 fw-semibold" href="#" onclick="openBugReportModal(); return false;">
+                            <i class="fa-solid fa-bug text-danger me-2"></i>Báo lỗi hệ thống
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2 fw-semibold" href="/patient/progress">
+                            <i class="fa-solid fa-user-gear me-2"></i>Hồ Sơ & Cài Đặt
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item py-2 fw-semibold text-danger" href="/auth/logout">
+                            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
+                        </a>
+                    </li>
+                </ul>
+            </div>
             </div>
         </div>
     </nav>
@@ -155,8 +165,38 @@
             </div>
         </div>
 
+        <!-- Bug Report Modal -->
+        <div class="modal fade" id="bugReportModal" tabindex="-1" aria-labelledby="bugReportModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 16px;">
+                    <div class="modal-header border-0 pb-0" style="background: none; color: inherit;">
+                        <h5 class="modal-title fw-bold text-dark" id="bugReportModalLabel"><i class="fa-solid fa-bug text-danger me-2"></i>Báo cáo lỗi hệ thống</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-start pt-2">
+                        <p class="text-muted small mb-3">Vui lòng cung cấp chi tiết về lỗi bạn gặp phải để chúng tôi có thể hỗ trợ khắc phục nhanh nhất.</p>
+                        
+                        <div class="mb-3">
+                            <label for="bugTitle" class="form-label small fw-semibold text-muted">Tiêu đề lỗi <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="bugTitle" placeholder="Ví dụ: Lỗi không hiển thị biểu đồ huyết áp" maxlength="255" style="border-radius: 10px;" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bugDescription" class="form-label small fw-semibold text-muted">Mô tả chi tiết <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="bugDescription" rows="4" placeholder="Vui lòng mô tả rõ các bước gặp lỗi hoặc nội dung thông báo lỗi..." style="border-radius: 10px;" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitBugReport()">Gửi báo lỗi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
             let appModalObj = null;
+            let bugModalObj = null;
 
             function openAppRatingModal() {
                 if (!appModalObj) {
@@ -232,6 +272,57 @@
                 .catch(err => {
                     console.error(err);
                     alert('Đã xảy ra lỗi khi gửi đánh giá.');
+                });
+            }
+
+            function openBugReportModal() {
+                if (!bugModalObj) {
+                    bugModalObj = new bootstrap.Modal(document.getElementById('bugReportModal'));
+                }
+                // Reset fields
+                document.getElementById('bugTitle').value = '';
+                document.getElementById('bugDescription').value = '';
+                bugModalObj.show();
+            }
+
+            function submitBugReport() {
+                const titleVal = document.getElementById('bugTitle').value;
+                const descVal = document.getElementById('bugDescription').value;
+
+                if (!titleVal || !titleVal.trim()) {
+                    alert('Vui lòng nhập tiêu đề báo lỗi.');
+                    return;
+                }
+                if (titleVal.length > 255) {
+                    alert('Tiêu đề báo lỗi không được vượt quá 255 ký tự.');
+                    return;
+                }
+                if (!descVal || !descVal.trim()) {
+                    alert('Vui lòng nhập mô tả chi tiết.');
+                    return;
+                }
+
+                fetch('/api/bug-reports', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: titleVal,
+                        description: descVal,
+                        pageUrl: window.location.href
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        bugModalObj.hide();
+                    } else {
+                        alert('Gửi báo lỗi thất bại: ' + (data.message || 'Lỗi không xác định'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Đã xảy ra lỗi khi gửi báo lỗi.');
                 });
             }
         </script>

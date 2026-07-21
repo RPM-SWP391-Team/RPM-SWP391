@@ -39,6 +39,8 @@ public class RatingServiceTest {
 
     @BeforeEach
     void setUp() {
+        ratingService.init();
+
         currentAccount = new Account();
         currentAccount.setId(10);
         currentAccount.setEmail("patient@rpm.vn");
@@ -89,6 +91,20 @@ public class RatingServiceTest {
         });
 
         assertEquals("Mỗi tài khoản chỉ được đánh giá ứng dụng tối đa 1 lần mỗi ngày.", exception.getMessage());
+        verify(appRatingRepository, never()).save(any(AppRating.class));
+    }
+
+    @Test
+    void testAppRating_HospitalAdminRole_ThrowsException() {
+        // Arrange
+        currentAccount.setRole("HOSPITAL_ADMIN");
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            ratingService.submitAppRating(4, "Nice app!", currentAccount);
+        });
+
+        assertEquals("Chức năng này không áp dụng cho tài khoản quản trị viên.", exception.getMessage());
         verify(appRatingRepository, never()).save(any(AppRating.class));
     }
 

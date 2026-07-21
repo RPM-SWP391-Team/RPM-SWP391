@@ -61,6 +61,11 @@ public class RatingRestController {
 
         try {
             Account account = userDetails.getAccount();
+            if (account != null && "HOSPITAL_ADMIN".equals(account.getRole())) {
+                response.put("success", false);
+                response.put("message", "Chức năng này không áp dụng cho tài khoản quản trị viên.");
+                return ResponseEntity.status(403).body(response);
+            }
             ratingService.submitAppRating(request.getRatingValue(), request.getComment(), account);
             response.put("success", true);
             response.put("message", "Cảm ơn bạn đã gửi đánh giá ứng dụng!");
