@@ -108,10 +108,60 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="d-flex justify-content-between align-items-center">
                         <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="resetWater()">
                             <i class="fa-solid fa-rotate-left me-1"></i>Đặt lại (0 ml)
                         </button>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addWaterHistoryModal">
+                            <i class="fa-solid fa-plus me-1"></i>Nhập ngày khác
+                        </button>
+                    </div>
+
+                    <!-- Water Log History -->
+                    <div class="mt-4 border-top pt-3">
+                        <h6 class="fw-semibold text-primary mb-2">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i>Lịch sử uống nước (30 ngày gần đây)
+                        </h6>
+                        <div style="max-height: 180px; overflow-y: auto;">
+                            <table class="table table-sm table-hover mb-0" style="font-size: 13px;">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Ngày</th>
+                                        <th>Lượng (ml)</th>
+                                        <th class="text-center" style="width: 80px;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="wl : ${waterLogs}" th:id="'water-row-' + ${wl.id}">
+                                        <td>
+                                            <span th:text="${#temporals.format(wl.logDate, 'dd/MM/yyyy')}">20/07/2026</span>
+                                            <small class="text-muted ms-1" th:text="'(' + (${wl.loggedAt != null ? #temporals.format(wl.loggedAt, 'HH:mm') : '--:--'}) + ')'">(08:30)</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold" th:text="${wl.amountMl}">1500</span>
+                                            <span class="text-muted"> ml</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <i class="fa-solid fa-pen text-primary me-2" style="cursor:pointer; font-size: 12px;"
+                                               th:if="${wl.logDate.equals(T(java.time.LocalDate).now())}"
+                                               th:data-id="${wl.id}"
+                                               th:data-date="${#temporals.format(wl.logDate, 'yyyy-MM-dd')}"
+                                               th:data-amount="${wl.amountMl}"
+                                               onclick="openEditWaterHistory(this)"></i>
+                                            <i class="fa-solid fa-trash text-danger" style="cursor:pointer; font-size: 12px;"
+                                               th:if="${wl.logDate.equals(T(java.time.LocalDate).now())}"
+                                               th:data-id="${wl.id}"
+                                               onclick="deleteWaterHistory(this.getAttribute('data-id'))"></i>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(waterLogs)}">
+                                        <td colspan="3" class="text-center text-muted py-3">
+                                            <i class="fa-solid fa-droplet me-1"></i>Chưa có dữ liệu uống nước.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -178,9 +228,11 @@
             <div class="col-lg-6">
                 <div class="card card-custom p-4 bg-white border-0 h-100">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 border-bottom pb-3">
-                        <h4 class="fw-bold text-success mb-0">
-                            <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch Sử Tuân Thủ
-                        </h4>
+                        <div>
+                            <h4 class="fw-bold text-success mb-1">
+                                <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch Sử Tuân Thủ
+                            </h4>
+                        </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <!-- Date Search Picker -->
                             <div class="d-flex align-items-center gap-1">
@@ -222,10 +274,10 @@
                                     <div class="d-flex flex-wrap gap-2">
                                         <div th:each="log : ${entry.value['meds']}" class="badge border py-2 px-3 d-flex align-items-center gap-2 text-wrap text-start lh-sm fs-6"
                                              th:classappend="${log.isTaken} ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger'"
-                                             style="font-weight: 500; border-radius: 8px; max-width: 300px;">
+                                             style="font-weight: 500; border-radius: 8px; max-width: 320px;">
                                             <i th:class="${log.isTaken} ? 'fa-solid fa-circle-check text-success' : 'fa-solid fa-circle-xmark text-danger'"></i>
-                                            <div>
-                                                <div class="fw-bold" th:text="${log.medicineName}">Tên thuốc</div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold text-dark" th:text="${log.medicineName}">Tên thuốc</div>
                                                 <small class="text-muted d-block mt-1" style="font-size: 11px;">
                                                     <i class="fa-regular fa-clock me-1"></i>Giờ uống: <span th:text="${log.scheduledTime}">08:00</span>
                                                 </small>
@@ -233,6 +285,7 @@
                                                     <i class="fa-solid fa-check me-1"></i>Uống lúc: <span th:text="${#temporals.format(log.takenAt, 'HH:mm')}">08:05</span>
                                                 </small>
                                             </div>
+
                                         </div>
                                         <div th:if="${#lists.isEmpty(entry.value['meds'])}" class="text-muted small">
                                             Không có lịch uống thuốc ngày này.
@@ -245,16 +298,19 @@
                                     <small class="text-muted d-block mb-1 fw-semibold" style="font-size: 11px;">
                                         <i class="fa-solid fa-glass-water me-1 text-primary"></i>Lượng nước uống:
                                     </small>
-                                    <span class="badge border py-2 px-3 d-flex align-items-center gap-2 text-start fs-6 bg-primary-subtle text-primary border-primary"
-                                          style="font-weight: 500; border-radius: 8px; width: fit-content;">
-                                        <i class="fa-solid fa-droplet text-primary"></i>
-                                        <div>
-                                            <span class="fw-bold" th:text="${entry.value['waterAmount'] != null ? entry.value['waterAmount'] : 0} + '/' + ${entry.value['waterTarget'] != null ? entry.value['waterTarget'] : 2000} + ' ml'">1500/2200 ml</span>
-                                            <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                                                Đạt: <span th:text="${entry.value['waterPercent'] != null ? entry.value['waterPercent'] : 0}">0</span>% mục tiêu
-                                            </small>
-                                        </div>
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge border py-2 px-3 d-flex align-items-center gap-2 text-start fs-6 bg-primary-subtle text-primary border-primary"
+                                              style="font-weight: 500; border-radius: 8px; width: fit-content;">
+                                            <i class="fa-solid fa-droplet text-primary"></i>
+                                            <div>
+                                                <span class="fw-bold" th:text="${entry.value['waterAmount'] != null ? entry.value['waterAmount'] : 0} + '/' + ${entry.value['waterTarget'] != null ? entry.value['waterTarget'] : 2000} + ' ml'">1500/2200 ml</span>
+                                                <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                                    Đạt: <span th:text="${entry.value['waterPercent'] != null ? entry.value['waterPercent'] : 0}">0</span>% mục tiêu
+                                                </small>
+                                            </div>
+                                        </span>
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -350,6 +406,158 @@
         </div>
     </div>
 
+    <!-- ==================== MODAL: THÊM LỊCH SỬ UỐNG NƯỚC (DÀNH CHO NGÀY KHÁC) ==================== -->
+    <div class="modal fade" id="addWaterHistoryModal" tabindex="-1" aria-labelledby="addWaterHistoryLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="addWaterHistoryLabel">
+                        <i class="fa-solid fa-plus-circle me-2"></i>Nhập Nước Ngày Khác
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="addWaterHistDate" class="form-label fw-semibold">Chọn ngày</label>
+                        <input type="date" class="form-control" id="addWaterHistDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addWaterHistAmount" class="form-label fw-semibold">Lượng nước (ml)</label>
+                        <input type="number" class="form-control" id="addWaterHistAmount" placeholder="Ví dụ: 1500" min="50" max="10000" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" onclick="submitAddWaterHistory()">
+                        <i class="fa-solid fa-check me-1"></i>Lưu lại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CHỈNH SỬA LỊCH SỬ UỐNG NƯỚC ==================== -->
+    <div class="modal fade" id="editWaterHistoryModal" tabindex="-1" aria-labelledby="editWaterHistoryLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="editWaterHistoryLabel">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Sử Uống Nước
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editWaterHistId">
+                    <div class="mb-3">
+                        <label for="editWaterHistDate" class="form-label fw-semibold">Ngày uống</label>
+                        <input type="date" class="form-control" id="editWaterHistDate" readonly disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editWaterHistAmount" class="form-label fw-semibold">Lượng nước (ml)</label>
+                        <input type="number" class="form-control" id="editWaterHistAmount" min="0" max="10000" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" onclick="submitEditWaterHistory()">
+                        <i class="fa-solid fa-check me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: NHẬP THUỐC NGÀY KHÁC ==================== -->
+    <div class="modal fade" id="addMedHistoryModal" tabindex="-1" aria-labelledby="addMedHistoryLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="addMedHistoryLabel">
+                        <i class="fa-solid fa-plus-circle me-2"></i>Nhập Thuốc Ngày Khác
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="addMedHistDate" class="form-label fw-semibold">Chọn ngày</label>
+                        <input type="date" class="form-control" id="addMedHistDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addMedHistSelect" class="form-label fw-semibold">Chọn loại thuốc</label>
+                        <select class="form-select" id="addMedHistSelect" required>
+                            <option value="" disabled selected>-- Chọn loại thuốc --</option>
+                            <option th:each="m : ${activeMedsList}" th:value="${m.id}" th:text="${m.medicineName} + ' (' + ${m.scheduledTime} + ')'"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold d-block">Trạng thái uống thuốc</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="addMedHistStatus" id="addMedHistStatusTaken" value="true" checked onchange="toggleAddMedHistTime(true)">
+                            <label class="form-check-label text-success fw-bold" for="addMedHistStatusTaken">Đã uống</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="addMedHistStatus" id="addMedHistStatusNot" value="false" onchange="toggleAddMedHistTime(false)">
+                            <label class="form-check-label text-danger fw-bold" for="addMedHistStatusNot">Chưa uống</label>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="addMedHistTimeContainer">
+                        <label for="addMedHistTime" class="form-label fw-semibold">Giờ uống thực tế</label>
+                        <input type="time" class="form-control" id="addMedHistTime" value="08:00">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" onclick="submitAddMedHistory()">
+                        <i class="fa-solid fa-check me-1"></i>Lưu lại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CHỈNH SỬA LỊCH SỬ UỐNG THUỐC ==================== -->
+    <div class="modal fade" id="editMedHistoryModal" tabindex="-1" aria-labelledby="editMedHistoryLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
+                    <h5 class="modal-title text-white fw-bold" id="editMedHistoryLabel">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Sử Uống Thuốc
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editMedHistId">
+                    <input type="hidden" id="editMedHistMedId">
+                    <div class="mb-3">
+                        <label for="editMedHistDate" class="form-label fw-semibold">Ngày uống</label>
+                        <input type="date" class="form-control" id="editMedHistDate" readonly disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold d-block">Trạng thái uống thuốc</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="editMedHistStatus" id="editMedHistStatusTaken" value="true" onchange="toggleEditMedHistTime(true)">
+                            <label class="form-check-label text-success fw-bold" for="editMedHistStatusTaken">Đã uống</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="editMedHistStatus" id="editMedHistStatusNot" value="false" onchange="toggleEditMedHistTime(false)">
+                            <label class="form-check-label text-danger fw-bold" for="editMedHistStatusNot">Chưa uống</label>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="editMedHistTimeContainer">
+                        <label for="editMedHistTime" class="form-label fw-semibold">Giờ uống thực tế</label>
+                        <input type="time" class="form-control" id="editMedHistTime">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" onclick="submitEditMedHistory()">
+                        <i class="fa-solid fa-check me-1"></i>Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- ==================== JAVASCRIPT ==================== -->
@@ -375,7 +583,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    updateWaterUI(data.currentAmount);
+                    location.reload();
                 } else {
                     alert('Lỗi: ' + (data.message || 'Không thể ghi nhận.'));
                 }
@@ -395,7 +603,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    updateWaterUI(0);
+                    location.reload();
                 } else {
                     alert('Lỗi: ' + (data.message || 'Không thể đặt lại.'));
                 }
@@ -555,6 +763,230 @@
             .catch(err => {
                 console.error(err);
                 alert('Không thể kết nối server.');
+            });
+        }
+
+        // ==================== C. LỊCH SỬ UỐNG NƯỚC (HISTORY CRUD) ====================
+        function submitAddWaterHistory() {
+            const date = document.getElementById('addWaterHistDate').value;
+            const amount = document.getElementById('addWaterHistAmount').value;
+            if (!date || !amount) {
+                alert('Vui lòng nhập đầy đủ ngày và lượng nước.');
+                return;
+            }
+            const params = new URLSearchParams();
+            params.append('date', date);
+            params.append('amount', amount);
+
+            fetch('/patient/api/water/history/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối đến máy chủ.');
+            });
+        }
+
+        function openEditWaterHistory(element) {
+            const id = element.getAttribute('data-id');
+            const date = element.getAttribute('data-date');
+            const amount = element.getAttribute('data-amount');
+            document.getElementById('editWaterHistId').value = id;
+            document.getElementById('editWaterHistDate').value = date;
+            document.getElementById('editWaterHistAmount').value = amount;
+            const modal = new bootstrap.Modal(document.getElementById('editWaterHistoryModal'));
+            modal.show();
+        }
+
+        function submitEditWaterHistory() {
+            const id = document.getElementById('editWaterHistId').value;
+            const date = document.getElementById('editWaterHistDate').value;
+            const amount = document.getElementById('editWaterHistAmount').value;
+            if (!amount) {
+                alert('Vui lòng nhập lượng nước.');
+                return;
+            }
+            const params = new URLSearchParams();
+            if (id) {
+                params.append('id', id);
+            }
+            params.append('date', date);
+            params.append('amount', amount);
+
+            fetch('/patient/api/water/history/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối đến máy chủ.');
+            });
+        }
+
+        function deleteWaterHistory(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa bản ghi nước uống này?')) return;
+            fetch('/patient/api/water/history/delete/' + id, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối đến máy chủ.');
+            });
+        }
+
+        // ==================== D. LỊCH SỬ UỐNG THUỐC (HISTORY CRUD) ====================
+        function toggleAddMedHistTime(isTaken) {
+            const container = document.getElementById('addMedHistTimeContainer');
+            if (isTaken) container.classList.remove('d-none');
+            else container.classList.add('d-none');
+        }
+
+        function toggleEditMedHistTime(isTaken) {
+            const container = document.getElementById('editMedHistTimeContainer');
+            if (isTaken) container.classList.remove('d-none');
+            else container.classList.add('d-none');
+        }
+
+        function submitAddMedHistory() {
+            const date = document.getElementById('addMedHistDate').value;
+            const medicationId = document.getElementById('addMedHistSelect').value;
+            const isTaken = document.querySelector('input[name="addMedHistStatus"]:checked').value === 'true';
+            const takenTime = document.getElementById('addMedHistTime').value;
+
+            if (!date || !medicationId) {
+                alert('Vui lòng chọn ngày và loại thuốc.');
+                return;
+            }
+
+            const params = new URLSearchParams();
+            params.append('medicationId', medicationId);
+            params.append('date', date);
+            params.append('isTaken', isTaken);
+            if (isTaken && takenTime) {
+                params.append('takenTime', takenTime);
+            }
+
+            fetch('/patient/api/medications/history/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối đến máy chủ.');
+            });
+        }
+
+        function openEditMedHistory(element) {
+            const id = element.getAttribute('data-id');
+            const medId = element.getAttribute('data-medid');
+            const date = element.getAttribute('data-date');
+            const isTaken = element.getAttribute('data-istaken') === 'true';
+            const time = element.getAttribute('data-time');
+
+            document.getElementById('editMedHistId').value = id;
+            document.getElementById('editMedHistMedId').value = medId;
+            document.getElementById('editMedHistDate').value = date;
+
+            if (isTaken) {
+                document.getElementById('editMedHistStatusTaken').checked = true;
+                toggleEditMedHistTime(true);
+                document.getElementById('editMedHistTime').value = time;
+            } else {
+                document.getElementById('editMedHistStatusNot').checked = true;
+                toggleEditMedHistTime(false);
+                document.getElementById('editMedHistTime').value = '';
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('editMedHistoryModal'));
+            modal.show();
+        }
+
+        function submitEditMedHistory() {
+            const id = document.getElementById('editMedHistId').value;
+            const medicationId = document.getElementById('editMedHistMedId').value;
+            const date = document.getElementById('editMedHistDate').value;
+            const isTaken = document.querySelector('input[name="editMedHistStatus"]:checked').value === 'true';
+            const takenTime = document.getElementById('editMedHistTime').value;
+
+            const params = new URLSearchParams();
+            params.append('medicationId', medicationId);
+            params.append('date', date);
+            params.append('isTaken', isTaken);
+            if (isTaken && takenTime) {
+                params.append('takenTime', takenTime);
+            }
+
+            fetch('/patient/api/medications/history/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối đến máy chủ.');
+            });
+        }
+
+        function deleteMedHistory(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa bản ghi uống thuốc này?')) return;
+            fetch('/patient/api/medications/history/delete/' + id, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Không thể kết nối đến máy chủ.');
             });
         }
     </script>

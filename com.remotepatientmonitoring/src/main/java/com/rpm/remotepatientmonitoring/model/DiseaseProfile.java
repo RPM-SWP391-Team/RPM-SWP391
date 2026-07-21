@@ -38,4 +38,19 @@ public class DiseaseProfile {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public String getProfileCode() { return profileCode; }
+    public void setProfileCode(String profileCode) { this.profileCode = profileCode; }
+    public String getProfileName() { return profileName; }
+    public void setProfileName(String profileName) { this.profileName = profileName; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Boolean getRequiresBpInput() { return requiresBpInput; }
+    public void setRequiresBpInput(Boolean requiresBpInput) { this.requiresBpInput = requiresBpInput; }
+    public Boolean getRequiresGlucoseInput() { return requiresGlucoseInput; }
+    public void setRequiresGlucoseInput(Boolean requiresGlucoseInput) { this.requiresGlucoseInput = requiresGlucoseInput; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

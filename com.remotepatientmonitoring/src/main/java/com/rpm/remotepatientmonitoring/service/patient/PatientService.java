@@ -116,34 +116,23 @@ public class PatientService {
     @Transactional
     public int addWater(Patient patient, Integer amount) {
         LocalDate today = LocalDate.now();
-        Optional<WaterLog> logOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
-        WaterLog log;
-        if (logOpt.isPresent()) {
-            log = logOpt.get();
-        } else {
-            log = WaterLog.builder()
-                    .patient(patient)
-                    .logDate(today)
-                    .amountMl(0)
-                    .build();
-        }
-        log.setAmountMl(log.getAmountMl() + amount);
-        if (log.getAmountMl() < 0) {
-            log.setAmountMl(0);
-        }
+        WaterLog log = WaterLog.builder()
+                .patient(patient)
+                .logDate(today)
+                .amountMl(amount)
+                .loggedAt(java.time.LocalDateTime.now())
+                .build();
         waterLogRepository.save(log);
-        return log.getAmountMl();
+        
+        List<WaterLog> logs = waterLogRepository.findAllByPatientIdAndLogDate(patient.getId(), today);
+        return logs.stream().mapToInt(WaterLog::getAmountMl).sum();
     }
 
     @Transactional
     public int resetWater(Patient patient) {
         LocalDate today = LocalDate.now();
-        Optional<WaterLog> logOpt = waterLogRepository.findByPatientIdAndLogDate(patient.getId(), today);
-        if (logOpt.isPresent()) {
-            WaterLog log = logOpt.get();
-            log.setAmountMl(0);
-            waterLogRepository.save(log);
-        }
+        List<WaterLog> logs = waterLogRepository.findAllByPatientIdAndLogDate(patient.getId(), today);
+        waterLogRepository.deleteAll(logs);
         return 0;
     }
 
@@ -168,6 +157,17 @@ public class PatientService {
     @Transactional
     public void deleteMeal(Integer id) {
         patientMealRepository.deleteById(id);
+    }
+
+    @Transactional
+    public PatientMeal updateMeal(Integer id, Double quantityG) {
+        Optional<PatientMeal> opt = patientMealRepository.findById(id);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy bản ghi bữa ăn.");
+        }
+        PatientMeal meal = opt.get();
+        meal.setQuantityG(quantityG);
+        return patientMealRepository.save(meal);
     }
 
     @Transactional
@@ -204,4 +204,36 @@ public class PatientService {
             accountRepository.save(account);
         }
     }
+
+    @Transactional
+    public WaterLog addOrUpdateWaterLog(Integer id, Patient patient, LocalDate date, int amount) {
+        if (id != null) {
+            Optional<WaterLog> logOpt = waterLogRepository.findById(id);
+            if (logOpt.isPresent()) {
+                WaterLog log = logOpt.get();
+                log.setAmountMl(amount);
+                return waterLogRepository.save(log);
+            }
+        }
+        WaterLog log = WaterLog.builder()
+                .patient(patient)
+                .logDate(date)
+                .amountMl(amount)
+                .loggedAt(java.time.LocalDateTime.now())
+                .build();
+        return waterLogRepository.save(log);
+    }
+
+    @Transactional
+    public void deleteWaterLog(Integer id) {
+        Optional<WaterLog> logOpt = waterLogRepository.findById(id);
+        if (logOpt.isPresent()) {
+            waterLogRepository.delete(logOpt.get());
+        }
+    }
+
+    public List<WaterLog> findWaterLogs(Integer patientId, LocalDate date) {
+        return waterLogRepository.findAllByPatientIdAndLogDate(patientId, date);
+    }
 }
+

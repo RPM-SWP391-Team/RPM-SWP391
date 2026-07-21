@@ -16,7 +16,6 @@
             --text-dark: #1E293B;
             --text-muted: #64748B;
             --sidebar-width: 260px;
-            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -26,7 +25,6 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styling */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -77,18 +75,20 @@
             border-top: 1px solid #F1F5F9;
         }
 
-        /* Main Content Styling */
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
             transition: all 0.3s ease;
-            padding: 2rem;
+            padding: 1.25rem 1.5rem;
+            max-width: calc(100vw - var(--sidebar-width));
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
         .navbar-top {
             background-color: #ffffff;
             border-radius: 16px;
             padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
             display: flex;
             justify-content: space-between;
@@ -100,7 +100,16 @@
             border-radius: 16px;
             border: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .table-responsive {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            box-sizing: border-box;
         }
         .card-custom-header {
             padding: 1.5rem;
@@ -115,7 +124,24 @@
             padding: 1.5rem;
         }
 
-        /* Mobile responsive toggle */
+        .nav-tabs-custom {
+            border-bottom: 2px solid #E2E8F0;
+            gap: 1rem;
+        }
+        .nav-tabs-custom .nav-link {
+            border: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px 10px 0 0;
+            transition: all 0.2s ease;
+        }
+        .nav-tabs-custom .nav-link.active {
+            color: var(--primary-color);
+            background-color: #ffffff;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
         .sidebar-toggle {
             display: none;
             background: none;
@@ -126,26 +152,13 @@
         }
 
         @media (max-width: 991.98px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 1.5rem;
-            }
-            .sidebar-toggle {
-                display: block;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+            .sidebar-toggle { display: block; }
         }
 
-        .table-responsive {
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
+        .table-responsive { border-radius: 12px; overflow: hidden; }
         .table thead th {
             background-color: #F8FAFC;
             color: #475569;
@@ -153,14 +166,12 @@
             border-bottom: 1px solid #E2E8F0;
             padding: 1rem;
         }
-
         .table tbody td {
             padding: 1rem;
             vertical-align: middle;
             border-bottom: 1px solid #F1F5F9;
         }
 
-        /* Badge Customization cho các Action */
         .badge-assign { background-color: #E6F4EA; color: #137333; }
         .badge-unassign { background-color: #FEF7E0; color: #B06000; }
         .badge-threshold { background-color: #E8F0FE; color: #1A73E8; }
@@ -169,6 +180,20 @@
         .badge-update { background-color: #FEF3C7; color: #D97706; }
         .badge-activate { background-color: #D1FAE5; color: #059669; }
         .badge-default { background-color: #F1F5F9; color: #475569; }
+        
+        .badge-level-info { background-color: #E0F2FE; color: #0369A1; }
+        .badge-level-warning { background-color: #FEF3C7; color: #B45309; }
+        .badge-level-error { background-color: #FEE2E2; color: #B91C1C; }
+        .badge-level-critical { background-color: #991B1B; color: #FFFFFF; }
+        
+        .masked-indicator {
+            background-color: #FEF3C7;
+            color: #92400E;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -195,10 +220,6 @@
             <i class="bi bi-journal-medical"></i>
             <span>Cẩm nang & Chỉ dẫn</span>
         </a>
-        <a th:href="@{/hospital/profile}" class="menu-item ">
-            <i class="bi bi-hospital"></i>
-            <span>Hồ sơ Bệnh viện</span>
-        </a>
         <a th:href="@{/hospital/ratings}" class="menu-item">
             <i class="bi bi-star"></i>
             <span>Quản lý Đánh giá</span>
@@ -207,13 +228,16 @@
             <i class="bi bi-bug"></i>
             <span>Báo Lỗi Hệ Thống</span>
         </a>
-
         <a th:href="@{/hospital/audit-logs}" class="menu-item active">
             <i class="bi bi-clock-history"></i>
             <span>Nhật ký Hệ thống</span>
         </a>
     </div>
     <div class="sidebar-footer">
+        <a th:href="@{/hospital/profile}" class="menu-item mb-1">
+            <i class="bi bi-person-circle"></i>
+            <span>Hồ sơ cá nhân</span>
+        </a>
         <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
             <i class="bi bi-box-arrow-left"></i>
             <span>Đăng xuất</span>
@@ -249,55 +273,77 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h2 class="fw-bold mb-1">Quản lý Nhật ký Hệ thống (Audit Log)</h2>
-            <p class="text-muted mb-0">Theo dõi toàn bộ các thao tác nghiệp vụ, điều chuyển bác sĩ, bệnh nhân và thay đổi cấu hình hệ thống.</p>
+            <h2 class="fw-bold mb-1">Quản lý Nhật ký Hệ thống (Audit Logs)</h2>
+            <p class="text-muted mb-0">Theo dõi vết thao tác quản trị nhân sự, phác đồ, và phân công bác sĩ.</p>
+        </div>
+        <div>
+            <a th:href="@{/hospital/audit-logs/export(actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}"
+               class="btn btn-success fw-semibold shadow-sm rounded-pill px-3">
+                <i class="bi bi-file-earmark-excel me-1"></i>Xuất File Excel
+            </a>
         </div>
     </div>
 
+    <!-- FILTER CARD FOR AUDIT LOGS -->
     <div class="card card-custom mb-4">
         <div class="card-custom-body">
             <form th:action="@{/hospital/audit-logs}" method="GET" class="row g-3 align-items-end">
                 <input type="hidden" name="page" value="0"/>
                 <input type="hidden" name="size" th:value="${size}"/>
-                <div class="col-md-4 col-sm-6">
+                
+                <div class="col-md-3 col-sm-6">
                     <label for="fromDate" class="form-label small fw-bold text-muted">Từ ngày</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
                         <input type="date" id="fromDate" name="fromDate" class="form-control" th:value="${fromDate}">
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
                     <label for="toDate" class="form-label small fw-bold text-muted">Đến ngày</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
                         <input type="date" id="toDate" name="toDate" class="form-control" th:value="${toDate}">
                     </div>
                 </div>
-                <div class="col-md-4 col-sm-12 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary px-4 w-50 fw-semibold"><i class="bi bi-funnel me-1"></i>Lọc</button>
-                    <a th:href="@{/hospital/audit-logs}" class="btn btn-outline-secondary w-50 fw-semibold"><i class="bi bi-arrow-counterclockwise me-1"></i>Xóa bộ lọc</a>
+                <div class="col-md-2 col-sm-6">
+                    <label for="actorType" class="form-label small fw-bold text-muted">Vai trò</label>
+                    <select id="actorType" name="actorType" class="form-select">
+                        <option value="" th:selected="${actorType == null || actorType == ''}">Tất cả Vai trò</option>
+                        <option value="DOCTOR" th:selected="${actorType == 'DOCTOR'}">Bác sĩ (DOCTOR)</option>
+                        <option value="PATIENT" th:selected="${actorType == 'PATIENT'}">Bệnh nhân (PATIENT)</option>
+                        <option value="HOSPITAL_ADMIN" th:selected="${actorType == 'HOSPITAL_ADMIN'}">Bệnh viện (ADMIN)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-6">
+                    <label for="keyword" class="form-label small fw-bold text-muted">Từ khóa (IP/ID/Note)</label>
+                    <input type="text" id="keyword" name="keyword" class="form-control" placeholder="Nhập từ khóa..." th:value="${keyword}">
+                </div>
+                <div class="col-md-2 col-sm-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-3 w-50 fw-semibold"><i class="bi bi-funnel me-1"></i>Lọc</button>
+                    <a th:href="@{/hospital/audit-logs}" class="btn btn-outline-secondary w-50 fw-semibold"><i class="bi bi-arrow-counterclockwise"></i></a>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- TABLE FOR AUDIT LOGS -->
     <div class="card card-custom">
         <div class="card-custom-header">
-            <span><i class="bi bi-list-stars text-primary me-2"></i>Danh sách nhật ký hoạt động</span>
-            <span class="badge bg-primary-light text-primary fw-semibold" th:text="${logs.totalElements + ' bản ghi'}">0 bản ghi</span>
+            <span><i class="bi bi-list-stars text-primary me-2"></i>Danh sách nhật ký thao tác (Audit Logs)</span>
+            <span class="badge bg-primary-light text-primary fw-semibold" th:text="${logs != null ? logs.totalElements + ' bản ghi' : '0 bản ghi'}">0 bản ghi</span>
         </div>
         <div class="card-custom-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
                     <thead>
                     <tr>
-                        <th>Thời gian</th>
-                        <th>Người thực hiện</th>
-                        <th>Hành động</th>
-                        <th>Mục tiêu</th>
-                        <th>IP / Thiết bị</th>
-                        <th>Giải trình / Ghi chú</th>
-                        <th class="text-center">Thao tác</th>
+                        <th style="width: 13%;">Thời gian</th>
+                        <th style="width: 13%;">Người thực hiện</th>
+                        <th style="width: 15%;">Hành động</th>
+                        <th style="width: 13%;">Mục tiêu</th>
+                        <th style="width: 15%;">IP / Thiết bị</th>
+                        <th style="width: 21%;">Giải trình / Ghi chú</th>
+                        <th style="width: 10%;" class="text-center">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -317,15 +363,15 @@
                                           (#strings.contains(log.action, 'THRESHOLD') ? 'badge-threshold' :
                                           (#strings.contains(log.action, 'PROTOCOL') ? 'badge-protocol' : 'badge-default')))))
                                       }"
-                                      th:text="${log.action}">ACTION_NAME</span>
+                                      th:text="${log.action == 'UPDATE_HOSPITAL_PROFILE' ? 'UPDATE_ADMIN_PROFILE' : log.action}">ACTION_NAME</span>
                         </td>
                         <td>
                             <div class="fw-semibold text-capitalize" th:text="${log.targetTable}">patients</div>
                             <small class="text-muted" th:text="'Record ID: ' + ${log.targetRecordId}">ID: 1</small>
                         </td>
                         <td>
-                            <div th:text="${log.ipAddress}">127.0.0.1</div>
-                            <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" th:text="${log.deviceInfo}" th:title="${log.deviceInfo}">Browser</small>
+                            <div th:text="${log.ipAddress != null ? log.ipAddress : '-'}">127.0.0.1</div>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
                         </td>
                         <td>
                             <span class="text-muted small text-truncate d-inline-block" style="max-width: 250px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
@@ -345,34 +391,30 @@
                             </button>
                         </td>
                     </tr>
-                    <tr th:if="${logs.isEmpty()}">
+                    <tr th:if="${logs == null || logs.isEmpty()}">
                         <td colspan="7" class="text-center py-5 text-muted">
                             <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
-                            Không tìm thấy dữ liệu nhật ký hệ thống nào trong khoảng thời gian đã chọn.
+                            Không tìm thấy dữ liệu nhật ký thao tác nào phù hợp.
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-2" th:if="${logs.totalPages > 1}">
+            <div class="d-flex justify-content-between align-items-center p-3 flex-wrap gap-2" th:if="${logs != null && logs.totalPages > 1}">
                 <div class="small text-muted">
                     Hiển thị trang <span class="fw-bold" th:text="${currentPage + 1}">1</span> / <span th:text="${logs.totalPages}">1</span>
                 </div>
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(page=${currentPage - 1}, size=${size}, fromDate=${fromDate}, toDate=${toDate})}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage - 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&laquo;</a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, logs.totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(page=${i}, size=${size}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}">1</a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${i}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage + 1 == logs.totalPages} ? 'disabled'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(page=${currentPage + 1}, size=${size}, fromDate=${fromDate}, toDate=${toDate})}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage + 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&raquo;</a>
                         </li>
                     </ul>
                 </nav>
@@ -381,12 +423,13 @@
     </div>
 </div>
 
+<!-- MODAL XEM CHI TIẾT DÀNH CHO AUDIT LOGS (CÓ MASKING THEO MỤC 1.4 BRD) -->
 <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
             <div class="modal-header bg-light border-0 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
                 <h5 class="modal-title fw-bold text-dark" id="detailModalLabel">
-                    <i class="bi bi-shield-shaded text-primary me-2"></i>Chi tiết Nhật ký Audit Log
+                    <i class="bi bi-shield-shaded text-primary me-2"></i>Chi tiết Nhật ký Kiểm toán (Audit Trail)
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -441,6 +484,161 @@
         });
     }
 
+    const FIELD_LABELS = {
+        "id": "ID Bản ghi",
+        "patientId": "ID Bệnh nhân",
+        "patientName": "Họ và tên Bệnh nhân",
+        "doctorId": "ID Bác sĩ",
+        "doctorName": "Họ và tên Bác sĩ",
+        "hospitalId": "ID Bệnh viện",
+        "nutritionRuleId": "ID Quy tắc Dinh dưỡng",
+        "diseaseProfile": "Hồ sơ Bệnh tật Áp dụng",
+        "title": "Tiêu đề Hướng dẫn / Cẩm nang",
+        "conditionType": "Loại Bệnh lý / Tình trạng Khẩn cấp",
+        "instructionContent": "Nội dung Hướng dẫn Sơ cứu / Xử lý",
+        "warningSigns": "Dấu hiệu Cảnh báo Nguy hiểm",
+        "avoidContent": "Nội dung Cần Tránh Khi Vận động",
+        "recommendedContent": "Khuyến nghị Vận động An toàn",
+        "foodName": "Tên Thực phẩm / Món ăn",
+        "exerciseName": "Tên Bài tập Vận động",
+        "calories": "Hàm lượng Calo (kcal)",
+        "carbsG": "Lượng Carbohydrate (g)",
+        "proteinG": "Lượng Đạm / Protein (g)",
+        "fatG": "Lượng Chất béo / Fat (g)",
+        "sodiumMg": "Hàm lượng Natri / Muối (mg)",
+        "portionSize": "Đơn vị Khẩu phần Chuẩn",
+        "glucoseHypo": "Ngưỡng Hạ Đường Huyết (mmol/L)",
+        "glucoseNormalMax": "Ngưỡng Đường Huyết Bình Thường Tối Đa (mmol/L)",
+        "glucoseHighMax": "Ngưỡng Đường Huyết Cao Tối Đa (mmol/L)",
+        "sysNormal": "Huyết Áp Tâm Thu Bình Thường Tối Đa (mmHg)",
+        "sysWarningMin": "Huyết Áp Tâm Thu Cảnh Báo Tối Thiểu (mmHg)",
+        "sysWarningMax": "Huyết Áp Tâm Thu Cảnh Báo Tối Đa (mmHg)",
+        "sysDangerMin": "Huyết Áp Tâm Thu Nguy Hiểm Tối Thiểu (mmHg)",
+        "sysDangerMax": "Huyết Áp Tâm Thu Nguy Hiểm Tối Đa (mmHg)",
+        "sysEmergency": "Ngưỡng Huyết Áp Tâm Thu Cấp Cứu (mmHg)",
+        "diaNormal": "Huyết Áp Tâm Trương Bình Thường Tối Đa (mmHg)",
+        "diaWarningMin": "Huyết Áp Tâm Trương Cảnh Báo Tối Thiểu (mmHg)",
+        "diaWarningMax": "Huyết Áp Tâm Trương Cảnh Báo Tối Đa (mmHg)",
+        "diaDangerMin": "Huyết Áp Tâm Trương Nguy Hiểm Tối Thiểu (mmHg)",
+        "diaDangerMax": "Huyết Áp Tâm Trương Nguy Hiểm Tối Đa (mmHg)",
+        "diaEmergency": "Ngưỡng Huyết Áp Tâm Trương Cấp Cứu (mmHg)",
+        "targetSystolicBp": "Huyết áp tâm thu mục tiêu (mmHg)",
+        "targetDiastolicBp": "Huyết áp tâm trương mục tiêu (mmHg)",
+        "targetFastingGlucose": "Đường huyết đói mục tiêu (mmol/L)",
+        "targetHba1c": "Chỉ số HbA1c mục tiêu (%)",
+        "targetWeightKg": "Cân nặng mục tiêu (kg)",
+        "targetSteps": "Mục tiêu bước chân / ngày",
+        "targetSleepHours": "Mục tiêu giờ ngủ / ngày",
+        "baselineSystolicBp": "Huyết áp tâm thu ban đầu",
+        "baselineDiastolicBp": "Huyết áp tâm trương ban đầu",
+        "baselineFastingGlucose": "Đường huyết đói ban đầu",
+        "baselineHba1c": "Chỉ số HbA1c ban đầu",
+        "baselineWeightKg": "Cân nặng ban đầu (kg)",
+        "medicalOrder": "Mệnh lệnh Y khoa / Đơn thuốc",
+        "exerciseGoal": "Mục tiêu vận động thể chất",
+        "additionalNotes": "Ghi chú bổ sung",
+        "nutritionNotes": "Ghi chú dinh dưỡng",
+        "maxCaloriesPerDay": "Mức Calo tối đa / ngày (kcal)",
+        "maxCarbsG": "Lượng Carbs tối đa (g)",
+        "maxSaltG": "Lượng Muối tối đa (g)",
+        "minFiberG": "Lượng Chất xơ tối thiểu (g)",
+        "maxFatG": "Lượng Chất béo tối đa (g)",
+        "minProteinG": "Lượng Protein tối thiểu (g)",
+        "dailyWaterMl": "Lượng Nước uống / ngày (ml)",
+        "isCurrent": "Phác đồ hiện hành",
+        "effectiveFrom": "Ngày bắt đầu áp dụng",
+        "createdAt": "Thời gian tạo bản ghi",
+        "updatedAt": "Thời gian cập nhật",
+        "status": "Trạng thái Hoạt động",
+        "isActive": "Trạng thái Kích hoạt",
+        "alertId": "ID Cảnh báo Y tế",
+        "alertLevel": "Mức độ Cảnh báo",
+        "resolutionNotes": "Ghi chú Can thiệp / Xử lý của Bác sĩ",
+        "diseaseProfileId": "ID Gói Bệnh lý",
+        "diseaseProfileName": "Gói Bệnh lý Phân loại",
+        "patientCode": "Mã Bệnh nhân",
+        "doctorCode": "Mã Bác sĩ",
+        "fullName": "Họ và tên Bác sĩ",
+        "phone": "Số điện thoại liên hệ",
+        "email": "Địa chỉ Email",
+        "gender": "Giới tính",
+        "specialty": "Chuyên khoa",
+        "capacityLimit": "Sức chứa Bệnh nhân tối đa",
+        "currentPatientCount": "Số Bệnh nhân đang theo dõi",
+        "oldDoctorName": "Bác sĩ Chuyển đi (Cũ)",
+        "transfers": "Danh sách Bệnh nhân Điều chuyển",
+        "replacementDoctorIds": "Bác sĩ Tiếp nhận Mới",
+        "accountId": "ID Tài khoản Hệ thống",
+        "inputMethod": "Phương thức nhập liệu",
+        "logType": "Loại nhật ký",
+        "glucoseLevel": "Chỉ số Đường huyết",
+        "systolicBp": "Huyết áp tâm thu",
+        "diastolicBp": "Huyết áp tâm trương",
+        "heartRate": "Nhịp tim lần/phút",
+        "registrationSource": "Nguồn đăng ký"
+    };
+
+    function isEmptyVal(val) {
+        if (val === null || val === undefined || val === '' || val === '-' || val === '[]' || val === '{}') return true;
+        if (Array.isArray(val) && val.length === 0) return true;
+        if (typeof val === 'object' && Object.keys(val).length === 0) return true;
+        return false;
+    }
+
+    function formatTransfersList(arr) {
+        if (!Array.isArray(arr) || arr.length === 0) return '<span class="text-muted fs-7">-</span>';
+        let html = '<div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">';
+        arr.forEach(item => {
+            const pCode = item.patientCode || (`BN` + (item.patientId || ''));
+            const pName = item.patientName || 'Bệnh nhân';
+            const docName = item.newDoctorName || ('Bác sĩ ID ' + (item.newDoctorId || ''));
+
+            html += `<div class="p-2 rounded bg-white border border-success-subtle shadow-sm">`;
+            html += `<div class="fw-bold text-primary mb-1"><i class="bi bi-person-fill me-1"></i>Bệnh nhân: <span class="badge bg-primary-subtle text-primary border border-primary me-1">${escapeHtml(pCode)}</span> ${escapeHtml(pName)}</div>`;
+            html += `<div class="small text-success fw-medium"><i class="bi bi-arrow-right-circle me-1"></i>BS Tiếp nhận Mới: <strong>${escapeHtml(docName)}</strong></div>`;
+            html += `</div>`;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function formatVal(val) {
+        if (val === null || val === undefined || val === '') return '<span class="text-muted fs-7">-</span>';
+        if (typeof val === 'boolean') {
+            return val ? '<span class="badge bg-success-subtle text-success border border-success">Đang áp dụng (True)</span>' : '<span class="badge bg-secondary-subtle text-secondary border border-secondary">Đã đóng (False)</span>';
+        }
+        if (Array.isArray(val)) {
+            if (val.length === 0) return '<span class="text-muted fs-7">-</span>';
+            if (val.length >= 3 && typeof val[0] === 'number') {
+                const year = val[0];
+                const month = String(val[1]).padStart(2, '0');
+                const day = String(val[2]).padStart(2, '0');
+                let timeStr = `${day}/${month}/${year}`;
+                if (val.length >= 6) {
+                    const h = String(val[3]).padStart(2, '0');
+                    const m = String(val[4]).padStart(2, '0');
+                    const s = String(val[5]).padStart(2, '0');
+                    timeStr += ` ${h}:${m}:${s}`;
+                }
+                return `<span class="fw-medium">${timeStr}</span>`;
+            }
+            return escapeHtml(JSON.stringify(val));
+        }
+        const str = val.toString();
+        if (str === '***MASKED***' || str === '***PROTECTED***') {
+            return '<span class="badge bg-warning-subtle text-dark border border-warning px-2 py-1"><i class="bi bi-shield-lock me-1 text-warning"></i>***MASKED***</span>';
+        }
+        if (str === 'ACTIVE') return '<span class="badge bg-success-subtle text-success border border-success px-2 py-1">Đang hoạt động (ACTIVE)</span>';
+        if (str === 'INACTIVE') return '<span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Ngưng hoạt động / Bị khóa (INACTIVE)</span>';
+        if (str === 'TREATING') return '<span class="badge bg-info-subtle text-info border border-info px-2 py-1">Đang điều trị (TREATING)</span>';
+        if (str === 'NEW') return '<span class="badge bg-warning-subtle text-warning border border-warning px-2 py-1">Bệnh nhân mới (NEW)</span>';
+        if (str === 'RESOLVED') return '<span class="badge bg-success-subtle text-success border border-success px-2 py-1">Đã xử lý (RESOLVED)</span>';
+        if (str === 'ORANGE' || str === 'LEVEL 2') return '<span class="badge bg-warning-subtle text-dark border border-warning px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i>Cảnh báo Mức 2 (Cam)</span>';
+        if (str === 'RED' || str === 'LEVEL 3') return '<span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1"><i class="bi bi-exclamation-octagon-fill me-1 text-danger"></i>Cảnh báo Mức 3 (Đỏ - Cấp cứu)</span>';
+
+        return `<div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(str)}</div>`;
+    }
+
     const detailButtons = document.querySelectorAll('.btn-detail');
     detailButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -453,172 +651,148 @@
             const oldValue = this.getAttribute('data-old') || '';
             const newValue = this.getAttribute('data-new') || '';
 
-            document.getElementById('modalActionBadge').textContent = action;
+            const displayAction = (action === 'UPDATE_HOSPITAL_PROFILE') ? 'UPDATE_ADMIN_PROFILE' : action;
+            document.getElementById('modalActionBadge').textContent = displayAction;
             document.getElementById('modalTargetInfo').textContent = `Bảng: ${targetTable} (ID: ${targetId})`;
             document.getElementById('modalActorInfo').textContent = `${actorType} (ID: ${actorId})`;
-            document.getElementById('modalNotes').textContent = (notes === 'null' || !notes) ? '-' : notes;
+            document.getElementById('modalNotes').textContent = notes;
 
             const container = document.getElementById('changeDetailContainer');
             container.innerHTML = '';
 
+            let oldObj = null;
+            let newObj = null;
+
             try {
-                const isOldJson = oldValue && typeof oldValue === 'string' && oldValue.trim().startsWith('{');
-                const isNewJson = newValue && typeof newValue === 'string' && newValue.trim().startsWith('{');
-
-                if (isOldJson || isNewJson) {
-                    let oldObj = isOldJson ? JSON.parse(oldValue) : {};
-                    let newObj = isNewJson ? JSON.parse(newValue) : {};
-
-                    let html = '';
-
-                    // ==========================================
-                    // 1. GIAO DIỆN RIÊNG CHO ĐIỀU CHUYỂN BỆNH NHÂN
-                    // ==========================================
-                    if (action === 'ASSIGN_PATIENTS' || action === 'DEACTIVATE_DOCTOR') {
-                        let transfersArr = newObj.transfers || [];
-                        let targetDocName = newObj.oldDoctorName || (notes && notes !== 'null' ? notes.split(' (Bởi:')[0] : 'Bác sĩ bị vô hiệu hóa');
-
-                        html += `<h6 class="fw-bold mb-3 text-danger"><i class="bi bi-arrow-left-right me-1"></i>Chi tiết Điều chuyển bệnh nhân & Vô hiệu hóa</h6>
-                        <table class="table table-bordered mb-0 bg-white small">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 30%;">Bác sĩ bị vô hiệu hóa</th>
-                                    <th style="width: 35%;">Bác sĩ tiếp nhận</th>
-                                    <th style="width: 35%;">Danh sách bệnh nhân điều chuyển</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-
-                        if (Array.isArray(transfersArr) && transfersArr.length > 0) {
-                            let doctorMap = {};
-                            transfersArr.forEach(t => {
-                                let docKey = t.newDoctorId ? `ID: ${t.newDoctorId} - ${t.newDoctorName || 'N/A'}` : 'Chưa rõ bác sĩ';
-                                if (!doctorMap[docKey]) doctorMap[docKey] = [];
-                                doctorMap[docKey].push(t);
-                            });
-
-                            let rowCount = Object.keys(doctorMap).length;
-                            let isFirstRow = true;
-
-                            for (let doc in doctorMap) {
-                                html += `<tr>`;
-
-                                if (isFirstRow) {
-                                    html += `<td rowspan="${rowCount}" class="align-middle bg-light text-center">
-                                                <span class="text-danger fw-bold d-block">ID Bác sĩ: ${targetId}</span>
-                                                <span class="text-muted small d-block mt-1">${escapeHtml(targetDocName)}</span>
-                                                <span class="badge bg-danger bg-opacity-10 text-danger mt-2">NGỪNG HOẠT ĐỘNG</span>
-                                             </td>`;
-                                    isFirstRow = false;
-                                }
-
-                                html += `   <td class="align-middle text-primary fw-bold"><i class="bi bi-person-check-fill text-success me-1"></i>${doc}</td>
-                                            <td class="align-middle">
-                                                <div class="d-flex flex-column gap-2">`;
-                                doctorMap[doc].forEach(p => {
-                                    let patientNameDisplay = p.patientName ? escapeHtml(p.patientName) : `Mã số BN: ID ${escapeHtml(p.patientId)}`;
-                                    let patientCodeStr = p.patientCode && p.patientCode !== 'Chưa có mã' ? ` (${escapeHtml(p.patientCode)})` : '';
-
-                                    html += `<div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <span class="fw-bold text-dark d-block">${patientNameDisplay}${patientCodeStr}</span>
-                                                    <small class="text-muted text-success-emphasis"><i class="bi bi-shield-check me-1"></i>Hồ sơ, lịch hẹn và cảnh báo đã được bảo toàn bàn giao</small>
-                                                </div>
-                                             </div>`;
-                                });
-                                html += `       </div>
-                                            </td>
-                                         </tr>`;
-                            }
-                        } else {
-                            html += `<tr>
-                                        <td class="align-middle bg-light">
-                                            <span class="text-danger fw-bold">ID: ${targetId}</span>
-                                        </td>
-                                        <td colspan="2" class="align-middle text-muted py-3 text-center">
-                                            <i class="bi bi-info-circle me-1"></i> Không có bệnh nhân nào cần điều chuyển (Bác sĩ chưa có bệnh nhân phụ trách).
-                                        </td>
-                                     </tr>`;
-                        }
-                        html += `   </tbody></table>`;
-                    }
-                        // ==========================================
-                        // 2. GIAO DIỆN CHUNG SO SÁNH BIẾN ĐỘNG (JSON)
-                    // ==========================================
-                    else {
-                        html += `<h6 class="fw-bold mb-3 text-primary"><i class="bi bi-cpu-fill me-1"></i>Chi tiết thông số thay đổi cấu trúc</h6>
-                                <table class="table table-sm table-bordered bg-white mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 30%">Trường thông tin</th>
-                                            <th style="width: 35%">Giá trị cũ</th>
-                                            <th style="width: 35%">Giá trị mới</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
-
-                        let allKeys = Array.from(new Set([...Object.keys(oldObj), ...Object.keys(newObj)]));
-                        allKeys.forEach(key => {
-                            if (key === 'password') return; // Bảo mật: Không in password ra log
-
-                            let rawOldVal = oldObj[key];
-                            let rawNewVal = newObj[key];
-
-                            // Ép kiểu chuỗi để so sánh chính xác
-                            let oldValStr = (rawOldVal !== undefined && rawOldVal !== null) ? String(rawOldVal).trim() : '';
-                            let newValStr = (rawNewVal !== undefined && rawNewVal !== null) ? String(rawNewVal).trim() : '';
-
-                            let isChanged = false;
-
-                            // ĐIỀU KIỆN 1: Nếu có truyền giá trị mới, và giá trị mới KHÁC giá trị cũ -> Là THAY ĐỔI
-                            if (newValStr !== '' && newValStr !== oldValStr) {
-                                isChanged = true;
-                            }
-
-                            // ĐIỀU KIỆN 2: Render ra hiển thị
-                            let displayOld = oldValStr !== '' ? oldValStr : '-';
-
-                            // YÊU CẦU CỦA BẠN: Nếu KHÔNG thay đổi -> KHÔNG HIỆN giá trị mới (trả về '-')
-                            let displayNew = isChanged ? newValStr : '-';
-
-                            let highlightClass = isChanged ? 'bg-warning bg-opacity-10' : '';
-
-                            // YÊU CẦU CỦA BẠN: Nếu KHÔNG thay đổi -> Giá trị cũ KHÔNG bị gạch ngang (dùng text-secondary)
-                            let oldTextClass = isChanged ? 'text-danger text-decoration-line-through' : 'text-secondary fw-medium';
-                            let newTextClass = isChanged ? 'text-success fw-bold' : 'text-muted';
-
-                            html += `<tr class="${highlightClass}">
-                                        <td class="fw-bold text-secondary text-capitalize" style="padding-left: 10px;">${escapeHtml(key)}</td>
-                                        <td class="${oldTextClass}">${escapeHtml(displayOld)}</td>
-                                        <td class="${newTextClass}">${escapeHtml(displayNew)}</td>
-                                     </tr>`;
-                        });
-                        html += `</tbody></table>`;
-                    }
-                    container.innerHTML = html;
-                } else {
-                    throw new Error("Plain text data");
+                if (oldValue && oldValue.trim() !== '{}' && oldValue.trim() !== 'null') {
+                    oldObj = JSON.parse(oldValue);
                 }
-            } catch (e) {
-                // ==========================================
-                // 3. FALLBACK HIỂN THỊ TEXT THÔ
-                // ==========================================
-                container.innerHTML = `
-                    <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-file-text me-1"></i>Chi tiết nội dung</h6>
-                    <div class="row g-2">
-                        <div class="col-md-6 border-end">
-                            <span class="small text-muted d-block fw-semibold mb-1">Giá trị cũ:</span>
-                            <div class="bg-white p-3 border rounded text-break" style="max-height: 200px; overflow-y: auto;">
-                                <p class="mb-0 text-secondary">${escapeHtml(oldValue)}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <span class="small text-muted d-block fw-semibold mb-1">Giá trị mới:</span>
-                            <div class="bg-white p-3 border rounded text-break" style="max-height: 200px; overflow-y: auto;">
-                                <p class="mb-0 text-dark fw-medium">${escapeHtml(newValue)}</p>
-                            </div>
-                        </div>
-                    </div>`;
+            } catch(e) {}
+
+            try {
+                if (newValue && newValue.trim() !== '{}' && newValue.trim() !== 'null') {
+                    newObj = JSON.parse(newValue);
+                }
+            } catch(e) {}
+
+            const hasRealOldKeys = oldObj && Object.keys(oldObj).length > 0;
+            const isCreateAction = action.startsWith('CREATE') || action.startsWith('PATIENT_REGISTER') || action.startsWith('ACCEPT_') || !hasRealOldKeys;
+
+            if (!isCreateAction && oldObj && newObj) {
+                // BẢNG SO SÁNH CẬP NHẬT (UPDATE)
+                const allKeys = Array.from(new Set([...Object.keys(oldObj), ...Object.keys(newObj)]));
+                let tableHtml = '<div class="table-responsive rounded border"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr>';
+                tableHtml += '<th class="py-2 px-3 text-secondary" style="width: 30%;">Thông tin / Thuộc tính</th>';
+                tableHtml += '<th class="py-2 px-3 text-danger" style="width: 35%;"><i class="bi bi-dash-circle me-1"></i>Trước khi sửa (Cũ)</th>';
+                tableHtml += '<th class="py-2 px-3 text-success" style="width: 35%;"><i class="bi bi-plus-circle me-1"></i>Sau khi sửa (Mới)</th>';
+                tableHtml += '</tr></thead><tbody>';
+
+                let renderedCount = 0;
+
+                allKeys.forEach(key => {
+                    const vOld = oldObj ? oldObj[key] : undefined;
+                    const vNew = newObj ? newObj[key] : undefined;
+
+                    // Xử lý riêng cho Bác sĩ cũ và Danh sách điều chuyển bệnh nhân
+                    if (key === 'oldDoctorName') {
+                        const docNameStr = vNew || vOld;
+                        if (isEmptyVal(docNameStr)) return;
+                        renderedCount++;
+                        tableHtml += `<tr>`;
+                        tableHtml += `<td class="fw-semibold text-dark px-3 py-2">Bác sĩ Chuyển đi (Cũ) <small class="text-muted font-monospace fs-8 d-block">(oldDoctorName)</small></td>`;
+                        tableHtml += `<td class="px-3 py-2 text-danger fw-bold"><i class="bi bi-person-badge me-1"></i>${escapeHtml(docNameStr)}</td>`;
+                        tableHtml += `<td class="px-3 py-2 text-muted fs-7">-</td>`;
+                        tableHtml += `</tr>`;
+                        return;
+                    }
+
+                    if (key === 'transfers') {
+                        const transfersArr = vNew || vOld;
+                        if (isEmptyVal(transfersArr)) return;
+                        renderedCount++;
+                        tableHtml += `<tr>`;
+                        tableHtml += `<td class="fw-semibold text-dark px-3 py-2">Danh sách Bệnh nhân & BS Tiếp nhận <small class="text-muted font-monospace fs-8 d-block">(transfers)</small></td>`;
+                        tableHtml += `<td class="px-3 py-2 text-muted fs-7">-</td>`;
+                        tableHtml += `<td class="px-3 py-2 text-success bg-success-subtle bg-opacity-10">${formatTransfersList(transfersArr)}</td>`;
+                        tableHtml += `</tr>`;
+                        return;
+                    }
+
+                    if (key === 'replacementDoctorIds') {
+                        if (newObj && newObj.transfers && newObj.transfers.length > 0) return;
+                    }
+
+                    // Nếu CẢ 2 BÊN CŨ VÀ MỚI ĐỀU TRỐNG/RÁC THÌ ẨN DÒNG NÀY ĐỂ TRÁNH GÂY NHIỄU DỄ ĐỌC HƠN
+                    if (isEmptyVal(vOld) && isEmptyVal(vNew)) {
+                        return;
+                    }
+
+                    renderedCount++;
+                    const label = FIELD_LABELS[key] || key;
+                    const hasOld = oldObj && Object.prototype.hasOwnProperty.call(oldObj, key);
+                    const hasNew = newObj && Object.prototype.hasOwnProperty.call(newObj, key);
+
+                    // Thuộc tính chỉ coi là THAY ĐỔI khi cả 2 bên đều có trường này và giá trị thực sự khác nhau
+                    const isChanged = hasOld && hasNew && (JSON.stringify(vOld) !== JSON.stringify(vNew));
+                    const rowClass = isChanged ? 'bg-warning-subtle bg-opacity-25' : '';
+
+                    tableHtml += `<tr class="${rowClass}">`;
+                    tableHtml += `<td class="fw-semibold text-dark px-3 py-2">${escapeHtml(label)} <small class="text-muted font-monospace fs-8 d-block">(${key})</small></td>`;
+                    
+                    if (isChanged) {
+                        // Thuộc tính THỰC SỰ BỊ SỬA:
+                        // Cột Cũ: Gạch ngang chữ MÀU ĐỎ + Nền đỏ nhạt
+                        tableHtml += `<td class="px-3 py-2 text-danger bg-danger-subtle bg-opacity-10"><del class="opacity-75" style="text-decoration: line-through;">${formatVal(vOld)}</del></td>`;
+                        // Cột Mới: Giá trị mới MÀU XANH LÁ + Badge [Mới / Đã sửa] + Nền xanh nhạt
+                        tableHtml += `<td class="px-3 py-2 text-success bg-success-subtle bg-opacity-10 fw-medium">${formatVal(vNew)} <span class="badge bg-success ms-1 fs-8 align-top">Mới / Đã sửa</span></td>`;
+                    } else {
+                        // Thuộc tính KHÔNG THAY ĐỔI:
+                        // Cột Cũ: Hiển thị chữ đen/bình thường (KHÔNG BÔI ĐỎ, KHÔNG GẠCH NGANG!)
+                        tableHtml += `<td class="px-3 py-2 text-dark">${formatVal(vOld)}</td>`;
+                        // Cột Mới: Để dấu '-' mờ tránh rối mắt
+                        tableHtml += `<td class="px-3 py-2 text-muted fs-7">-</td>`;
+                    }
+
+                    tableHtml += '</tr>';
+                });
+
+                if (renderedCount === 0) {
+                    tableHtml += '<tr><td colspan="3" class="text-muted text-center py-3">Trạng thái được ghi nhận nhưng không có trường dữ liệu khác biệt.</td></tr>';
+                }
+
+                tableHtml += '</tbody></table></div>';
+                container.innerHTML = tableHtml;
+            } else if (newObj || oldObj) {
+                // BẢNG TẠO MỚI (CREATE)
+                const targetObj = newObj || oldObj;
+                const keys = Object.keys(targetObj);
+                let tableHtml = '<div class="table-responsive rounded border"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr>';
+                tableHtml += '<th class="py-2 px-3 text-secondary" style="width: 35%;">Thông tin / Thuộc tính</th>';
+                tableHtml += '<th class="py-2 px-3 text-success" style="width: 65%;"><i class="bi bi-check-circle me-1"></i>Giá trị Ghi nhận</th>';
+                tableHtml += '</tr></thead><tbody>';
+
+                let renderedCount = 0;
+
+                keys.forEach(key => {
+                    const val = targetObj[key];
+                    if (isEmptyVal(val)) return;
+
+                    renderedCount++;
+                    const label = FIELD_LABELS[key] || key;
+                    tableHtml += '<tr>';
+                    tableHtml += `<td class="fw-semibold text-dark px-3 py-2">${escapeHtml(label)} <small class="text-muted font-monospace fs-8 d-block">(${key})</small></td>`;
+                    tableHtml += `<td class="px-3 py-2">${formatVal(val)}</td>`;
+                    tableHtml += '</tr>';
+                });
+
+                if (renderedCount === 0) {
+                    tableHtml += '<tr><td colspan="2" class="text-muted text-center py-3">Không có thông tin thuộc tính cụ thể.</td></tr>';
+                }
+
+                tableHtml += '</tbody></table></div>';
+                container.innerHTML = tableHtml;
+            } else {
+                container.innerHTML = '<div class="text-muted text-center py-4"><i class="bi bi-info-circle fs-3 d-block mb-1"></i>Không có thông tin cấu trúc dữ liệu thay đổi.</div>';
             }
         });
     });

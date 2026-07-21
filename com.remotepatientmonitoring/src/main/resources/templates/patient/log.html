@@ -165,6 +165,7 @@
                             <span th:errors="${healthLog}">Lỗi toàn cục</span>
                         </div>
                     </div>
+                    <input type="hidden" name="id" th:value="${logId}" id="healthLogId">
                     <input type="hidden" th:field="*{inputMethod}" id="inputMethodField" value="MANUAL">
                     <input type="hidden" th:field="*{logType}" id="logTypeField">
 
@@ -433,12 +434,23 @@
 
                 </form>
 
+                <!-- Alert for saveSuccess -->
+                <div th:if="${param.saveSuccess}" class="alert alert-success border-0 shadow-sm mb-3 mt-3" style="border-radius: 12px; background-color: #ecfdf5; border-left: 4px solid #10b981 !important;">
+                    <div class="d-flex align-items-center text-dark">
+                        <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
+                        <div>
+                            Chỉ số sức khỏe đã được ghi nhận thành công!
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:inline="javascript">
+    <div th:object="${healthLog}">
+        <script th:inline="javascript">
         /*[# th:if="${patient != null && patient.diseaseProfile != null}"]*/
         const profileId = [[${patient.diseaseProfile.id}]];
         /*[/]*/
@@ -554,6 +566,28 @@
 
         // ---- Init ----
         document.addEventListener("DOMContentLoaded", function () {
+            const healthLogIdEl = document.getElementById('healthLogId');
+            const healthLogId = healthLogIdEl ? healthLogIdEl.value : null;
+            if (healthLogId) {
+                const sysEl = document.getElementById('systolicBp');
+                const glEl = document.getElementById('glucoseLevel');
+                const sysVal = sysEl ? sysEl.value : null;
+                const glVal = glEl ? glEl.value : null;
+                
+                switchInputMethod('MANUAL');
+                
+                if (sysVal) {
+                    showPanel('panelBpInput');
+                    if (isBothGroups) setBars('done', 'done', 'active');
+                    else setBars('done', 'active', null);
+                } else if (glVal) {
+                    showPanel('panelGlInput');
+                    if (isBothGroups) setBars('done', 'done', 'active');
+                    else setBars('done', 'active', null);
+                }
+                return;
+            }
+
             /*[# th:if="${#fields.hasErrors('systolicBp') or #fields.hasErrors('diastolicBp') or #fields.hasErrors('heartRate')}"]*/
             showPanel('panelBpInput');
             document.getElementById('labelBp').textContent = bpLabels[document.getElementById('logTypeField').value] || '';
@@ -764,7 +798,61 @@
             document.getElementById('inputMethodField').value = 'OCR';
             document.getElementById('healthLogForm').submit();
         }
+        function editHealthLog(element) {
+            const id = element.getAttribute('data-id');
+            const type = element.getAttribute('data-type');
+            const sys = element.getAttribute('data-sys');
+            const dia = element.getAttribute('data-dia');
+            const hr = element.getAttribute('data-hr');
+            const gl = element.getAttribute('data-gl');
+            const notes = element.getAttribute('data-notes');
+            
+            document.getElementById('healthLogId').value = id;
+            document.getElementById('logTypeField').value = type;
+            
+            switchInputMethod('MANUAL');
+            
+            if (sys && sys !== 'null') {
+                document.getElementById('systolicBp').value = sys;
+                document.getElementById('diastolicBp').value = dia;
+                document.getElementById('heartRate').value = hr;
+                document.getElementById('notesBp').value = notes && notes !== 'null' ? notes : "";
+                
+                document.getElementById('labelBp').textContent = bpLabels[type] || type;
+                showPanel('panelBpInput');
+                if (isBothGroups) setBars('done', 'done', 'active');
+                else setBars('done', 'active', null);
+            } else if (gl && gl !== 'null') {
+                document.getElementById('glucoseLevel').value = gl;
+                document.getElementById('notesGl').value = notes && notes !== 'null' ? notes : "";
+                
+                document.getElementById('labelGl').textContent = glLabels[type] || type;
+                showPanel('panelGlInput');
+                if (isBothGroups) setBars('done', 'done', 'active');
+                else setBars('done', 'active', null);
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteHealthLog(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đo sức khỏe này?')) return;
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/patient/log/delete';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id';
+            input.value = id;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
+    </div>
 
     <!-- Bottom Navigation Bar -->
     <!-- Bottom Navigation Bar -->
