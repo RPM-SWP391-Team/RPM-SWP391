@@ -50,6 +50,9 @@ public class AuthService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired(required = false)
+    private com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService auditTrailService;
+
     private static final int OTP_LENGTH = 6;
     private static final int OTP_EXPIRY_MINUTES = 5;
     private static final SecureRandom secureRandom = new SecureRandom();
@@ -273,6 +276,23 @@ public class AuthService {
                         
                         patientRepository.save(patient);
                         log.info("Đã tạo Patient cho Account id={} sau khi xác thực OTP thành công", account.getId());
+
+                        if (auditTrailService != null) {
+                            try {
+                                auditTrailService.logAction(
+                                        "PATIENT",
+                                        patient.getId(),
+                                        "PATIENT_REGISTER",
+                                        "patients",
+                                        patient.getId(),
+                                        null,
+                                        patient,
+                                        "Bệnh nhân " + patient.getFullName() + " xác thực OTP kích hoạt tài khoản thành công"
+                                );
+                            } catch (Exception ex) {
+                                log.warn("Không thể lưu audit log cho patient registration: {}", ex.getMessage());
+                            }
+                        }
                         
                         // Clear registrationDetails để dọn dẹp DB
                         account.setRegistrationDetails(null);

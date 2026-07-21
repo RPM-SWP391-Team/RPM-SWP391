@@ -46,7 +46,8 @@ public class HospitalProfileService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin bệnh viện."));
 
         return HospitalProfileDTO.builder()
-                .email(hospital.getAccount().getEmail())
+                .accountId(hospital.getAccount() != null ? hospital.getAccount().getId() : null)
+                .email(hospital.getAccount() != null ? hospital.getAccount().getEmail() : "")
                 .hospitalCode(hospital.getHospitalCode())
                 .fullName(hospital.getFullName())
                 .address(hospital.getAddress())
@@ -107,20 +108,20 @@ public class HospitalProfileService {
             isChanged = true;
         }
 
-        // 3. Xử lý thông tin Bệnh viện
-        if (!Objects.equals(hospital.getFullName(), dto.getFullName().trim())) {
+        // 3. Xử lý thông tin Bệnh viện (Kiểm tra null trước khi trim)
+        if (dto.getFullName() != null && !dto.getFullName().trim().isEmpty() && !Objects.equals(hospital.getFullName(), dto.getFullName().trim())) {
             newLog.put("fullName", dto.getFullName().trim());
             hospital.setFullName(dto.getFullName().trim());
             isChanged = true;
         }
 
-        if (!Objects.equals(hospital.getPhone(), dto.getPhone().trim())) {
+        if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty() && !Objects.equals(hospital.getPhone(), dto.getPhone().trim())) {
             newLog.put("phone", dto.getPhone().trim());
             hospital.setPhone(dto.getPhone().trim());
             isChanged = true;
         }
 
-        if (!Objects.equals(hospital.getAddress(), dto.getAddress().trim())) {
+        if (dto.getAddress() != null && !dto.getAddress().trim().isEmpty() && !Objects.equals(hospital.getAddress(), dto.getAddress().trim())) {
             newLog.put("address", dto.getAddress().trim());
             hospital.setAddress(dto.getAddress().trim());
             isChanged = true;
