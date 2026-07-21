@@ -23,27 +23,23 @@ public class DoctorDTO {
     public boolean isFullNameValid() {
         if (fullName == null || fullName.trim().isEmpty()) return false;
 
-        // 1. Chuyển về chữ thường để dễ xử lý
         String nameLower = fullName.toLowerCase().trim();
 
-        // 2. Chấm dứt ngay nếu chứa ký tự lạ không có trong tiếng Việt (f, j, w, z) hoặc số, ký tự đặc biệt
-        if (nameLower.matches(".*[fjwz0-9\\p{Punct}].*")) return false;
+        // CHỈ CHẶN: số, ký tự đặc biệt, và các chữ j, w, z (Bỏ chữ f vì họ Phan, Phạm, Phong có chữ ph)
+        if (nameLower.matches(".*[jwz0-9\\p{Punct}].*")) return false;
 
-        // 3. Tách chuỗi thành các từ đơn lẻ dựa vào khoảng trắng
         String[] words = nameLower.split("\\s+");
-
-        // Tập hợp tất cả các nguyên âm tiếng Việt chuẩn (bất chấp tổ hợp/dựng sẵn)
         String vowels = "aàáảãạăằắẳẵặâầấẩẫậeèéẻẽẹêềếểễệiìíỉĩịoòóỏõọôồốổỗộơờớởỡợuùúủũụưừứửữựyỳýỷỹỵ";
 
         for (String word : words) {
-            // Loại bỏ hoàn toàn các dấu phụ khỏi từ trước khi đếm phụ âm để không bị lỗi bảng mã
+            // Nếu từ đó chứa chữ f nhưng không đi kèm với p (không phải 'ph') -> Chặn (Ví dụ: "fanta", "kaff")
+            if (word.contains("f") && !word.contains("ph")) return false;
+
             String cleanWord = java.text.Normalizer.normalize(word, java.text.Normalizer.Form.NFD)
                     .replaceAll("\\p{M}", "");
 
-            // Nếu từ nào có 4 phụ âm liên tiếp đứng cạnh nhau (ví dụ: sgrf) -> CHẶN
             if (cleanWord.matches(".*[bcdđghklmnpqrstvx]{4,}.*")) return false;
 
-            // Kiểm tra xem từ này có chứa ít nhất 1 nguyên âm không
             boolean hasVowel = false;
             for (char c : word.toCharArray()) {
                 if (vowels.indexOf(c) != -1) {
@@ -51,10 +47,8 @@ public class DoctorDTO {
                     break;
                 }
             }
-            // Nếu có bất kỳ từ nào KHÔNG có nguyên âm (ví dụ: ksdgsj) -> CHẶN NGAY
             if (!hasVowel) return false;
         }
-
         return true;
     }
 
