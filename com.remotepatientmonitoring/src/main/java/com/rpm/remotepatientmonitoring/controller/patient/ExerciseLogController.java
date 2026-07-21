@@ -80,7 +80,7 @@ public class ExerciseLogController {
         Optional<com.rpm.remotepatientmonitoring.model.ExerciseGuideline> guidelineOpt = 
                 exerciseLogService.getExerciseGuideline(patient.getId());
 
-        int targetMinutesVal = summary.get("targetMinutes") != null ? (int) summary.get("targetMinutes") : ExerciseLogService.DAILY_GOAL_MINUTES;
+        int targetMinutesVal = summary.get("targetMinutes") != null ? ((Number) summary.get("targetMinutes")).intValue() : ExerciseLogService.DAILY_GOAL_MINUTES;
         int recommendedCalories = targetMinutesVal * ExerciseLogService.AVERAGE_KCAL_PER_MINUTE;
 
         model.addAttribute("patient", patient);
@@ -104,7 +104,6 @@ public class ExerciseLogController {
     }
 
     @PostMapping("/exercise")
-    @ResponseBody
     public Object saveExercise(
             @RequestParam("exerciseType") String exerciseType,
             @RequestParam(value = "stepsCount", required = false) Integer stepsCount,
