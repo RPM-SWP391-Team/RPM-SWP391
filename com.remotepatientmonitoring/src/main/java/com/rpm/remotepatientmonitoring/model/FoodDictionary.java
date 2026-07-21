@@ -56,4 +56,31 @@ public class FoodDictionary {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public String getFoodCode() { return foodCode; }
+    public void setFoodCode(String foodCode) { this.foodCode = foodCode; }
+    public String getFoodName() { return foodName; }
+    public void setFoodName(String foodName) { this.foodName = foodName; }
+    public String getEnglishName() { return englishName; }
+    public void setEnglishName(String englishName) { this.englishName = englishName; }
+    public BigDecimal getWaterG() { return waterG; }
+    public void setWaterG(BigDecimal waterG) { this.waterG = waterG; }
+    public Integer getEnergyKcal() { return energyKcal; }
+    public void setEnergyKcal(Integer energyKcal) { this.energyKcal = energyKcal; }
+    public BigDecimal getProteinG() { return proteinG; }
+    public void setProteinG(BigDecimal proteinG) { this.proteinG = proteinG; }
+    public BigDecimal getLipidG() { return lipidG; }
+    public void setLipidG(BigDecimal lipidG) { this.lipidG = lipidG; }
+    public BigDecimal getGlucidG() { return glucidG; }
+    public void setGlucidG(BigDecimal glucidG) { this.glucidG = glucidG; }
+    public BigDecimal getCellulozaG() { return cellulozaG; }
+    public void setCellulozaG(BigDecimal cellulozaG) { this.cellulozaG = cellulozaG; }
+    public BigDecimal getAshG() { return ashG; }
+    public void setAshG(BigDecimal ashG) { this.ashG = ashG; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

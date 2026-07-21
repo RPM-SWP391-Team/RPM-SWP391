@@ -55,7 +55,9 @@ public class PatientController {
     }
 
     @GetMapping("/dashboard")
-    public String getDashboard(Model model) {
+    public String getDashboard(
+            @RequestParam(value = "date", required = false) String dateStr,
+            Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
             return "redirect:/auth/login";
@@ -63,6 +65,18 @@ public class PatientController {
         if ("NEW".equals(patient.getStatus())) {
             return "redirect:/patient/appointments";
         }
+
+        System.out.println("DEBUG PatientController /dashboard - dateStr: " + dateStr);
+        LocalDate selectedDate = LocalDate.now();
+        if (dateStr != null && !dateStr.trim().isEmpty()) {
+            try {
+                selectedDate = LocalDate.parse(dateStr.trim());
+                System.out.println("DEBUG PatientController /dashboard - parsed selectedDate: " + selectedDate);
+            } catch (Exception e) {
+                System.out.println("DEBUG PatientController /dashboard - parsing failed: " + e.getMessage());
+            }
+        }
+        boolean isToday = selectedDate.equals(LocalDate.now());
 
         // Lấy phác đồ điều trị hiện hành của bệnh nhân từ DB
         TreatmentPlan plan = null;
@@ -120,18 +134,17 @@ public class PatientController {
             mealTargets.add(meal);
         }
 
-        // === Medication Tracker: Lấy danh sách thuốc + tính tiến độ hôm nay ===
+        // === Medication Tracker: Lấy danh sách thuốc + tính tiến độ theo selectedDate ===
         int totalMeds = 0;
         int takenMeds = 0;
-        Integer currentWater = null;
+        Integer currentWater = 0;
         try {
             if (patient.getId() != null) {
                 List<PatientMedication> activeMeds = patientService.findActiveMedications(patient.getId());
-                LocalDate today = LocalDate.now();
                 totalMeds = activeMeds.size();
                 for (PatientMedication med : activeMeds) {
                     boolean taken = false;
-                    Optional<MedicationLog> medLogOpt = patientService.findMedicationLog(med.getId(), today);
+                    Optional<MedicationLog> medLogOpt = patientService.findMedicationLog(med.getId(), selectedDate);
                     if (medLogOpt.isPresent()) {
                         MedicationLog logVal = medLogOpt.get();
                         if (Boolean.TRUE.equals(logVal.getIsTaken())) {
@@ -143,7 +156,7 @@ public class PatientController {
                     }
                 }
                 
-                Optional<WaterLog> waterLogOpt = patientService.findWaterLog(patient.getId(), today);
+                Optional<WaterLog> waterLogOpt = patientService.findWaterLog(patient.getId(), selectedDate);
                 if (waterLogOpt.isPresent()) {
                     currentWater = waterLogOpt.get().getAmountMl();
                 }
@@ -156,23 +169,16 @@ public class PatientController {
             waterProgress = 100;
         }
 
-        Integer totalCalories = null;
-        Double totalCarbs = null;
-        Double totalSalt = null;
-        Double totalFiber = null;
-        Double totalFat = null;
-        Double totalProtein = null;
+        Integer totalCalories = 0;
+        Double totalCarbs = 0.0;
+        Double totalSalt = 0.0;
+        Double totalFiber = 0.0;
+        Double totalFat = 0.0;
+        Double totalProtein = 0.0;
         try {
             if (patient.getId() != null) {
-                LocalDate today = LocalDate.now();
-                List<PatientMeal> mealsToday = patientService.findMealsByDate(patient.getId(), today);
-                if (mealsToday != null && !mealsToday.isEmpty()) {
-                    totalCalories = 0;
-                    totalCarbs = 0.0;
-                    totalSalt = 0.0;
-                    totalFiber = 0.0;
-                    totalFat = 0.0;
-                    totalProtein = 0.0;
+                List<PatientMeal> mealsToday = patientService.findMealsByDate(patient.getId(), selectedDate);
+                if (mealsToday != null) {
                     for (PatientMeal m : mealsToday) {
                         if (m.getCalories() != null) totalCalories += m.getCalories();
                         if (m.getGlucidG() != null) totalCarbs += m.getGlucidG();
@@ -204,8 +210,7 @@ public class PatientController {
         int targetExerciseMinutes = 30; // Default goal
         try {
             if (patient.getId() != null) {
-                LocalDate today = LocalDate.now();
-                List<PatientExercise> exercisesToday = patientService.findExercisesByDate(patient.getId(), today);
+                List<PatientExercise> exercisesToday = patientService.findExercisesByDate(patient.getId(), selectedDate);
                 for (PatientExercise e : exercisesToday) {
                     totalExerciseMinutes += e.getDurationMinutes();
                 }
@@ -221,6 +226,8 @@ public class PatientController {
         model.addAttribute("patient", patient);
         model.addAttribute("treatmentPlan", plan);
         model.addAttribute("menu", mealTargets);
+        model.addAttribute("selectedDate", selectedDate.toString());
+        model.addAttribute("isToday", isToday);
         
         model.addAttribute("targetCalories", targetCalories);
         model.addAttribute("targetSalt", targetSalt);

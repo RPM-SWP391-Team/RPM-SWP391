@@ -30,4 +30,15 @@ public class EmergencyGuideDTO {
     @NotBlank(message = "Nội dung chỉ dẫn không được để trống.")
     @Size(min = 20, max = 2000, message = "Nội dung chỉ dẫn phải từ 20 đến 2000 ký tự.")
     private String instructionContent;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public String getAlertLevel() { return alertLevel; }
+    public void setAlertLevel(String alertLevel) { this.alertLevel = alertLevel; }
+    public String getMetricType() { return metricType; }
+    public void setMetricType(String metricType) { this.metricType = metricType; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getInstructionContent() { return instructionContent; }
+    public void setInstructionContent(String instructionContent) { this.instructionContent = instructionContent; }
 }
