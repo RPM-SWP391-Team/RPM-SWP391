@@ -284,8 +284,7 @@
                                 <span class="badge bg-warning text-dark" th:if="${appt.status == 'PENDING'}">Chờ xác
                                     nhận</span>
                                 <span class="badge bg-success"
-                                    th:if="${appt.status == 'CONFIRMED' or appt.status == 'APPROVED' or appt.status == 'ACCEPTED'}">Đã
-                                    chốt</span>
+                                    th:if="${appt.status == 'ACCEPTED'}">Đã chốt</span>
                                 <span class="badge bg-secondary" th:if="${appt.status == 'COMPLETED'}">Đã hoàn
                                     thành</span>
                                 <span class="badge bg-danger"
@@ -344,7 +343,7 @@
                                 </div>
                             </td>
                             <td th:if="${appt.status != 'PENDING'}">
-                                <div th:if="${appt.status == 'ACCEPTED' or appt.status == 'APPROVED' or appt.status == 'CONFIRMED'}" class="d-flex gap-1">
+                                <div th:if="${appt.status == 'ACCEPTED'}" class="d-flex gap-1">
                                     <a th:href="@{/doctor/patient-detail/{id}(id=${appt.patient.id})}" class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-sm" title="Mở trang Hồ sơ chi tiết để nhập đầy đủ HbA1c, BMI, Đơn thuốc, Phác đồ...">
                                         <i class="fa-solid fa-file-waveform me-1"></i>Hồ sơ phác đồ
                                     </a>
