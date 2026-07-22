@@ -1,13 +1,13 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
 import com.rpm.remotepatientmonitoring.model.AlertThreshold;
 import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
 import com.rpm.remotepatientmonitoring.model.EmergencyProtocol;
-import com.rpm.remotepatientmonitoring.service.hopital.HospitalConfigService;
+import com.rpm.remotepatientmonitoring.service.hospital.HospitalConfigService;
 import com.rpm.remotepatientmonitoring.repository.DiseaseProfileRepository;
-import com.rpm.remotepatientmonitoring.dto.hopital.AlertThresholdsDTO;
-import com.rpm.remotepatientmonitoring.dto.hopital.EmergencyGuideDTO;
-import com.rpm.remotepatientmonitoring.dto.hopital.EmergencyProtocolDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.AlertThresholdsDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.EmergencyGuideDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.EmergencyProtocolDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

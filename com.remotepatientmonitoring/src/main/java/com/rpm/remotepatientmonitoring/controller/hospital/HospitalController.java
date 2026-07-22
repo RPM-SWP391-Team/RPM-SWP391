@@ -1,11 +1,11 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
-import com.rpm.remotepatientmonitoring.dto.hopital.HospitalOverviewDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.HospitalOverviewDTO;
 import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.Alert;
 import com.rpm.remotepatientmonitoring.repository.*;
-import com.rpm.remotepatientmonitoring.service.hopital.DoctorService;
+import com.rpm.remotepatientmonitoring.service.hospital.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

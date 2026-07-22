@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.service.hopital;
+package com.rpm.remotepatientmonitoring.service.hospital;
 
 import com.rpm.remotepatientmonitoring.model.AuditTrail;
 import org.springframework.stereotype.Service;

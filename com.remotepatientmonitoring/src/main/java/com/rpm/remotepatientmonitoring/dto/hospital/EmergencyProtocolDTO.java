@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.dto.hopital;
+package com.rpm.remotepatientmonitoring.dto.hospital;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -12,20 +12,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmergencyGuideDTO {
+public class EmergencyProtocolDTO {
     private Integer id;
 
-    @NotBlank(message = "Cấp độ cảnh báo không được để trống.")
-    @Pattern(regexp = "^(GREEN|YELLOW|ORANGE|RED)$", message = "Cấp độ cảnh báo không hợp lệ.")
-    private String alertLevel;
+    @NotBlank(message = "Nhóm bệnh lý không được để trống.")
+    @Pattern(regexp = "^(HYPERTENSIVE_CRISIS|HYPOGLYCEMIA|HYPERGLYCEMIA)$", message = "Nhóm bệnh lý không hợp lệ.")
+    private String conditionType;
 
-    @NotBlank(message = "Loại chỉ số không được để trống.")
-    @Pattern(regexp = "^(GLUCOSE|BLOOD_PRESSURE|BOTH)$", message = "Loại chỉ số không hợp lệ.")
-    private String metricType;
-
-    @NotBlank(message = "Tiêu đề chỉ dẫn không được để trống.")
+    @NotBlank(message = "Tiêu đề cẩm nang không được để trống.")
     @Size(min = 5, max = 150, message = "Tiêu đề phải từ 5 đến 150 ký tự.")
     private String title;
+
+    @NotBlank(message = "Dấu hiệu nhận biết không được để trống.")
+    @Size(min = 10, max = 500, message = "Dấu hiệu nhận biết phải từ 10 đến 500 ký tự.")
+    private String warningSigns;
 
     @NotBlank(message = "Nội dung chỉ dẫn không được để trống.")
     @Size(min = 20, max = 2000, message = "Nội dung chỉ dẫn phải từ 20 đến 2000 ký tự.")
@@ -33,12 +33,12 @@ public class EmergencyGuideDTO {
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
-    public String getAlertLevel() { return alertLevel; }
-    public void setAlertLevel(String alertLevel) { this.alertLevel = alertLevel; }
-    public String getMetricType() { return metricType; }
-    public void setMetricType(String metricType) { this.metricType = metricType; }
+    public String getConditionType() { return conditionType; }
+    public void setConditionType(String conditionType) { this.conditionType = conditionType; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+    public String getWarningSigns() { return warningSigns; }
+    public void setWarningSigns(String warningSigns) { this.warningSigns = warningSigns; }
     public String getInstructionContent() { return instructionContent; }
     public void setInstructionContent(String instructionContent) { this.instructionContent = instructionContent; }
 }

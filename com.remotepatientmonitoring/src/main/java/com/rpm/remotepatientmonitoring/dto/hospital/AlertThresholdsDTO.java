@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.dto.hopital;
+package com.rpm.remotepatientmonitoring.dto.hospital;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
