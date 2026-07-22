@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface ExerciseGuidelineRepository extends JpaRepository<ExerciseGuideline, Integer> {
     Optional<ExerciseGuideline> findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(Integer diseaseProfileId, Integer hospitalId);
     List<ExerciseGuideline> findByHospitalIdAndIsActiveTrue(Integer hospitalId);
+    List<ExerciseGuideline> findByHospitalId(Integer hospitalId);
 }

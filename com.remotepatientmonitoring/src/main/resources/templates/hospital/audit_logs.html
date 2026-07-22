@@ -80,9 +80,7 @@
             min-height: 100vh;
             transition: all 0.3s ease;
             padding: 1.25rem 1.5rem;
-            max-width: calc(100vw - var(--sidebar-width));
             box-sizing: border-box;
-            overflow-x: hidden;
         }
         .navbar-top {
             background-color: #ffffff;
@@ -158,16 +156,16 @@
             .sidebar-toggle { display: block; }
         }
 
-        .table-responsive { border-radius: 12px; overflow: hidden; }
+        .table-responsive { border-radius: 12px; overflow-x: auto; }
         .table thead th {
             background-color: #F8FAFC;
             color: #475569;
             font-weight: 600;
             border-bottom: 1px solid #E2E8F0;
-            padding: 1rem;
+            padding: 0.75rem 0.5rem;
         }
         .table tbody td {
-            padding: 1rem;
+            padding: 0.5rem;
             vertical-align: middle;
             border-bottom: 1px solid #F1F5F9;
         }
@@ -338,16 +336,16 @@
         </div>
         <div class="card-custom-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+                <table class="table table-hover table-sm align-middle mb-0" style="min-width: 900px; font-size: 0.85rem;">
                     <thead>
                     <tr>
-                        <th style="width: 13%;">Thời gian</th>
-                        <th style="width: 13%;">Người thực hiện</th>
-                        <th style="width: 15%;">Hành động</th>
-                        <th style="width: 13%;">Mục tiêu</th>
-                        <th style="width: 15%;">IP / Thiết bị</th>
-                        <th style="width: 21%;">Giải trình / Ghi chú</th>
-                        <th style="width: 10%;" class="text-center">Thao tác</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Thời gian</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Người thực hiện</th>
+                        <th style="width: 15%; padding: 0.75rem 0.5rem;">Hành động</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Mục tiêu</th>
+                        <th style="width: 15%; padding: 0.75rem 0.5rem;">IP / Thiết bị</th>
+                        <th style="width: 21%; padding: 0.75rem 0.5rem;">Giải trình / Ghi chú</th>
+                        <th style="width: 10%; padding: 0.75rem 0.5rem;" class="text-center">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -373,12 +371,12 @@
                             <div class="fw-semibold text-capitalize" th:text="${log.targetTable}">patients</div>
                             <small class="text-muted" th:text="'Record ID: ' + ${log.targetRecordId}">ID: 1</small>
                         </td>
-                        <td>
+                        <td style="padding: 0.5rem;">
                             <div th:text="${log.ipAddress != null ? log.ipAddress : '-'}">127.0.0.1</div>
-                            <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 120px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
                         </td>
-                        <td>
-                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 250px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
+                        <td style="padding: 0.5rem;">
+                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 180px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill btn-detail"

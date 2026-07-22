@@ -619,7 +619,7 @@ public class HospitalConfigService {
     // KHUYẾN NGHỊ TẬP LUYỆN
     // ==========================================
     public List<ExerciseGuideline> getExerciseGuidelines(Integer hospitalId) {
-        return exerciseGuidelineRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
+        return exerciseGuidelineRepository.findByHospitalId(hospitalId);
     }
 
     private void validateGuideline(Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
@@ -754,14 +754,28 @@ public class HospitalConfigService {
         saveAuditLog("DELETE_EXERCISE_GUIDELINE", "exercise_guidelines", id, "{\"isActive\":true}", "{\"isActive\":false}", "Vô hiệu hóa khuyến nghị tập luyện");
     }
 
+    @Transactional
+    public ExerciseGuideline restoreExerciseGuideline(Integer id) {
+        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+
+        exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(existing.getDiseaseProfile().getId(), existing.getHospital().getId())
+                .ifPresent(active -> {
+                    throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa hoặc vô hiệu hóa bản ghi hiện có trước.");
+                });
+
+        existing.setIsActive(true);
+        ExerciseGuideline saved = exerciseGuidelineRepository.save(existing);
+
+        saveAuditLog("RESTORE_EXERCISE_GUIDELINE", "exercise_guidelines", id, "{\"isActive\":false}", "{\"isActive\":true}", "Khôi phục khuyến nghị tập luyện");
+        return saved;
+    }
+
     // ==========================================
     // DANH MỤC THỰC PHẨM
     // ==========================================
-    public Page<FoodDictionary> searchFoods(String search, Pageable pageable) {
-        if (search == null || search.trim().isEmpty()) {
-            return foodDictionaryRepository.findByIsActiveTrue(pageable);
-        }
-        return foodDictionaryRepository.findByIsActiveTrueAndFoodNameContainingIgnoreCaseOrIsActiveTrueAndEnglishNameContainingIgnoreCase(search, search, pageable);
+    public Page<FoodDictionary> searchFoods(String search, Boolean isActive, Pageable pageable) {
+        return foodDictionaryRepository.searchFoodsWithStatus(search, isActive, pageable);
     }
 
     public long getDietLogsCountByFoodId(Integer foodId) {
@@ -874,14 +888,17 @@ public class HospitalConfigService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
 
         boolean oldStatus = existing.getIsActive();
-        existing.setIsActive(!existing.getIsActive());
+        boolean newStatus = !oldStatus;
+        existing.setIsActive(newStatus);
         FoodDictionary saved = foodDictionaryRepository.save(existing);
 
         String oldValueJson = "{\"isActive\":" + oldStatus + "}";
-        String newValueJson = "{\"isActive\":" + saved.getIsActive() + "}";
+        String newValueJson = "{\"isActive\":" + newStatus + "}";
 
-        saveAuditLog("TOGGLE_FOOD_ACTIVE", "foods_dictionary", saved.getId(), oldValueJson, newValueJson,
-                "Thay đổi trạng thái hoạt động món ăn thành: " + (saved.getIsActive() ? "Hoạt động" : "Vô hiệu hóa"));
+        String action = newStatus ? "RESTORE_FOOD" : "DELETE_FOOD";
+        String description = newStatus ? "Khôi phục món ăn vào danh mục" : "Vô hiệu hóa món ăn khỏi danh mục";
+
+        saveAuditLog(action, "foods_dictionary", saved.getId(), oldValueJson, newValueJson, description);
         return saved;
     }
 
