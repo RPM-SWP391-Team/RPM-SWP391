@@ -30,6 +30,9 @@ public class TreatmentPlanWorkflowService {
     private PatientRepository patientRepository;
 
     @Autowired
+    private ClinicalRecordRepository clinicalRecordRepository;
+
+    @Autowired
     private AuditTrailService auditTrailService;
 
     @Transactional
@@ -42,6 +45,8 @@ public class TreatmentPlanWorkflowService {
             BigDecimal baselineFastingGlucose,
             BigDecimal baselineHba1c,
             BigDecimal baselineWeightKg,
+            BigDecimal heightCm,
+            BigDecimal bmi,
             // Target Vitals
             Integer targetSystolicBp,
             Integer targetDiastolicBp,
@@ -114,6 +119,25 @@ public class TreatmentPlanWorkflowService {
         newPlan.setPatient(patient);
         newPlan.setDoctor(doctor);
         newPlan.setNutritionRule(savedRule);
+
+        // Lưu ClinicalRecord (Hồ sơ khám bệnh) để ánh xạ với bảng clinical_records
+        boolean isInitial = !clinicalRecordRepository.existsByPatientId(patient.getId());
+        ClinicalRecord record = ClinicalRecord.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .examinationDate(now)
+                .weightKg(baselineWeightKg)
+                .heightCm(heightCm)
+                .bmi(bmi)
+                .systolicBp(baselineSystolicBp)
+                .diastolicBp(baselineDiastolicBp)
+                .fastingGlucose(baselineFastingGlucose)
+                .hba1c(baselineHba1c)
+                .isInitialExam(isInitial)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        clinicalRecordRepository.save(record);
 
         newPlan.setBaselineSystolicBp(baselineSystolicBp);
         newPlan.setBaselineDiastolicBp(baselineDiastolicBp);

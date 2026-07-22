@@ -722,10 +722,18 @@
                                         <label class="form-label">Cân nặng ban đầu (kg)</label>
                                         <div class="input-group">
                                             <input type="number" min="10" max="500" step="any" name="baselineWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5">
+                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5" required>
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label">Chiều cao (cm)</label>
+                                        <div class="input-group">
+                                            <input type="number" min="30" max="300" step="any" name="heightCm" class="form-control" placeholder="VD: 170.0" required>
+                                            <span class="input-group-text">cm</span>
+                                        </div>
+                                    </div>
+
 
                                     <div class="col-12 mt-3">
                                         <h6 class="fw-bold text-success border-bottom pb-2 mb-2">2. Chỉ số Mục tiêu theo dõi
