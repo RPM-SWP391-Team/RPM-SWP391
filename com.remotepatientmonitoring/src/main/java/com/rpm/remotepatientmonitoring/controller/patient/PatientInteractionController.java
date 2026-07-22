@@ -220,7 +220,21 @@ public class PatientInteractionController {
             return "redirect:/auth/login";
         }
 
-        patientInteractionService.createChangeRequest(changeRequest, patient);
+        if (changeRequest.getPatientReason() == null || changeRequest.getPatientReason().trim().isEmpty()) {
+            return "redirect:/patient/request-change?createError=emptyReason";
+        }
+        if (changeRequest.getPatientReason().length() > 500) {
+            return "redirect:/patient/request-change?createError=reasonTooLong";
+        }
+        if (changeRequest.getRequestType() == null || changeRequest.getRequestType().trim().isEmpty()) {
+            return "redirect:/patient/request-change?createError=emptyType";
+        }
+
+        try {
+            patientInteractionService.createChangeRequest(changeRequest, patient);
+        } catch (IllegalStateException ex) {
+            return "redirect:/patient/request-change?createError=noDoctor";
+        }
 
         return "redirect:/patient/appointments?requestSuccess=true";
     }

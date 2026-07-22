@@ -47,6 +47,19 @@ public class PatientNutritionController {
             @RequestParam("foodId") Integer foodId,
             @RequestParam("quantityG") Double quantityG) {
 
+        if (mealType == null || mealType.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Loại bữa ăn không được để trống."
+            ));
+        }
+        if (quantityG == null || quantityG <= 0.0 || quantityG > 10000.0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Khối lượng thực phẩm không hợp lệ (từ 1g đến 10000g)."
+            ));
+        }
+
         Patient patient = getCurrentPatient();
 
         try {
@@ -77,6 +90,12 @@ public class PatientNutritionController {
     public ResponseEntity<Map<String, Object>> updateMeal(
             @PathVariable("id") Integer id,
             @RequestParam("quantityG") Double quantityG) {
+        if (quantityG == null || quantityG <= 0.0 || quantityG > 10000.0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Khối lượng thực phẩm không hợp lệ (từ 1g đến 10000g)."
+            ));
+        }
         try {
             patientService.updateMeal(id, quantityG);
             Map<String, Object> response = new HashMap<>();
