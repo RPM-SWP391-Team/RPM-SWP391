@@ -622,6 +622,11 @@
                 <i class="fa-solid fa-calendar-day me-2"></i>Tra cứu ngày
             </button>
         </li>
+        <li class="nav-item ms-2" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded-pill" id="history-plan-tab" data-bs-toggle="tab" data-bs-target="#history-plan" type="button" role="tab" aria-controls="history-plan" aria-selected="false">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử Phác đồ
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="patientDetailTabContent">
@@ -1250,6 +1255,65 @@
 
         </div><!-- /row g-4 mt-1 -->
     </div><!-- End Tab 3: Daily Tracking -->
+
+    <!-- Tab 4: Lịch sử Phác đồ cũ -->
+    <div class="tab-pane fade" id="history-plan" role="tabpanel" aria-labelledby="history-plan-tab">
+        <div class="card card-custom p-4 mt-2">
+            <div class="section-header">
+                <div class="section-icon icon-blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-0">Lịch sử Các Phiên bản Phác đồ Điều trị</h5>
+                    <small class="text-muted">Danh sách tất cả phác đồ điều trị và chỉ số mục tiêu đã từng được kê trong quá khứ</small>
+                </div>
+            </div>
+            
+            <div class="table-responsive" th:if="${not #lists.isEmpty(planHistory)}">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Phiên bản</th>
+                            <th>Bác sĩ kê phác đồ</th>
+                            <th>Ngày áp dụng</th>
+                            <th>Mục tiêu HA (mmHg)</th>
+                            <th>Mục tiêu Đường huyết</th>
+                            <th>Mục tiêu HbA1c</th>
+                            <th>Ghi chú chỉ định</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="plan, iterStat : ${planHistory}">
+                            <td class="fw-bold" th:text="'Phác đồ #' + ${planHistory.size() - iterStat.index}">#1</td>
+                            <td>
+                                <i class="fa-solid fa-user-doctor text-primary me-1"></i>
+                                <span th:text="${plan.doctor != null ? plan.doctor.fullName : 'Hệ thống'}">Bác sĩ</span>
+                            </td>
+                            <td th:text="${plan.effectiveFrom != null ? #temporals.format(plan.effectiveFrom, 'dd/MM/yyyy') : #temporals.format(plan.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
+                            <td>
+                                <span th:text="${plan.targetSystolicBp != null ? plan.targetSystolicBp + '/' + plan.targetDiastolicBp : '-'}">120/80</span>
+                            </td>
+                            <td>
+                                <span th:text="${plan.targetFastingGlucose != null ? plan.targetFastingGlucose + ' mmol/L' : '-'}">6.0</span>
+                            </td>
+                            <td>
+                                <span th:text="${plan.targetHba1c != null ? plan.targetHba1c + ' %' : '-'}">6.5</span>
+                            </td>
+                            <td th:text="${plan.medicalOrder != null and !plan.medicalOrder.isEmpty() ? plan.medicalOrder : (plan.additionalNotes != null ? plan.additionalNotes : 'Không có ghi chú')}">Ghi chú</td>
+                            <td>
+                                <span class="badge bg-success" th:if="${plan.isCurrent}">Đang áp dụng</span>
+                                <span class="badge bg-secondary" th:unless="${plan.isCurrent}">Lịch sử (Cũ)</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${#lists.isEmpty(planHistory)}" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
+                <p class="mb-0">Chưa có lịch sử phác đồ điều trị nào được lưu.</p>
+            </div>
+        </div>
+    </div>
 
 </div><!-- /tab-content -->
 </div><!-- /container -->

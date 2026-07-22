@@ -401,6 +401,8 @@ public class DoctorViewController {
 
         prepareChartAndComplianceData(model, patient, currentRule);
         
+        List<TreatmentPlan> planHistory = treatmentPlanRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
+
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("patient", patient);
         model.addAttribute("isPrimaryDoctor", isPrimaryDoctor);
@@ -408,6 +410,7 @@ public class DoctorViewController {
         model.addAttribute("currentRule", currentRule);
         model.addAttribute("currentPlan", currentPlan);
         model.addAttribute("currentMeds", currentMeds);
+        model.addAttribute("planHistory", planHistory);
         model.addAttribute("success", success);
 
         // Lấy cấu hình ngưỡng cảnh báo
