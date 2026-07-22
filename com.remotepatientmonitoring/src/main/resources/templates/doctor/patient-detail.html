@@ -463,6 +463,11 @@
 
 <div class="container pb-2">
 
+    <div th:if="${isPrimaryDoctor != null and !isPrimaryDoctor}" class="alert alert-warning alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: 12px; border-left: 5px solid #ffc107;">
+        <i class="fa-solid fa-shield-halved me-2 fa-lg text-warning"></i>
+        <strong>Chế độ Xem Hồ sơ (Bác sĩ khám lượt hẹn):</strong> Bạn đang xem hồ sơ theo lịch hẹn khám. Chỉ Bác sĩ Phụ trách chính mới được quyền lưu/chỉnh sửa Phác đồ điều trị & Đơn thuốc dài hạn.
+    </div>
+
     <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: 12px; border-left: 5px solid #198754;">
         <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
         <strong th:text="${successMsg}"></strong>
@@ -1006,8 +1011,8 @@
                             <a href="/doctor/dashboard" class="btn btn-outline-secondary rounded-pill px-4">
                                 <i class="fa-solid fa-xmark me-1"></i>Hủy
                             </a>
-                            <button type="submit" id="saveBtn" class="btn-save">
-                                <i class="fa-solid fa-floppy-disk me-2"></i>Hoàn tất Phác đồ
+                            <button type="submit" id="saveBtn" class="btn-save" th:disabled="${isPrimaryDoctor != null and !isPrimaryDoctor}">
+                                <i class="fa-solid fa-floppy-disk me-2"></i><span th:text="${isPrimaryDoctor != null and !isPrimaryDoctor ? 'Chế độ Xem (Chỉ đọc)' : 'Hoàn tất Phác đồ'}">Hoàn tất Phác đồ</span>
                             </button>
                         </div>
                     </div>

@@ -403,6 +403,7 @@ public class DoctorViewController {
         
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("patient", patient);
+        model.addAttribute("isPrimaryDoctor", isPrimaryDoctor);
         model.addAttribute("allProfiles", allProfiles);
         model.addAttribute("currentRule", currentRule);
         model.addAttribute("currentPlan", currentPlan);
@@ -486,7 +487,8 @@ public class DoctorViewController {
             // Medications
             @RequestParam(value = "medNames", required = false) List<String> medNames,
             @RequestParam(value = "medDosages", required = false) List<String> medDosages,
-            @RequestParam(value = "medScheduledTimes", required = false) List<String> medScheduledTimes
+            @RequestParam(value = "medScheduledTimes", required = false) List<String> medScheduledTimes,
+            RedirectAttributes redirectAttributes
     ) {
 
         // Xác thực bác sĩ qua Spring Security
@@ -498,26 +500,11 @@ public class DoctorViewController {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
-        // Kiểm tra bảo mật: Bệnh nhân phải thuộc quyền quản lý của bác sĩ HOẶC bác sĩ có lịch hẹn khám với bệnh nhân này
+        // Kiểm tra bảo mật: Chỉ Bác sĩ phụ trách chính mới được quyền sửa Phác đồ điều trị dài hạn!
         boolean isPrimaryDoctor = patient.getDoctor() != null && patient.getDoctor().getId().equals(doctor.getId());
-        boolean hasAppointment = appointmentRepository.existsByPatientIdAndDoctorId(patient.getId(), doctor.getId());
-
-        if (!isPrimaryDoctor && !hasAppointment) {
-            throw new RuntimeException("Bạn không có quyền cập nhật hồ sơ của bệnh nhân này!");
-        }
-
-        // Nếu bác sĩ này chưa phải bác sĩ phụ trách, tự động gán phụ trách cho bác sĩ này khi cập nhật phác đồ
         if (!isPrimaryDoctor) {
-            Doctor oldDoctor = patient.getDoctor();
-            if (doctor.getCurrentPatientCount() < doctor.getCapacityLimit()) {
-                if (oldDoctor != null && oldDoctor.getCurrentPatientCount() > 0) {
-                    oldDoctor.setCurrentPatientCount(oldDoctor.getCurrentPatientCount() - 1);
-                    doctorRepository.save(oldDoctor);
-                }
-                patient.setDoctor(doctor);
-                doctor.setCurrentPatientCount(doctor.getCurrentPatientCount() + 1);
-                doctorRepository.save(doctor);
-            }
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không phải Bác sĩ phụ trách chính của Bệnh nhân này nên không có quyền thay đổi Phác đồ điều trị dài hạn!");
+            return "redirect:/doctor/patient-detail/" + id;
         }
 
         // --- Cập nhật phân loại bệnh lý trực tiếp ---
