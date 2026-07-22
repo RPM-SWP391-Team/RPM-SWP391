@@ -168,12 +168,12 @@
         <!-- TABS -->
         <ul class="nav nav-pills gap-2 mb-0">
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'pending' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/change-requests(tab='pending', startDate=${startDate}, endDate=${endDate})}">
+                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'pending' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/change-requests(tab='pending', startDate=${startDate}, endDate=${endDate}, patientName=${patientName})}">
                     <i class="fa-solid fa-clock-rotate-left me-2"></i>Chờ xử lý
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/change-requests(tab='history', startDate=${startDate}, endDate=${endDate})}">
+                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/change-requests(tab='history', startDate=${startDate}, endDate=${endDate}, patientName=${patientName})}">
                     <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử (Đã xử lý)
                 </a>
             </li>
@@ -309,17 +309,17 @@
         <nav aria-label="Page navigation" th:if="${changeRequestPage.totalPages > 1}" class="mt-4 pb-3">
             <ul class="pagination justify-content-center">
                 <li class="page-item" th:classappend="${changeRequestPage.first} ? 'disabled'">
-                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${changeRequestPage.number - 1})}">
+                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, patientName=${patientName}, page=${changeRequestPage.number - 1})}">
                         <i class="fa-solid fa-chevron-left"></i> Trước
                     </a>
                 </li>
                 <li class="page-item" th:each="i : ${#numbers.sequence(0, changeRequestPage.totalPages - 1)}"
                     th:classappend="${changeRequestPage.number == i} ? 'active'">
-                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${i})}" th:text="${i + 1}">1</a>
+                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, patientName=${patientName}, page=${i})}" th:text="${i + 1}">1</a>
                 </li>
                 <li class="page-item" th:classappend="${changeRequestPage.last} ? 'disabled'">
-                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${changeRequestPage.number + 1})}">
-                        Sau <i class="fa-solid fa-chevron-right"></i>
+                    <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, patientName=${patientName}, page=${changeRequestPage.number + 1})}">
+                        Tiếp <i class="fa-solid fa-chevron-right"></i>
                     </a>
                 </li>
             </ul>

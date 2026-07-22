@@ -79,18 +79,20 @@
             border-top: 1px solid #F1F5F9;
         }
 
-        /* Main Content Styling */
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
             transition: all 0.3s ease;
-            padding: 2rem;
+            padding: 1.25rem 1.5rem;
+            max-width: calc(100vw - var(--sidebar-width));
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
         .navbar-top {
             background-color: #ffffff;
             border-radius: 16px;
             padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
             display: flex;
             justify-content: space-between;
@@ -104,10 +106,16 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
             background: #ffffff;
             transition: transform 0.2s, box-shadow 0.2s;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
         .table-responsive {
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Ép cố định cấu hình layout để tránh lệch nhảy bảng khi tăng nhân sự */
@@ -286,9 +294,13 @@
             <i class="bi bi-journal-medical"></i>
             <span>Cẩm nang & Chỉ dẫn</span>
         </a>
-        <a th:href="@{/hospital/profile}" class="menu-item ">
-            <i class="bi bi-hospital"></i>
-            <span>Hồ sơ Bệnh viện</span>
+        <a th:href="@{/hospital/ratings}" class="menu-item">
+            <i class="bi bi-star"></i>
+            <span>Quản lý Đánh giá</span>
+        </a>
+        <a th:href="@{/hospital/bug-reports}" class="menu-item">
+            <i class="bi bi-bug"></i>
+            <span>Báo Lỗi Hệ Thống</span>
         </a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item">
             <i class="bi bi-clock-history"></i>
@@ -296,6 +308,10 @@
         </a>
     </div>
     <div class="sidebar-footer">
+        <a th:href="@{/hospital/profile}" class="menu-item mb-1">
+            <i class="bi bi-person-circle"></i>
+            <span>Hồ sơ cá nhân</span>
+        </a>
         <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
             <i class="bi bi-box-arrow-left"></i>
             <span>Đăng xuất</span>
@@ -330,46 +346,57 @@
     </div>
 
     <div class="container-fluid p-0">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
             <div>
                 <h2 class="fw-bold mb-1"><i class="fa-solid fa-users-medical text-primary me-2"></i>Danh sách Bác sĩ</h2>
                 <p class="text-muted mb-0">Quản lý tài khoản, chuyên khoa và năng lực chịu tải của bác sĩ</p>
             </div>
+            <button class="btn btn-gradient btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+                <i class="fa-solid fa-plus me-2"></i>Thêm Bác sĩ Mới
+            </button>
+        </div>
 
-            <form th:action="@{/hospital/doctors}" method="GET" class="d-flex gap-2 ms-md-auto flex-wrap" style="max-width: 650px; width: 100%;">
-
-                <div class="input-group" style="flex: 1; min-width: 200px;">
-                    <span class="input-group-text bg-white border-end-0 text-muted">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input type="text" name="search" class="form-control border-start-0"
-                           th:value="${searchKeyword}"
-                           placeholder="Tìm theo ID, Tên hoặc Mã BS...">
+        <!-- BẢNG BỘ LỌC TÌM KIẾM NẰM TRÊN 1 HÀNG NGUYÊN BẢN GỌN GÀNG -->
+        <div class="card card-custom p-3 mb-4 border-0 shadow-sm">
+            <form th:action="@{/hospital/doctors}" method="GET" class="row g-2 align-items-center">
+                <div class="col-xl-5 col-lg-4 col-md-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0"
+                               th:value="${searchKeyword}"
+                               placeholder="Tìm theo ID, Tên hoặc Mã BS...">
+                    </div>
                 </div>
 
-                <div style="min-width: 180px;">
+                <div class="col-xl-3 col-lg-3 col-md-5">
                     <select name="specialty" class="form-select" onchange="this.form.submit()">
-                        <option value="" th:selected="${selectedSpecialty == null || selectedSpecialty == ''}">-- Tất cả bác sĩ --</option>
+                        <option value="" th:selected="${selectedSpecialty == null || selectedSpecialty == ''}">-- Tất cả bệnh lý --</option>
                         <option value="Tiểu đường" th:selected="${selectedSpecialty == 'Tiểu đường'}">Tiểu đường</option>
                         <option value="Huyết áp" th:selected="${selectedSpecialty == 'Huyết áp'}">Huyết áp</option>
                         <option value="Cả tiểu đường và huyết áp" th:selected="${selectedSpecialty == 'Cả tiểu đường và huyết áp'}">Cả hai bệnh</option>
                     </select>
                 </div>
 
-                <div class="d-flex gap-1">
-                    <button type="submit" class="btn btn-primary fw-semibold px-3">Lọc</button>
-                    <a th:if="${(searchKeyword != null && !searchKeyword.trim().isEmpty()) || (selectedSpecialty != null && !selectedSpecialty.trim().isEmpty())}"
-                       th:href="@{/hospital/doctors(search='', specialty='', page=0)}"
+                <div class="col-xl-2 col-lg-3 col-md-4">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="" th:selected="${selectedStatus == null || selectedStatus == ''}">-- Tất cả trạng thái --</option>
+                        <option value="ACTIVE" th:selected="${selectedStatus == 'ACTIVE'}">🟢 Đang hoạt động</option>
+                        <option value="INACTIVE" th:selected="${selectedStatus == 'INACTIVE'}">🔴 Không hoạt động</option>
+                    </select>
+                </div>
+
+                <div class="col-xl-2 col-lg-2 col-md-3 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary fw-semibold flex-grow-1">Lọc</button>
+                    <a th:if="${(searchKeyword != null && !searchKeyword.trim().isEmpty()) || (selectedSpecialty != null && !selectedSpecialty.trim().isEmpty()) || (selectedStatus != null && !selectedStatus.trim().isEmpty())}"
+                       th:href="@{/hospital/doctors(search='', specialty='', status='', page=0)}"
                        class="btn btn-outline-danger"
                        title="Xóa tất cả bộ lọc và hoàn tác">
                         <i class="fa-solid fa-trash-can"></i>
                     </a>
                 </div>
             </form>
-
-            <button class="btn btn-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
-                <i class="fa-solid fa-plus me-2"></i>Thêm Bác sĩ Mới
-            </button>
         </div>
 
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm p-4 mb-4" role="alert">
@@ -396,16 +423,16 @@
 
         <div class="card card-custom p-4 border-0">
             <div class="table-responsive">
-                <table class="table table-custom table-hover mb-0">
+                <table class="table table-custom table-hover align-middle mb-0" style="min-width: 900px;">
                     <thead>
                     <tr>
-                        <th>Mã Bác Sĩ</th>
-                        <th>Họ và Tên</th>
-                        <th>Thông tin liên hệ</th>
-                        <th>Chuyên Khoa</th>
-                        <th>Khối Lượng Công Việc</th>
-                        <th>Trạng Thái</th>
-                        <th class="text-center">Hành Động</th>
+                        <th style="width: 9%;">Mã BS</th>
+                        <th style="width: 17%;">Họ và Tên</th>
+                        <th style="width: 22%;">Thông tin liên hệ</th>
+                        <th style="width: 12%;">Chuyên Khoa</th>
+                        <th style="width: 14%;">Khối Lượng Công Việc</th>
+                        <th style="width: 10%;">Trạng Thái</th>
+                        <th style="width: 16%;" class="text-center">Hành Động</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -502,7 +529,7 @@
                     <ul class="pagination pagination-sm mb-0 shadow-sm">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                             <a class="page-link rounded-start py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty})}">
+                               th:href="@{/hospital/doctors(page=${currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         </li>
@@ -510,13 +537,13 @@
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                             th:classappend="${currentPage == i} ? 'active'">
                             <a class="page-link py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${i}, search=${searchKeyword}, specialty=${selectedSpecialty})}"
+                               th:href="@{/hospital/doctors(page=${i}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}"
                                th:text="${i + 1}">1</a>
                         </li>
 
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
                             <a class="page-link rounded-end py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty})}">
+                               th:href="@{/hospital/doctors(page=${currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </li>

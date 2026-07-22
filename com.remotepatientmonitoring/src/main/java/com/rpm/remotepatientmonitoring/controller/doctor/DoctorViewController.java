@@ -1118,17 +1118,6 @@ public class DoctorViewController {
 
         alertThresholdRepository.save(entity);
 
-        auditTrailService.logAction(
-                "DOCTOR",
-                doctor.getId(),
-                "UPDATE_PATIENT_THRESHOLD",
-                "AlertThreshold",
-                entity.getId(),
-                null,
-                null,
-                "Bác sĩ " + doctor.getFullName() + " đã cập nhật ngưỡng cảnh báo cá nhân hóa cho bệnh nhân " + patient.getFullName()
-        );
-
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã lưu ngưỡng cảnh báo riêng cho bệnh nhân.");
         return "redirect:/doctor/patient-detail/" + id + "/thresholds";
     }

@@ -896,8 +896,6 @@ public class HospitalConfigService {
         logMap.put("glucidG", food.getGlucidG());
         logMap.put("cellulozaG", food.getCellulozaG());
         logMap.put("ashG", food.getAshG());
-        logMap.put("isActive", food.getIsActive());
         return logMap;
     }
-
 }

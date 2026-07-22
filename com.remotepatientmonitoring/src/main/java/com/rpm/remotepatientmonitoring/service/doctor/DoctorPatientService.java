@@ -25,7 +25,13 @@ public class DoctorPatientService {
     private PatientRepository patientRepository;
 
     @Autowired
+    private com.rpm.remotepatientmonitoring.repository.DoctorRepository doctorRepository;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private AuditTrailService auditTrailService;
 
     // 1. Tìm kiếm bệnh nhân chờ tiếp nhận (lọc theo bệnh viện của bác sĩ)
     public List<PatientSearchResponseDTO> searchUnassignedPatients(String keyword, Integer hospitalId) {
@@ -70,6 +76,42 @@ public class DoctorPatientService {
                 savePatientWithGeneratedCode(patient);
             } else {
                 patientRepository.save(patient);
+            }
+
+            if (auditTrailService != null) {
+                try {
+                    com.rpm.remotepatientmonitoring.model.Doctor doc = doctorRepository.findById(doctorId).orElse(null);
+                    String docName = (doc != null) ? doc.getFullName() : ("Bác sĩ ID " + doctorId);
+
+                    String profileName = "Tăng Huyết Áp";
+                    if (Integer.valueOf(2).equals(diseaseProfileId)) profileName = "Đái Tháo Đường Type 2";
+                    if (Integer.valueOf(3).equals(diseaseProfileId)) profileName = "Đồng Mắc (Tăng HA & ĐTĐ T2)";
+
+                    java.util.Map<String, Object> pLog = new java.util.HashMap<>();
+                    pLog.put("doctorId", doctorId);
+                    pLog.put("doctorName", docName);
+                    pLog.put("patientId", patient.getId());
+                    pLog.put("patientCode", patient.getPatientCode());
+                    pLog.put("patientName", patient.getFullName());
+                    pLog.put("diseaseProfileId", diseaseProfileId);
+                    pLog.put("diseaseProfileName", profileName);
+                    pLog.put("status", patient.getStatus());
+
+                    String notes = "Bác sĩ " + docName + " tiếp nhận quản lý bệnh nhân " + patient.getFullName() + " (Gói bệnh lý: " + profileName + ")";
+
+                    auditTrailService.logAction(
+                            "DOCTOR",
+                            doctorId,
+                            "ACCEPT_PATIENT",
+                            "patients",
+                            patient.getId(),
+                            null,
+                            pLog,
+                            notes
+                    );
+                } catch (Exception e) {
+                    // Log fail silent
+                }
             }
         }
 

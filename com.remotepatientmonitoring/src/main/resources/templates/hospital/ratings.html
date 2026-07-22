@@ -155,12 +155,20 @@
             <i class="bi bi-star"></i>
             <span>Quản lý Đánh giá</span>
         </a>
+        <a th:href="@{/hospital/bug-reports}" class="menu-item">
+            <i class="bi bi-bug"></i>
+            <span>Báo Lỗi Hệ Thống</span>
+        </a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item">
             <i class="bi bi-clock-history"></i>
             <span>Nhật ký Hệ thống</span>
         </a>
     </div>
     <div class="sidebar-footer">
+        <a th:href="@{/hospital/profile}" class="menu-item mb-1">
+            <i class="bi bi-person-circle"></i>
+            <span>Hồ sơ cá nhân</span>
+        </a>
         <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
             <i class="bi bi-box-arrow-left"></i>
             <span>Đăng xuất</span>
@@ -248,13 +256,11 @@
                                 <th style="width: 12%">Đánh giá</th>
                                 <th>Nhận xét</th>
                                 <th style="width: 15%">Ngày gửi</th>
-                                <th style="width: 12%">Trạng thái</th>
-                                <th style="width: 10%">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:if="${doctorRatings == null || doctorRatings.isEmpty()}">
-                                <td colspan="7" class="text-center text-muted py-4">Không có đánh giá nào</td>
+                                <td colspan="5" class="text-center text-muted py-4">Không có đánh giá nào</td>
                             </tr>
                             <tr th:each="r : ${doctorRatings}">
                                 <td>
@@ -273,19 +279,6 @@
                                 </td>
                                 <td>
                                     <span th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">16/07/2026</span>
-                                </td>
-                                <td>
-                                    <span th:if="${r.isHidden}" class="badge bg-danger">Đã ẩn</span>
-                                    <span th:if="${!r.isHidden}" class="badge bg-success">Đang hiển thị</span>
-                                </td>
-                                <td>
-                                    <form th:action="@{'/hospital/ratings/doctor/toggle-hide/' + ${r.id}}" method="POST">
-                                        <input type="hidden" name="doctorPage" th:value="${currentDoctorPage}">
-                                        <input type="hidden" name="appPage" th:value="${currentAppPage}">
-                                        <input type="hidden" name="doctorFilter" th:value="${doctorFilter}">
-                                        <input type="hidden" name="appFilter" th:value="${appFilter}">
-                                        <button type="submit" class="btn btn-sm rounded-pill px-3" th:classappend="${r.isHidden ? 'btn-outline-success' : 'btn-outline-danger'}" th:text="${r.isHidden ? 'Hiện' : 'Ẩn'}">Hành động</button>
-                                    </form>
                                 </td>
                             </tr>
                         </tbody>
@@ -336,13 +329,11 @@
                                 <th style="width: 15%">Đánh giá</th>
                                 <th>Nhận xét</th>
                                 <th style="width: 15%">Ngày gửi</th>
-                                <th style="width: 12%">Trạng thái</th>
-                                <th style="width: 10%">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:if="${appRatings == null || appRatings.isEmpty()}">
-                                <td colspan="6" class="text-center text-muted py-4">Không có đánh giá nào</td>
+                                <td colspan="4" class="text-center text-muted py-4">Không có đánh giá nào</td>
                             </tr>
                             <tr th:each="r : ${appRatings}">
                                 <td>
@@ -358,19 +349,6 @@
                                 </td>
                                 <td>
                                     <span th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">16/07/2026</span>
-                                </td>
-                                <td>
-                                    <span th:if="${r.isHidden}" class="badge bg-danger">Đã ẩn</span>
-                                    <span th:if="${!r.isHidden}" class="badge bg-success">Đang hiển thị</span>
-                                </td>
-                                <td>
-                                    <form th:action="@{'/hospital/ratings/app/toggle-hide/' + ${r.id}}" method="POST">
-                                        <input type="hidden" name="doctorPage" th:value="${currentDoctorPage}">
-                                        <input type="hidden" name="appPage" th:value="${currentAppPage}">
-                                        <input type="hidden" name="doctorFilter" th:value="${doctorFilter}">
-                                        <input type="hidden" name="appFilter" th:value="${appFilter}">
-                                        <button type="submit" class="btn btn-sm rounded-pill px-3" th:classappend="${r.isHidden ? 'btn-outline-success' : 'btn-outline-danger'}" th:text="${r.isHidden ? 'Hiện' : 'Ẩn'}">Hành động</button>
-                                    </form>
                                 </td>
                             </tr>
                         </tbody>

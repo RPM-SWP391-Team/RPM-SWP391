@@ -1,1 +1,190 @@
-﻿TÀI LIỆU NGHIỆP VỤ: HỆ THỐNG THEO DÕI BỆNH NHÂN TỪ XA bệnh nhân sẽ dùng web được thiết kế cho điện thoại PHẦN 1 — BỆNH VIỆN(ADMIN) Bệnh viện là đơn vị quản lý hệ thống ở cấp cao nhất. Tài khoản quản trị của bệnh viện do đội kỹ thuật tạo thủ công trong giai đoạn triển khai — không có chức năng tự đăng ký. 1.1 Quản lý bác sĩ ●         Tạo tài khoản bác sĩ mới:  Điền các thông tin bao gồm họ tên, mã bác sĩ, số điện thoại, email đăng nhập,hệ thống sẽ gửi mật khẩu tự động ra ngẫu nhiên  ban đầu cho cho bác sĩ qua email . Cấu hình giới hạn số lượng bệnh nhân (Patient Capacity Limit): ●        Hệ thống cho phép Bệnh viện,được cấu hình bác sĩ và  thiết lập một  hạn ngạch (quota) số lượng bệnh nhân tối đa  mà một bác sĩ được phép quản lý cùng một lúc (ví dụ: tối đa 50 hoặc 100 bệnh nhân/bác sĩ tùy thuộc vào phân ngạch năng lực). ●         Khi số lượng bệnh nhân hiện tại của bác sĩ đạt đến ngưỡng giới hạn này, hệ thống sẽ tự động ẩn tên bác sĩ đó khỏi danh sách tìm kiếm của bệnh nhân mới ở luồng đăng ký trực tuyến, hoặc cảnh báo ngăn chặn nếu bác sĩ cố tình onboarding thêm tại viện. ●        Theo dõi nhân sự & Giám sát khối lượng công việc:  Xem danh sách toàn bộ bác sĩ kèm theo thanh tiến trình hiển thị trực quan tỷ lệ lấp đầy tải lượng bệnh nhân (Ví dụ:  Bác sĩ A: 45/50 bệnh nhân - Tải lượng 90% ). ●         Vô hiệu hóa tài khoản:  Thực hiện khi bác sĩ nghỉ việc hoặc chuyển công tác. Dữ liệu bệnh nhân của bác sĩ đó vẫn được giữ nguyên và có thể tắt vô hiệu hóa cho bác sĩ đã vô hiệu hóa, bệnh viện có thể giao lại cho bác sĩ khác quản lý. ●         Theo dõi nhân sự:  Xem danh sách toàn bộ bác sĩ đang hoạt động trong hệ thống. 1.2 Cấu hình ngưỡng cảnh báo & Hướng dẫn khẩn cấp ●        Thiết lập mặc định:  Đặt ngưỡng cảnh báo cho toàn bệnh viện (glucose, huyết áp, các chỉ số khác). *Khung chỉ số quy định cứng của hệ thống bao gồm: ●        Tiểu đường Type 2 (Đối với đường huyết lúc đói):(chuyển tất cả các đơn vị phần tiểu đường mg/dl thành moml/L và dùng theo  chỉ số mà đất nước xác nhận sử dụng )   Level 1 (Hạ):   < 4,4 mmol/L     Level 2 (Bình thường):   4,4 – 10 mmol/L   Level 3 (Cao):   10 – 16 mmol/L   Level 4 (Khẩn cấp):   > 16 mmol/L ●         Tăng huyết áp (Huyết áp tâm thu / tâm trương):(dùng chỉ số theo  chỉ số mà đất nước xác nhận sử  dụng)   🟩 XANH LÁ (An toàn - Đạt mục tiêu) * Huyết áp tâm thu < 120 mmHg và huyết áp tâm trương < 80 mmHg. 🟨 VÀNG (Chú ý - Level 1) * Huyết áp tâm thu từ 130 đến 139 mmHg; hoặc * Huyết áp tâm trương từ 85 đến 89 mmHg. 🟧 CAM (Nguy hiểm - Level 2) * Huyết áp tâm thu từ 140 đến 179 mmHg; hoặc * Huyết áp tâm trương từ 90 đến 109 mmHg. 🟥 ĐỎ (Cấp cứu - Level 3) * Huyết áp tâm thu ≥ 180 mmHg; hoặc * Huyết áp tâm trương ≥ 110 mmHg.   ●        Cấu hình xử lý khẩn cấp chung:  Thiết lập các nội dung cảnh báo kèm theo hệ thống hướng dẫn xử lý khẩn cấp chung cho bệnh nhân (ví dụ: các bước sơ cứu, tư thế nằm, uống nước ấm, hoặc uống thuốc dự phòng theo danh mục an toàn) để bệnh nhân có thể chủ động tự xử lý lập tức khi hệ thống kích hoạt trạng thái sức khỏe xấu. ●        Điều chỉnh cá nhân hóa:  Bác sĩ có thể điều chỉnh ngưỡng chỉ số mục tiêu riêng cho từng bệnh nhân. 1.3 Báo cáo tổng quan ●        Dashboard tổng quan:  Xem tổng số bệnh nhân đang theo dõi, số bệnh nhân có cảnh báo chưa xử lý, số bác sĩ đang hoạt động. ●        Báo cáo theo thời gian:  Xem tỷ lệ bệnh nhân tuân thủ thuốc, tỷ lệ nhập liệu đủ trong ngày, số ca cảnh báo Level 3 trong tháng. 1.4 Giới hạn quyền hạn ●        Bệnh viện không được xem chi tiết hồ sơ y tế của bệnh nhân cụ thể — chỉ được truy cập dữ liệu thống kê tổng hợp và quản lý tài khoản,. ●        Quyền xem chi tiết hồ sơ bệnh nhân chỉ thuộc về bác sĩ trực tiếp phụ trách.   PHẦN 2 — BÁC SĨ Bác sĩ là trung tâm của hệ thống — người ra quyết định y tế cuối cùng trong mọi tình huống. 2.1 Onboarding bệnh nhân mới & Phân loại quyền nhập liệu bệnh lý & Thiết lập Quy tắc dinh dưỡng ●        Tạo/Cập nhật hồ sơ bệnh nhân:  Khởi tạo thông tin lâm sàng sau khi duyệt kết nối: chẩn đoán bệnh nền, tiền sử bệnh và bệnh đi kèm. Phân quyền danh mục bệnh lý (Disease Profile Configuration):  Bác sĩ bắt buộc phải tích chọn phân loại bệnh lý cho bệnh nhân. Lựa chọn này sẽ trực tiếp định hình giao diện App của bệnh nhân: Gói chỉ định Tăng huyết áp:  Bệnh nhân chỉ cần nhập huyết áp, nhịp tim. Màn hình ẩn phần nhập tiểu đường. Gói chỉ định Tiểu đường Type 2:  Bệnh nhân chỉ cần nhập glucose. Màn hình ẩn phần nhập huyết áp. Gói chỉ định Đồng mắc (Cả hai bệnh):  Bệnh nhân bắt buộc phải nhập đầy đủ cả hai nhóm chỉ số huyết áp và glucose.   ●        Nhập kết quả khám tại viện: -Dựa trên phân loại bệnh lý nêu trên, bác sĩ nhập các chỉ số tương ứng -- Cân nặng (kg) -- Chiều cao (cm) -- Chỉ số BMI (tính toán) -- Huyết ap tâm thu (mmHg) -- Huyết ap tâm trương (mmHg) -- Nhịp tim (lan/phút) -- Đường huyết lúc đói (mg/dL) -- Chỉ số HbA1c (%) - đánh giá đường huyết 3 tháng ○        Tiểu đường:  Glucose lúc đói, HbA1c, cân nặng, BMI. ○        Tăng huyết áp:  Huyết áp sáng/tối, nhịp tim. ●        Tạo kế hoạch điều trị & Quy tắc dinh dưỡng (Nutrition Rules): ○        Thuốc & Vận động:  Lên lịch uống thuốc (tên thuốc, liều lượng, giờ uống), mục tiêu chỉ số cần đạt, mức vận động mục tiêu. ○        Thiết lập Quy tắc Dinh dưỡng:  Bác sĩ  không tạo từng món ăn cụ thể , mà thiết lập khung giới hạn định lượng  (ví dụ: tổng calo/ngày, lượng tinh bột tối đa, lượng muối giới hạn, tỷ lệ chất xơ)  tùy thuộc vào việc bệnh nhân bị tiểu đường, cao huyết áp hay mắc cả hai với sự giúp đỡ từ AI. ○        Quy trình AI support:  Từ dữ liệu của bệnh nhân,  AI sẽ tự động gợi ý lượng dinh dưỡng tiêu thụ , chỉ số dinh dưỡng/calo cụ thể và những kiêng và nên làm. Bác sĩ sẽ duyệt/chỉnh sửa trước khi chuyển giao cho bệnh nhân tham khảo. Bệnh nhân sẽ tuân thủ chế độ này. 2.2 Theo dõi bệnh  dữ liệu thô:  Kiểm tra lại log dữ liệu thô để đối chiếu khi cần thiết. 2.3 Xử lý cảnh báo ● Tăng huyết áp (Huyết áp tâm thu / tâm trương – mmHg) 🟩 XANH LÁ (An toàn - Đạt mục tiêu) * Huyết áp tâm thu < 120 mmHg và huyết áp tâm trương < 80 mmHg. 🟨 VÀNG (Chú ý - Level 1) * Huyết áp tâm thu từ 130 đến 139 mmHg; hoặc * Huyết áp tâm trương từ 85 đến 89 mmHg. 🟧 CAM (Nguy hiểm - Level 2) * Huyết áp tâm thu từ 140 đến 179 mmHg; hoặc * Huyết áp tâm trương từ 90 đến 109 mmHg. 🟥 ĐỎ (Cấp cứu - Level 3) * Huyết áp tâm thu ≥ 180 mmHg; hoặc * Huyết áp tâm trương ≥ 110 mmHg. Đường huyết:  🔴  Level 3 (Hạ):   < 4,4 mmol/L 🟢 (Bình thường):   4,4 – 10 mmol/L 🟠  Level 2 (Cao):   10 – 16 mmol/L 🔴  Level 3 (Khẩn cấp):   > 16 mmol/L Hành động với các mức: Mức 1: Hành động hệ thống: Ghi nhận đạt mục tiêu, hiển thị lời chúc/khen ngợi.  Mức 2:Hành động hệ thống: Cảnh báo đổi màu vàng nhạt; AI Agent 2 nhắc nhở cảnh báo nguy hiểm cần chú ý; KHÔNG thông báo cho bác sĩ.  Mức 3: Hành động hệ thống: Cảnh báo đổi màu cam nhạt; Gửi thông báo cho Bác sĩ; Bác sĩ kiểm tra lại dữ liệu bệnh nhân và điều chỉnh + theo dõi hoặc có thể hẹn tái khám nếu không cải thiện..  Mức 4: Hành động hệ thống: Cảnh báo chớp đỏ real-time; Hiện nút GỌI 115 và gọi người thân; Yêu cầu Bác sĩ can thiệp y tế trực tiếp ngay lập tức.  2.5 Xử lý yêu cầu thay đổi phác đồ/lịch sinh hoạt của Bệnh nhân ●        Quy tắc tiếp nhận trực tiếp:  Bác sĩ nhận trực tiếp nội dung yêu cầu thay đổi kèm theo nguyên do chi tiết do bệnh nhân tự viết/nói thông qua ứng dụng gửi lên.  ●        Xử lý:  Bác sĩ đọc trực tiếp nguyên do của bệnh nhân, xem xét dữ liệu sức khỏe gần nhất và tiến hành chỉnh sửa, cập nhật lại phác đồ/lịch sinh hoạt ngay trên giao diện cho phù hợp với hoàn cảnh thực tế của bệnh nhân. 2.6 Cập nhật hồ sơ sau tái khám ●        Nhập kết quả khám mới (chỉ số đo tại phòng khám, xét nghiệm HbA1c...). ●        Cập nhật kế hoạch điều trị nếu thay đổi phác đồ. ●        Xem biểu đồ so sánh giữa chỉ số tại phòng khám và dữ liệu tự theo dõi tại nhà của bệnh nhân (trong 7-14 ngày trước). ●        Chốt lịch hẹn mới:  Bác sĩ chọn ngày, giờ hẹn tái khám tiếp theo và ấn "Lưu lịch hẹn", hệ thống sẽ tự động đồng bộ lịch này lên ứng dụng của bệnh nhân. ●        Duyệt yêu cầu đổi lịch khám:  Tiếp nhận và bấm Phê duyệt (Accept) hoặc Từ chối (Reject) nếu bệnh nhân gửi yêu cầu xin đổi ngày tái khám. ●        Hủy/thay đổi lịch khám:  Khi bác sĩ hoặc bệnh viện hủy/thay đổi lịch khám, hệ thống tự động gửi thông báo kèm lý do đến bệnh nhân để bệnh nhân tự đặt lại. 2.7 Giới hạn quyền hạn ●        Bác sĩ chỉ truy cập được hồ sơ các bệnh nhân do mình phụ trách — không được phép xem bệnh nhân của bác sĩ khác trong cùng hệ thống bệnh viện. PHẦN 3 — BỆNH NHÂN Bệnh nhân là người cung cấp dữ liệu hằng ngày và tuân thủ kế hoạch điều trị. 3.1 Quản lý và Thiết lập tài khoản Bệnh nhân 1. Tạo tài khoản Bệnh nhân Hệ thống hỗ trợ bệnh nhân tạo và sử dụng tài khoản: ●    Đăng ký trực tuyến:    Bệnh nhân tải ứng dụng và tự tạo tài khoản bằng số điện thoại/email, xác thực OTP để kích hoạt.  2. Đặt lịch khám -Sau khi có tài khoản, bệnh nhân có thể: ●        Xem danh sách bác sĩ(chỉ hiển thị những bác sĩ chưa bị quá tải số lượng bệnh nhân) ●        Chọn bác sĩ mong muốn(khi chưa có bác sĩ theo dõi) ●        Đặt lịch khám theo thời gian có sẵn trên hệ thống ●        Nhận xác nhận lịch khám từ bệnh viện (bác sĩ xác nhận) -Nếu lịch khám bị Bệnh viện hoặc Bác sĩ hủy/thay đổi, hệ thống phải gửi thông báo kèm lý do và hoàn trả trạng thái chọn lịch cho bệnh nhân. Mới đăng ký  (Chỉ mở màn hình đặt lịch) và  Đang điều trị  (Mở đầy đủ tính năng nhập liệu, xem thực đơn, chat với AI,...) ngay sau khi Bác sĩ thực hiện khám lâm sàng và bấm "Liên kết bệnh nhân vào danh sách theo dõi"  3. Quy trình khám và ghi nhận dữ liệu Khi bệnh nhân đến khám theo lịch hẹn: ●        Bác sĩ tiếp nhận bệnh nhân theo lịch hệ thống ●        Bác sĩ thực hiện khám lâm sàng ●        Hệ thống cho phép bác sĩ: ○        nhập chỉ số y tế (huyết áp, đường huyết, cân nặng,…) ○        ghi nhận triệu chứng và chẩn đoán ○        tạo hồ sơ bệnh án điện tử ○        Liên kết bệnh nhân vào danh sách theo dõi ○        gửi phác đồ điều trị (thuốc, xét nghiệm, chế độ ăn nếu có) ○        lên lịch tái khám Hệ thống tự động: ●        lưu lịch sử điều trị ●        hiển thị thông tin cho bệnh nhân trên ứng dụng   3.2 Xem kế hoạch điều trị & Thực đơn ngày & Lịch hẹn ●        Lịch trình cá nhân:  Xem lịch uống thuốc liều lượng, giờ uống theo chỉ định của bác sĩ, mục tiêu chỉ số, mức vận động. ●        Xem thực đơn ăn uống:  Xem danh sách món ăn gợi ý tham khảo (được trích xuất từ gợi ý CSDL của bệnh viện), hiển thị rõ ràng các chỉ số dinh dưỡng của món ăn để tuân thủ. ●        Hướng dẫn khẩn cấp:  Truy cập nhanh và thực hiện theo bộ "Hướng dẫn xử lý khẩn cấp chung" hiển thị trên màn hình khi chỉ số đo rơi vào vùng cảnh báo xấu. ●        Lịch tái khám:  Xem rõ ràng ngày, giờ và địa điểm hẹn gặp bác sĩ trong lần tái khám tiếp theo ngay trên màn hình chính. 3.3 Quy định nhập liệu bắt buộc và Linh hoạt hằng ngày Hệ thống quy định cứng các mốc thời gian và chỉ số bắt buộc phải nhập trong ngày, các mốc thời gian khác ngoài khung này bệnh nhân có thể tùy chọn nhập thêm nếu muốn. Giao diện nhập liệu hằng ngày sẽ  tự động ẩn hoặc hiện  các mục dựa theo quyền bệnh lý mà bác sĩ đã thiết lập ở mục 2.1. Khung giờ quy định bắt buộc đối với các chỉ số hiển thị như sau: ●        Huyết áp (Chỉ hiển thị và bắt buộc nhập đối với nhóm: Tăng huyết áp & Đồng mắc. Bắt buộc nhập 2 lần/ngày): ○        Buổi sáng:  Đo và nhập ngay sau khi thức dậy (trước khi ăn sáng + trước khi uống thuốc). ○        Buổi tối:  Đo và nhập trước khi đi ngủ hoặc trước bữa ăn tối. ●        Tiểu đường / Glucose (Chỉ hiển thị và bắt buộc nhập đối với nhóm: Tiểu đường & Đồng mắc. Bắt buộc nhập 2 lần/ngày): ○        Mốc 1:  Đo và nhập trước khi ăn sáng. ○        Mốc 2:  Đo và nhập sau bữa ăn tối đúng 2 tiếng. ●        Phương thức nhập liệu thông minh (Nhập số hoặc Chụp ảnh): ○        Người dùng có thể nhập số thủ công hoặc sử dụng thanh lăn chỉ số trên ứng dụng. ○        Hệ thống sử dụng Google Cloud Vision API để xử lý OCR. Người dùng chụp ảnh màn hình máy đo bằng camera điện thoại và upload lên web ○        Tính năng chụp ảnh (có xác nhận): Người dùng dùng camera điện thoại chụp màn hình máy đo. Hệ thống AI tự động quét và đọc chỉ số qua OCR, sau đó hiển thị lại giá trị vừa đọc được để người dùng xác nhận. Người dùng bấm  "Xác nhận"  nếu đúng hoặc  "Sửa lại"  để nhập tay trước khi hệ thống lưu dữ liệu. Trong trường hợp OCR không đọc được (ảnh mờ, góc chụp lệch), hệ thống hiển thị thông báo "Không đọc được chỉ số — vui lòng nhập tay" và chuyển về màn hình nhập thủ công. ●        Ghi nhận bữa ăn và vận động:  Chọn món ăn từ danh sách thả xuống, chọn loại hình vận động (số bước chân/thời gian tập). 3.4 Nhận nhắc nhở sinh hoạt ●        Nhận thông báo nhắc uống thuốc (trước 30 phút) và nhắc nhập liệu nếu quá khung giờ quy định (9:00 sáng và 21:00 tối). Giới hạn tối đa 2 lần nhắc/loại/ngày. ●        Nhắc nhở lịch tái khám: Hệ thống tự động gửi thông báo nhắc nhở bệnh nhân trước 02 ngày 3.5 Xem tiến triển sức khỏe & Xác nhận tuân thủ ●        Xem biểu đồ chỉ số 7 ngày/30 ngày và tỷ lệ tuân thủ. ●        Tính năng tích chọn hoàn thành:  Giao diện hiển thị nút tích chọn trực quan. Người dùng sẽ bấm  tích chọn xác nhận "Đã uống thuốc"  và  "Đã uống đủ nước"  sau khi hoàn thành xong các mục này để hệ thống ghi nhận vào báo cáo tuân thủ. Xem lịch sử khám bệnh. 3.6 Gửi yêu cầu thay đổi gửi thẳng Bác sĩ ●        Khi có nhu cầu thay đổi lịch sinh hoạt/uống thuốc, bệnh nhân viết hoặc nói rõ mong muốn kèm theo  nguyên do cụ thể  để hệ thống gửi trực tiếp tới giao diện duyệt của Bác sĩ. ●        Xin đổi lịch tái khám:  Nếu bận vào ngày hẹn khám, bệnh nhân có thể chọn một ngày/giờ mong muốn khác và nhấn  "Gửi yêu cầu đổi lịch khám/Đặt lịch"  để chờ bác sĩ duyệt (luồng đi thẳng tới mục 2.6 của Bác sĩ).          PHẦN 4 — AI AGENT 1: CLINICAL SUPPORT AI Bản chất Clinical Support AI là tác nhân AI hoạt động ở tầng backend, có nhiệm vụ phân tích dữ liệu sức khỏe của bệnh nhân dưới dạng dữ liệu có cấu trúc nhằm hỗ trợ bác sĩ trong quá trình theo dõi và quản lý bệnh nhân từ xa. AI không thay thế bác sĩ trong việc chẩn đoán hoặc đưa ra quyết định điều trị. Các chức năng chính Phân tích chu kỳ tình trạng bệnh của bệnh nhân AI phân tích dữ liệu theo dõi trong các chu kỳ liên tiếp để nhận diện xu hướng thay đổi sức khỏe, đánh giá mức độ ổn định của các chỉ số bệnh lý và mức độ tuân thủ sinh hoạt của bệnh nhân. Từ đó, AI hỗ trợ bác sĩ theo dõi sự tiến triển của bệnh, phát hiện các dấu hiệu bất thường và đánh giá hiệu quả của kế hoạch điều trị hiện tại. Đề xuất các chỉ số mục tiêu cho chu kỳ tiếp theo Dựa trên tình trạng hiện tại, lịch sử theo dõi và mức độ đáp ứng điều trị của bệnh nhân, AI đề xuất bộ chỉ số mục tiêu phù hợp cho chu kỳ tiếp theo để bác sĩ tham khảo và phê duyệt. Các chỉ số mục tiêu có thể bao gồm: Chỉ số đường huyết mục tiêu. Chỉ số huyết áp mục tiêu. Tần suất đạt ngưỡng kiểm soát đường huyết và huyết áp. Mục tiêu cân nặng hoặc BMI. Mục tiêu số bước chân hoặc thời gian vận động. Mục tiêu giấc ngủ. Mục tiêu tuân thủ dùng thuốc. Các chỉ số sinh hoạt khác được cấu hình trong hệ thống. Hỗ trợ hội thoại với bác sĩ về tình trạng bệnh nhân AI cung cấp khả năng hội thoại với bác sĩ để giải thích các kết quả phân tích, trả lời các câu hỏi liên quan đến dữ liệu theo dõi, lý giải cơ sở của các chỉ số mục tiêu được đề xuất và hỗ trợ tra cứu nhanh thông tin sức khỏe của từng bệnh nhân dựa trên dữ liệu được lưu trữ trong hệ thống. Giới hạn AI chỉ đóng vai trò hỗ trợ phân tích và cung cấp thông tin tham khảo. Mọi quyết định chẩn đoán, điều trị, điều chỉnh thuốc hoặc thay đổi phác đồ đều thuộc thẩm quyền của bác sĩ.   PHẦN 6 — CƠ CHẾ PHẢN HỒI VÀ DỰ PHÒNG CHUNG ●        Cải thiện chất lượng AI (MVP):  Hệ thống ghi nhận các đánh giá "Không chính xác" từ bác sĩ đối với thực đơn/tóm tắt để rà soát hệ thống prompt (system prompt). Không fine-tune model trực tiếp trong giai đoạn MVP. ●        Khi LLM API gặp sự cố/gián đoạn: ○        Dashboard của Bác sĩ vẫn hiển thị đầy đủ dữ liệu thô và các cảnh báo tự động do bộ quy tắc cứng (rule-engine) xử lý. Bộ hướng dẫn khẩn cấp chung (Mục 1.2) vẫn hoạt động bình thường trên app bệnh nhân. ○        Hệ thống hiển thị thông báo:  "Tóm tắt/Gợi ý thực đơn tạm thời không khả dụng..."  tại các vùng hiển thị của AI. ○        Chạy bù tác vụ tóm tắt dữ liệu và đồng bộ thực đơn ngay khi kết nối LLM API khôi phục thành công.  
+TÀI LIỆU NGHIỆP VỤ: HỆ THỐNG THEO DÕI BỆNH NHÂN TỪ XA
+bệnh nhân sẽ dùng web được thiết kế cho điện thoại
+PHẦN 1 — BỆNH VIỆN(ADMIN)
+Bệnh viện là đơn vị quản lý hệ thống ở cấp cao nhất. Tài khoản quản trị của bệnh viện do đội kỹ thuật tạo thủ công trong giai đoạn triển khai — không có chức năng tự đăng ký.
+1.1 Quản lý bác sĩ
+●      Tạo tài khoản bác sĩ mới: Điền các thông tin bao gồm họ tên, mã bác sĩ, số điện thoại, email đăng nhập,hệ thống sẽ gửi mật khẩu tự động ra ngẫu nhiên  ban đầu cho cho bác sĩ qua email .
+Cấu hình giới hạn số lượng bệnh nhân (Patient Capacity Limit):
+●      Hệ thống cho phép Bệnh viện,được cấu hình bác sĩ và  thiết lập một hạn ngạch (quota) số lượng bệnh nhân tối đa mà một bác sĩ được phép quản lý cùng một lúc (ví dụ: tối đa 50 hoặc 100 bệnh nhân/bác sĩ tùy thuộc vào phân ngạch năng lực).
+●      Khi số lượng bệnh nhân hiện tại của bác sĩ đạt đến ngưỡng giới hạn này, hệ thống sẽ tự động ẩn tên bác sĩ đó khỏi danh sách tìm kiếm của bệnh nhân mới ở luồng đăng ký trực tuyến, hoặc cảnh báo ngăn chặn nếu bác sĩ cố tình onboarding thêm tại viện.
+●      Theo dõi nhân sự & Giám sát khối lượng công việc: Xem danh sách toàn bộ bác sĩ kèm theo thanh tiến trình hiển thị trực quan tỷ lệ lấp đầy tải lượng bệnh nhân (Ví dụ: Bác sĩ A: 45/50 bệnh nhân - Tải lượng 90%).
+●      Vô hiệu hóa tài khoản: Thực hiện khi bác sĩ nghỉ việc hoặc chuyển công tác. Dữ liệu bệnh nhân của bác sĩ đó vẫn được giữ nguyên và có thể tắt vô hiệu hóa cho bác sĩ đã vô hiệu hóa, bệnh viện có thể giao lại cho bác sĩ khác quản lý.
+●      Theo dõi nhân sự: Xem danh sách toàn bộ bác sĩ đang hoạt động trong hệ thống.
+1.2 Cấu hình ngưỡng cảnh báo & Hướng dẫn khẩn cấp
+●      Thiết lập mặc định: Đặt ngưỡng cảnh báo cho toàn bệnh viện (glucose, huyết áp, các chỉ số khác).
+*Khung chỉ số quy định cứng của hệ thống bao gồm:
+●      Tiểu đường Type 2 (Đối với đường huyết lúc đói):(chuyển tất cả các đơn vị phần tiểu đường mg/dl thành moml/L và dùng theo  chỉ số mà đất nước xác nhận sử dụng )
+ Level 1 (Hạ): < 4,4 mmol/L  
+ Level 2 (Bình thường): 4,4 – 10 mmol/L
+ Level 3 (Cao): 10 – 16 mmol/L
+ Level 4 (Khẩn cấp): > 16 mmol/L
+●      Tăng huyết áp (Huyết áp tâm thu / tâm trương):(dùng chỉ số theo chỉ số mà đất nước xác nhận sử dụng) 
+🟩 XANH LÁ (An toàn - Đạt mục tiêu)
+* Huyết áp tâm thu < 120 mmHg và huyết áp tâm trương < 80 mmHg.
+🟨 VÀNG (Chú ý - Level 1)
+* Huyết áp tâm thu từ 130 đến 139 mmHg; hoặc
+* Huyết áp tâm trương từ 85 đến 89 mmHg.
+🟧 CAM (Nguy hiểm - Level 2)
+* Huyết áp tâm thu từ 140 đến 179 mmHg; hoặc
+* Huyết áp tâm trương từ 90 đến 109 mmHg.
+🟥 ĐỎ (Cấp cứu - Level 3)
+* Huyết áp tâm thu ≥ 180 mmHg; hoặc
+* Huyết áp tâm trương ≥ 110 mmHg.
+ 
+●      Cấu hình xử lý khẩn cấp chung: Thiết lập các nội dung cảnh báo kèm theo hệ thống hướng dẫn xử lý khẩn cấp chung cho bệnh nhân (ví dụ: các bước sơ cứu, tư thế nằm, uống nước ấm, hoặc uống thuốc dự phòng theo danh mục an toàn) để bệnh nhân có thể chủ động tự xử lý lập tức khi hệ thống kích hoạt trạng thái sức khỏe xấu.
+●      Điều chỉnh cá nhân hóa: Bác sĩ có thể điều chỉnh ngưỡng chỉ số mục tiêu riêng cho từng bệnh nhân.
+1.3 Báo cáo tổng quan
+●      Dashboard tổng quan: Xem tổng số bệnh nhân đang theo dõi, số bệnh nhân có cảnh báo chưa xử lý, số bác sĩ đang hoạt động.
+●      Báo cáo theo thời gian: Xem tỷ lệ bệnh nhân tuân thủ thuốc, tỷ lệ nhập liệu đủ trong ngày, số ca cảnh báo Level 3 trong tháng.
+1.4 Giới hạn quyền hạn
+●      Bệnh viện không được xem chi tiết hồ sơ y tế của bệnh nhân cụ thể — chỉ được truy cập dữ liệu thống kê tổng hợp và quản lý tài khoản,.
+●      Quyền xem chi tiết hồ sơ bệnh nhân chỉ thuộc về bác sĩ trực tiếp phụ trách.
+ 
+PHẦN 2 — BÁC SĨ
+Bác sĩ là trung tâm của hệ thống — người ra quyết định y tế cuối cùng trong mọi tình huống.
+2.1 Onboarding bệnh nhân mới & Phân loại quyền nhập liệu bệnh lý & Thiết lập Quy tắc dinh dưỡng
+●      Tạo/Cập nhật hồ sơ bệnh nhân: Khởi tạo thông tin lâm sàng sau khi duyệt kết nối: chẩn đoán bệnh nền, tiền sử bệnh và bệnh đi kèm.
+Phân quyền danh mục bệnh lý (Disease Profile Configuration): Bác sĩ bắt buộc phải tích chọn phân loại bệnh lý cho bệnh nhân. Lựa chọn này sẽ trực tiếp định hình giao diện App của bệnh nhân:
+Gói chỉ định Tăng huyết áp: Bệnh nhân chỉ cần nhập huyết áp, nhịp tim. Màn hình ẩn phần nhập tiểu đường.
+Gói chỉ định Tiểu đường Type 2: Bệnh nhân chỉ cần nhập glucose. Màn hình ẩn phần nhập huyết áp.
+Gói chỉ định Đồng mắc (Cả hai bệnh): Bệnh nhân bắt buộc phải nhập đầy đủ cả hai nhóm chỉ số huyết áp và glucose.
+ 
+●      Nhập kết quả khám tại viện:
+-Dựa trên phân loại bệnh lý nêu trên, bác sĩ nhập các chỉ số tương ứng
+-- Cân nặng (kg)
+-- Chiều cao (cm)
+-- Chỉ số BMI (tính toán)
+-- Huyết ap tâm thu (mmHg)
+-- Huyết ap tâm trương (mmHg)
+-- Nhịp tim (lan/phút)
+-- Đường huyết lúc đói (mg/dL)
+-- Chỉ số HbA1c (%) - đánh giá đường huyết 3 tháng
+○      Tiểu đường: Glucose lúc đói, HbA1c, cân nặng, BMI.
+○      Tăng huyết áp: Huyết áp sáng/tối, nhịp tim.
+●      Tạo kế hoạch điều trị & Quy tắc dinh dưỡng (Nutrition Rules):
+○      Thuốc & Vận động: Lên lịch uống thuốc (tên thuốc, liều lượng, giờ uống), mục tiêu chỉ số cần đạt, mức vận động mục tiêu.
+○      Thiết lập Quy tắc Dinh dưỡng: Bác sĩ không tạo từng món ăn cụ thể, mà thiết lập khung giới hạn định lượng (ví dụ: tổng calo/ngày, lượng tinh bột tối đa, lượng muối giới hạn, tỷ lệ chất xơ) tùy thuộc vào việc bệnh nhân bị tiểu đường, cao huyết áp hay mắc cả hai với sự giúp đỡ từ AI.
+○      Quy trình AI support: Từ dữ liệu của bệnh nhân, AI sẽ tự động gợi ý lượng dinh dưỡng tiêu thụ,chỉ số dinh dưỡng/calo cụ thể và những kiêng và nên làm. Bác sĩ sẽ duyệt/chỉnh sửa trước khi chuyển giao cho bệnh nhân tham khảo. Bệnh nhân sẽ tuân thủ chế độ này.
+2.2 Theo dõi bệnh dữ liệu thô: Kiểm tra lại log dữ liệu thô để đối chiếu khi cần thiết.
+2.3 Xử lý cảnh báo
+● Tăng huyết áp (Huyết áp tâm thu / tâm trương – mmHg)
+🟩 XANH LÁ (An toàn - Đạt mục tiêu)
+* Huyết áp tâm thu < 120 mmHg và huyết áp tâm trương < 80 mmHg.
+🟨 VÀNG (Chú ý - Level 1)
+* Huyết áp tâm thu từ 130 đến 139 mmHg; hoặc
+* Huyết áp tâm trương từ 85 đến 89 mmHg.
+🟧 CAM (Nguy hiểm - Level 2)
+* Huyết áp tâm thu từ 140 đến 179 mmHg; hoặc
+* Huyết áp tâm trương từ 90 đến 109 mmHg.
+🟥 ĐỎ (Cấp cứu - Level 3)
+* Huyết áp tâm thu ≥ 180 mmHg; hoặc
+* Huyết áp tâm trương ≥ 110 mmHg.
+Đường huyết: 
+🔴 Level 3 (Hạ): < 4,4 mmol/L
+🟢(Bình thường): 4,4 – 10 mmol/L
+🟠 Level 2 (Cao): 10 – 16 mmol/L
+🔴 Level 3 (Khẩn cấp): > 16 mmol/L
+Hành động với các mức:
+Mức 1: Hành động hệ thống: Ghi nhận đạt mục tiêu, hiển thị lời chúc/khen ngợi. 
+Mức 2:Hành động hệ thống: Cảnh báo đổi màu vàng nhạt; AI Agent 2 nhắc nhở cảnh báo nguy hiểm cần chú ý; KHÔNG thông báo cho bác sĩ. 
+Mức 3: Hành động hệ thống: Cảnh báo đổi màu cam nhạt; Gửi thông báo cho Bác sĩ; Bác sĩ kiểm tra lại dữ liệu bệnh nhân và điều chỉnh + theo dõi hoặc có thể hẹn tái khám nếu không cải thiện.. 
+Mức 4: Hành động hệ thống: Cảnh báo chớp đỏ real-time; Hiện nút GỌI 115 và gọi người thân; Yêu cầu Bác sĩ can thiệp y tế trực tiếp ngay lập tức. 
+2.5 Xử lý yêu cầu thay đổi phác đồ/lịch sinh hoạt của Bệnh nhân
+●      Quy tắc tiếp nhận trực tiếp: Bác sĩ nhận trực tiếp nội dung yêu cầu thay đổi kèm theo nguyên do chi tiết do bệnh nhân tự viết/nói thông qua ứng dụng gửi lên. 
+●      Xử lý: Bác sĩ đọc trực tiếp nguyên do của bệnh nhân, xem xét dữ liệu sức khỏe gần nhất và tiến hành chỉnh sửa, cập nhật lại phác đồ/lịch sinh hoạt ngay trên giao diện cho phù hợp với hoàn cảnh thực tế của bệnh nhân.
+2.6 Cập nhật hồ sơ sau tái khám
+●      Nhập kết quả khám mới (chỉ số đo tại phòng khám, xét nghiệm HbA1c...).
+●      Cập nhật kế hoạch điều trị nếu thay đổi phác đồ.
+●      Xem biểu đồ so sánh giữa chỉ số tại phòng khám và dữ liệu tự theo dõi tại nhà của bệnh nhân (trong 7-14 ngày trước).
+●      Chốt lịch hẹn mới: Bác sĩ chọn ngày, giờ hẹn tái khám tiếp theo và ấn "Lưu lịch hẹn", hệ thống sẽ tự động đồng bộ lịch này lên ứng dụng của bệnh nhân.
+●      Duyệt yêu cầu đổi lịch khám: Tiếp nhận và bấm Phê duyệt (Accept) hoặc Từ chối (Reject) nếu bệnh nhân gửi yêu cầu xin đổi ngày tái khám.
+●      Hủy/thay đổi lịch khám: Khi bác sĩ hoặc bệnh viện hủy/thay đổi lịch khám, hệ thống tự động gửi thông báo kèm lý do đến bệnh nhân để bệnh nhân tự đặt lại.
+2.7 Giới hạn quyền hạn
+●      Bác sĩ chỉ truy cập được hồ sơ các bệnh nhân do mình phụ trách — không được phép xem bệnh nhân của bác sĩ khác trong cùng hệ thống bệnh viện.
+PHẦN 3 — BỆNH NHÂN
+Bệnh nhân là người cung cấp dữ liệu hằng ngày và tuân thủ kế hoạch điều trị.
+3.1 Quản lý và Thiết lập tài khoản Bệnh nhân
+1. Tạo tài khoản Bệnh nhân
+Hệ thống hỗ trợ bệnh nhân tạo và sử dụng tài khoản:
+●  Đăng ký trực tuyến:  Bệnh nhân tải ứng dụng và tự tạo tài khoản bằng số điện thoại/email, xác thực OTP để kích hoạt. 
+2. Đặt lịch khám
+-Sau khi có tài khoản, bệnh nhân có thể:
+●      Xem danh sách bác sĩ(chỉ hiển thị những bác sĩ chưa bị quá tải số lượng bệnh nhân)
+●      Chọn bác sĩ mong muốn(khi chưa có bác sĩ theo dõi)
+●      Đặt lịch khám theo thời gian có sẵn trên hệ thống
+●      Nhận xác nhận lịch khám từ bệnh viện (bác sĩ xác nhận)
+-Nếu lịch khám bị Bệnh viện hoặc Bác sĩ hủy/thay đổi, hệ thống phải gửi thông báo kèm lý do và hoàn trả trạng thái chọn lịch cho bệnh nhân.
+Mới đăng ký (Chỉ mở màn hình đặt lịch) và Đang điều trị (Mở đầy đủ tính năng nhập liệu, xem thực đơn, chat với AI,...) ngay sau khi Bác sĩ thực hiện khám lâm sàng và bấm "Liên kết bệnh nhân vào danh sách theo dõi" 
+3. Quy trình khám và ghi nhận dữ liệu
+Khi bệnh nhân đến khám theo lịch hẹn:
+●      Bác sĩ tiếp nhận bệnh nhân theo lịch hệ thống
+●      Bác sĩ thực hiện khám lâm sàng
+●      Hệ thống cho phép bác sĩ:
+○      nhập chỉ số y tế (huyết áp, đường huyết, cân nặng,…)
+○      ghi nhận triệu chứng và chẩn đoán
+○      tạo hồ sơ bệnh án điện tử
+○      Liên kết bệnh nhân vào danh sách theo dõi
+○      gửi phác đồ điều trị (thuốc, xét nghiệm, chế độ ăn nếu có)
+○      lên lịch tái khám
+Hệ thống tự động:
+●      lưu lịch sử điều trị
+●      hiển thị thông tin cho bệnh nhân trên ứng dụng
+ 
+3.2 Xem kế hoạch điều trị & Thực đơn ngày & Lịch hẹn
+●      Lịch trình cá nhân: Xem lịch uống thuốc liều lượng, giờ uống theo chỉ định của bác sĩ, mục tiêu chỉ số, mức vận động.
+●      Xem thực đơn ăn uống: Xem danh sách món ăn gợi ý tham khảo (được trích xuất từ gợi ý CSDL của bệnh viện), hiển thị rõ ràng các chỉ số dinh dưỡng của món ăn để tuân thủ.
+●      Hướng dẫn khẩn cấp: Truy cập nhanh và thực hiện theo bộ "Hướng dẫn xử lý khẩn cấp chung" hiển thị trên màn hình khi chỉ số đo rơi vào vùng cảnh báo xấu.
+●      Lịch tái khám: Xem rõ ràng ngày, giờ và địa điểm hẹn gặp bác sĩ trong lần tái khám tiếp theo ngay trên màn hình chính.
+3.3 Quy định nhập liệu bắt buộc và Linh hoạt hằng ngày
+Hệ thống quy định cứng các mốc thời gian và chỉ số bắt buộc phải nhập trong ngày, các mốc thời gian khác ngoài khung này bệnh nhân có thể tùy chọn nhập thêm nếu muốn. Giao diện nhập liệu hằng ngày sẽ tự động ẩn hoặc hiện các mục dựa theo quyền bệnh lý mà bác sĩ đã thiết lập ở mục 2.1. Khung giờ quy định bắt buộc đối với các chỉ số hiển thị như sau:
+●      Huyết áp (Chỉ hiển thị và bắt buộc nhập đối với nhóm: Tăng huyết áp & Đồng mắc. Bắt buộc nhập 2 lần/ngày):
+○      Buổi sáng: Đo và nhập ngay sau khi thức dậy (trước khi ăn sáng + trước khi uống thuốc).
+○      Buổi tối: Đo và nhập trước khi đi ngủ hoặc trước bữa ăn tối.
+●      Tiểu đường / Glucose (Chỉ hiển thị và bắt buộc nhập đối với nhóm: Tiểu đường & Đồng mắc. Bắt buộc nhập 2 lần/ngày):
+○      Mốc 1: Đo và nhập trước khi ăn sáng.
+○      Mốc 2: Đo và nhập sau bữa ăn tối đúng 2 tiếng.
+●      Phương thức nhập liệu thông minh (Nhập số hoặc Chụp ảnh):
+○      Người dùng có thể nhập số thủ công hoặc sử dụng thanh lăn chỉ số trên ứng dụng.
+○      Hệ thống sử dụng Google Cloud Vision API để xử lý OCR. Người dùng chụp ảnh màn hình máy đo bằng camera điện thoại và upload lên web
+○      Tính năng chụp ảnh (có xác nhận): Người dùng dùng camera điện thoại chụp màn hình máy đo. Hệ thống AI tự động quét và đọc chỉ số qua OCR, sau đó hiển thị lại giá trị vừa đọc được để người dùng xác nhận. Người dùng bấm "Xác nhận" nếu đúng hoặc "Sửa lại" để nhập tay trước khi hệ thống lưu dữ liệu. Trong trường hợp OCR không đọc được (ảnh mờ, góc chụp lệch), hệ thống hiển thị thông báo "Không đọc được chỉ số — vui lòng nhập tay" và chuyển về màn hình nhập thủ công.
+●      Ghi nhận bữa ăn và vận động: Chọn món ăn từ danh sách thả xuống, chọn loại hình vận động (số bước chân/thời gian tập).
+3.4 Nhận nhắc nhở sinh hoạt
+●      Nhận thông báo nhắc uống thuốc (trước 30 phút) và nhắc nhập liệu nếu quá khung giờ quy định (9:00 sáng và 21:00 tối). Giới hạn tối đa 2 lần nhắc/loại/ngày.
+●      Nhắc nhở lịch tái khám: Hệ thống tự động gửi thông báo nhắc nhở bệnh nhân trước 02 ngày
+3.5 Xem tiến triển sức khỏe & Xác nhận tuân thủ
+●      Xem biểu đồ chỉ số 7 ngày/30 ngày và tỷ lệ tuân thủ.
+●      Tính năng tích chọn hoàn thành: Giao diện hiển thị nút tích chọn trực quan. Người dùng sẽ bấm tích chọn xác nhận "Đã uống thuốc" và "Đã uống đủ nước" sau khi hoàn thành xong các mục này để hệ thống ghi nhận vào báo cáo tuân thủ.
+Xem lịch sử khám bệnh.
+3.6 Gửi yêu cầu thay đổi gửi thẳng Bác sĩ
+●      Khi có nhu cầu thay đổi lịch sinh hoạt/uống thuốc, bệnh nhân viết hoặc nói rõ mong muốn kèm theo nguyên do cụ thể để hệ thống gửi trực tiếp tới giao diện duyệt của Bác sĩ.
+●      Xin đổi lịch tái khám: Nếu bận vào ngày hẹn khám, bệnh nhân có thể chọn một ngày/giờ mong muốn khác và nhấn "Gửi yêu cầu đổi lịch khám/Đặt lịch" để chờ bác sĩ duyệt (luồng đi thẳng tới mục 2.6 của Bác sĩ).
+       
+PHẦN 4 — AI AGENT 1: CLINICAL SUPPORT AI
+Bản chất
+Clinical Support AI là tác nhân AI hoạt động ở tầng backend, có nhiệm vụ phân tích dữ liệu sức khỏe của bệnh nhân dưới dạng dữ liệu có cấu trúc nhằm hỗ trợ bác sĩ trong quá trình theo dõi và quản lý bệnh nhân từ xa. AI không thay thế bác sĩ trong việc chẩn đoán hoặc đưa ra quyết định điều trị.
+Các chức năng chính
+Phân tích chu kỳ tình trạng bệnh của bệnh nhân
+AI phân tích dữ liệu theo dõi trong các chu kỳ liên tiếp để nhận diện xu hướng thay đổi sức khỏe, đánh giá mức độ ổn định của các chỉ số bệnh lý và mức độ tuân thủ sinh hoạt của bệnh nhân. Từ đó, AI hỗ trợ bác sĩ theo dõi sự tiến triển của bệnh, phát hiện các dấu hiệu bất thường và đánh giá hiệu quả của kế hoạch điều trị hiện tại.
+Đề xuất các chỉ số mục tiêu cho chu kỳ tiếp theo
+Dựa trên tình trạng hiện tại, lịch sử theo dõi và mức độ đáp ứng điều trị của bệnh nhân, AI đề xuất bộ chỉ số mục tiêu phù hợp cho chu kỳ tiếp theo để bác sĩ tham khảo và phê duyệt.
+Các chỉ số mục tiêu có thể bao gồm:
+Chỉ số đường huyết mục tiêu.
+Chỉ số huyết áp mục tiêu.
+Tần suất đạt ngưỡng kiểm soát đường huyết và huyết áp.
+Mục tiêu cân nặng hoặc BMI.
+Mục tiêu số bước chân hoặc thời gian vận động.
+Mục tiêu giấc ngủ.
+Mục tiêu tuân thủ dùng thuốc.
+Các chỉ số sinh hoạt khác được cấu hình trong hệ thống.
+Hỗ trợ hội thoại với bác sĩ về tình trạng bệnh nhân
+AI cung cấp khả năng hội thoại với bác sĩ để giải thích các kết quả phân tích, trả lời các câu hỏi liên quan đến dữ liệu theo dõi, lý giải cơ sở của các chỉ số mục tiêu được đề xuất và hỗ trợ tra cứu nhanh thông tin sức khỏe của từng bệnh nhân dựa trên dữ liệu được lưu trữ trong hệ thống.
+Giới hạn
+AI chỉ đóng vai trò hỗ trợ phân tích và cung cấp thông tin tham khảo. Mọi quyết định chẩn đoán, điều trị, điều chỉnh thuốc hoặc thay đổi phác đồ đều thuộc thẩm quyền của bác sĩ.
+ 
+PHẦN 6 — CƠ CHẾ PHẢN HỒI VÀ DỰ PHÒNG CHUNG
+●      Cải thiện chất lượng AI (MVP): Hệ thống ghi nhận các đánh giá "Không chính xác" từ bác sĩ đối với thực đơn/tóm tắt để rà soát hệ thống prompt (system prompt). Không fine-tune model trực tiếp trong giai đoạn MVP.
+●      Khi LLM API gặp sự cố/gián đoạn:
+○      Dashboard của Bác sĩ vẫn hiển thị đầy đủ dữ liệu thô và các cảnh báo tự động do bộ quy tắc cứng (rule-engine) xử lý. Bộ hướng dẫn khẩn cấp chung (Mục 1.2) vẫn hoạt động bình thường trên app bệnh nhân.
+○      Hệ thống hiển thị thông báo: "Tóm tắt/Gợi ý thực đơn tạm thời không khả dụng..." tại các vùng hiển thị của AI.
+○      Chạy bù tác vụ tóm tắt dữ liệu và đồng bộ thực đơn ngay khi kết nối LLM API khôi phục thành công.
+ 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <th:block th:replace="~{patient/fragments :: header-links('Cẩm nang y tế')}"></th:block>
+    <style>
+        body { background: #f5f7fb; }
+        .handbook-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            padding: 24px 0 20px;
+            color: #fff;
+        }
+        .article-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #3b82f6 !important;
+        }
+        .article-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .article-card.glucose-card {
+            border-left-color: #0d9488 !important;
+        }
+        .sidebar-nav .nav-link {
+            color: #4b5563;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 12px 16px;
+            transition: all 0.2s;
+        }
+        .sidebar-nav .nav-link.active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+        .sidebar-nav .nav-link#pills-glucose-tab.active {
+            background-color: #f0fdf4;
+            color: #0d9488;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="handbook-header mb-4">
+        <div class="container position-relative text-center">
+            <a href="/patient/dashboard" class="btn btn-sm btn-outline-light position-absolute start-0 top-50 translate-middle-y ms-3 rounded-pill px-3" style="font-size: 0.8rem;">
+                <i class="fa-solid fa-chevron-left me-1"></i>Quay lại
+            </a>
+            <h5 class="fw-bold mb-1"><i class="fa-solid fa-book-open me-2"></i>CẨM NANG KIẾN THỨC Y TẾ</h5>
+            <p class="small text-white-50 mb-0">Tra cứu hướng dẫn phòng ngừa và xử trí khẩn cấp</p>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="container py-2" style="padding-bottom: 120px !important;">
+        <div class="row">
+            <!-- Left Sidebar Menu -->
+            <div class="col-md-4 mb-4">
+                <div class="card card-custom p-3 shadow-sm border-0">
+                    <ul class="nav nav-pills flex-column sidebar-nav gap-2" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active w-100 text-start" id="pills-bp-tab" data-bs-toggle="pill" data-bs-target="#pills-bp" type="button" role="tab" aria-controls="pills-bp" aria-selected="true">
+                                <i class="fa-solid fa-heart-pulse me-2 text-danger"></i>Cẩm nang Huyết áp
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link w-100 text-start" id="pills-glucose-tab" data-bs-toggle="pill" data-bs-target="#pills-glucose" type="button" role="tab" aria-controls="pills-glucose" aria-selected="false">
+                                <i class="fa-solid fa-droplet me-2 text-info"></i>Cẩm nang Đường huyết
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <hr class="my-3">
+                    
+                    <!-- Link to Quiz -->
+                    <a href="/patient/quiz" class="btn btn-success w-100 py-2.5 rounded-pill fw-bold text-decoration-none shadow-sm" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-graduation-cap me-1"></i> Làm bài trắc nghiệm kiến thức
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Content List -->
+            <div class="col-md-8">
+                <div class="tab-content" id="pills-tabContent">
+                    
+                    <!-- Pane 1: Blood Pressure Handbook -->
+                    <div class="tab-pane fade show active" id="pills-bp" role="tabpanel" aria-labelledby="pills-bp-tab">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-heart-pulse me-2 text-danger"></i>Các hướng dẫn về Huyết áp</h5>
+                        
+                        <div th:each="p : ${bpProtocols}" class="card article-card p-4 mb-3 border-0">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold text-dark mb-0" th:text="${p.title}">Tiêu đề</h6>
+                                <span class="badge bg-danger text-white text-uppercase" th:text="${p.conditionType}">HYPERTENSIVE_CRISIS</span>
+                            </div>
+                            
+                            <p class="text-secondary small mb-2" th:if="${p.warningSigns}">
+                                <strong>Dấu hiệu:</strong> <span th:text="${p.warningSigns}"></span>
+                            </p>
+                            
+                            <div class="mt-2 pt-2 border-top">
+                                <strong class="small d-block mb-2 text-primary"><i class="fa-solid fa-list-check me-1"></i>Hướng dẫn xử trí chi tiết:</strong>
+                                <p class="mb-0 text-secondary small lh-base" style="font-size: 0.85rem; white-space: pre-line;" th:text="${p.instructionContent}">Nội dung hướng dẫn</p>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${#lists.isEmpty(bpProtocols)}" class="text-center py-5 text-muted bg-white rounded-3 border">
+                            <i class="fa-solid fa-file-circle-xmark fa-2x mb-2 text-muted"></i>
+                            <p class="mb-0 fw-semibold">Không có tài liệu hướng dẫn huyết áp nào.</p>
+                        </div>
+                    </div>
+
+                    <!-- Pane 2: Glucose Handbook -->
+                    <div class="tab-pane fade" id="pills-glucose" role="tabpanel" aria-labelledby="pills-glucose-tab">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-droplet me-2 text-info"></i>Các hướng dẫn về Đường huyết</h5>
+                        
+                        <div th:each="p : ${glucoseProtocols}" class="card article-card glucose-card p-4 mb-3 border-0">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold text-dark mb-0" th:text="${p.title}">Tiêu đề</h6>
+                                <span class="badge bg-teal text-white text-uppercase" style="background-color: #0d9488;" th:text="${p.conditionType}">GLUCOSE</span>
+                            </div>
+                            
+                            <p class="text-secondary small mb-2" th:if="${p.warningSigns}">
+                                <strong>Dấu hiệu:</strong> <span th:text="${p.warningSigns}"></span>
+                            </p>
+                            
+                            <div class="mt-2 pt-2 border-top">
+                                <strong class="small d-block mb-2 text-teal" style="color: #0d9488;"><i class="fa-solid fa-list-check me-1"></i>Hướng dẫn xử trí chi tiết:</strong>
+                                <p class="mb-0 text-secondary small lh-base" style="font-size: 0.85rem; white-space: pre-line;" th:text="${p.instructionContent}">Nội dung hướng dẫn</p>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${#lists.isEmpty(glucoseProtocols)}" class="text-center py-5 text-muted bg-white rounded-3 border">
+                            <i class="fa-solid fa-file-circle-xmark fa-2x mb-2 text-muted"></i>
+                            <p class="mb-0 fw-semibold">Không có tài liệu hướng dẫn đường huyết nào.</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div th:replace="~{patient/fragments :: bottom-nav}"></div>
+
+    <!-- Footer JavaScript Scripts -->
+    <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
+
+</body>
+</html>

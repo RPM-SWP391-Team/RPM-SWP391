@@ -23,4 +23,9 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
 
     @Query("SELECT a FROM Alert a WHERE a.patient.hospital.id = :hospitalId AND a.isResolved = false AND UPPER(a.alertColor) = 'RED'")
     Page<Alert> findUnresolvedRedAlertsByHospital(@Param("hospitalId") Integer hospitalId, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("DELETE FROM Alert a WHERE a.healthLog.id = :healthLogId")
+    void deleteByHealthLogId(@Param("healthLogId") Integer healthLogId);
 }
