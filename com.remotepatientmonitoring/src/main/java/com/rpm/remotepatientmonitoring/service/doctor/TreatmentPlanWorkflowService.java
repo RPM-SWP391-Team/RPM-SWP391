@@ -33,6 +33,9 @@ public class TreatmentPlanWorkflowService {
     private ClinicalRecordRepository clinicalRecordRepository;
 
     @Autowired
+    private HealthLogRepository healthLogRepository;
+
+    @Autowired
     private AuditTrailService auditTrailService;
 
     @Transactional
@@ -138,6 +141,23 @@ public class TreatmentPlanWorkflowService {
                 .updatedAt(now)
                 .build();
         clinicalRecordRepository.save(record);
+        
+        // Log baseline metrics to DailyHealthLog for charts and history
+        if (baselineSystolicBp != null || baselineDiastolicBp != null || baselineFastingGlucose != null) {
+            DailyHealthLog healthLog = DailyHealthLog.builder()
+                    .patient(patient)
+                    .logDate(now.toLocalDate())
+                    .logTime(now)
+                    .logType("RANDOM")
+                    .systolicBp(baselineSystolicBp)
+                    .diastolicBp(baselineDiastolicBp)
+                    .glucoseLevel(baselineFastingGlucose)
+                    .inputMethod("MANUAL")
+                    .patientNotes("Chỉ số đo tại viện")
+                    .isOcrValidated(false)
+                    .build();
+            healthLogRepository.save(healthLog);
+        }
 
         newPlan.setBaselineSystolicBp(baselineSystolicBp);
         newPlan.setBaselineDiastolicBp(baselineDiastolicBp);
