@@ -1055,6 +1055,10 @@ public class DoctorViewController {
         notif.setIsRead(true);
         notificationRepository.save(notif);
 
+        if (notif.getTitle() != null && notif.getTitle().toLowerCase().contains("bàn giao")) {
+            return REDIRECT_CHANGE_REQUESTS;
+        }
+
         if (notif.getPatient() != null) {
             return "redirect:/doctor/patient-detail/" + notif.getPatient().getId();
         }
