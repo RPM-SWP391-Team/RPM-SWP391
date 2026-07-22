@@ -94,19 +94,14 @@ public class PatientInteractionService {
     }
 
     public List<Doctor> getAllDoctors() {
-        return doctorRepository.findAll();
+        return doctorRepository.findAllAvailableDoctors();
     }
 
     @Transactional
     public void createChangeRequest(ChangeRequest changeRequest, Patient patient) {
         Doctor doctor = patient.getDoctor();
         if (doctor == null) {
-            List<Doctor> all = doctorRepository.findAll();
-            if (all.size() > 0) {
-                doctor = all.get(0);
-            } else {
-                throw new IllegalStateException("No doctor found in database to receive requests.");
-            }
+            throw new IllegalStateException("Bạn chưa được phân công bác sĩ phụ trách, không thể gửi yêu cầu thay đổi phác đồ/lịch khám.");
         }
 
         changeRequest.setPatient(patient);
@@ -138,6 +133,10 @@ public class PatientInteractionService {
             throw new IllegalArgumentException("Invalid doctor Id: " + doctorId);
         }
         Doctor doctor = doctorOpt.get();
+        if (doctor.getCurrentPatientCount() != null && doctor.getCapacityLimit() != null 
+                && doctor.getCurrentPatientCount() >= doctor.getCapacityLimit()) {
+            throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " hiện đã đạt giới hạn tiếp nhận bệnh nhân (" + doctor.getCapacityLimit() + " bệnh nhân), không thể nhận thêm đơn hẹn mới.");
+        }
 
         Appointment appt = Appointment.builder()
                 .patient(patient)

@@ -78,7 +78,7 @@ public class AuthService {
      *
      * @return mã OTP đã tạo (để controller truyền cho sendOtpEmailSafely)
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public String registerPatient(String email, String password, String fullName, String phone,
                                   String dateOfBirth, String gender, String address,
                                   String emergencyContactName, String emergencyContactPhone) {
@@ -140,7 +140,7 @@ public class AuthService {
      *
      * @return mã OTP đã tạo
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public String createOtpRecord(String email, String otpType) {
         // Vô hiệu hóa tất cả OTP cũ chưa dùng
         List<OtpCode> oldOtps = otpCodeRepository.findByEmailAndOtpTypeAndIsUsedFalse(email, otpType);
@@ -199,7 +199,7 @@ public class AuthService {
      *
      * @return thông báo lỗi nếu không hợp lệ, null nếu thành công
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public String verifyOtp(String email, String otpInput, String otpType) {
         log.info("Xác thực OTP cho email={}, type={}", email, otpType);
 

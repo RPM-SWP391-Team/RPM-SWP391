@@ -5,23 +5,32 @@
     <nav th:replace="~{patient/fragments :: top-nav}"></nav>
 
     <!-- Form Container -->
-    <div class="container">
+    <div class="container my-5" style="padding-bottom: 120px;">
         <div class="row justify-content-center">
             <div class="col-lg-6 col-md-8">
                 
-                <div class="card card-form">
-                    <div class="form-header">
+                <!-- Back Button -->
+                <div class="mb-4">
+                    <a href="/patient/appointments" class="btn btn-back">
+                        <i class="fa-solid fa-arrow-left me-2"></i>Quay lại danh sách
+                    </a>
+                </div>
+
+                <div class="card shadow-sm border-0" style="border-radius: var(--radius-lg); overflow: hidden;">
+                    <!-- Header -->
+                    <div class="p-4 text-white" style="background: var(--gradient-primary);">
                         <h2 class="fw-bold mb-1"><i class="fa-solid fa-paper-plane me-2 text-warning"></i>Yêu Cầu Thay Đổi</h2>
                         <p class="mb-0 text-white-50 small">Gửi yêu cầu thay đổi phác đồ hoặc lịch sinh hoạt tới bác sĩ</p>
                     </div>
                     
-                    <div class="form-body">
+                    <!-- Form Body -->
+                    <div class="card-body p-4 bg-white">
                         <form th:action="@{/patient/request-change}" th:object="${changeRequest}" method="POST">
                             
                             <!-- Request Type -->
                             <div class="mb-4">
-                                <label class="form-label-custom"><i class="fa-solid fa-list-check"></i>Loại yêu cầu thay đổi</label>
-                                <select th:field="*{requestType}" class="form-select form-control-custom" required>
+                                <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-list-check me-2 text-primary"></i>Loại yêu cầu thay đổi</label>
+                                <select th:field="*{requestType}" class="form-select" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
                                     <option value="TREATMENT_PLAN">Thay đổi phác đồ điều trị (Treatment Plan)</option>
                                     <option value="SCHEDULE">Thay đổi lịch sinh hoạt (Schedule)</option>
                                     <option value="DIET">Thay đổi quy tắc dinh dưỡng (Diet)</option>
@@ -32,18 +41,18 @@
 
                             <!-- Reason text area -->
                             <div class="mb-4">
-                                <label class="form-label-custom"><i class="fa-regular fa-comment-dots"></i>Mô tả lý do thay đổi</label>
-                                <textarea th:field="*{patientReason}" class="form-control form-control-custom" rows="6" placeholder="Mô tả cụ thể lý do tại sao bạn muốn thay đổi (Ví dụ: thuốc gây mệt mỏi, muốn dời giờ đi bộ, thức ăn không phù hợp...)" required></textarea>
+                                <label class="form-label fw-semibold text-muted mb-2"><i class="fa-regular fa-comment-dots me-2 text-primary"></i>Mô tả lý do thay đổi</label>
+                                <textarea th:field="*{patientReason}" class="form-control" rows="6" placeholder="Mô tả cụ thể lý do tại sao bạn muốn thay đổi (Ví dụ: thuốc gây mệt mỏi, muốn dời giờ đi bộ, thức ăn không phù hợp...)" required style="border-radius: var(--radius-sm); resize: none; padding: 10px 14px;"></textarea>
                                 <div class="form-text small text-muted">Nội dung này được gửi trực tiếp và nguyên văn tới bác sĩ điều trị của bạn.</div>
                             </div>
 
                             <!-- Action Buttons -->
                             <div class="row g-3 mt-4">
                                 <div class="col-6">
-                                    <a href="/patient/appointments" class="btn btn-cancel">Hủy bỏ</a>
+                                    <a href="/patient/appointments" class="btn btn-secondary w-100 py-2.5 fw-bold" style="border-radius: var(--radius-sm); background-color: #6c757d; border-color: #6c757d;">Hủy bỏ</a>
                                 </div>
                                 <div class="col-6">
-                                    <button type="submit" class="btn btn-submit">Gửi Yêu Cầu</button>
+                                    <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold" style="border-radius: var(--radius-sm); background: var(--gradient-primary); border: none;">Gửi Yêu Cầu</button>
                                 </div>
                             </div>
 
