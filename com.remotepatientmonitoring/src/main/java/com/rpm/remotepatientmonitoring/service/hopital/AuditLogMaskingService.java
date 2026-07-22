@@ -50,7 +50,7 @@ public class AuditLogMaskingService {
                                       table.equals("exercise_guidelines") ||
                                       table.equals("emergency_protocols") ||
                                       table.equals("emergency_guides") ||
-                                      table.equals("food_dictionary") ||
+                                      table.equals("foods_dictionary") ||
                                       action.equals("UPDATE_THRESHOLD");
 
         return AuditTrail.builder()
