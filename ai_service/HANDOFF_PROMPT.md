@@ -10,26 +10,26 @@ Dưới đây là toàn bộ bối cảnh của dự án **Vietnamese Medical RA
 
 ## 2. Kiến trúc cốt lõi (Core Architecture)
 Hệ thống tuân thủ nghiêm ngặt các quy tắc kiến trúc (được khóa cứng tại `src/config.py` và `RESEARCH_FOUNDATION.md`):
-- **Chunking**: Cắt theo tiêu đề (Hierarchical Heading) từ file PDF (xử lý tại `src/pdf_parser.py` và `src/chunking.py`).
+- **Chunking**: Phân tách theo tiêu đề (Hierarchical Heading) từ file PDF khuyến cáo y khoa.
 - **Retrieval**: Hybrid Search kết hợp:
   - Sparse: `BM25` (dùng `rank_bm25`).
-  - Dense: `FAISS` Vector Index (sử dụng mô hình `AITeamVN/Vietnamese_Embedding_v2`).
-- **Fusion & Reranking**: Dùng `RRF` (Reciprocal Rank Fusion) để gộp kết quả, sau đó Rerank bằng Cross-Encoder (`BAAI/bge-reranker-v2-m3`). Bắt buộc fallback về RRF nếu model lỗi.
-- **Context Builder**: Mở rộng ngữ cảnh theo thứ tự: *Retrieved -> Parent -> Prev -> Next -> Sibling*. Chặn số token tối đa.
-- **LLM Client**: Đã tích hợp `google-generativeai` (Gemini 1.5 Flash) tại `src/llm_client.py`, load API Key từ file `.env`.
+  - Dense: `FAISS` Vector Index (sử dụng mô hình `BAAI/bge-small-en-v1.5`, 384 dimensions).
+- **Fusion & Reranking**: Dùng `RRF` (Reciprocal Rank Fusion k=60) để gộp kết quả, sau đó Rerank bằng Cross-Encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`). Bắt buộc fallback về RRF nếu model lỗi.
+- **Context Builder**: Mở rộng ngữ cảnh theo thứ tự: *Retrieved -> Parent -> Prev -> Next -> Sibling*. Chặn số token tối đa `token_budget = 4000`.
+- **LLM Client**: Tích hợp REST Client tương thích `gemini-2.5-flash` (và `GroqLLMClient` cho Llama-3.3-70b) tại `src/llm_client.py`, load API Key từ file `.env`.
 
-## 3. Vấn đề hiện tại cần bạn (AI mới) giải quyết (Current Issues)
-Hệ thống đang gặp một "nút thắt cổ chai" (bottleneck) ở tiến trình `build_index.py` trên môi trường Windows CPU:
-- **Lỗi đóng băng (Deadlock)**: Khi chạy `SentenceTransformer('AITeamVN/Vietnamese_Embedding_v2')` để mã hóa (encode) 2594 chunks, tiến trình bị treo cứng ở đoạn `self._model.encode()`. Đã thử set `OMP_NUM_THREADS=1` và `TOKENIZERS_PARALLELISM=false` nhưng vẫn treo.
-- **Nhiệm vụ 1**: Khắc phục lỗi freeze của PyTorch/SentenceTransformers trên Windows CPU (hoặc hướng dẫn người dùng chạy trên môi trường có GPU CUDA/Linux).
-- **Nhiệm vụ 2**: Chạy thành công lệnh `python build_index.py` để tạo ra `data/vector.index` và `data/bm25.pkl`.
+## 3. Trạng thái Vận hành hiện tại (Current Status)
+- Service backend FastAPI đã được đóng gói sẵn sàng tại `api.py` (port 8000), cung cấp các endpoint `/api/chat`, `/api/search`, và `/api/summary`.
+- Phân hệ Tra cứu Phác đồ (Semantic Search) đã được kết nối với Java Spring Boot Backend qua REST API (`WebConfig.java`).
 
 ## 4. Benchmark & Đánh giá (Evaluation)
-- Bộ dataset chuẩn bị sẵn: `evaluation/diabetes_clinical_candidates.csv` (có cột `question` và `answer`).
+- Dataset đánh giá: `evaluation/diabetes_clinical_candidates.csv` (có cột `question` và `answer`).
 - Mã nguồn chạy đánh giá: `benchmark/run_benchmark.py`.
-- **Nhiệm vụ 3**: Sau khi Index được tạo thành công, chạy lệnh:
-  `python benchmark/run_benchmark.py --dataset evaluation/diabetes_clinical_candidates.csv`
-  để chấm điểm hệ thống bằng metrics BLEU và ROUGE.
+- Lệnh chạy đánh giá hệ thống:
+  ```bash
+  python benchmark/run_benchmark.py --dataset evaluation/diabetes_clinical_candidates.csv --top-k 5
+  ```
+  để chấm điểm hệ thống bằng các chỉ số Recall@K, MRR, BLEU và ROUGE.
 
 ## 5. Bước tiếp theo (Next Steps)
 - Nếu Pipeline và Benchmark chạy tốt, hãy bắt đầu **Phase 9**: Đóng gói API (ví dụ dùng `FastAPI`) hoặc xây dựng giao diện UI (ví dụ dùng `Streamlit` hoặc `Gradio`) để bác sĩ có thể dễ dàng tải file PDF và chat với hệ thống.

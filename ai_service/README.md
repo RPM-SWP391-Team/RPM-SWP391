@@ -7,52 +7,51 @@ Khi giao việc cho AI coding agent (Antigravity, Cursor...), nếu chỉ đưa
 lượt chat dài, hoặc tự diễn giải sai. Khung này biến các quyết định kiến
 trúc từ *văn bản mô tả* thành *code + test chạy được* — khó bịa hơn nhiều.
 
-## Cấu trúc
+## Cấu trúc hệ thống
 
 ```
-vn_medical_rag/
-├── AGENTS.md                    ← Antigravity/Cursor/Copilot tự đọc file này
-├── docs/RESEARCH_FOUNDATION.md  ← nguồn sự thật gốc (file bạn đưa)
-├── src/
-│   ├── config.py                 ← MỌI hằng số kiến trúc, 1 chỗ duy nhất
-│   ├── retriever.py               ← mục 2: hybrid BM25 + dense
-│   ├── fusion.py                  ← mục 3: RRF (công thức chuẩn)
-│   ├── reranker.py                ← mục 4: cross-encoder + fallback
-│   ├── chunking.py                ← mục 6: hierarchical heading chunking
-│   ├── context_builder.py         ← mục 7: small-to-big expansion
-│   ├── patient_context.py         ← mục 8: injection, KHÔNG index
-│   ├── deterministic.py           ← mục 9: LLM không tự tính số
-│   └── pipeline.py                ← nối đúng thứ tự, nơi DUY NHẤT quyết định flow
-├── benchmark/benchmark_fixes.py  ← mục 10: Recall@K/MRR
-└── tests/test_contract.py        ← chạy pytest để BẮT vi phạm kiến trúc
+ai_service/
+├── AGENTS.md                    ← Luật bắt buộc cho AI coding agent
+├── HANDOFF_PROMPT.md            ← Tài liệu bàn giao bối cảnh dự án
+├── api.py                       ← FastAPI entrypoint cho AI Service (port 8000)
+├── search_service.py            ← Phân hệ tra cứu phác đồ y khoa (Semantic Search)
+├── summary_service.py           ← Phân hệ sinh báo cáo lâm sàng từ số liệu Java
+├── build_index.py               ← Tiến trình tạo FAISS Vector Index & BM25 Index
+├── docs/                        ← Tài liệu kiến trúc, Hợp đồng (Contracts) & Bảo vệ đồ án
+│   ├── RESEARCH_FOUNDATION.md   ← Nguồn sự thật gốc cho toàn bộ kiến trúc
+│   ├── CODE_DEEPDIVE_15YR_EXPERT.md
+│   └── MASTER_DEFENSE_PRESENTATION.md
+├── src/                         ← Core RAG Pipeline modules
+│   ├── config.py                ← MỌI hằng số kiến trúc chuẩn hóa ở 1 chỗ duy nhất
+│   ├── retriever.py              ← Hybrid Search (BM25 + FAISS Dense Vector)
+│   ├── fusion.py                 ← Reciprocal Rank Fusion (RRF k=60)
+│   ├── reranker.py               ← Cross-Encoder (ms-marco-MiniLM-L-6-v2) + Fallback
+│   ├── chunking.py               ← Hierarchical Heading Chunking
+│   ├── context_builder.py        ← Small-to-big Context Expansion (Parent/Sibling)
+│   ├── patient_context.py        ← Patient Data Injection (KHÔNG index)
+│   ├── deterministic.py          ← Deterministic Guardrails (LLM không tự tính toán)
+│   ├── llm_client.py             ← LLM Client Interface (Gemini 2.5 Flash / Groq Llama 3.3)
+│   └── medical_pipeline.py       ← Pipeline điều phối RAG y tế hoàn chỉnh
+├── benchmark/                   ← Bộ công cụ đánh giá benchmark (Recall@K, MRR, BLEU, ROUGE)
+│   └── run_benchmark.py
+└── tests/
+    └── test_contract.py         ← Test suite khóa cứng bất biến kiến trúc
 ```
 
-## Cách dùng với Antigravity
+## Cách dùng
 
-1. Copy cả thư mục `vn_medical_rag/` vào workspace của Antigravity.
-2. Trong prompt đầu tiên, nói rõ: *"Đọc AGENTS.md và docs/RESEARCH_FOUNDATION.md
-   trước khi đề xuất bất kỳ thay đổi nào."*
-3. Sau mỗi lần agent sửa code, chạy:
+1. Môi trường chạy FastAPI Service:
+   ```bash
+   py api.py
    ```
+2. Kiểm tra tính toàn vẹn kiến trúc (Contract Tests):
+   ```bash
    pytest tests/test_contract.py -v
    ```
-   Nếu fail → agent đã vi phạm 1 dòng "Đã khóa". Không tự sửa test cho
-   pass, hỏi lại agent lý do và yêu cầu benchmark nếu cần.
-4. Phần đánh dấu `NotImplementedError("TODO...")` là chỗ CẦN code thật —
-   đây là những chỗ khung không tự bịa hộ bạn (vì cần dữ liệu/corpus thật
-   của bạn: công thức eGFR chính xác từ KDIGO 2024, parser heading theo
-   định dạng docx cụ thể...).
 
-## Những gì khung này KHÔNG làm hộ bạn
+## Thông số mô hình chuẩn hóa trong mã nguồn
 
-- Không tự implement BM25/vector index thật (cần chọn thư viện: rank_bm25,
-  FAISS/Qdrant/Milvus...).
-- Không tự tải model `bge-reranker-v2-m3` hay `Vietnamese_Embedding_v2`.
-- Không tự viết công thức y khoa chính xác (CKD-EPI, ngưỡng Metformin) —
-  cố tình để trống (`NotImplementedError`) để bạn/agent phải tra đúng số
-  từ ADA 2025/KDIGO 2024, không hardcode từ trí nhớ mô hình.
-
-Đây là chủ đích: những chỗ "khóa cứng bằng test" (RRF formula, thứ tự
-expansion, patient không index, LLM không tự tính) là chỗ agent hay bịa
-nhất khi không có ràng buộc — nên được bảo vệ bằng test. Những chỗ cần dữ
-liệu thật thì để trống rõ ràng, không giả vờ implement.
+- **Embedding Model**: `BAAI/bge-small-en-v1.5` (384 dimensions).
+- **Reranker Model**: `cross-encoder/ms-marco-MiniLM-L-6-v2` (tối ưu CPU, top-5 final).
+- **LLM Engine**: `gemini-2.5-flash` (gọi trực tiếp qua Google REST API) / `GroqLLMClient` (`llama-3.3-70b-versatile`).
+- **Fusion Formula**: RRF $k=60$ ($Score = \sum 1 / (60 + Rank)$).

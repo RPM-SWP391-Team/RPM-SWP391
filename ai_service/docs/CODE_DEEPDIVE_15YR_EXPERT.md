@@ -20,7 +20,7 @@
 * **Giải thuật:**
   - `DeduplicateProcessor`: Quét mảng Chunks, tính MD5 Hash hoặc kiểm tra `chunk_hash`. Loại bỏ 100% văn bản trùng lặp.
   - `ContextBuilder.expand()`: Quét danh sách candidates sau Rerank. Nếu văn bản quá ngắn (<100 chars), tự động tra cứu `ChunkStore` lấy `parent_node_id`. Nếu chứa từ nối ngữ nghĩa (*"bao gồm"*, *"do đó"*), tự động kéo `next_sibling_node`.
-  - Khống chế tối đa `max_token_budget = 2000 tokens` để bảo vệ Prompt.
+  - Khống chế tối đa `max_token_budget = 4000 tokens` (`src/config.py`) để bảo vệ Prompt.
 
 ### 📄 3. [`src/patient_context.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/src/patient_context.py) — Cô lập Bảo mật Dữ liệu Bệnh nhân
 * **Người thiết kế:** Tự viết 100%.

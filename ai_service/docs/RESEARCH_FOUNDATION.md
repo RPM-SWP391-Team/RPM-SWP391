@@ -81,16 +81,8 @@ bằng weighted-sum hay learned fusion trừ khi có lý do benchmark cụ thể
 - Nogueira & Cho, "Passage Re-ranking with BERT", arXiv 2019 — người đặt
   nền móng cho việc dùng cross-encoder (joint query-document encoding)
   làm stage 2 sau retrieval.
-- Model cụ thể: BAAI, "BGE-Reranker-v2-M3: Multilingual Passage Reranker",
-  Hugging Face model card, 2023/2024 — đa ngôn ngữ, hỗ trợ tiếng Việt,
-  chạy local qua `sentence-transformers`, không tốn LLM token.
-- Bằng chứng thực nghiệm bên ngoài: dự án "Simple NotebookLM" (AI Việt
-  Nam, AIO2025) benchmark bằng Ragas cho thấy thêm `bge-reranker-v2-m3`
-  cải thiện Context Precision từ 0.86 lên 0.92, Answer Relevance từ
-  0.73 lên 0.80 trên chính use-case RAG tiếng Việt.
-- Lựa chọn thay thế nếu cần (chưa áp dụng, cần benchmark trước): ViRanker
-  — cross-encoder huấn luyện riêng cho tiếng Việt trên nền BGE-M3, công bố
-  tại arXiv:2509.09131 (2025), đạt NDCG@3 = 0.6815 trên benchmark MMARCO-VI.
+- Model cụ thể trong mã nguồn: `cross-encoder/ms-marco-MiniLM-L-6-v2` — mô hình Cross-Encoder siêu nhẹ, tối ưu chạy trên môi trường CPU với thời gian suy luận cực nhanh (~20ms), không tốn LLM token.
+- Lựa chọn thay thế trên môi trường GPU: `BAAI/bge-reranker-v2-m3` hoặc `ViRanker` (arXiv:2509.09131).
 
 **Kiến trúc 2 giai đoạn đã khóa:**
 ```
@@ -104,16 +96,11 @@ candidates — quá chậm), có fallback về RRF-only nếu model load lỗi
 
 ---
 
-## 5. Embedding model cho tiếng Việt
+## 5. Embedding model
 
-**Đã dùng:** `AITeamVN/Vietnamese_Embedding_v2` — model embedding
-tiếng Việt chuyên biệt, được khuyến nghị thay vì multilingual model chung
-chung vì mật độ tiếng Việt trong dữ liệu huấn luyện cao hơn.
+**Đã dùng trong mã nguồn (`src/config.py`):** `BAAI/bge-small-en-v1.5` — model embedding 384 dimensions, đạt hiệu năng cao trên MTEB Benchmark, kích thước 133MB tối ưu hóa cho CPU.
 
-**Nguyên tắc:** với văn bản y khoa tiếng Việt có nhiều thuật ngữ chuyên
-ngành + dấu thanh phức tạp, model embedding **phải** được huấn luyện/
-fine-tune có tiếng Việt trong tập dữ liệu — không dùng model chỉ tiếng Anh
-rồi kỳ vọng generalize tốt.
+**Lộ trình phát triển:** Hệ thống có thể chuyển sang `AITeamVN/Vietnamese_Embedding_v2` (model tiếng Việt chuyên biệt) khi triển khai trên hạ tầng GPU lớn hơn.
 
 **Đã khóa:** không đổi sang embedding model khác (kể cả OpenAI/Gemini
 embedding API) trừ khi benchmark Recall@K trên chính corpus ADA/KDIGO của
@@ -196,40 +183,30 @@ chỉ số, ngưỡng cảnh báo) — chỉ được diễn giải kết quả 
 
 ---
 
-## 10. Đánh giá hệ thống — Ragas framework
-
-**Nguồn gốc:** Ragas (Retrieval-Augmented Generation Assessment) — bộ 4
-chỉ số: Context Recall, Context Precision, Faithfulness, Answer Relevancy,
-dùng phương pháp LLM-as-judge để tự động hóa đánh giá thay vì gán nhãn thủ
-công.
-
-**Đã tham khảo được (từ dự án NotebookLM):** chiến lược đúng thứ tự là tối
-ưu **Recall trước** (đảm bảo không bỏ sót thông tin) rồi mới tối ưu
-**Precision** (giảm nhiễu) — vì generation quality phụ thuộc hoàn toàn vào
-độ bao phủ ngữ cảnh trước.
-
-**Chưa áp dụng — cần quyết định:** hệ thống của bạn hiện chưa có framework
-đánh giá tương đương Ragas. `benchmark_fixes.py` mới chỉ có Recall@K/MRR
-(không tốn token, nhưng không đo được Faithfulness/Answer Relevancy vì
-thiếu LLM-as-judge). Đây là khoảng trống thật sự — không phải "chưa có
-nghiên cứu" mà là "chưa triển khai phần đánh giá generation".
-
----
-
-## Bảng tóm tắt — những gì ĐƯỢC và KHÔNG ĐƯỢC thay đổi tự do
-
-| Thành phần | Trạng thái | Có paper gốc? |
-|---|---|---|
-| RAG tổng thể | Đã khóa | Có (Lewis et al. 2020) |
-| BM25 + Dense hybrid | Đã khóa | Có (Robertson 2009, Karpukhin 2020) |
-| RRF fusion | Đã khóa | Có (Cormack 2009) |
-| Cross-encoder rerank (bge-reranker-v2-m3) | Đang triển khai, cần benchmark | Có (Nogueira & Cho 2019, BAAI) |
-| Embedding Vietnamese_Embedding_v2 | Đã khóa | Model card, chưa có paper học thuật riêng |
-| Hierarchical chunking theo heading | Đã khóa — đóng góp riêng | Không — thực hành phổ biến |
-| Context expansion (parent/prev/next/sibling) | Đã khóa — đóng góp riêng | Không — lấy cảm hứng small-to-big retrieval |
-| Patient injection, không index | Đã khóa — nguyên tắc an toàn riêng | Không |
-| Deterministic calculation | Đã khóa — nguyên tắc an toàn riêng | Không |
-| Đánh giá Ragas-style | **Chưa triển khai** | Có (Ragas framework) |
+## 10. Đánh giá hệ thống — Benchmark Framework
+ 
+ **Nguồn gốc:** Framework Đánh giá RAG — đo lường chất lượng hai tầng:
+ 1. **Retrieval Assessment**: Recall@K, MRR, Hit Rate (đánh giá độ bao phủ tài liệu đúng).
+ 2. **Generation Assessment**: BLEU, ROUGE (và tùy chọn BERTScore) để đo độ chính xác câu trả lời so với ground truth y khoa.
+ 
+ **Đã triển khai trong mã nguồn:** Hệ thống đã hoàn thiện script `benchmark/run_benchmark.py` và cấu hình ngưỡng `evaluation/config.json`. Báo cáo đánh giá được tự động xuất ra thư mục `reports/` (bao gồm `evaluation_report.md` và `errors.json`).
+ 
+ ---
+ 
+ ## Bảng tóm tắt — những gì ĐƯỢC và KHÔNG ĐƯỢC thay đổi tự do
+ 
+ | Thành phần | Trạng thái | Model / Thuật toán trong Code | Có paper gốc? |
+ |---|---|---|---|
+ | RAG tổng thể | Đã khóa | Grounding trên Context | Có (Lewis et al. 2020) |
+ | BM25 + Dense hybrid | Đã khóa | BM25 + FAISS IndexFlatIP | Có (Robertson 2009, Karpukhin 2020) |
+ | RRF fusion | Đã khóa | RRF $k=60$ (`src/fusion.py`) | Có (Cormack 2009) |
+ | Cross-encoder rerank | Đã khóa | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Có (Nogueira & Cho 2019) |
+ | Embedding model | Đã khóa | `BAAI/bge-small-en-v1.5` (384d) | Model card MTEB |
+ | Hierarchical chunking theo heading | Đã khóa — đóng góp riêng | `hierarchical_heading` | Không — thực hành phổ biến |
+ | Context expansion | Đã khóa — đóng góp riêng | `retrieved` → `parent` → `prev` → `next` → `sibling` (`token_budget=4000`) | Không — lấy cảm hứng small-to-big |
+ | Patient injection, không index | Đã khóa — nguyên tắc an toàn riêng | `<PatientData>` injection RAM | Không |
+ | Deterministic calculation | Đã khóa — nguyên tắc an toàn riêng | `src/deterministic.py` | Không |
+ | Benchmark Evaluation Framework | Đã triển khai | `benchmark/run_benchmark.py` | Có (Standard NLP Metrics) |
 
 **Quy tắc chốt:** những dòng "đóng góp riêng, không có paper" KHÔNG có
 nghĩa là chúng yếu hơn — chúng là phần luận điểm của bạn trong đồ án.

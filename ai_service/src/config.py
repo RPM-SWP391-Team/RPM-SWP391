@@ -77,7 +77,7 @@ class ContextExpansionConfig:
     # RESEARCH_FOUNDATION.md mục 7 — "Đã khóa, đóng góp riêng".
     # Thứ tự ưu tiên mở rộng — KHÔNG đổi trừ khi có lý do cụ thể.
     expansion_order: tuple = ("retrieved", "parent", "prev", "next", "sibling")
-    token_budget: int = 1000000
+    token_budget: int = 4000
 
 
 @dataclass(frozen=True)
