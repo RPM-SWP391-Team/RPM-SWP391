@@ -110,7 +110,7 @@ Nhóm phát triển chủ động phân định 100% giữa mã nguồn tự vi�
 | Mô-đun Hệ thống | Loại Mã Nguồn | Chi Tiết Thực Thi & Tải Trọng | Lý Do Kỹ Thuật Lựa Chọn |
 | :--- | :---: | :--- | :--- |
 | **Reciprocal Rank Fusion** | 🧠 **Tự viết 100%** | [`src/fusion.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/src/fusion.py) | Tránh dùng điểm thô sai lệch của LangChain; tính chuẩn theo bài báo SIGIR 2007. |
-| **Heuristic Context Builder** | 🧠 **Tự viết 100%** | [`src/context_builder.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/src/context_builder.py) | Kéo Node Parent/Sibling khi văn bản ngắn hoặc có từ nối, khống chế Token Budget 2000. |
+| **Heuristic Context Builder** | 🧠 **Tự viết 100%** | [`src/context_builder.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/src/context_builder.py) | Kéo Node Parent/Sibling khi văn bản ngắn hoặc có từ nối, khống chế Token Budget 4000. |
 | **Patient Context Isolator** | 🧠 **Tự viết 100%** | [`src/patient_context.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/src/patient_context.py) | Đảm bảo an toàn Y tế, không rò rỉ dữ liệu cá nhân bệnh nhân vào VectorDB. |
 | **Deterministic Guardrails** | 🧠 **Tự viết 100%** | [`src/deterministic.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/src/deterministic.py) | Quét regex & AST ngăn chặn LLM tự ý thực hiện phép tính toán học. |
 | **PDF Link & Header Resolver** | 🧠 **Tự viết 100%** | [`search_service.py`](file:///c:/Users/l/OneDrive/Documents/SWP/RPM-SWP391_Develop/ai_service/search_service.py) | Bóc tách tiêu đề H1/H2 và ánh xạ link xem trực tiếp toàn văn PDF gốc (`/docs/ehae178.pdf`). |
