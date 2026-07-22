@@ -251,6 +251,8 @@ public class DoctorViewController {
             @RequestParam(value = "baselineFastingGlucose", required = false) BigDecimal baselineFastingGlucose,
             @RequestParam(value = "baselineHba1c", required = false) BigDecimal baselineHba1c,
             @RequestParam(value = "baselineWeightKg", required = false) BigDecimal baselineWeightKg,
+            @RequestParam(value = "heightCm", required = false) BigDecimal heightCm,
+            @RequestParam(value = "bmi", required = false) BigDecimal bmi,
             // Target measurements
             @RequestParam(value = "targetSystolicBp", required = false) Integer targetSystolicBp,
             @RequestParam(value = "targetDiastolicBp", required = false) Integer targetDiastolicBp,
@@ -305,6 +307,8 @@ public class DoctorViewController {
                 baselineFastingGlucose,
                 baselineHba1c,
                 baselineWeightKg,
+                heightCm,
+                bmi,
                 targetSystolicBp,
                 targetDiastolicBp,
                 targetFastingGlucose,

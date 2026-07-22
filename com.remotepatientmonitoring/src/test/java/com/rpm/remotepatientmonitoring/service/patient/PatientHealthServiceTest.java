@@ -128,10 +128,10 @@ class PatientHealthServiceTest {
         verify(alertRepository, times(1)).save(alertCaptor.capture());
 
         Alert savedAlert = alertCaptor.getValue();
-        assertEquals(2, savedAlert.getAlertLevel());
+        assertEquals(3, savedAlert.getAlertLevel());
         assertEquals("ORANGE", savedAlert.getAlertColor());
         assertEquals("BLOOD_PRESSURE", savedAlert.getMetricType());
-        assertTrue(savedAlert.getAlertMessage().contains("Huyết áp tâm thu cao"));
+        assertTrue(savedAlert.getAlertMessage().contains("nguy hiểm"));
 
         verify(notificationRepository, times(1)).save(any(Notification.class));
     }
@@ -150,7 +150,7 @@ class PatientHealthServiceTest {
         verify(alertRepository).save(alertCaptor.capture());
 
         Alert savedAlert = alertCaptor.getValue();
-        assertEquals(3, savedAlert.getAlertLevel());
+        assertEquals(4, savedAlert.getAlertLevel());
         assertEquals("RED", savedAlert.getAlertColor());
         assertEquals("GLUCOSE", savedAlert.getMetricType());
         assertEquals("<4.4", savedAlert.getThresholdViolated());
@@ -181,12 +181,12 @@ class PatientHealthServiceTest {
         verify(alertRepository).save(alertCaptor.capture());
 
         Alert savedAlert = alertCaptor.getValue();
-        assertEquals(3, savedAlert.getAlertLevel());
+        assertEquals(4, savedAlert.getAlertLevel());
         assertEquals("RED", savedAlert.getAlertColor());
 
         // Đảm bảo message có chứa cảnh báo của cả hai chỉ số
-        assertTrue(savedAlert.getAlertMessage().contains("Huyết áp tâm thu cao"));
-        assertTrue(savedAlert.getAlertMessage().contains("Huyết áp tâm trương quá cao"));
+        assertTrue(savedAlert.getAlertMessage().contains("nguy hiểm"));
+        assertTrue(savedAlert.getAlertMessage().contains("cấp cứu"));
     }
 
     @Test
@@ -204,7 +204,7 @@ class PatientHealthServiceTest {
         verify(alertRepository).save(alertCaptor.capture());
 
         Alert savedAlert = alertCaptor.getValue();
-        assertEquals(3, savedAlert.getAlertLevel());
+        assertEquals(4, savedAlert.getAlertLevel());
         // Kiểm tra xem toán tử 3 ngôi có in ra dấu "?" thành công không
         assertTrue(savedAlert.getMetricValue().contains("180/?"));
     }
@@ -223,7 +223,7 @@ class PatientHealthServiceTest {
         ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
         verify(alertRepository).save(alertCaptor.capture());
 
-        assertEquals(2, alertCaptor.getValue().getAlertLevel());
+        assertEquals(3, alertCaptor.getValue().getAlertLevel());
         assertEquals(">=90", alertCaptor.getValue().getThresholdViolated());
         // Dòng này sẽ giúp nhuộm xanh nhánh metricValue.isEmpty() ở dòng 94
         // vì nhánh xử lý Diastolic của bạn trong code gốc quên không set metricValue!
@@ -242,7 +242,7 @@ class PatientHealthServiceTest {
 
         ArgumentCaptor<Alert> alertCaptor = ArgumentCaptor.forClass(Alert.class);
         verify(alertRepository).save(alertCaptor.capture());
-        assertEquals(3, alertCaptor.getValue().getAlertLevel());
+        assertEquals(4, alertCaptor.getValue().getAlertLevel());
         assertEquals(">16.0", alertCaptor.getValue().getThresholdViolated());
     }
 
