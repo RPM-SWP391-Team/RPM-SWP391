@@ -365,6 +365,9 @@ public class DoctorViewController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id,
             @RequestParam(value = "success", required = false) String success,
+            @RequestParam(value = "planPage", defaultValue = "0") int planPage,
+            @RequestParam(value = "planSize", defaultValue = "5") int planSize,
+            @RequestParam(value = "planKeyword", required = false) String planKeyword,
             Model model) {
 
         // Lấy đúng bác sĩ từ session Spring Security — không hardcode ID
@@ -401,7 +404,8 @@ public class DoctorViewController {
 
         prepareChartAndComplianceData(model, patient, currentRule);
         
-        List<TreatmentPlan> planHistory = treatmentPlanRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
+        Pageable planPageable = PageRequest.of(planPage, planSize);
+        Page<TreatmentPlan> planHistoryPage = treatmentPlanRepository.searchPlanHistory(patient.getId(), planKeyword, planPageable);
 
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("patient", patient);
@@ -410,7 +414,9 @@ public class DoctorViewController {
         model.addAttribute("currentRule", currentRule);
         model.addAttribute("currentPlan", currentPlan);
         model.addAttribute("currentMeds", currentMeds);
-        model.addAttribute("planHistory", planHistory);
+        model.addAttribute("planHistoryPage", planHistoryPage);
+        model.addAttribute("planKeyword", planKeyword != null ? planKeyword : "");
+        model.addAttribute("planPage", planPage);
         model.addAttribute("success", success);
 
         // Lấy cấu hình ngưỡng cảnh báo
