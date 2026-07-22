@@ -7,7 +7,9 @@ import com.rpm.remotepatientmonitoring.model.AuditTrail;
 import com.rpm.remotepatientmonitoring.model.Hospital;
 import com.rpm.remotepatientmonitoring.repository.AccountRepository;
 import com.rpm.remotepatientmonitoring.repository.AuditTrailRepository;
+import com.rpm.remotepatientmonitoring.model.HospitalAdmin;
 import com.rpm.remotepatientmonitoring.repository.HospitalRepository;
+import com.rpm.remotepatientmonitoring.repository.HospitalAdminRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -41,13 +43,19 @@ public class HospitalProfileService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public HospitalProfileDTO getProfileByHospitalId(Integer hospitalId) {
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin bệnh viện."));
+    @Autowired
+    private HospitalAdminRepository hospitalAdminRepository;
+
+    public HospitalProfileDTO getProfileByAccountId(Integer accountId) {
+        HospitalAdmin admin = hospitalAdminRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin quản trị viên bệnh viện."));
+
+        Hospital hospital = admin.getHospital();
+        Account account = admin.getAccount();
 
         return HospitalProfileDTO.builder()
-                .accountId(hospital.getAccount() != null ? hospital.getAccount().getId() : null)
-                .email(hospital.getAccount() != null ? hospital.getAccount().getEmail() : "")
+                .accountId(account.getId())
+                .email(account.getEmail())
                 .hospitalCode(hospital.getHospitalCode())
                 .fullName(hospital.getFullName())
                 .address(hospital.getAddress())
@@ -56,11 +64,12 @@ public class HospitalProfileService {
     }
 
     @Transactional
-    public void updateProfile(Integer hospitalId, HospitalProfileDTO dto) {
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin bệnh viện."));
+    public void updateProfile(Integer accountId, HospitalProfileDTO dto) {
+        HospitalAdmin admin = hospitalAdminRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin quản trị viên bệnh viện."));
 
-        Account account = hospital.getAccount();
+        Hospital hospital = admin.getHospital();
+        Account account = admin.getAccount();
 
         // -------------------------------------------------------------
         // TẠO SNAPSHOT DỮ LIỆU CŨ ĐỂ GHI LOG
@@ -137,9 +146,11 @@ public class HospitalProfileService {
         if (isChanged) {
             hospital.setUpdatedAt(LocalDateTime.now());
             account.setUpdatedAt(LocalDateTime.now());
+            admin.setUpdatedAt(LocalDateTime.now());
 
             accountRepository.save(account);
             hospitalRepository.save(hospital);
+            hospitalAdminRepository.save(admin);
 
             // Ghi Audit Trail
             try {
