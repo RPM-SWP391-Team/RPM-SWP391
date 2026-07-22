@@ -101,6 +101,7 @@ public class DoctorController {
                     doctorDto.getPhone(),
                     doctorDto.getEmail(),
                     doctorDto.getGender(),
+                    doctorDto.getDateOfBirth(),
                     null,
                     doctorDto.getSpecialty(),
                     doctorDto.getCapacityLimit()
@@ -199,6 +200,7 @@ public class DoctorController {
             response.put("phone", doctor.getPhone());
             response.put("specialty", doctor.getSpecialty());
             response.put("gender", doctor.getGender());
+            response.put("dateOfBirth", doctor.getDateOfBirth() != null ? doctor.getDateOfBirth().toString() : "");
             response.put("capacityLimit", doctor.getCapacityLimit());
             response.put("currentPatientCount", doctor.getCurrentPatientCount());
             response.put("isActive", doctor.getIsActive());
