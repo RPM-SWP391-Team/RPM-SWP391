@@ -864,7 +864,6 @@ public class DoctorViewController {
                                       @RequestParam(value = "heartRate", required = false) Integer heartRate,
                                       @RequestParam(value = "glucoseLevel", required = false) BigDecimal glucoseLevel,
                                       @RequestParam(value = "doctorNote", required = false) String doctorNote,
-                                      @RequestParam(value = "upgradeProfile", defaultValue = "false") boolean upgradeProfile,
                                       RedirectAttributes redirectAttributes) {
         Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
         if (doctor == null) {
@@ -892,7 +891,7 @@ public class DoctorViewController {
 
         Patient patient = appt.getPatient();
 
-        // 1. Lưu nhật ký sức khỏe từ kết quả khám lâm sàng trực tiếp của Bác sĩ (nếu có nhập chỉ số)
+        // Lưu nhật ký sức khỏe từ kết quả khám lâm sàng trực tiếp của Bác sĩ (nếu có nhập chỉ số)
         if (patient != null && (systolicBp != null || diastolicBp != null || heartRate != null || glucoseLevel != null)) {
             DailyHealthLog healthLog = DailyHealthLog.builder()
                     .patient(patient)
@@ -911,35 +910,13 @@ public class DoctorViewController {
             healthLogRepository.save(healthLog);
         }
 
-        // Nếu bác sĩ chọn nâng gói sang Đồng mắc & chuyển bác sĩ phụ trách
-        if (upgradeProfile && patient != null) {
-            DiseaseProfile bothProfile = diseaseProfileRepository.findById(3).orElse(null);
-            if (bothProfile != null) {
-                patient.setDiseaseProfile(bothProfile);
-            }
-            
-            if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
-                Doctor oldDoctor = patient.getDoctor();
-                if (doctor.getCurrentPatientCount() < doctor.getCapacityLimit()) {
-                    if (oldDoctor != null && oldDoctor.getCurrentPatientCount() > 0) {
-                        oldDoctor.setCurrentPatientCount(oldDoctor.getCurrentPatientCount() - 1);
-                        doctorRepository.save(oldDoctor);
-                    }
-                    patient.setDoctor(doctor);
-                    doctor.setCurrentPatientCount(doctor.getCurrentPatientCount() + 1);
-                    doctorRepository.save(doctor);
-                }
-            }
-            patientRepository.save(patient);
-        }
-
         // Gửi thông báo cho bệnh nhân
         Notification notif = Notification.builder()
                 .patient(patient)
                 .doctor(doctor)
                 .recipientType("PATIENT")
                 .title("Lịch khám đã hoàn thành")
-                .content("Bác sĩ " + doctor.getFullName() + " đã hoàn thành buổi khám cho bạn" + (upgradeProfile ? " và đã cập nhật Gói theo dõi sang Đồng mắc (Cả 2 bệnh)." : "."))
+                .content("Bác sĩ " + doctor.getFullName() + " đã hoàn thành buổi khám cho bạn.")
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();

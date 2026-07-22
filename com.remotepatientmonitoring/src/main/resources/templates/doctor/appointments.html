@@ -401,14 +401,6 @@
                                                             <label class="form-label fw-bold">Ghi chú kết quả khám / Kê đơn / Dặn dò</label>
                                                             <textarea class="form-control" name="doctorNote" rows="3" placeholder="Nhập chỉ định, kết quả đo hoặc dặn dò bệnh nhân..." th:text="${appt.doctorNote}"></textarea>
                                                         </div>
-
-                                                        <div class="form-check card p-3 bg-light border-0 rounded-3">
-                                                            <input class="form-check-input ms-0 me-2" type="checkbox" name="upgradeProfile" value="true" th:id="'upgrade' + ${appt.id}">
-                                                            <label class="form-check-label fw-bold text-dark" th:for="'upgrade' + ${appt.id}">
-                                                                <i class="fa-solid fa-arrows-split-up-and-left text-warning me-1"></i>Chuyển Gói bệnh sang Đồng mắc (Huyết áp + Đường huyết) & Nhận phụ trách bệnh nhân
-                                                            </label>
-                                                            <small class="text-muted d-block mt-1">Tích chọn nếu buổi khám phát hiện bệnh nhân mắc thêm bệnh thứ 2 và cần nâng gói theo dõi.</small>
-                                                        </div>
                                                     </div>
                                                     <div class="modal-footer border-0">
                                                         <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
