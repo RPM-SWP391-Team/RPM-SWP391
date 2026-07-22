@@ -228,7 +228,8 @@
                         <td>
                             <span class="badge bg-secondary" th:if="${req.requestType == 'RESCHEDULE'}"><i class="fa-solid fa-calendar-alt me-1"></i>Đổi lịch</span>
                             <span class="badge bg-info text-dark" th:if="${req.requestType == 'TREATMENT_CHANGE'}"><i class="fa-solid fa-pills me-1"></i>Đổi phác đồ</span>
-                            <span class="badge border text-dark" th:if="${req.requestType != 'RESCHEDULE' and req.requestType != 'TREATMENT_CHANGE'}" th:text="${req.requestType}">Khác</span>
+                            <span class="badge bg-warning text-dark" th:if="${req.requestType == 'TRANSFER'}"><i class="fa-solid fa-share-from-square me-1"></i>Bàn giao Bác sĩ</span>
+                            <span class="badge border text-dark" th:if="${req.requestType != 'RESCHEDULE' and req.requestType != 'TREATMENT_CHANGE' and req.requestType != 'TRANSFER'}" th:text="${req.requestType}">Khác</span>
                         </td>
                         <td>
                             <div class="text-wrap" style="max-width: 300px; font-size: 0.9rem;" th:text="${req.patientReason}">Lý do gì đó...</div>
