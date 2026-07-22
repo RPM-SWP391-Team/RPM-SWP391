@@ -63,10 +63,13 @@ public class HospitalProfileService {
         Account account = hospital.getAccount();
 
         // -------------------------------------------------------------
-        // TẠO SNAPSHOT DỮ LIỆU CHỈ GHI EMAIL (VÀ PASSWORD NẾU ĐỔI)
+        // TẠO SNAPSHOT DỮ LIỆU CŨ ĐỂ GHI LOG
         // -------------------------------------------------------------
         Map<String, Object> oldLog = new HashMap<>();
         oldLog.put("email", account.getEmail());
+        oldLog.put("fullName", hospital.getFullName());
+        oldLog.put("address", hospital.getAddress());
+        oldLog.put("phone", hospital.getPhone());
 
         Map<String, Object> newLog = new HashMap<>(oldLog);
         boolean isChanged = false;
@@ -77,12 +80,39 @@ public class HospitalProfileService {
             if (accountRepository.existsByEmail(newEmail)) {
                 throw new IllegalArgumentException("Email này đã được sử dụng bởi tài khoản khác.");
             }
-            newLog.put("email", newEmail); // Ghi đè giá trị mới
+            newLog.put("email", newEmail);
             account.setEmail(newEmail);
             isChanged = true;
         }
 
-        // 2. Xử lý đổi mật khẩu
+        // 2. Xử lý cập nhật Tên hiển thị bệnh viện
+        String newFullName = dto.getFullName() != null ? dto.getFullName().trim() : "";
+        if (newFullName.isEmpty()) {
+            throw new IllegalArgumentException("Tên hiển thị bệnh viện không được để trống.");
+        }
+        if (!newFullName.equals(hospital.getFullName())) {
+            newLog.put("fullName", newFullName);
+            hospital.setFullName(newFullName);
+            isChanged = true;
+        }
+
+        // 3. Xử lý cập nhật Địa chỉ
+        String newAddress = dto.getAddress() != null ? dto.getAddress().trim() : "";
+        if (!newAddress.equals(hospital.getAddress() != null ? hospital.getAddress().trim() : "")) {
+            newLog.put("address", newAddress);
+            hospital.setAddress(newAddress.isEmpty() ? null : newAddress);
+            isChanged = true;
+        }
+
+        // 4. Xử lý cập nhật Số điện thoại
+        String newPhone = dto.getPhone() != null ? dto.getPhone().trim() : "";
+        if (!newPhone.equals(hospital.getPhone() != null ? hospital.getPhone().trim() : "")) {
+            newLog.put("phone", newPhone);
+            hospital.setPhone(newPhone.isEmpty() ? null : newPhone);
+            isChanged = true;
+        }
+
+        // 5. Xử lý đổi mật khẩu
         if (dto.getNewPassword() != null && !dto.getNewPassword().trim().isEmpty()) {
             if (dto.getCurrentPassword() == null || dto.getCurrentPassword().isEmpty()) {
                 throw new IllegalArgumentException("Vui lòng nhập mật khẩu hiện tại để xác thực việc đổi mật khẩu.");
@@ -98,13 +128,12 @@ public class HospitalProfileService {
             }
 
             account.setPasswordHash(passwordEncoder.encode(dto.getNewPassword()));
-            // Ghi log bảo mật ẩn Password
             oldLog.put("password", "***");
             newLog.put("password", "Đã đổi mật khẩu mới");
             isChanged = true;
         }
 
-        // 3. Lưu vào Database và Ghi Log
+        // 6. Lưu vào Database và Ghi Log
         if (isChanged) {
             hospital.setUpdatedAt(LocalDateTime.now());
             account.setUpdatedAt(LocalDateTime.now());
@@ -116,7 +145,7 @@ public class HospitalProfileService {
             try {
                 String oldValueJson = objectMapper.writeValueAsString(oldLog);
                 String newValueJson = objectMapper.writeValueAsString(newLog);
-                saveAuditLog("UPDATE_ADMIN_PROFILE", hospital.getId(), oldValueJson, newValueJson, "Cập nhật hồ sơ cá nhân admin (Email: " + account.getEmail() + ")");
+                saveAuditLog("UPDATE_ADMIN_PROFILE", hospital.getId(), oldValueJson, newValueJson, "Cập nhật thông tin hồ sơ bệnh viện (Tên: " + hospital.getFullName() + ")");
             } catch (Exception e) {
                 System.err.println("Lỗi ghi log Audit Trail: " + e.getMessage());
             }
