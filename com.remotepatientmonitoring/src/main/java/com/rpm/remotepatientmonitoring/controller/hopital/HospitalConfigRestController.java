@@ -92,7 +92,7 @@ public class HospitalConfigRestController {
     public ResponseEntity<Page<FoodDictionary>> getFoods(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size
+            @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
             Pageable pageable = PageRequest.of(page, size);

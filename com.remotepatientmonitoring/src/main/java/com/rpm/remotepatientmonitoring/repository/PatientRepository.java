@@ -52,4 +52,16 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     List<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status);
 
     Page<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status, Pageable pageable);
+
+    @Query("SELECT p FROM Patient p WHERE p.hospital.id = :hospitalId AND " +
+           "(:search IS NULL OR :search = '' OR p.fullName LIKE %:search% OR p.patientCode LIKE %:search% OR p.phone LIKE %:search%) AND " +
+           "(:assignStatus = 'ALL' OR " +
+           " (:assignStatus = 'UNASSIGNED' AND p.doctor IS NULL) OR " +
+           " (:assignStatus = 'ASSIGNED' AND p.doctor IS NOT NULL)) AND " +
+           "(:diseaseCode = 'ALL' OR p.diseaseProfile.profileCode = :diseaseCode)")
+    Page<Patient> findPatientsWithFilters(@Param("hospitalId") Integer hospitalId,
+                                          @Param("search") String search,
+                                          @Param("assignStatus") String assignStatus,
+                                          @Param("diseaseCode") String diseaseCode,
+                                          Pageable pageable);
 }
