@@ -100,7 +100,9 @@ public class PatientInteractionService {
     @Transactional
     public void createChangeRequest(ChangeRequest changeRequest, Patient patient) {
         Doctor doctor = patient.getDoctor();
+        if (doctor == null) {
             throw new IllegalStateException("Bạn chưa được phân công bác sĩ phụ trách, không thể gửi yêu cầu thay đổi phác đồ/lịch khám.");
+        }
 
         changeRequest.setPatient(patient);
         changeRequest.setDoctor(doctor);
