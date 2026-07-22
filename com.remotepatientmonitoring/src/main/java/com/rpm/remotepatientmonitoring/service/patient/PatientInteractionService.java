@@ -94,14 +94,14 @@ public class PatientInteractionService {
     }
 
     public List<Doctor> getAllDoctors() {
-        return doctorRepository.findAll();
+        return doctorRepository.findAllAvailableDoctors();
     }
 
     @Transactional
     public void createChangeRequest(ChangeRequest changeRequest, Patient patient) {
         Doctor doctor = patient.getDoctor();
         if (doctor == null) {
-            List<Doctor> all = doctorRepository.findAll();
+            List<Doctor> all = doctorRepository.findAllAvailableDoctors();
             if (all.size() > 0) {
                 doctor = all.get(0);
             } else {

@@ -92,9 +92,9 @@ public class PatientHealthService {
         
         if (req.getGlucoseLevel() != null) {
             double glu = req.getGlucoseLevel().doubleValue();
-            if (glu < 4.4) { glucoseLevel = 4; alertMessage += "Hạ đường huyết cấp cứu (" + glu + "). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<4.4"; }
-            else if (glu > 16.0) { glucoseLevel = 4; alertMessage += "Đường huyết quá cao (" + glu + "). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">16.0"; }
-            else if (glu > 10.0) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + "). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">10.0"; }
+            if (glu < 4.4) { glucoseLevel = 3; alertMessage += "Hạ đường huyết (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<4.4"; }
+            else if (glu > 16.0) { glucoseLevel = 3; alertMessage += "Đường huyết khẩn cấp (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">16.0"; }
+            else if (glu > 10.0) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">10.0"; }
         }
         
         int finalLevel = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));
