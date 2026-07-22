@@ -880,6 +880,7 @@ public class DoctorViewController {
         return REDIRECT_APPOINTMENTS;
     }
 
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
     @PostMapping("/appointments/{id}/complete")
     public String completeAppointment(@PathVariable("id") Integer id,
                                       @AuthenticationPrincipal CustomUserDetails userDetails,

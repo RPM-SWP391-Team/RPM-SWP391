@@ -137,6 +137,9 @@ public class PatientInteractionService {
                 && doctor.getCurrentPatientCount() >= doctor.getCapacityLimit()) {
             throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " hiện đã đạt giới hạn tiếp nhận bệnh nhân (" + doctor.getCapacityLimit() + " bệnh nhân), không thể nhận thêm đơn hẹn mới.");
         }
+        if (patientRequestReason != null && patientRequestReason.length() > 500) {
+            throw new IllegalArgumentException("Lý do yêu cầu không được vượt quá 500 ký tự.");
+        }
 
         Appointment appt = Appointment.builder()
                 .patient(patient)
