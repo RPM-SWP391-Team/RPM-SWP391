@@ -604,6 +604,7 @@ public class HospitalConfigService {
                     .targetRecordId(targetRecordId)
                     .oldValue(oldValue)
                     .newValue(newValue)
+                    .ipAddress(ipAddress)
                     .deviceInfo(deviceInfo)
                     .notes(finalNotes)
                     .build();
