@@ -1,8 +1,8 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
 import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Patient;
-import com.rpm.remotepatientmonitoring.service.hopital.DoctorService;
+import com.rpm.remotepatientmonitoring.service.hospital.DoctorService;
 import com.rpm.remotepatientmonitoring.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -10,8 +10,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import com.rpm.remotepatientmonitoring.dto.hopital.DoctorDTO;
-import com.rpm.remotepatientmonitoring.dto.hopital.DoctorEditDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.DoctorDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.DoctorEditDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ResponseBody;

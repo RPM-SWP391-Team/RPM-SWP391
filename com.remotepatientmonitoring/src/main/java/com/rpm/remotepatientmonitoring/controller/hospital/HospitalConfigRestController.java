@@ -1,8 +1,8 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
 import com.rpm.remotepatientmonitoring.model.ExerciseGuideline;
 import com.rpm.remotepatientmonitoring.model.FoodDictionary;
-import com.rpm.remotepatientmonitoring.service.hopital.HospitalConfigService;
+import com.rpm.remotepatientmonitoring.service.hospital.HospitalConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

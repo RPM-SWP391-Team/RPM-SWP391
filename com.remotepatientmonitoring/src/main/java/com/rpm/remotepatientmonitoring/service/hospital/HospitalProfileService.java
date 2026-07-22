@@ -1,7 +1,7 @@
-package com.rpm.remotepatientmonitoring.service.hopital;
+package com.rpm.remotepatientmonitoring.service.hospital;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rpm.remotepatientmonitoring.dto.hopital.HospitalProfileDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.HospitalProfileDTO;
 import com.rpm.remotepatientmonitoring.model.Account;
 import com.rpm.remotepatientmonitoring.model.AuditTrail;
 import com.rpm.remotepatientmonitoring.model.Hospital;

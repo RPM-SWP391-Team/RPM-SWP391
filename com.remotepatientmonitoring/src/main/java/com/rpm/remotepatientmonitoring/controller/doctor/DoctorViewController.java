@@ -5,7 +5,7 @@ import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.service.doctor.TreatmentPlanWorkflowService;
 import com.rpm.remotepatientmonitoring.service.RatingService;
-import com.rpm.remotepatientmonitoring.dto.hopital.AlertThresholdsDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.AlertThresholdsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
