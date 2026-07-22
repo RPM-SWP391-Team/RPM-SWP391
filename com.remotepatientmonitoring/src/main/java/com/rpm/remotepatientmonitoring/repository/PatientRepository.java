@@ -30,6 +30,9 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND p.doctor IS NULL AND p.hospital.id = :hospitalId AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
     List<Patient> searchUnassignedPatients(@Param("hospitalId") Integer hospitalId, @Param("keyword") String keyword);
 
+    @Query(value = "EXEC sp_assign_patient_to_doctor @patient_id = :patientId, @doctor_id = :doctorId, @actor_id = :actorId, @actor_type = :actorType", nativeQuery = true)
+    String assignPatientToDoctorSP(@Param("patientId") Integer patientId, @Param("doctorId") Integer doctorId, @Param("actorId") Integer actorId, @Param("actorType") String actorType);
+
     // 1. Sửa thành Page: Tìm bệnh nhân theo bác sĩ (có phân trang) và sắp xếp ưu tiên theo cảnh báo Đỏ -> Cam -> Vàng
     @Query("SELECT p FROM Patient p LEFT JOIN Alert a ON a.patient = p AND a.isResolved = false " +
            "WHERE p.doctor.id = :doctorId AND p.isActive = true " +

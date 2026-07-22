@@ -50,10 +50,6 @@ public class PatientController {
                 }
             }
         }
-        List<Patient> all = patientService.findAllPatients();
-        if (all.size() > 0) {
-            return all.get(0);
-        }
         return null;
     }
 

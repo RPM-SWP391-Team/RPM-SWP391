@@ -46,7 +46,13 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return account.getIsActive() && account.getIsEmailVerified();
+        if (!Boolean.TRUE.equals(account.getIsActive())) {
+            return false;
+        }
+        if ("DOCTOR".equals(account.getRole()) || "HOSPITAL_ADMIN".equals(account.getRole())) {
+            return true;
+        }
+        return Boolean.TRUE.equals(account.getIsEmailVerified());
     }
 
     public Account getAccount() {

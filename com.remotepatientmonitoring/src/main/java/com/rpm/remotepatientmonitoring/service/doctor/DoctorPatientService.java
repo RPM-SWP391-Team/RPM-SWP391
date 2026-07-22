@@ -28,9 +28,6 @@ public class DoctorPatientService {
     private com.rpm.remotepatientmonitoring.repository.DoctorRepository doctorRepository;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
     private AuditTrailService auditTrailService;
 
     // 1. Tìm kiếm bệnh nhân chờ tiếp nhận (lọc theo bệnh viện của bác sĩ)
@@ -52,17 +49,15 @@ public class DoctorPatientService {
     // 2. Tiếp nhận bệnh nhân qua Stored Procedure + sinh mã bệnh nhân nếu chưa có
     @Transactional
     public String assignPatient(Integer patientId, Integer doctorId, Integer diseaseProfileId) {
-        SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                .withProcedureName("sp_assign_patient_to_doctor");
+        com.rpm.remotepatientmonitoring.model.Doctor docCheck = doctorRepository.findById(doctorId).orElse(null);
+        if (docCheck != null && docCheck.getCurrentPatientCount() >= docCheck.getCapacityLimit()) {
+            throw new IllegalStateException("Bác sĩ đã đạt giới hạn tối đa số lượng bệnh nhân (" + docCheck.getCapacityLimit() + " bệnh nhân). Không thể tiếp nhận thêm!");
+        }
 
-        MapSqlParameterSource inParams = new MapSqlParameterSource();
-        inParams.addValue("patient_id", patientId);
-        inParams.addValue("doctor_id", doctorId);
-        inParams.addValue("actor_id", doctorId);
-        inParams.addValue("actor_type", "DOCTOR");
-
-        Map<String, Object> out = jdbcCall.execute(inParams);
-        String resultMessage = (String) out.get("result_message");
+        String resultMessage = patientRepository.assignPatientToDoctorSP(patientId, doctorId, doctorId, "DOCTOR");
+        if (resultMessage == null) {
+            resultMessage = "Thành công tiếp nhận bệnh nhân";
+        }
 
         if (resultMessage != null && resultMessage.startsWith("Thành công")) {
             Patient patient = patientRepository.findById(patientId)
