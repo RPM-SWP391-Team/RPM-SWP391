@@ -1266,7 +1266,9 @@
         }
         const btn = document.getElementById('saveBtn');
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk fa-spin me-2"></i>Đang lưu...';
-        btn.disabled = true;
+        setTimeout(() => {
+            btn.disabled = true;
+        }, 10);
     });
 
     // ===== Dynamic Medication List Operations =====
