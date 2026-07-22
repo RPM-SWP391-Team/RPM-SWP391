@@ -376,8 +376,11 @@ public class DoctorViewController {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
-        // Kiểm tra bảo mật (Chống IDOR): Bệnh nhân phải thuộc quyền quản lý của bác sĩ đang đăng nhập
-        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+        // Kiểm tra bảo mật: Bệnh nhân phải thuộc quyền quản lý của bác sĩ HOẶC bác sĩ có lịch hẹn khám với bệnh nhân này
+        boolean isPrimaryDoctor = patient.getDoctor() != null && patient.getDoctor().getId().equals(doctor.getId());
+        boolean hasAppointment = appointmentRepository.existsByPatientIdAndDoctorId(patient.getId(), doctor.getId());
+
+        if (!isPrimaryDoctor && !hasAppointment) {
             throw new RuntimeException("Bạn không có quyền truy cập hồ sơ của bệnh nhân này!");
         }
 
@@ -495,9 +498,26 @@ public class DoctorViewController {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
-        // Kiểm tra bảo mật (Chống IDOR): Bệnh nhân phải thuộc quyền quản lý của bác sĩ đang đăng nhập
-        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+        // Kiểm tra bảo mật: Bệnh nhân phải thuộc quyền quản lý của bác sĩ HOẶC bác sĩ có lịch hẹn khám với bệnh nhân này
+        boolean isPrimaryDoctor = patient.getDoctor() != null && patient.getDoctor().getId().equals(doctor.getId());
+        boolean hasAppointment = appointmentRepository.existsByPatientIdAndDoctorId(patient.getId(), doctor.getId());
+
+        if (!isPrimaryDoctor && !hasAppointment) {
             throw new RuntimeException("Bạn không có quyền cập nhật hồ sơ của bệnh nhân này!");
+        }
+
+        // Nếu bác sĩ này chưa phải bác sĩ phụ trách, tự động gán phụ trách cho bác sĩ này khi cập nhật phác đồ
+        if (!isPrimaryDoctor) {
+            Doctor oldDoctor = patient.getDoctor();
+            if (doctor.getCurrentPatientCount() < doctor.getCapacityLimit()) {
+                if (oldDoctor != null && oldDoctor.getCurrentPatientCount() > 0) {
+                    oldDoctor.setCurrentPatientCount(oldDoctor.getCurrentPatientCount() - 1);
+                    doctorRepository.save(oldDoctor);
+                }
+                patient.setDoctor(doctor);
+                doctor.setCurrentPatientCount(doctor.getCurrentPatientCount() + 1);
+                doctorRepository.save(doctor);
+            }
         }
 
         // --- Cập nhật phân loại bệnh lý trực tiếp ---
