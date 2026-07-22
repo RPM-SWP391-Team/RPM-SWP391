@@ -56,7 +56,7 @@
                                 <select class="form-select" name="doctorId" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
                                     <option value="" disabled selected>-- Chọn bác sĩ --</option>
                                     <option th:each="doc : ${doctors}" th:value="${doc.id}" 
-                                            th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa') + ' (' + doc.ratingDisplay + ')'}"></option>
+                                            th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
                                 </select>
                             </div>
 

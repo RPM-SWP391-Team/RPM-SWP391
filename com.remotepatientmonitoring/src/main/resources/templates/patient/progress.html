@@ -87,9 +87,6 @@
                                 <span th:if="${patient.doctor != null}" th:text="'BS. ' + ${patient.doctor.fullName}">BS. Nguyễn Văn B</span>
                                 <span th:if="${patient.doctor == null}">Chưa phân công</span>
                             </div>
-                            <div th:if="${patient.doctor != null}" class="text-warning small fw-bold">
-                                <span th:text="${patient.doctor.ratingDisplay}">⭐⭐⭐⭐☆ 4.2/5</span>
-                            </div>
                         </div>
                     </div>
 
