@@ -80,6 +80,7 @@
     <div class="sidebar-menu">
         <a th:href="@{/hospital/dashboard}" class="menu-item"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
+        <a th:href="@{/hospital/patients}" class="menu-item"><i class="bi bi-people-fill"></i><span>Quản lý Bệnh nhân</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item active"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
         <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
@@ -134,7 +135,7 @@
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
                     <div class="card-header card-header-custom bg-secondary d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fa-solid fa-list-check me-2"></i>Chỉ Dẫn Xử Lý Theo Cấp Độ Màu</h5>
+                        <h5 class="mb-0"><i class="fa-solid fa-list-check me-2"></i>Chỉ Dẫn Xử Lý Theo Cấp Độ </h5>
                         <span class="badge bg-light text-secondary rounded-pill"><span th:text="${#lists.size(guides)}">0</span> Phác đồ</span>
                     </div>
                     <div class="card-body p-4">
@@ -997,7 +998,9 @@
         container.appendChild(prevLi);
 
         // Page numbers
-        for (let i = 0; i < totalPages; i++) {
+        const start = Math.max(0, currentPage - 2);
+        const end = Math.min(totalPages - 1, currentPage + 2);
+        for (let i = start; i <= end; i++) {
             const li = document.createElement('li');
             li.className = `page-item ${i === currentPage ? 'active' : ''}`;
             li.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault(); loadFoodPage(${i})">${i + 1}</a>`;

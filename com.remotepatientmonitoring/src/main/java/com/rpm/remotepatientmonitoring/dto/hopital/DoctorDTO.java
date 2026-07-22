@@ -56,6 +56,11 @@ public class DoctorDTO {
     @Pattern(regexp = "^(MALE|FEMALE|OTHER)$", message = "Giới tính không hợp lệ.")
     private String gender;
 
+    @NotNull(message = "Ngày sinh bắt buộc phải nhập.")
+    @jakarta.validation.constraints.Past(message = "Ngày sinh phải là một ngày trong quá khứ.")
+    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
+    private java.time.LocalDate dateOfBirth;
+
     @NotBlank(message = "Số điện thoại bắt buộc phải nhập.")
     @Pattern(regexp = "^(0[35789])[0-9]{8}$", message = "Số điện thoại không đúng định dạng mạng viễn thông Việt Nam (phải gồm 10 chữ số và bắt đầu bằng 03, 05, 07, 08, 09).")
     private String phone;
@@ -84,6 +89,8 @@ public class DoctorDTO {
     public void setFullName(String fullName) { this.fullName = fullName; }
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
+    public java.time.LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(java.time.LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getEmail() { return email; }

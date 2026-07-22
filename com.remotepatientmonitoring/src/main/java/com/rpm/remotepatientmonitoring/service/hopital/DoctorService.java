@@ -117,7 +117,7 @@ public class DoctorService {
      */
     @Transactional
     public Doctor createDoctor(Integer hospitalId, String doctorCode, String fullName, String phone,
-                               String email, String gender, String password, String specialty, Integer capacityLimit) {
+                               String email, String gender, java.time.LocalDate dateOfBirth, String password, String specialty, Integer capacityLimit) {
 
         String nameRegex = "^[\\p{L}\\s]{2,50}$";
         if (fullName == null || !fullName.trim().matches(nameRegex)) {
@@ -159,6 +159,7 @@ public class DoctorService {
                 .fullName(fullName)
                 .phone(phone)
                 .gender(gender)
+                .dateOfBirth(dateOfBirth)
                 .specialty(specialty)
                 .capacityLimit(capacityLimit)
                 .currentPatientCount(0)
@@ -175,6 +176,7 @@ public class DoctorService {
         newLog.put("email", email);
         newLog.put("phone", phone);
         newLog.put("gender", gender);
+        newLog.put("dateOfBirth", dateOfBirth);
         newLog.put("specialty", doctor.getSpecialty());
         newLog.put("capacityLimit", capacityLimit);
         newLog.put("isActive", doctor.getIsActive());
@@ -407,6 +409,7 @@ public class DoctorService {
         oldLog.put("fullName", doctor.getFullName());
         oldLog.put("phone", doctor.getPhone());
         oldLog.put("gender", doctor.getGender());
+        oldLog.put("dateOfBirth", doctor.getDateOfBirth());
         oldLog.put("specialty", doctor.getSpecialty());
         oldLog.put("capacityLimit", doctor.getCapacityLimit());
 
@@ -438,6 +441,12 @@ public class DoctorService {
         if (!Objects.equals(doctor.getGender(), dto.getGender())) {
             newLog.put("gender", dto.getGender());
             doctor.setGender(dto.getGender());
+            isChanged = true;
+        }
+
+        if (!Objects.equals(doctor.getDateOfBirth(), dto.getDateOfBirth())) {
+            newLog.put("dateOfBirth", dto.getDateOfBirth());
+            doctor.setDateOfBirth(dto.getDateOfBirth());
             isChanged = true;
         }
 
