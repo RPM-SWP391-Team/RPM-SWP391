@@ -1,6 +1,6 @@
 package com.rpm.remotepatientmonitoring.service;
 
-import com.rpm.remotepatientmonitoring.service.hopital.HospitalConfigService;
+import com.rpm.remotepatientmonitoring.service.hospital.HospitalConfigService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.DiseaseProfile;
 import com.rpm.remotepatientmonitoring.model.ExerciseGuideline;

@@ -80,6 +80,7 @@
     <div class="sidebar-menu">
         <a th:href="@{/hospital/dashboard}" class="menu-item"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
+        <a th:href="@{/hospital/patients}" class="menu-item"><i class="bi bi-people-fill"></i><span>Quản lý Bệnh nhân</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item active"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
         <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
@@ -134,7 +135,7 @@
             <div class="col-xl-6 mb-4">
                 <div class="card card-custom shadow-sm border-0 h-100">
                     <div class="card-header card-header-custom bg-secondary d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fa-solid fa-list-check me-2"></i>Chỉ Dẫn Xử Lý Theo Cấp Độ Màu</h5>
+                        <h5 class="mb-0"><i class="fa-solid fa-list-check me-2"></i>Chỉ Dẫn Xử Lý Theo Cấp Độ </h5>
                         <span class="badge bg-light text-secondary rounded-pill"><span th:text="${#lists.size(guides)}">0</span> Phác đồ</span>
                     </div>
                     <div class="card-body p-4">
@@ -174,6 +175,7 @@
                                 <button type="button" class="badge rounded-pill badge-filter active-blue guide-metric-btn" onclick="filterGuides('METRIC', 'ALL', this)">Tất cả (All)</button>
                                 <button type="button" class="badge rounded-pill badge-filter guide-metric-btn" onclick="filterGuides('METRIC', 'BLOOD_PRESSURE', this)">Huyết áp</button>
                                 <button type="button" class="badge rounded-pill badge-filter guide-metric-btn" onclick="filterGuides('METRIC', 'GLUCOSE', this)">Đường huyết</button>
+                                <button type="button" class="badge rounded-pill badge-filter guide-metric-btn" onclick="filterGuides('METRIC', 'BOTH', this)">Cả hai</button>
                                 <div class="vr mx-1 text-muted"></div>
                                 <button type="button" class="badge rounded-pill badge-filter guide-level-btn" onclick="filterGuides('LEVEL', 'RED', this)">Mức Đỏ</button>
                                 <button type="button" class="badge rounded-pill badge-filter guide-level-btn" onclick="filterGuides('LEVEL', 'ORANGE', this)">Mức Cam</button>
@@ -417,18 +419,23 @@
 
                         <div class="mb-4">
                             <h6 class="text-muted fw-bold mb-2"><i class="bi bi-funnel"></i> BỘ LỌC NHÓM BỆNH</h6>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-green gl-profile-btn" onclick="filterGuidelines('PROFILE', 'ALL', this)">Tất cả</button>
+                                <button type="button" class="badge rounded-pill badge-filter gl-profile-btn" onclick="filterGuidelines('PROFILE', 'HYPERTENSION', this)">Tăng huyết áp</button>
+                                <button type="button" class="badge rounded-pill badge-filter gl-profile-btn" onclick="filterGuidelines('PROFILE', 'DIABETES', this)">Tiểu đường</button>
+                                <button type="button" class="badge rounded-pill badge-filter gl-profile-btn" onclick="filterGuidelines('PROFILE', 'BOTH', this)">Cả hai</button>
+                            </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="badge rounded-pill badge-filter active-green" onclick="filterGuidelinesList('ALL', this)">Tất cả</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuidelinesList('HYPERTENSION', this)">Tăng huyết áp</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuidelinesList('DIABETES', this)">Tiểu đường</button>
-                                <button type="button" class="badge rounded-pill badge-filter" onclick="filterGuidelinesList('BOTH', this)">Cả hai</button>
+                                <button type="button" class="badge rounded-pill badge-filter active-green gl-status-btn" onclick="filterGuidelines('STATUS', 'ALL', this)">Mọi trạng thái</button>
+                                <button type="button" class="badge rounded-pill badge-filter gl-status-btn" onclick="filterGuidelines('STATUS', 'true', this)">Đang hoạt động</button>
+                                <button type="button" class="badge rounded-pill badge-filter gl-status-btn" onclick="filterGuidelines('STATUS', 'false', this)">Đã vô hiệu hóa</button>
                             </div>
                         </div>
 
                         <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Danh sách đã soạn</h6>
                         <div class="scrollable-list">
                             <div class="accordion" id="accordionGuidelines">
-                                <div th:each="gl : ${exerciseGuidelines}" class="accordion-item guideline-list-record shadow-sm" th:data-profile="${gl.diseaseProfile.profileCode}">
+                                <div th:each="gl : ${exerciseGuidelines}" class="accordion-item guideline-list-record shadow-sm" th:data-profile="${gl.diseaseProfile.profileCode}" th:data-active="${gl.isActive}">
                                     <h2 class="accordion-header" th:id="'headingGuideline-' + ${gl.id}">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapseGuideline-' + ${gl.id}">
                                             <div class="w-100 pe-3">
@@ -438,6 +445,7 @@
                                                     <span th:if="${gl.diseaseProfile.profileCode == 'BOTH'}" class="badge bg-warning text-dark px-2 py-1 rounded" th:text="${gl.diseaseProfile.profileName}">Cả hai</span>
                                                 </div>
                                                 <div th:text="${gl.title}">Tiêu đề</div>
+                                                <small th:if="${!gl.isActive}" class="text-danger d-block mt-1"><i class="fa-solid fa-ban me-1"></i>Vô hiệu hóa</small>
                                             </div>
                                         </button>
                                     </h2>
@@ -454,8 +462,14 @@
                                                     <p style="white-space: pre-line; font-size: 0.9rem;" class="mb-0 text-dark" th:text="${gl.avoidContent}"></p>
                                                 </div>
                                                 <div class="text-end border-top pt-2">
-                                                    <button type="button" class="btn btn-outline-warning btn-sm rounded-pill" th:onclick="'toggleEditGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-ban"></i> Vô hiệu hóa</button>
+                                                    <th:block th:if="${gl.isActive}">
+                                                        <button type="button" class="btn btn-outline-warning btn-sm rounded-pill" th:onclick="'toggleEditGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-pen-to-square"></i> Cập nhật</button>
+                                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" th:onclick="'handleDeleteGuideline(' + ${gl.id} + ')'"><i class="fa-solid fa-ban"></i> Vô hiệu hóa</button>
+                                                    </th:block>
+                                                    <th:block th:unless="${gl.isActive}">
+                                                        <span class="badge bg-secondary me-2">Đã vô hiệu hóa</span>
+                                                        <button type="button" class="btn btn-outline-success btn-sm rounded-pill" th:onclick="'handleRestoreGuideline(' + ${gl.id} + ', this)'"><i class="fa-solid fa-rotate-left"></i> Khôi phục</button>
+                                                    </th:block>
                                                 </div>
                                             </div>
 
@@ -555,6 +569,13 @@
                             </form>
                         </div>
 
+                        <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="badge rounded-pill badge-filter active-blue food-status-btn" onclick="filterFoodsByStatus('ALL', this)">Tất cả</button>
+                                <button type="button" class="badge rounded-pill badge-filter food-status-btn" onclick="filterFoodsByStatus('true', this)">Hoạt động</button>
+                                <button type="button" class="badge rounded-pill badge-filter food-status-btn" onclick="filterFoodsByStatus('false', this)">Vô hiệu hóa</button>
+                            </div>
+                        </div>
                         <div class="mb-3 d-flex gap-2">
                             <input type="text" class="form-control form-control-sm" id="foodSearchInput" placeholder="Tìm kiếm theo tên món ăn..." oninput="triggerFoodSearch()">
                             <button class="btn btn-primary btn-sm px-3" onclick="loadFoodPage(0)"><i class="bi bi-search"></i></button>
@@ -798,15 +819,27 @@
     // ==========================================
     // JS CHO KHUYẾN NGHỊ TẬP LUYỆN
     // ==========================================
-    function filterGuidelinesList(profileCode, btnElement) {
-        document.querySelectorAll('button[onclick^="filterGuidelinesList"]').forEach(btn => btn.classList.remove('active-green'));
+    let currentGlProfile = 'ALL';
+    let currentGlStatus = 'ALL';
+
+    function filterGuidelines(type, value, btnElement) {
+        if (type === 'PROFILE') {
+            currentGlProfile = value;
+            document.querySelectorAll('.gl-profile-btn').forEach(btn => btn.classList.remove('active-green'));
+        } else if (type === 'STATUS') {
+            currentGlStatus = value;
+            document.querySelectorAll('.gl-status-btn').forEach(btn => btn.classList.remove('active-green'));
+        }
         btnElement.classList.add('active-green');
 
         document.querySelectorAll('.guideline-list-record').forEach(item => {
             const itemProfile = item.getAttribute('data-profile');
-            const isMatch = (profileCode === 'ALL' || itemProfile === profileCode);
+            const itemStatus = item.getAttribute('data-active');
 
-            if (isMatch) {
+            const matchProfile = (currentGlProfile === 'ALL' || itemProfile === currentGlProfile);
+            const matchStatus = (currentGlStatus === 'ALL' || itemStatus === currentGlStatus);
+
+            if (matchProfile && matchStatus) {
                 item.style.display = 'block';
                 setTimeout(() => {
                     item.style.opacity = '1';
@@ -818,6 +851,32 @@
                 setTimeout(() => { item.style.display = 'none'; }, 200);
             }
         });
+    }
+
+    function handleRestoreGuideline(id, btnElement) {
+        if (!confirm("Bạn có chắc chắn muốn KHÔI PHỤC khuyến nghị này không?")) return;
+
+        const originalText = btnElement.innerHTML;
+        btnElement.disabled = true;
+        btnElement.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang xử lý...';
+
+        fetch(`/hospital/exercise-guidelines/${id}/restore`, {
+            method: 'PUT'
+        })
+            .then(async response => {
+                if (response.ok) {
+                    alert("Khôi phục thành công!");
+                    location.reload();
+                } else {
+                    const errorMsg = await response.text();
+                    throw new Error(errorMsg || "Lỗi xử lý hệ thống.");
+                }
+            })
+            .catch(error => {
+                alert("Thao tác thất bại: \n" + error.message);
+                btnElement.disabled = false;
+                btnElement.innerHTML = originalText;
+            });
     }
 
     function toggleEditGuideline(id) {
@@ -918,10 +977,19 @@
         }, 300);
     }
 
+    let currentFoodStatus = 'ALL';
+
+    function filterFoodsByStatus(status, btnElement) {
+        currentFoodStatus = status;
+        document.querySelectorAll('.food-status-btn').forEach(btn => btn.classList.remove('active-blue'));
+        btnElement.classList.add('active-blue');
+        loadFoodPage(0);
+    }
+
     function loadFoodPage(page) {
         currentFoodPage = page;
         const search = document.getElementById('foodSearchInput').value;
-        const url = `/hospital/foods?page=${page}&size=20&search=${encodeURIComponent(search)}`;
+        const url = `/hospital/foods?page=${page}&size=20&search=${encodeURIComponent(search)}&status=${currentFoodStatus}`;
 
         fetch(url)
             .then(res => res.json())
@@ -997,7 +1065,9 @@
         container.appendChild(prevLi);
 
         // Page numbers
-        for (let i = 0; i < totalPages; i++) {
+        const start = Math.max(0, currentPage - 2);
+        const end = Math.min(totalPages - 1, currentPage + 2);
+        for (let i = start; i <= end; i++) {
             const li = document.createElement('li');
             li.className = `page-item ${i === currentPage ? 'active' : ''}`;
             li.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault(); loadFoodPage(${i})">${i + 1}</a>`;

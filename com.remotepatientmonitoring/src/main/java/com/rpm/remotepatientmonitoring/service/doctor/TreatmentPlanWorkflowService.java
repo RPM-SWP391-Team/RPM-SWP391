@@ -30,6 +30,12 @@ public class TreatmentPlanWorkflowService {
     private PatientRepository patientRepository;
 
     @Autowired
+    private ClinicalRecordRepository clinicalRecordRepository;
+
+    @Autowired
+    private HealthLogRepository healthLogRepository;
+
+    @Autowired
     private AuditTrailService auditTrailService;
 
     @Transactional
@@ -42,6 +48,8 @@ public class TreatmentPlanWorkflowService {
             BigDecimal baselineFastingGlucose,
             BigDecimal baselineHba1c,
             BigDecimal baselineWeightKg,
+            BigDecimal heightCm,
+            BigDecimal bmi,
             // Target Vitals
             Integer targetSystolicBp,
             Integer targetDiastolicBp,
@@ -114,6 +122,42 @@ public class TreatmentPlanWorkflowService {
         newPlan.setPatient(patient);
         newPlan.setDoctor(doctor);
         newPlan.setNutritionRule(savedRule);
+
+        // Lưu ClinicalRecord (Hồ sơ khám bệnh) để ánh xạ với bảng clinical_records
+        boolean isInitial = !clinicalRecordRepository.existsByPatientId(patient.getId());
+        ClinicalRecord record = ClinicalRecord.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .examinationDate(now)
+                .weightKg(baselineWeightKg)
+                .heightCm(heightCm)
+                .bmi(bmi)
+                .systolicBp(baselineSystolicBp)
+                .diastolicBp(baselineDiastolicBp)
+                .fastingGlucose(baselineFastingGlucose)
+                .hba1c(baselineHba1c)
+                .isInitialExam(isInitial)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        clinicalRecordRepository.save(record);
+        
+        // Log baseline metrics to DailyHealthLog for charts and history
+        if (baselineSystolicBp != null || baselineDiastolicBp != null || baselineFastingGlucose != null) {
+            DailyHealthLog healthLog = DailyHealthLog.builder()
+                    .patient(patient)
+                    .logDate(now.toLocalDate())
+                    .logTime(now)
+                    .logType("RANDOM")
+                    .systolicBp(baselineSystolicBp)
+                    .diastolicBp(baselineDiastolicBp)
+                    .glucoseLevel(baselineFastingGlucose)
+                    .inputMethod("MANUAL")
+                    .patientNotes("Chỉ số đo tại viện")
+                    .isOcrValidated(false)
+                    .build();
+            healthLogRepository.save(healthLog);
+        }
 
         newPlan.setBaselineSystolicBp(baselineSystolicBp);
         newPlan.setBaselineDiastolicBp(baselineDiastolicBp);

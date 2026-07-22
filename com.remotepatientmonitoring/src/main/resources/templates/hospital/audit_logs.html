@@ -80,9 +80,7 @@
             min-height: 100vh;
             transition: all 0.3s ease;
             padding: 1.25rem 1.5rem;
-            max-width: calc(100vw - var(--sidebar-width));
             box-sizing: border-box;
-            overflow-x: hidden;
         }
         .navbar-top {
             background-color: #ffffff;
@@ -158,16 +156,16 @@
             .sidebar-toggle { display: block; }
         }
 
-        .table-responsive { border-radius: 12px; overflow: hidden; }
+        .table-responsive { border-radius: 12px; overflow-x: auto; }
         .table thead th {
             background-color: #F8FAFC;
             color: #475569;
             font-weight: 600;
             border-bottom: 1px solid #E2E8F0;
-            padding: 1rem;
+            padding: 0.75rem 0.5rem;
         }
         .table tbody td {
-            padding: 1rem;
+            padding: 0.5rem;
             vertical-align: middle;
             border-bottom: 1px solid #F1F5F9;
         }
@@ -211,6 +209,10 @@
         <a th:href="@{/hospital/doctors}" class="menu-item">
             <i class="bi bi-person-fill-gear"></i>
             <span>Quản lý Bác sĩ</span>
+        </a>
+        <a th:href="@{/hospital/patients}" class="menu-item">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý Bệnh nhân</span>
         </a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item">
             <i class="bi bi-sliders"></i>
@@ -334,16 +336,16 @@
         </div>
         <div class="card-custom-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+                <table class="table table-hover table-sm align-middle mb-0" style="min-width: 900px; font-size: 0.85rem;">
                     <thead>
                     <tr>
-                        <th style="width: 13%;">Thời gian</th>
-                        <th style="width: 13%;">Người thực hiện</th>
-                        <th style="width: 15%;">Hành động</th>
-                        <th style="width: 13%;">Mục tiêu</th>
-                        <th style="width: 15%;">IP / Thiết bị</th>
-                        <th style="width: 21%;">Giải trình / Ghi chú</th>
-                        <th style="width: 10%;" class="text-center">Thao tác</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Thời gian</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Người thực hiện</th>
+                        <th style="width: 15%; padding: 0.75rem 0.5rem;">Hành động</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Mục tiêu</th>
+                        <th style="width: 15%; padding: 0.75rem 0.5rem;">IP / Thiết bị</th>
+                        <th style="width: 21%; padding: 0.75rem 0.5rem;">Giải trình / Ghi chú</th>
+                        <th style="width: 10%; padding: 0.75rem 0.5rem;" class="text-center">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -369,12 +371,12 @@
                             <div class="fw-semibold text-capitalize" th:text="${log.targetTable}">patients</div>
                             <small class="text-muted" th:text="'Record ID: ' + ${log.targetRecordId}">ID: 1</small>
                         </td>
-                        <td>
+                        <td style="padding: 0.5rem;">
                             <div th:text="${log.ipAddress != null ? log.ipAddress : '-'}">127.0.0.1</div>
-                            <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 120px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
                         </td>
-                        <td>
-                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 250px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
+                        <td style="padding: 0.5rem;">
+                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 180px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill btn-detail"
@@ -410,7 +412,7 @@
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                             <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage - 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&laquo;</a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, logs.totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                        <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(logs.totalPages - 1, currentPage + 2))}" th:classappend="${i == currentPage} ? 'active'">
                             <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${i}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage + 1 == logs.totalPages} ? 'disabled'">
@@ -625,6 +627,11 @@
             return escapeHtml(JSON.stringify(val));
         }
         const str = val.toString();
+        const upperStr = str.toUpperCase();
+        if (upperStr === 'MALE') return 'Nam';
+        if (upperStr === 'FEMALE') return 'Nữ';
+        if (upperStr === 'OTHER') return 'Khác';
+
         if (str === '***MASKED***' || str === '***PROTECTED***') {
             return '<span class="badge bg-warning-subtle text-dark border border-warning px-2 py-1"><i class="bi bi-shield-lock me-1 text-warning"></i>***MASKED***</span>';
         }

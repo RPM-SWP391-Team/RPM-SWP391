@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Bệnh nhân | Hospital Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1A73E8;
+            --primary-hover: #155cb4;
+            --primary-light: #E8F0FE;
+            --bg-light: #F4F7FE;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --sidebar-width: 260px;
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid #E2E8F0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 1.5rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .sidebar-menu {
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover, .menu-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .sidebar-footer {
+            padding: 1.5rem 1rem;
+            border-top: 1px solid #F1F5F9;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            padding: 1.25rem 1.5rem;
+            box-sizing: border-box;
+        }
+        .navbar-top {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Card and Table Styles */
+        .card-custom {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            background: #ffffff;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .table-responsive {
+            border-radius: 12px;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .table-custom {
+            width: 100%;
+        }
+        .table-custom thead {
+            background: var(--primary-gradient);
+            color: white;
+        }
+        .table-custom th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 16px;
+        }
+        .table-custom td {
+            padding: 16px;
+            vertical-align: middle;
+        }
+
+        /* Pagination Styling */
+        .pagination {
+            gap: 2px;
+        }
+        .page-link {
+            color: var(--text-dark);
+            border: 1px solid #E2E8F0;
+            background-color: #ffffff;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: 6px !important;
+        }
+        .page-link:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border-color: #ced4da;
+        }
+        .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2);
+        }
+        .page-item.disabled .page-link {
+            background-color: #F8FAFC;
+            color: #94A3B8;
+            border-color: #E2E8F0;
+            cursor: not-allowed;
+        }
+
+        /* Mobile responsive toggle */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-heart-pulse-fill"></i>
+        <span>RPM System</span>
+    </div>
+    <div class="sidebar-menu">
+        <a th:href="@{/hospital/dashboard}" class="menu-item">
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
+        </a>
+        <a th:href="@{/hospital/doctors}" class="menu-item">
+            <i class="bi bi-person-fill-gear"></i>
+            <span>Quản lý Bác sĩ</span>
+        </a>
+        <a th:href="@{/hospital/patients}" class="menu-item active">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý Bệnh nhân</span>
+        </a>
+        <a th:href="@{/hospital/config/thresholds}" class="menu-item">
+            <i class="bi bi-sliders"></i>
+            <span>Cấu hình Ngưỡng</span>
+        </a>
+        <a th:href="@{/hospital/config/protocols}" class="menu-item">
+            <i class="bi bi-journal-medical"></i>
+            <span>Cẩm nang & Chỉ dẫn</span>
+        </a>
+        <a th:href="@{/hospital/ratings}" class="menu-item">
+            <i class="bi bi-star"></i>
+            <span>Quản lý Đánh giá</span>
+        </a>
+        <a th:href="@{/hospital/bug-reports}" class="menu-item">
+            <i class="bi bi-bug"></i>
+            <span>Báo Lỗi Hệ Thống</span>
+        </a>
+        <a th:href="@{/hospital/audit-logs}" class="menu-item">
+            <i class="bi bi-clock-history"></i>
+            <span>Nhật ký Hệ thống</span>
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a th:href="@{/hospital/profile}" class="menu-item mb-1">
+            <i class="bi bi-person-circle"></i>
+            <span>Hồ sơ cá nhân</span>
+        </a>
+        <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
+</div>
+
+<div class="main-content">
+    <!-- Navbar Top -->
+    <div class="navbar-top">
+        <div class="d-flex align-items-center gap-3">
+            <button class="sidebar-toggle" id="toggleSidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-none d-md-block">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/hospital/dashboard}" class="text-decoration-none">Trang chủ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Quản lý Bệnh nhân</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-end d-none d-sm-block">
+                <h6 class="mb-0 fw-semibold">Quản trị viên</h6>
+                <small class="text-muted">Bệnh viện đa khoa</small>
+            </div>
+            <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-building"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Title -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-user-injured text-primary me-2"></i>Quản lý Bệnh nhân</h2>
+            <p class="text-muted mb-0">Xem hồ sơ, tìm kiếm và phân loại trạng thái bác sĩ phụ trách của bệnh nhân</p>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card card-custom p-3 mb-4 border-0 shadow-sm">
+        <form th:action="@{/hospital/patients}" method="GET" class="row g-2 align-items-center">
+            <div class="col-xl-4 col-lg-4 col-md-12">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0"
+                           th:value="${searchKeyword}"
+                           placeholder="Tìm theo Mã BN, Tên hoặc Số điện thoại...">
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-lg-3 col-md-6">
+                <select name="assignStatus" class="form-select" onchange="this.form.submit()">
+                    <option value="ALL" th:selected="${selectedAssignStatus == 'ALL'}">-- Tất cả bác sĩ --</option>
+                    <option value="UNASSIGNED" th:selected="${selectedAssignStatus == 'UNASSIGNED'}">🔴 Chưa có bác sĩ phụ trách</option>
+                    <option value="ASSIGNED" th:selected="${selectedAssignStatus == 'ASSIGNED'}">🟢 Đã có bác sĩ phụ trách</option>
+                </select>
+            </div>
+
+            <div class="col-xl-3 col-lg-3 col-md-6">
+                <select name="diseaseCode" class="form-select" onchange="this.form.submit()">
+                    <option value="ALL" th:selected="${selectedDiseaseCode == 'ALL'}">-- Tất cả bệnh lý --</option>
+                    <option value="HYPERTENSION" th:selected="${selectedDiseaseCode == 'HYPERTENSION'}">🩺 Tăng huyết áp</option>
+                    <option value="DIABETES" th:selected="${selectedDiseaseCode == 'DIABETES'}">🩸 Tiểu đường Type 2</option>
+                    <option value="BOTH" th:selected="${selectedDiseaseCode == 'BOTH'}">🧬 Đồng mắc (Cả hai bệnh)</option>
+                </select>
+            </div>
+
+            <div class="col-xl-2 col-lg-2 col-md-12 d-flex gap-1">
+                <button type="submit" class="btn btn-primary fw-semibold flex-grow-1">Lọc</button>
+                <a th:if="${(searchKeyword != null && !searchKeyword.trim().isEmpty()) || (selectedAssignStatus != null && selectedAssignStatus != 'ALL') || (selectedDiseaseCode != null && selectedDiseaseCode != 'ALL')}"
+                   th:href="@{/hospital/patients(search='', assignStatus='ALL', diseaseCode='ALL', page=0)}"
+                   class="btn btn-outline-danger"
+                   title="Xóa tất cả bộ lọc và hoàn tác">
+                    <i class="fa-solid fa-trash-can"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Patients Data Table -->
+    <div class="card card-custom p-4 border-0">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0" style="min-width: 900px;">
+                <thead>
+                <tr>
+                    <th style="width: 12%;">Mã BN</th>
+                    <th style="width: 20%;">Họ và Tên</th>
+                    <th style="width: 15%;">Số Điện Thoại</th>
+                    <th style="width: 12%;">Giới Tính</th>
+                    <th style="width: 18%;">Bác Sĩ Phụ Trách</th>
+                    <th style="width: 13%;">Trạng Thái</th>
+                    <th style="width: 10%;" class="text-center">Hành Động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="pat : ${patients}">
+                    <td><span class="fw-bold text-secondary" th:text="${pat.patientCode != null ? pat.patientCode : '-'}">BN001</span></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-2 d-none d-md-block" style="width: 38px; height: 38px; text-align: center; flex-shrink: 0;">
+                                <i class="fa-solid fa-user-injured"></i>
+                            </div>
+                            <span class="fw-semibold" th:text="${pat.fullName}">Bệnh nhân</span>
+                        </div>
+                    </td>
+                    <td th:text="${pat.phone}">0123456789</td>
+                    <td>
+                        <span th:text="${'MALE'.equalsIgnoreCase(pat.gender) ? 'Nam' : ('FEMALE'.equalsIgnoreCase(pat.gender) ? 'Nữ' : 'Khác')}">-</span>
+                    </td>
+                    <td>
+                        <span th:if="${pat.doctor != null}" class="fw-semibold text-dark" th:text="${pat.doctor.fullName}">Bác sĩ A</span>
+                        <span th:unless="${pat.doctor != null}" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded">Chưa phân công</span>
+                    </td>
+                    <td>
+                        <span class="badge" th:classappend="${pat.status == 'TREATING' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'}"
+                              th:text="${pat.status == 'TREATING' ? 'Đang điều trị' : (pat.status == 'NEW' ? 'Mới đăng ký' : pat.status)}">-</span>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" style="font-size: 0.8rem; white-space: nowrap;" th:onclick="'viewPatientDetail(' + ${pat.id} + ')'">
+                            <i class="fa-solid fa-eye"></i> Xem
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(patients)}">
+                    <td colspan="7" class="text-center text-muted py-5">
+                        <div class="mb-3">
+                            <i class="fa-solid fa-user-slash fa-3x text-secondary text-opacity-25"></i>
+                        </div>
+                        <h5 class="fw-bold text-secondary">Không tìm thấy bệnh nhân nào</h5>
+                        <p class="small mb-0 text-muted">
+                            Không có dữ liệu bệnh nhân nào thỏa mãn các điều kiện tìm kiếm hoặc bộ lọc hiện tại.
+                        </p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Custom Pagination (Limit to 5 pages around active page) -->
+        <div th:if="${totalPages > 0}" class="d-flex justify-content-between align-items-center mt-4 px-2 flex-wrap gap-3">
+            <span class="text-muted small">
+                Hiển thị <span class="fw-bold text-dark" th:text="${patientPage.numberOfElements}">0</span>
+                trên tổng số <span class="fw-bold text-dark" th:text="${totalItems}">0</span> bệnh nhân
+            </span>
+            <nav aria-label="Page navigation" th:if="${totalPages > 1}">
+                <ul class="pagination pagination-sm mb-0 shadow-sm">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link rounded-start py-2 px-3"
+                           th:href="@{/hospital/patients(page=${currentPage - 1}, search=${searchKeyword}, assignStatus=${selectedAssignStatus}, diseaseCode=${selectedDiseaseCode})}">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(totalPages - 1, currentPage + 2))}"
+                        th:classappend="${currentPage == i} ? 'active'">
+                        <a class="page-link py-2 px-3"
+                           th:href="@{/hospital/patients(page=${i}, search=${searchKeyword}, assignStatus=${selectedAssignStatus}, diseaseCode=${selectedDiseaseCode})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link rounded-end py-2 px-3"
+                           th:href="@{/hospital/patients(page=${currentPage + 1}, search=${searchKeyword}, assignStatus=${selectedAssignStatus}, diseaseCode=${selectedDiseaseCode})}">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Xem chi tiết Bệnh nhân -->
+<div class="modal fade" id="detailPatientModal" tabindex="-1" aria-labelledby="detailPatientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
+            <div class="modal-header py-3" style="background: var(--primary-gradient); color: white;">
+                <h5 class="modal-title fw-bold" id="detailPatientModalLabel">
+                    <i class="fa-solid fa-user-doctor me-2"></i>Chi Tiết Hồ Sơ Bệnh Nhân
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Group 1: Thông tin cơ bản -->
+                <h6 class="fw-bold text-primary mb-3 border-bottom pb-1"><i class="fa-solid fa-address-card me-2"></i>Thông tin cá nhân & Tài khoản</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Mã Bệnh Nhân</small>
+                            <span class="fw-bold fs-5 text-primary" id="detailPatientCode">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Họ và Tên</small>
+                            <span class="fw-bold fs-5 text-dark" id="detailFullName">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Email Đăng Nhập</small>
+                            <span class="fw-semibold text-dark" id="detailEmail">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Số Điện Thoại</small>
+                            <span class="fw-semibold text-dark" id="detailPhone">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Giới Tính</small>
+                            <span class="fw-semibold text-dark" id="detailGender">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Ngày Sinh</small>
+                            <span class="fw-semibold text-dark" id="detailDob">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Nguồn Đăng Ký</small>
+                            <span class="fw-semibold text-dark" id="detailSource">-</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Địa chỉ thường trú</small>
+                            <span class="fw-semibold text-dark" id="detailAddress">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Thông tin điều trị -->
+                <h6 class="fw-bold text-primary mb-3 border-bottom pb-1"><i class="fa-solid fa-file-medical me-2"></i>Thông tin Phân công & Điều trị</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Bác Sĩ Phụ Trách</small>
+                            <span class="fw-bold text-dark" id="detailDoctor">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Phân loại Bệnh lý nền</small>
+                            <span class="fw-bold text-dark" id="detailDiseaseProfile">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Trạng thái Bệnh nhân</small>
+                            <span class="badge" id="detailStatus">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <small class="text-muted d-block fw-semibold mb-1">Ngày Tạo Hồ Sơ</small>
+                            <span class="fw-semibold text-dark" id="detailCreatedAt">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Thông tin khẩn cấp -->
+                <h6 class="fw-bold text-danger mb-3 border-bottom pb-1"><i class="fa-solid fa-phone-flip me-2"></i>Liên hệ khẩn cấp</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 border border-danger border-opacity-10">
+                            <small class="text-muted d-block fw-semibold mb-1">Tên Người Liên Hệ Khẩn Cấp</small>
+                            <span class="fw-bold" id="detailEmergencyName">-</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-3 border border-danger border-opacity-10">
+                            <small class="text-muted d-block fw-semibold mb-1">SĐT Liên Hệ Khẩn Cấp</small>
+                            <span class="fw-bold" id="detailEmergencyPhone">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light p-3" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar toggle for mobile responsive
+    const toggleSidebarBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleSidebarBtn && sidebar) {
+        toggleSidebarBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // Ajax call to retrieve patient details and update the modal
+    function viewPatientDetail(id) {
+        fetch(`/hospital/patients/${id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Không thể tải chi tiết bệnh nhân.");
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('detailPatientCode').innerText = data.patientCode || '-';
+                document.getElementById('detailFullName').innerText = data.fullName || '-';
+                document.getElementById('detailEmail').innerText = data.email || '-';
+                document.getElementById('detailPhone').innerText = data.phone || '-';
+                document.getElementById('detailGender').innerText = data.gender || '-';
+                
+                if (data.dateOfBirth) {
+                    const dob = new Date(data.dateOfBirth);
+                    document.getElementById('detailDob').innerText = dob.toLocaleDateString('vi-VN');
+                } else {
+                    document.getElementById('detailDob').innerText = '-';
+                }
+                
+                document.getElementById('detailAddress').innerText = data.address || '-';
+                document.getElementById('detailStatus').innerText = data.status || '-';
+                
+                const statusBadge = document.getElementById('detailStatus');
+                statusBadge.className = 'badge';
+                if (data.status === 'Đang điều trị') {
+                    statusBadge.classList.add('bg-success', 'bg-opacity-10', 'text-success');
+                } else {
+                    statusBadge.classList.add('bg-warning', 'bg-opacity-10', 'text-warning');
+                }
+                
+                document.getElementById('detailSource').innerText = data.registrationSource || '-';
+                document.getElementById('detailDiseaseProfile').innerText = data.diseaseProfileName || '-';
+                document.getElementById('detailDoctor').innerText = data.doctorName || '-';
+                
+                document.getElementById('detailEmergencyName').innerText = data.emergencyContactName || '-';
+                document.getElementById('detailEmergencyPhone').innerText = data.emergencyContactPhone || '-';
+                
+                if (data.createdAt) {
+                    const cDate = new Date(data.createdAt);
+                    document.getElementById('detailCreatedAt').innerText = cDate.toLocaleString('vi-VN');
+                } else {
+                    document.getElementById('detailCreatedAt').innerText = '-';
+                }
+
+                // Trigger bootstrap modal
+                const myModal = new bootstrap.Modal(document.getElementById('detailPatientModal'));
+                myModal.show();
+            })
+            .catch(err => {
+                console.error(err);
+                alert(err.message || "Có lỗi xảy ra khi tải dữ liệu.");
+            });
+    }
+</script>
+</body>
+</html>

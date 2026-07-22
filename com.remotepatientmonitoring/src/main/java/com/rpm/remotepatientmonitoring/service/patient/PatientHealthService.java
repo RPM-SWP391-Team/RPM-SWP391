@@ -78,21 +78,23 @@ public class PatientHealthService {
 
         if (req.getSystolicBp() != null) {
             int sys = req.getSystolicBp();
-            if (sys >= 180) { systolicLevel = 3; alertMessage += "Huyết áp tâm thu quá cao (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=180"; }
-            else if (sys >= 140) { systolicLevel = 2; alertMessage += "Huyết áp tâm thu cao (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=140"; }
+            if (sys >= 180) { systolicLevel = 4; alertMessage += "Huyết áp tâm thu cấp cứu (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=180"; }
+            else if (sys >= 140) { systolicLevel = 3; alertMessage += "Huyết áp tâm thu nguy hiểm (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=140"; }
+            else if (sys >= 130) { systolicLevel = 2; alertMessage += "Huyết áp tâm thu hơi cao (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=130"; }
         }
 
         if (req.getDiastolicBp() != null) {
             int dia = req.getDiastolicBp();
-            if (dia >= 120) { diastolicLevel = 3; alertMessage += "Huyết áp tâm trương quá cao (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=120"; }
-            else if (dia >= 90) { diastolicLevel = 2; alertMessage += "Huyết áp tâm trương cao (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=90"; }
+            if (dia >= 110) { diastolicLevel = 4; alertMessage += "Huyết áp tâm trương cấp cứu (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=110"; }
+            else if (dia >= 90) { diastolicLevel = 3; alertMessage += "Huyết áp tâm trương nguy hiểm (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=90"; }
+            else if (dia >= 85) { diastolicLevel = 2; alertMessage += "Huyết áp tâm trương hơi cao (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=85"; }
         }
         
         if (req.getGlucoseLevel() != null) {
             double glu = req.getGlucoseLevel().doubleValue();
-            if (glu < 4.4) { glucoseLevel = 3; alertMessage += "Hạ đường huyết (" + glu + "). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<4.4"; }
-            else if (glu > 16.0) { glucoseLevel = 3; alertMessage += "Đường huyết quá cao (" + glu + "). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">16.0"; }
-            else if (glu > 10.0) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + "). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">10.0"; }
+            if (glu < 4.4) { glucoseLevel = 3; alertMessage += "Hạ đường huyết (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<4.4"; }
+            else if (glu > 16.0) { glucoseLevel = 3; alertMessage += "Đường huyết khẩn cấp (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">16.0"; }
+            else if (glu > 10.0) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">10.0"; }
         }
         
         int finalLevel = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));
@@ -103,7 +105,12 @@ public class PatientHealthService {
             alert.setDoctor(doctor);
             alert.setHealthLog(latestLog);
             alert.setAlertLevel(finalLevel);
-            alert.setAlertColor(finalLevel == 3 ? "RED" : "ORANGE");
+            
+            String alertColor = "YELLOW";
+            if (finalLevel == 4) alertColor = "RED";
+            else if (finalLevel == 3) alertColor = "ORANGE";
+            
+            alert.setAlertColor(alertColor);
             alert.setMetricType(metricType);
             alert.setThresholdViolated(thresholdViolated);
             alert.setMetricValue(metricValue.isEmpty() ? "N/A" : metricValue);
@@ -114,20 +121,23 @@ public class PatientHealthService {
             
             alertRepository.save(alert);
             
-            com.rpm.remotepatientmonitoring.model.Notification notif = new com.rpm.remotepatientmonitoring.model.Notification();
-            notif.setPatient(patient);
-            notif.setDoctor(doctor);
-            notif.setRecipientType("DOCTOR");
-            notif.setRecipientId(doctor.getId());
-            notif.setNotificationType("ALERT");
-            notif.setChannel("IN_APP");
-            notif.setStatus("SENT");
-            notif.setTitle("Cảnh báo Y tế từ bệnh nhân " + patient.getFullName());
-            notif.setContent("Phát hiện chỉ số bất thường mức " + alert.getAlertColor() + ". Vui lòng kiểm tra ngay!");
-            notif.setIsRead(false);
-            notif.setCreatedAt(java.time.LocalDateTime.now());
-            
-            notificationRepository.save(notif);
+            // Only notify DOCTOR if level >= 3 (Orange/Red)
+            if (finalLevel >= 3) {
+                com.rpm.remotepatientmonitoring.model.Notification notif = new com.rpm.remotepatientmonitoring.model.Notification();
+                notif.setPatient(patient);
+                notif.setDoctor(doctor);
+                notif.setRecipientType("DOCTOR");
+                notif.setRecipientId(doctor.getId());
+                notif.setNotificationType("ALERT");
+                notif.setChannel("IN_APP");
+                notif.setStatus("SENT");
+                notif.setTitle("Cảnh báo Y tế từ bệnh nhân " + patient.getFullName());
+                notif.setContent("Phát hiện chỉ số bất thường mức " + alertColor + ". Vui lòng kiểm tra ngay!");
+                notif.setIsRead(false);
+                notif.setCreatedAt(java.time.LocalDateTime.now());
+                
+                notificationRepository.save(notif);
+            }
         }
     }
 
@@ -230,6 +240,7 @@ public class PatientHealthService {
             res.put("level", 1);
             res.put("emergencyContactName", "Chưa thiết lập");
             res.put("emergencyContactPhone", "");
+            res.put("guides", java.util.List.of());
             return res;
         }
 
@@ -251,6 +262,20 @@ public class PatientHealthService {
         res.put("alertMessage", message);
         res.put("emergencyContactName", patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Người thân");
         res.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
+
+        java.util.List<java.util.Map<String, Object>> guideList = new java.util.ArrayList<>();
+        if (patient.getHospital() != null) {
+            java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyGuide> guides = 
+                emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
+            for (com.rpm.remotepatientmonitoring.model.EmergencyGuide g : guides) {
+                java.util.Map<String, Object> gMap = new java.util.HashMap<>();
+                gMap.put("title", g.getTitle());
+                gMap.put("content", g.getInstructionContent());
+                gMap.put("metricType", g.getMetricType());
+                guideList.add(gMap);
+            }
+        }
+        res.put("guides", guideList);
 
         return res;
     }
