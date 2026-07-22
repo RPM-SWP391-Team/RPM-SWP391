@@ -236,8 +236,8 @@ public class DoctorViewController {
         ChangeRequest transferReq = ChangeRequest.builder()
                 .patient(patient)
                 .doctor(newDoctor) // Bác sĩ B nhận yêu cầu trong Quản lý Yêu cầu
-                .requestType("TRANSFER")
-                .patientReason("Yêu cầu bàn giao từ Bác sĩ " + currentDoctor.getFullName() + ". Lý do: " + transferReason)
+                .requestType("TREATMENT_PLAN")
+                .patientReason("[BÀN GIAO BÁC SĨ] Yêu cầu bàn giao từ Bác sĩ " + currentDoctor.getFullName() + ". Lý do: " + transferReason)
                 .status("PENDING")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -672,9 +672,11 @@ public class DoctorViewController {
             return REDIRECT_CHANGE_REQUESTS;
         }
 
+        boolean isTransfer = (request.getPatientReason() != null && request.getPatientReason().startsWith("[BÀN GIAO BÁC SĨ]")) || "TRANSFER".equalsIgnoreCase(request.getRequestType());
+
         if ("APPROVE".equalsIgnoreCase(action)) {
             // Nếu đây là Yêu cầu bàn giao Bác sĩ (TRANSFER)
-            if ("TRANSFER".equalsIgnoreCase(request.getRequestType())) {
+            if (isTransfer) {
                 Patient patient = request.getPatient();
                 Doctor oldDoctor = patient.getDoctor();
                 Doctor newDoctor = doctor; // Bác sĩ B nhận bàn giao
@@ -739,7 +741,7 @@ public class DoctorViewController {
         } else if ("REJECT".equalsIgnoreCase(action)) {
             request.setStatus("REJECTED");
 
-            if ("TRANSFER".equalsIgnoreCase(request.getRequestType())) {
+            if (isTransfer) {
                 Doctor oldDoctor = request.getPatient().getDoctor();
                 if (oldDoctor != null) {
                     Notification oldDocNotif = Notification.builder()
