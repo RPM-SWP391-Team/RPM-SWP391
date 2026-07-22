@@ -197,8 +197,14 @@ public class ExerciseLogService {
         if (durationMinutes == null || durationMinutes <= 0) {
             throw new IllegalArgumentException("Thời lượng tập luyện phải lớn hơn 0 phút!");
         }
+        if (durationMinutes > 1440) {
+            throw new IllegalArgumentException("Thời lượng tập luyện không được vượt quá 1440 phút (24 giờ)!");
+        }
         if (steps != null && steps < 0) {
             throw new IllegalArgumentException("Số bước chân không được nhỏ hơn 0!");
+        }
+        if (steps != null && steps > 100000) {
+            throw new IllegalArgumentException("Số bước chân không được vượt quá 100,000 bước!");
         }
         if (exerciseType == null || exerciseType.trim().isEmpty()) {
             throw new IllegalArgumentException("Vui lòng chọn hoặc nhập loại bài tập!");
@@ -271,8 +277,14 @@ public class ExerciseLogService {
         if (durationMinutes == null || durationMinutes <= 0) {
             throw new IllegalArgumentException("Thời lượng tập luyện phải lớn hơn 0 phút!");
         }
+        if (durationMinutes > 1440) {
+            throw new IllegalArgumentException("Thời lượng tập luyện không được vượt quá 1440 phút (24 giờ)!");
+        }
         if (steps != null && steps < 0) {
             throw new IllegalArgumentException("Số bước chân không được nhỏ hơn 0!");
+        }
+        if (steps != null && steps > 100000) {
+            throw new IllegalArgumentException("Số bước chân không được vượt quá 100,000 bước!");
         }
         if (exerciseType == null || exerciseType.trim().isEmpty()) {
             throw new IllegalArgumentException("Vui lòng chọn hoặc nhập loại bài tập!");
