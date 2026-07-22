@@ -84,6 +84,18 @@ public class HospitalConfigRestController {
         }
     }
 
+    @PutMapping("/exercise-guidelines/{id}/restore")
+    public ResponseEntity<?> restoreGuideline(@PathVariable("id") Integer id) {
+        try {
+            ExerciseGuideline restored = configService.restoreExerciseGuideline(id);
+            return ResponseEntity.ok(restored);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi hệ thống: " + e.getMessage());
+        }
+    }
+
     // ==========================================
     // DANH MỤC THỰC PHẨM
     // ==========================================
@@ -91,12 +103,19 @@ public class HospitalConfigRestController {
     @GetMapping("/foods")
     public ResponseEntity<Page<FoodDictionary>> getFoods(
             @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "status", defaultValue = "ALL") String status,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
+            Boolean isActive = null;
+            if ("true".equalsIgnoreCase(status)) {
+                isActive = true;
+            } else if ("false".equalsIgnoreCase(status)) {
+                isActive = false;
+            }
             Pageable pageable = PageRequest.of(page, size);
-            Page<FoodDictionary> result = configService.searchFoods(search, pageable);
+            Page<FoodDictionary> result = configService.searchFoods(search, isActive, pageable);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
