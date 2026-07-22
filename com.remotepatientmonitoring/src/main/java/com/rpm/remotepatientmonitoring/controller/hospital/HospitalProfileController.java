@@ -1,7 +1,7 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
-import com.rpm.remotepatientmonitoring.dto.hopital.HospitalProfileDTO;
-import com.rpm.remotepatientmonitoring.service.hopital.HospitalProfileService;
+import com.rpm.remotepatientmonitoring.dto.hospital.HospitalProfileDTO;
+import com.rpm.remotepatientmonitoring.service.hospital.HospitalProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

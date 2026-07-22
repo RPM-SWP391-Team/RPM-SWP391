@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.service.hopital;
+package com.rpm.remotepatientmonitoring.service.hospital;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
