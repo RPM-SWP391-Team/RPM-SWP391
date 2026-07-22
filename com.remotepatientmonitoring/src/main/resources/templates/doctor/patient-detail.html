@@ -1277,6 +1277,7 @@
                             <th>Mục tiêu HA (mmHg)</th>
                             <th>Mục tiêu Đường huyết</th>
                             <th>Mục tiêu HbA1c</th>
+                            <th>Quy tắc Dinh dưỡng</th>
                             <th>Ghi chú chỉ định</th>
                             <th>Trạng thái</th>
                         </tr>
@@ -1297,6 +1298,14 @@
                             </td>
                             <td>
                                 <span th:text="${plan.targetHba1c != null ? plan.targetHba1c + ' %' : '-'}">6.5</span>
+                            </td>
+                            <td>
+                                <div th:if="${plan.nutritionRule != null}" style="font-size:0.85rem;" class="lh-sm">
+                                    <div><i class="fa-solid fa-fire text-warning me-1"></i>Calo: <strong th:text="${plan.nutritionRule.maxCaloriesPerDay + ' kcal'}">2000 kcal</strong></div>
+                                    <div><i class="fa-solid fa-wheat-awn text-warning me-1"></i>Carbs: <span th:text="${plan.nutritionRule.maxCarbsG + 'g'}">200g</span> | Muối: <span th:text="${plan.nutritionRule.maxSaltG + 'g'}">5g</span></div>
+                                    <div><i class="fa-solid fa-glass-water text-info me-1"></i>Nước: <span th:text="${plan.nutritionRule.dailyWaterMl + ' ml'}">2000 ml</span></div>
+                                </div>
+                                <span th:if="${plan.nutritionRule == null}" class="text-muted">-</span>
                             </td>
                             <td th:text="${plan.medicalOrder != null and !plan.medicalOrder.isEmpty() ? plan.medicalOrder : (plan.additionalNotes != null ? plan.additionalNotes : 'Không có ghi chú')}">Ghi chú</td>
                             <td>
