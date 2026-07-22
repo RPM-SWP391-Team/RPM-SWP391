@@ -58,4 +58,27 @@ public class DailyHealthLog {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public Patient getPatient() { return patient; }
+    public void setPatient(Patient patient) { this.patient = patient; }
+    public LocalDate getLogDate() { return logDate; }
+    public void setLogDate(LocalDate logDate) { this.logDate = logDate; }
+    public LocalDateTime getLogTime() { return logTime; }
+    public void setLogTime(LocalDateTime logTime) { this.logTime = logTime; }
+    public Integer getSystolicBp() { return systolicBp; }
+    public void setSystolicBp(Integer systolicBp) { this.systolicBp = systolicBp; }
+    public Integer getDiastolicBp() { return diastolicBp; }
+    public void setDiastolicBp(Integer diastolicBp) { this.diastolicBp = diastolicBp; }
+    public Integer getHeartRate() { return heartRate; }
+    public void setHeartRate(Integer heartRate) { this.heartRate = heartRate; }
+    public BigDecimal getGlucoseLevel() { return glucoseLevel; }
+    public void setGlucoseLevel(BigDecimal glucoseLevel) { this.glucoseLevel = glucoseLevel; }
+    public String getLogType() { return logType; }
+    public void setLogType(String logType) { this.logType = logType; }
+    public String getInputMethod() { return inputMethod; }
+    public void setInputMethod(String inputMethod) { this.inputMethod = inputMethod; }
+    public String getPatientNotes() { return patientNotes; }
+    public void setPatientNotes(String patientNotes) { this.patientNotes = patientNotes; }
 }

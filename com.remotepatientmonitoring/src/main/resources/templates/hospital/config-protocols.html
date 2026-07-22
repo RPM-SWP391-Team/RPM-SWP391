@@ -82,10 +82,14 @@
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item active"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
-        <a th:href="@{/hospital/profile}" class="menu-item "><i class="bi bi-hospital"></i><span>Hồ sơ Bệnh viện</span></a>
+        <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
+        <a th:href="@{/hospital/bug-reports}" class="menu-item"><i class="bi bi-bug"></i><span>Báo Lỗi Hệ Thống</span></a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item"><i class="bi bi-clock-history"></i><span>Nhật ký Hệ thống</span></a>
     </div>
-    <div class="sidebar-footer"><a th:href="@{/auth/logout}" class="menu-item text-danger w-100"><i class="bi bi-box-arrow-left"></i><span>Đăng xuất</span></a></div>
+    <div class="sidebar-footer">
+        <a th:href="@{/hospital/profile}" class="menu-item mb-1"><i class="bi bi-person-circle"></i><span>Hồ sơ cá nhân</span></a>
+        <a th:href="@{/auth/logout}" class="menu-item text-danger w-100"><i class="bi bi-box-arrow-left"></i><span>Đăng xuất</span></a>
+    </div>
 </div>
 
 <div class="main-content">
@@ -136,7 +140,7 @@
                     <div class="card-body p-4">
 
                         <div class="collapse mb-4" id="collapseGuideForm" style="transition: all 0.3s ease;">
-                            <form th:action="@{/hospital/config/guide/add}" th:object="${newGuide}" method="POST" class="p-4 bg-light rounded-3 border">
+                            <form th:action="@{/hospital/config/guide/add}" th:object="${newGuide}" method="POST" accept-charset="UTF-8" class="p-4 bg-light rounded-3 border">
                                 <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-plus me-1"></i> Soạn Chỉ Dẫn Mới</h6>
                                 <div class="row g-3">
                                     <div class="col-md-6">
@@ -218,7 +222,7 @@
                                                     </th:block>
                                                 </div>
                                             </div>
-                                            <form th:action="@{/hospital/config/guide/edit}" method="POST" th:id="'editModeGuide-' + ${guide.id}" class="toggle-view-block text-start" style="display: none; opacity: 0;">
+                                            <form th:action="@{/hospital/config/guide/edit}" method="POST" accept-charset="UTF-8" th:id="'editModeGuide-' + ${guide.id}" class="toggle-view-block text-start" style="display: none; opacity: 0;">
                                                 <input type="hidden" name="guideId" th:value="${guide.id}">
 
                                                 <!-- Hiển thị Context (Không cho sửa) -->

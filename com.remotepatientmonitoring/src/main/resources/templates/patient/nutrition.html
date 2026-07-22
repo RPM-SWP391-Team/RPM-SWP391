@@ -139,7 +139,7 @@
                                             <th class="text-center">Đường</th>
                                             <th class="text-center">Đạm</th>
                                             <th class="text-center">Béo</th>
-                                            <th class="text-center">Xóa</th>
+                                            <th class="text-center" style="width: 100px;">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -152,11 +152,14 @@
                                             <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
-                                                <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;"></i>
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                </div>
                                             </td>
                                         </tr>
                                         <tr th:if="${#lists.isEmpty(meals.?[mealType == 'BREAKFAST'])}">
-                                            <td colspan="8" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa sáng.</td>
+                                            <td colspan="9" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa sáng.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -180,7 +183,7 @@
                                             <th class="text-center">Đường</th>
                                             <th class="text-center">Đạm</th>
                                             <th class="text-center">Béo</th>
-                                            <th class="text-center">Xóa</th>
+                                            <th class="text-center" style="width: 100px;">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -193,11 +196,14 @@
                                             <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
-                                                <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;"></i>
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                </div>
                                             </td>
                                         </tr>
                                         <tr th:if="${#lists.isEmpty(meals.?[mealType == 'LUNCH'])}">
-                                            <td colspan="8" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa trưa.</td>
+                                            <td colspan="9" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa trưa.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -221,7 +227,7 @@
                                             <th class="text-center">Đường</th>
                                             <th class="text-center">Đạm</th>
                                             <th class="text-center">Béo</th>
-                                            <th class="text-center">Xóa</th>
+                                            <th class="text-center" style="width: 100px;">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -234,11 +240,14 @@
                                             <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
-                                                <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;"></i>
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                </div>
                                             </td>
                                         </tr>
                                         <tr th:if="${#lists.isEmpty(meals.?[mealType == 'DINNER'])}">
-                                            <td colspan="8" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa tối.</td>
+                                            <td colspan="9" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa tối.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -262,7 +271,7 @@
                                             <th class="text-center">Đường</th>
                                             <th class="text-center">Đạm</th>
                                             <th class="text-center">Béo</th>
-                                            <th class="text-center">Xóa</th>
+                                            <th class="text-center" style="width: 100px;">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -275,11 +284,14 @@
                                             <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
-                                                <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;"></i>
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                </div>
                                             </td>
                                         </tr>
                                         <tr th:if="${#lists.isEmpty(meals.?[mealType == 'SNACK'])}">
-                                            <td colspan="8" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa phụ.</td>
+                                            <td colspan="9" class="text-center text-muted py-2 small">Chưa ghi nhận món ăn nào cho bữa phụ.</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -657,13 +669,89 @@
             applyFoodPreset(foodId);
         }
     </script>
+    <!-- Modal Sửa Bữa Ăn -->
+    <div class="modal fade" id="editMealModal" tabindex="-1" aria-labelledby="editMealModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                <div class="modal-header border-bottom-0 bg-primary text-white" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                    <h5 class="modal-title fw-bold" id="editMealModalLabel">
+                        <i class="fa-solid fa-pen me-2"></i>Sửa Ghi Nhận Bữa Ăn
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editMealId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-secondary">Món ăn</label>
+                        <input type="text" class="form-control bg-light" id="editMealFoodName" readonly disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMealQuantity" class="form-label fw-semibold text-secondary">Lượng ăn (gam)</label>
+                        <div class="input-group">
+                            <input type="number" step="1" class="form-control" id="editMealQuantity" min="1" max="10000" required>
+                            <span class="input-group-text bg-light text-muted">g</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-3">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" onclick="submitEditMeal()">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation Bar -->
     <div th:replace="~{patient/fragments :: bottom-nav}"></div>
 
     <script>
+        let editMealModal;
         document.addEventListener("DOMContentLoaded", function() {
             initFoodPagination();
+            editMealModal = new bootstrap.Modal(document.getElementById('editMealModal'));
         });
+
+        function openEditMeal(element) {
+            const id = element.getAttribute('data-id');
+            const foodName = element.getAttribute('data-food-name');
+            const quantity = element.getAttribute('data-quantity');
+
+            document.getElementById('editMealId').value = id;
+            document.getElementById('editMealFoodName').value = foodName;
+            document.getElementById('editMealQuantity').value = Math.round(quantity);
+
+            editMealModal.show();
+        }
+
+        function submitEditMeal() {
+            const id = document.getElementById('editMealId').value;
+            const quantity = document.getElementById('editMealQuantity').value;
+
+            if (!quantity || quantity <= 0) {
+                alert('Vui lòng nhập lượng ăn hợp lệ.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('quantityG', quantity);
+
+            fetch('/patient/api/nutrition/update/' + id, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể cập nhật bữa ăn.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Lỗi kết nối server.');
+            });
+        }
     </script>
     <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
 </body>

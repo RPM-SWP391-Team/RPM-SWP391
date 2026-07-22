@@ -139,14 +139,7 @@ public class DoctorService {
 
         String finalPassword = generatePassword();
 
-        try {
-            boolean isMailSent = emailService.sendDoctorPassword(email, fullName, finalPassword);
-            if (!isMailSent) {
-                throw new IllegalArgumentException("Email lỗi: Địa chỉ email không tồn tại hoặc không thể chuyển phát thư.");
-            }
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Email lỗi: Địa chỉ email không khả dụng hoặc cấu hình SMTP Google Mail bị từ chối.");
-        }
+
 
         Account account = Account.builder()
                 .email(email)
@@ -188,9 +181,18 @@ public class DoctorService {
 
         try {
             String newVal = objectMapper.writeValueAsString(newLog);
-            saveAuditLog("CREATE_DOCTOR", "doctors", doctor.getId(), "{}", newVal, "Tạo mới tài khoản bác sĩ");
+            saveAuditLog("CREATE_DOCTOR", "doctors", doctor.getId(), null, newVal, "Tạo mới tài khoản bác sĩ");
         } catch (Exception e) {
-            saveAuditLog("CREATE_DOCTOR", "doctors", doctor.getId(), "{}", "{\"error\":\"Parse JSON lỗi\"}", "Tạo mới tài khoản bác sĩ");
+            saveAuditLog("CREATE_DOCTOR", "doctors", doctor.getId(), null, "{\"error\":\"Parse JSON lỗi\"}", "Tạo mới tài khoản bác sĩ");
+        }
+
+        try {
+            boolean isMailSent = emailService.sendDoctorPassword(email, fullName, finalPassword);
+            if (!isMailSent) {
+                throw new IllegalArgumentException("Email lỗi: Địa chỉ email không tồn tại hoặc không thể chuyển phát thư.");
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Email lỗi: Địa chỉ email không khả dụng hoặc cấu hình SMTP Google Mail bị từ chối.");
         }
 
         return doctor;
@@ -333,14 +335,19 @@ public class DoctorService {
     }
 
     public Page<Doctor> searchAndFilterAllDoctors(String keyword, String specialty, Pageable pageable) {
+        return searchAndFilterAllDoctors(keyword, specialty, null, pageable);
+    }
+
+    public Page<Doctor> searchAndFilterAllDoctors(String keyword, String specialty, String status, Pageable pageable) {
         String cleanKeyword = (keyword != null) ? keyword.trim() : "";
         String cleanSpecialty = (specialty != null) ? specialty.trim() : "";
+        String cleanStatus = (status != null) ? status.trim().toUpperCase() : "";
 
         if (cleanKeyword.length() > 100) {
             cleanKeyword = cleanKeyword.substring(0, 100);
         }
 
-        return doctorRepository.searchAndFilterDoctors(cleanKeyword, cleanSpecialty, pageable);
+        return doctorRepository.searchAndFilterDoctors(cleanKeyword, cleanSpecialty, cleanStatus, pageable);
     }
 
     public Doctor getDoctorById(int id) {

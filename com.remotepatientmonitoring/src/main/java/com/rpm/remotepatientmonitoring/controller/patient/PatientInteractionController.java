@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
 import com.rpm.remotepatientmonitoring.service.patient.PatientInteractionService;
+import com.rpm.remotepatientmonitoring.repository.ChangeRequestRepository;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,6 +50,9 @@ public class PatientInteractionController {
 
     @Autowired
     private PatientHealthService patientHealthService;
+
+    @Autowired
+    private ChangeRequestRepository changeRequestRepository;
 
     @Autowired
     private RatingService ratingService;
@@ -141,12 +146,14 @@ public class PatientInteractionController {
         }
 
         // --- Xử lý phân trang phía máy chủ (Server-side Pagination) ---
+        System.out.println("DEBUG PatientInteractionController /appointments - filterDateStr: " + filterDateStr);
         LocalDate filterDate = null;
         if (filterDateStr != null && !filterDateStr.trim().isEmpty()) {
             try {
                 filterDate = LocalDate.parse(filterDateStr);
+                System.out.println("DEBUG PatientInteractionController /appointments - parsed filterDate: " + filterDate);
             } catch (Exception e) {
-                // ignore
+                System.out.println("DEBUG PatientInteractionController /appointments - parsing failed: " + e.getMessage());
             }
         }
 
@@ -222,6 +229,19 @@ public class PatientInteractionController {
         return "redirect:/patient/appointments?requestSuccess=true";
     }
 
+    @GetMapping("/appointments/book")
+    public String showBookAppointmentForm(Model model) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        List<Doctor> doctors = patientInteractionService.getAvailableDoctors(patient.getHospital().getId());
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctors", doctors);
+        return "patient/book-appointment";
+    }
+
     @PostMapping("/book-appointment")
     public String bookAppointment(
             @RequestParam("appointmentTime") String appointmentTimeStr,
@@ -236,10 +256,10 @@ public class PatientInteractionController {
 
         // Validate reason length
         if (patientRequestReason == null || patientRequestReason.trim().isEmpty()) {
-            return "redirect:/patient/appointments?bookError=emptyReason";
+            return "redirect:/patient/appointments/book?bookError=emptyReason";
         }
         if (patientRequestReason.length() > 500) {
-            return "redirect:/patient/appointments?bookError=reasonTooLong";
+            return "redirect:/patient/appointments/book?bookError=reasonTooLong";
         }
 
         // Chuyển chuỗi từ datetime-local sang LocalDateTime
@@ -247,12 +267,12 @@ public class PatientInteractionController {
         try {
             apptTime = LocalDateTime.parse(appointmentTimeStr);
         } catch (Exception e) {
-            return "redirect:/patient/appointments?bookError=invalidDate";
+            return "redirect:/patient/appointments/book?bookError=invalidDate";
         }
 
         // Validate date is in the future
         if (apptTime.isBefore(LocalDateTime.now())) {
-            return "redirect:/patient/appointments?bookError=pastDate";
+            return "redirect:/patient/appointments/book?bookError=pastDate";
         }
 
         // Validate working hours (Monday-Friday, 08:00 to 17:00) if NOT emergency
@@ -260,20 +280,77 @@ public class PatientInteractionController {
             java.time.DayOfWeek dayOfWeek = apptTime.getDayOfWeek();
             int hour = apptTime.getHour();
             if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
-                return "redirect:/patient/appointments?bookError=outsideWorkingHours";
+                return "redirect:/patient/appointments/book?bookError=outsideWorkingHours";
             }
             if (hour < 8 || hour >= 17) {
-                return "redirect:/patient/appointments?bookError=outsideWorkingHours";
+                return "redirect:/patient/appointments/book?bookError=outsideWorkingHours";
             }
         }
 
         try {
             patientInteractionService.bookAppointment(patient, doctorId, appointmentType, patientRequestReason, apptTime);
         } catch (IllegalArgumentException ex) {
-            return "redirect:/patient/appointments?bookError=invalidDoctor";
+            return "redirect:/patient/appointments/book?bookError=invalidDoctor";
         }
 
         return "redirect:/patient/appointments?bookSuccess=true";
+    }
+
+    @PostMapping("/appointments/update/{id}")
+    public String updateAppointment(
+            @PathVariable("id") Integer id,
+            @RequestParam("appointmentTime") String appointmentTimeStr,
+            @RequestParam("appointmentType") String appointmentType,
+            @RequestParam("patientRequestReason") String patientRequestReason,
+            @RequestParam("doctorId") Integer doctorId) {
+
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        // Validate reason length
+        if (patientRequestReason == null || patientRequestReason.trim().isEmpty()) {
+            return "redirect:/patient/appointments?updateError=emptyReason";
+        }
+        if (patientRequestReason.length() > 500) {
+            return "redirect:/patient/appointments?updateError=reasonTooLong";
+        }
+
+        // Chuyển chuỗi từ datetime-local sang LocalDateTime
+        LocalDateTime apptTime;
+        try {
+            apptTime = LocalDateTime.parse(appointmentTimeStr);
+        } catch (Exception e) {
+            return "redirect:/patient/appointments?updateError=invalidDate";
+        }
+
+        // Validate date is in the future
+        if (apptTime.isBefore(LocalDateTime.now())) {
+            return "redirect:/patient/appointments?updateError=pastDate";
+        }
+
+        // Validate working hours (Monday-Friday, 08:00 to 17:00) if NOT emergency
+        if (!"EMERGENCY".equals(appointmentType)) {
+            java.time.DayOfWeek dayOfWeek = apptTime.getDayOfWeek();
+            int hour = apptTime.getHour();
+            if (dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY) {
+                return "redirect:/patient/appointments?updateError=outsideWorkingHours";
+            }
+            if (hour < 8 || hour >= 17) {
+                return "redirect:/patient/appointments?updateError=outsideWorkingHours";
+            }
+        }
+
+        try {
+            patientInteractionService.updateAppointment(id, patient.getId(), doctorId, appointmentType, patientRequestReason, apptTime);
+        } catch (IllegalArgumentException ex) {
+            return "redirect:/patient/appointments?updateError=invalidDoctor";
+        } catch (IllegalStateException ex) {
+            return "redirect:/patient/appointments?updateError=notPending";
+        }
+
+        return "redirect:/patient/appointments?updateSuccess=true";
     }
 
     @PostMapping("/appointments/delete/{id}")
@@ -304,5 +381,56 @@ public class PatientInteractionController {
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return "redirect:/patient/appointments?deleteRequestSuccess=true";
         }
+    }
+
+    @GetMapping("/request-change/edit/{id}")
+    public String editRequestChangePage(@PathVariable("id") Integer id, Model model) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        Optional<ChangeRequest> reqOpt = changeRequestRepository.findById(id);
+        if (reqOpt.isEmpty()) {
+            return "redirect:/patient/appointments";
+        }
+        ChangeRequest changeRequest = reqOpt.get();
+        if (!changeRequest.getPatient().getId().equals(patient.getId())) {
+            return "redirect:/patient/appointments";
+        }
+        if (!"PENDING".equals(changeRequest.getStatus())) {
+            return "redirect:/patient/appointments";
+        }
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("changeRequest", changeRequest);
+        return "patient/edit-change-request";
+    }
+
+    @PostMapping("/request-change/update/{id}")
+    public String updateChangeRequest(
+            @PathVariable("id") Integer id,
+            @RequestParam("requestType") String requestType,
+            @RequestParam("patientReason") String patientReason) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        if (patientReason == null || patientReason.trim().isEmpty()) {
+            return "redirect:/patient/request-change/edit/" + id + "?editError=emptyReason";
+        }
+        if (patientReason.length() > 500) {
+            return "redirect:/patient/request-change/edit/" + id + "?editError=reasonTooLong";
+        }
+
+        try {
+            patientInteractionService.updateChangeRequest(id, requestType, patientReason, patient.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/patient/appointments?updateRequestError=true";
+        }
+
+        return "redirect:/patient/appointments?updateRequestSuccess=true";
     }
 }

@@ -37,10 +37,14 @@
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
-        <a th:href="@{/hospital/profile}" class="menu-item active"><i class="bi bi-hospital"></i><span>Hồ sơ Bệnh viện</span></a>
+        <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
+        <a th:href="@{/hospital/bug-reports}" class="menu-item"><i class="bi bi-bug"></i><span>Báo Lỗi Hệ Thống</span></a>
         <a th:href="@{/hospital/audit-logs}" class="menu-item"><i class="bi bi-clock-history"></i><span>Nhật ký Hệ thống</span></a>
     </div>
-    <div class="sidebar-footer"><a th:href="@{/auth/logout}" class="menu-item text-danger w-100"><i class="bi bi-box-arrow-left"></i><span>Đăng xuất</span></a></div>
+    <div class="sidebar-footer">
+        <a th:href="@{/hospital/profile}" class="menu-item active mb-1"><i class="bi bi-person-circle"></i><span>Hồ sơ cá nhân</span></a>
+        <a th:href="@{/auth/logout}" class="menu-item text-danger w-100"><i class="bi bi-box-arrow-left"></i><span>Đăng xuất</span></a>
+    </div>
 </div>
 
 <div class="main-content">
@@ -48,7 +52,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a th:href="@{/hospital/dashboard}" class="text-decoration-none">Trang chủ</a></li>
-                <li class="breadcrumb-item active">Hồ sơ Bệnh viện</li>
+                <li class="breadcrumb-item active">Hồ sơ cá nhân</li>
             </ol>
         </nav>
         <div class="text-end d-none d-sm-block">
@@ -58,8 +62,8 @@
 
     <div class="container-fluid p-0">
         <div class="mb-4">
-            <h2 class="fw-bold mb-1"><i class="fa-regular fa-id-card text-primary me-2"></i>Hồ sơ Bệnh viện</h2>
-            <p class="text-muted">Cập nhật thông tin liên hệ và định danh của đơn vị trên hệ thống.</p>
+            <h2 class="fw-bold mb-1"><i class="bi bi-person-circle text-primary me-2"></i>Hồ sơ cá nhân</h2>
+            <p class="text-muted">Quản lý thông tin cá nhân và tài khoản quản trị viên hệ thống.</p>
         </div>
 
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show p-3 shadow-sm" role="alert">
@@ -72,20 +76,20 @@
         </div>
 
         <div class="row justify-content-center">
-            <div class="col-xl-8 col-lg-10">
+            <div class="col-xl-10 col-lg-10">
                 <div class="card card-custom shadow-sm border-0">
                     <div class="card-header card-header-custom">
-                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Thông tin chung</h5>
+                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Thông tin tài khoản</h5>
                     </div>
                     <div class="card-body p-4 p-md-5">
                         <form th:action="@{/hospital/profile/update}" th:object="${profileDTO}" method="POST">
 
                             <div class="row g-4">
-                                <div class="col-12">
-                                    <label class="form-label fw-semibold text-muted">Mã định danh nội bộ</label>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-muted">ID Tài khoản (id_account)</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-hash"></i></span>
-                                        <input type="text" class="form-control border-start-0 ps-0" th:field="*{hospitalCode}" readonly>
+                                        <input type="text" class="form-control border-start-0 ps-0 fw-bold text-primary" th:value="${profileDTO.accountId}" readonly>
                                     </div>
                                 </div>
 
@@ -97,30 +101,6 @@
                                                th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''">
                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                                     </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Số điện thoại đường dây nóng <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-telephone text-primary"></i></span>
-                                        <input type="text" class="form-control" th:field="*{phone}" required maxlength="20"
-                                               th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label fw-semibold">Tên hiển thị đầy đủ <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" th:field="*{fullName}" required minlength="5" maxlength="255"
-                                           th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''">
-                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label fw-semibold">Địa chỉ trụ sở <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" th:field="*{address}" rows="3" required minlength="5" maxlength="500"
-                                              th:classappend="${#fields.hasErrors('address')} ? 'is-invalid' : ''"></textarea>
-                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
                                 </div>
 
                                 <div class="col-12"><hr class="text-muted opacity-25 mt-2 mb-0"></div>

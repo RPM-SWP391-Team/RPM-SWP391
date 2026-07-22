@@ -183,6 +183,7 @@
         </div>
     </div>
 
+<<<<<<< HEAD
     <!-- SEMANTIC SEARCH SECTION START -->
     <div class="row mb-5">
         <div class="col-12">
@@ -216,6 +217,11 @@
 
     <div class="row">
         <div class="col-12">
+=======
+    <div class="row g-4">
+        <!-- Main Patient List (Left Column) -->
+        <div class="col-lg-9 col-md-8">
+>>>>>>> origin/develop
             <div class="card card-custom p-4 bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold mb-0">
@@ -326,87 +332,293 @@
                 </div>
             </div>
         </div>
+
+        <!-- Sidebar / Right Column (Feedback Card) -->
+        <div class="col-lg-3 col-md-4">
+            <div class="card card-custom shadow-sm border-0 p-4 bg-white">
+                <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-comments me-2"></i>Đóng góp & Hỗ trợ</h5>
+                <p class="text-muted small mb-4">Hãy chia sẻ trải nghiệm sử dụng hệ thống hoặc báo cáo các lỗi kỹ thuật để chúng tôi kịp thời nâng cấp.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary rounded-pill py-2.5 fw-bold mb-2" onclick="openAppRatingModal(); return false;">
+                        <i class="fa-regular fa-star me-2"></i> Đánh giá ứng dụng
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill py-2.5 fw-bold" onclick="openBugReportModal(); return false;">
+                        <i class="fa-solid fa-bug me-2"></i> Báo lỗi hệ thống
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- App Rating Modal -->
+<div class="modal fade" id="appRatingModal" tabindex="-1" aria-labelledby="appRatingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: none; color: inherit;">
+                <h5 class="modal-title fw-bold text-dark" id="appRatingModalLabel">Đánh giá ứng dụng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <p class="text-muted small mb-3">Hãy chia sẻ trải nghiệm sử dụng ứng dụng của bạn để giúp chúng tôi hoàn thiện dịch vụ tốt hơn.</p>
+                
+                <!-- Star rating selector -->
+                <div class="d-flex justify-content-center gap-2 mb-3" id="appRatingStars">
+                    <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="1" style="color: #ffc107; cursor: pointer;"></i>
+                    <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="2" style="color: #ffc107; cursor: pointer;"></i>
+                    <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="3" style="color: #ffc107; cursor: pointer;"></i>
+                    <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="4" style="color: #ffc107; cursor: pointer;"></i>
+                    <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="5" style="color: #ffc107; cursor: pointer;"></i>
+                </div>
+                <input type="hidden" id="appRatingValue" value="0">
+                
+                <div class="mb-3 text-start">
+                    <label for="appRatingComment" class="form-label small fw-semibold text-muted">Nhận xét của bạn (Không bắt buộc)</label>
+                    <textarea class="form-control" id="appRatingComment" rows="3" maxlength="1000" placeholder="Nhập ý kiến đóng góp tại đây..." style="border-radius: 10px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitAppRating()">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bug Report Modal -->
+<div class="modal fade" id="bugReportModal" tabindex="-1" aria-labelledby="bugReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+            <div class="modal-header border-0 pb-0" style="background: none; color: inherit;">
+                <h5 class="modal-title fw-bold text-dark" id="bugReportModalLabel"><i class="fa-solid fa-bug text-danger me-2"></i>Báo cáo lỗi hệ thống</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start pt-2">
+                <p class="text-muted small mb-3">Vui lòng cung cấp chi tiết về lỗi bạn gặp phải để chúng tôi có thể hỗ trợ khắc phục nhanh nhất.</p>
+                
+                <div class="mb-3">
+                    <label for="bugTitle" class="form-label small fw-semibold text-muted">Tiêu đề lỗi <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="bugTitle" placeholder="Ví dụ: Lỗi không hiển thị biểu đồ huyết áp" maxlength="255" style="border-radius: 10px;" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="bugDescription" class="form-label small fw-semibold text-muted">Mô tả chi tiết <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bugDescription" rows="4" placeholder="Vui lòng mô tả rõ các bước gặp lỗi hoặc nội dung thông báo lỗi..." style="border-radius: 10px;" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitBugReport()">Gửi báo lỗi</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let appModalObj = null;
+    let bugModalObj = null;
 
-    <!-- SEMANTIC SEARCH JS START -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('semanticSearchInput');
-            const searchBtn = document.getElementById('semanticSearchBtn');
-            const resultsContainer = document.getElementById('semanticSearchResults');
-            const loadingEl = document.getElementById('semanticSearchLoading');
-            const dataEl = document.getElementById('semanticSearchData');
+    function openAppRatingModal() {
+        if (!appModalObj) {
+            appModalObj = new bootstrap.Modal(document.getElementById('appRatingModal'));
+        }
+        document.getElementById('appRatingValue').value = '0';
+        document.getElementById('appRatingComment').value = '';
+        resetStarDisplay('appRatingStars');
+        appModalObj.show();
+    }
 
-            function performSemanticSearch() {
-                const keyword = searchInput.value.trim();
-                if (!keyword) return;
+    function openBugReportModal() {
+        if (!bugModalObj) {
+            bugModalObj = new bootstrap.Modal(document.getElementById('bugReportModal'));
+        }
+        document.getElementById('bugTitle').value = '';
+        document.getElementById('bugDescription').value = '';
+        bugModalObj.show();
+    }
 
-                resultsContainer.style.display = 'block';
-                loadingEl.style.display = 'block';
-                dataEl.innerHTML = '';
+    // SEMANTIC SEARCH JS START
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('semanticSearchInput');
+        const searchBtn = document.getElementById('semanticSearchBtn');
+        const resultsContainer = document.getElementById('semanticSearchResults');
+        const loadingEl = document.getElementById('semanticSearchLoading');
+        const dataEl = document.getElementById('semanticSearchData');
 
-                fetch('/api/chatbot/search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: keyword })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    loadingEl.style.display = 'none';
-                    if (!data.results || data.results.length === 0) {
-                        dataEl.innerHTML = '<div class="alert alert-warning">Không tìm thấy tài liệu nào khớp với yêu cầu.</div>';
-                        return;
-                    }
+        function performSemanticSearch() {
+            const keyword = searchInput.value.trim();
+            if (!keyword) return;
 
-                    let html = `<div class="mb-3 text-success fw-bold"><i class="fa-solid fa-bolt text-warning"></i> Tìm thấy ${data.total_found} kết quả trong ${data.latency_seconds} giây</div>`;
-                    
-                    data.results.forEach(chunk => {
-                        const searchTerms = keyword.split(' ').filter(t => t.length > 2);
-                        let highlightedText = chunk.text;
-                        searchTerms.forEach(term => {
-                            try {
-                                const regex = new RegExp(term, 'gi');
-                                highlightedText = highlightedText.replace(regex, match => `<mark style="background-color: #ffeeb2; font-weight: bold; padding: 0 2px; border-radius: 3px;">${match}</mark>`);
-                            } catch(e) {}
-                        });
+            resultsContainer.style.display = 'block';
+            loadingEl.style.display = 'block';
+            dataEl.innerHTML = '';
 
-                        html += `
-                            <div class="search-result-card mb-3" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background: #fafafa; transition: 0.2s;">
-                                <div style="color: #3b82f6; font-size: 13px; margin-bottom: 5px; font-weight: 600;">
-                                    <i class="fa-solid fa-folder-tree"></i> ${chunk.path}
-                                </div>
-                                <h5 style="color: #1e293b; font-size: 16px; margin: 0 0 10px 0; font-weight: 700;">
-                                    <i class="fa-solid fa-file-pdf text-danger me-2"></i>
-                                    <a href="${chunk.pdf_url || chunk.pdfUrl || '/docs/ehae178.pdf'}" target="_blank" class="text-decoration-none text-primary fw-bold" title="Click để mở tài liệu PDF gốc">
-                                        ${chunk.source} <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 12px;"></i>
-                                    </a>
-                                </h5>
-                                <p style="color: #475569; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
-                                    ${highlightedText}
-                                </p>
-                            </div>
-                        `;
+            fetch('/api/chatbot/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: keyword })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loadingEl.style.display = 'none';
+                if (!data.results || data.results.length === 0) {
+                    dataEl.innerHTML = '<div class="alert alert-warning">Không tìm thấy tài liệu nào khớp với yêu cầu.</div>';
+                    return;
+                }
+
+                let html = `<div class="mb-3 text-success fw-bold"><i class="fa-solid fa-bolt text-warning"></i> Tìm thấy ${data.total_found} kết quả trong ${data.latency_seconds} giây</div>`;
+                
+                data.results.forEach(chunk => {
+                    const searchTerms = keyword.split(' ').filter(t => t.length > 2);
+                    let highlightedText = chunk.text;
+                    searchTerms.forEach(term => {
+                        try {
+                            const regex = new RegExp(term, 'gi');
+                            highlightedText = highlightedText.replace(regex, match => `<mark style="background-color: #ffeeb2; font-weight: bold; padding: 0 2px; border-radius: 3px;">${match}</mark>`);
+                        } catch(e) {}
                     });
-                    dataEl.innerHTML = html;
-                })
-                .catch(err => {
-                    loadingEl.style.display = 'none';
-                    dataEl.innerHTML = '<div class="alert alert-danger">Có lỗi xảy ra khi tra cứu. Vui lòng kiểm tra lại server Python hoặc kết nối mạng.</div>';
-                });
-            }
 
-            if(searchBtn && searchInput) {
-                searchBtn.addEventListener('click', performSemanticSearch);
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') performSemanticSearch();
+                    html += `
+                        <div class="search-result-card mb-3" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background: #fafafa; transition: 0.2s;">
+                            <div style="color: #3b82f6; font-size: 13px; margin-bottom: 5px; font-weight: 600;">
+                                <i class="fa-solid fa-folder-tree"></i> ${chunk.path}
+                            </div>
+                            <h5 style="color: #1e293b; font-size: 16px; margin: 0 0 10px 0; font-weight: 700;">
+                                <i class="fa-solid fa-file-pdf text-danger me-2"></i>
+                                <a href="${chunk.pdf_url || chunk.pdfUrl || '/docs/ehae178.pdf'}" target="_blank" class="text-decoration-none text-primary fw-bold" title="Click để mở tài liệu PDF gốc">
+                                    ${chunk.source} <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 12px;"></i>
+                                </a>
+                            </h5>
+                            <p style="color: #475569; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
+                                ${highlightedText}
+                            </p>
+                        </div>
+                    `;
                 });
+                dataEl.innerHTML = html;
+            })
+            .catch(err => {
+                loadingEl.style.display = 'none';
+                dataEl.innerHTML = '<div class="alert alert-danger">Có lỗi xảy ra khi tra cứu. Vui lòng kiểm tra lại server Python hoặc kết nối mạng.</div>';
+            });
+        }
+
+        if(searchBtn && searchInput) {
+            searchBtn.addEventListener('click', performSemanticSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSemanticSearch();
+            });
+        }
+    });
+    // SEMANTIC SEARCH JS END
+
+    function submitBugReport() {
+        const titleVal = document.getElementById('bugTitle').value;
+        const descVal = document.getElementById('bugDescription').value;
+
+        if (!titleVal || !titleVal.trim()) {
+            alert('Vui lòng nhập tiêu đề báo lỗi.');
+            return;
+        }
+        if (titleVal.length > 255) {
+            alert('Tiêu đề báo lỗi không được vượt quá 255 ký tự.');
+            return;
+        }
+        if (!descVal || !descVal.trim()) {
+            alert('Vui lòng nhập mô tả chi tiết.');
+            return;
+        }
+
+        fetch('/api/bug-reports', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: titleVal,
+                description: descVal,
+                pageUrl: window.location.href
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                bugModalObj.hide();
+            } else {
+                alert('Gửi báo lỗi thất bại: ' + (data.message || 'Lỗi không xác định'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Đã xảy ra lỗi khi gửi báo lỗi.');
+        });
+    }
+
+    // Star rating visual handlers for app
+    document.querySelectorAll('#appRatingStars .star-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const value = parseInt(this.getAttribute('data-value'));
+            document.getElementById('appRatingValue').value = value;
+            updateStarDisplay('appRatingStars', value);
+        });
+        btn.addEventListener('mouseover', function() {
+            const value = parseInt(this.getAttribute('data-value'));
+            updateStarDisplay('appRatingStars', value);
+        });
+        btn.addEventListener('mouseout', function() {
+            const selectedVal = parseInt(document.getElementById('appRatingValue').value);
+            updateStarDisplay('appRatingStars', selectedVal);
+        });
+    });
+
+    function updateStarDisplay(containerId, value) {
+        document.querySelectorAll('#' + containerId + ' .star-btn').forEach(btn => {
+            const btnVal = parseInt(btn.getAttribute('data-value'));
+            if (btnVal <= value) {
+                btn.classList.remove('fa-regular');
+                btn.classList.add('fa-solid');
+            } else {
+                btn.classList.remove('fa-solid');
+                btn.classList.add('fa-regular');
             }
         });
-    </script>
-    <!-- SEMANTIC SEARCH JS END -->
+    }
 
+    function resetStarDisplay(containerId) {
+        document.querySelectorAll('#' + containerId + ' .star-btn').forEach(btn => {
+            btn.classList.remove('fa-solid');
+            btn.classList.add('fa-regular');
+        });
+    }
+
+    function submitAppRating() {
+        const val = parseInt(document.getElementById('appRatingValue').value);
+        const comment = document.getElementById('appRatingComment').value;
+
+        if (val < 1 || val > 5) {
+            alert('Vui lòng chọn số sao đánh giá (1-5 sao).');
+            return;
+        }
+
+        fetch('/api/ratings/app', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ratingValue: val, comment: comment })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                appModalObj.hide();
+            } else {
+                alert('Gửi đánh giá thất bại: ' + (data.message || 'Lỗi không xác định'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Đã xảy ra lỗi khi gửi đánh giá.');
+        });
+    }
+</script>
 </body>
 </html>

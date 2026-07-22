@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Map;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/patient/api/water")
@@ -60,6 +61,43 @@ public class PatientWaterController {
                 "success", true,
                 "message", "Đặt lại tiến độ uống nước thành công!",
                 "currentAmount", currentAmount
+        ));
+    }
+
+    @PostMapping("/history/save")
+    public ResponseEntity<Map<String, Object>> saveWaterHistory(
+            @RequestParam(value = "id", required = false) Integer id,
+            @RequestParam("date") String dateStr,
+            @RequestParam("amount") Integer amount) {
+        if (amount == null || amount < 0 || amount > 10000) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Lượng nước không hợp lệ (từ 0 đến 10000 ml)."
+            ));
+        }
+        LocalDate date;
+        try {
+            date = LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Định dạng ngày không hợp lệ."
+            ));
+        }
+        Patient patient = getCurrentPatient();
+        patientService.addOrUpdateWaterLog(id, patient, date, amount);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Lưu lịch sử uống nước thành công!"
+        ));
+    }
+
+    @PostMapping("/history/delete/{id}")
+    public ResponseEntity<Map<String, Object>> deleteWaterHistory(@PathVariable("id") Integer id) {
+        patientService.deleteWaterLog(id);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Xóa lịch sử uống nước thành công!"
         ));
     }
 }

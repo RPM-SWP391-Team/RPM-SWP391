@@ -46,4 +46,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findUnreadExerciseNotifications(
             @Param("patientId") Integer patientId
     );
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query(value = "DELETE FROM notifications WHERE related_entity_type = 'DAILY_HEALTH_LOG' AND related_entity_id = :logId", nativeQuery = true)
+    void deleteByDailyHealthLogId(@Param("logId") Integer logId);
 }

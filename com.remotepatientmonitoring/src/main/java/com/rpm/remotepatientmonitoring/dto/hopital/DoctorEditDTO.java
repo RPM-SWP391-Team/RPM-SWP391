@@ -80,4 +80,19 @@ public class DoctorEditDTO {
     @NotBlank(message = "Email không được để trống.")
     @Email(message = "Địa chỉ email không đúng định dạng.")
     private String email;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getSpecialty() { return specialty; }
+    public void setSpecialty(String specialty) { this.specialty = specialty; }
+    public Integer getCapacityLimit() { return capacityLimit; }
+    public void setCapacityLimit(Integer capacityLimit) { this.capacityLimit = capacityLimit; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }

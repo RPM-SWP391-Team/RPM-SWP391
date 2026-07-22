@@ -44,11 +44,14 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
     // SỬA TẠI ĐÂY: Chuyển sang Page và đón nhận Pageable từ Service
     @Query("SELECT d FROM Doctor d WHERE " +
             "(:specialty IS NULL OR :specialty = '' OR d.specialty = :specialty) AND " +
+            "(:status IS NULL OR :status = '' OR " +
+            " (:status = 'ACTIVE' AND d.isActive = true) OR " +
+            " (:status = 'INACTIVE' AND d.isActive = false)) AND " +
             "(:keyword IS NULL OR :keyword = '' OR " +
             "LOWER(d.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(d.doctorCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "CAST(d.id AS string) LIKE CONCAT('%', :keyword, '%'))")
-    Page<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty, Pageable pageable);
+    Page<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty, @Param("status") String status, Pageable pageable);
     // Tìm kiếm chính xác theo ID (Dùng làm cơ chế dự phòng an toàn)
     List<Doctor> findById(int id);
 
