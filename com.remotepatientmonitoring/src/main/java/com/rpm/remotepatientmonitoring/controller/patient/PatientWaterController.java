@@ -42,6 +42,12 @@ public class PatientWaterController {
 
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addWater(@RequestParam("amount") Integer amount) {
+        if (amount == null || amount <= 0 || amount > 10000) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Lượng nước không hợp lệ (từ 1 đến 10000 ml)."
+            ));
+        }
         Patient patient = getCurrentPatient();
         int currentAmount = patientService.addWater(patient, amount);
 

@@ -47,6 +47,25 @@ public class PatientExerciseController {
             @RequestParam("durationMinutes") Integer durationMinutes,
             @RequestParam(value = "stepsCount", required = false) Integer stepsCount) {
 
+        if (exerciseType == null || exerciseType.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Loại bài tập không được để trống."
+            ));
+        }
+        if (durationMinutes == null || durationMinutes <= 0 || durationMinutes > 1440) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Thời lượng tập luyện phải từ 1 đến 1440 phút."
+            ));
+        }
+        if (stepsCount != null && (stepsCount < 0 || stepsCount > 100000)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Số bước chân không hợp lệ (từ 0 đến 100,000 bước)."
+            ));
+        }
+
         Patient patient = getCurrentPatient();
         PatientExercise saved = patientService.addPatientExercise(patient, exerciseType, durationMinutes, stepsCount);
 

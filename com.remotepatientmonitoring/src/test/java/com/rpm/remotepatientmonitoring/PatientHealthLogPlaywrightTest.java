@@ -34,6 +34,9 @@ public class PatientHealthLogPlaywrightTest {
     private HospitalRepository hospitalRepository;
 
     @Autowired
+    private HospitalAdminRepository hospitalAdminRepository;
+
+    @Autowired
     private DiseaseProfileRepository diseaseProfileRepository;
 
     @Autowired
@@ -135,7 +138,6 @@ public class PatientHealthLogPlaywrightTest {
                 hospitalAccount = accountRepository.save(hospitalAccount);
 
                 Hospital newHospital = Hospital.builder()
-                        .account(hospitalAccount)
                         .hospitalCode("HOSP_BM_TEST")
                         .fullName("Bệnh viện Bạch Mai")
                         .address("Giải Phóng, Hà Nội")
@@ -144,7 +146,20 @@ public class PatientHealthLogPlaywrightTest {
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build();
-                return hospitalRepository.save(newHospital);
+                newHospital = hospitalRepository.save(newHospital);
+
+                HospitalAdmin admin = HospitalAdmin.builder()
+                        .hospital(newHospital)
+                        .account(hospitalAccount)
+                        .adminCode("ADM_001")
+                        .fullName("Admin Bệnh viện")
+                        .isActive(true)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build();
+                hospitalAdminRepository.save(admin);
+
+                return newHospital;
             });
 
             // Lấy hoặc tạo DiseaseProfile Hypertension (id = 1) để bệnh nhân có hồ sơ cao huyết áp

@@ -16,6 +16,16 @@
                     </a>
                 </div>
 
+                <!-- Error Alert -->
+                <div th:if="${param.createError}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: var(--radius-md);">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>
+                    <span th:if="${param.createError[0] == 'emptyReason'}">Mô tả lý do thay đổi không được để trống.</span>
+                    <span th:if="${param.createError[0] == 'reasonTooLong'}">Mô tả lý do thay đổi không được vượt quá 500 ký tự.</span>
+                    <span th:if="${param.createError[0] == 'emptyType'}">Vui lòng chọn loại yêu cầu thay đổi.</span>
+                    <span th:if="${param.createError[0] == 'noDoctor'}">Bạn chưa được phân công bác sĩ phụ trách, không thể gửi yêu cầu.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
                 <div class="card shadow-sm border-0" style="border-radius: var(--radius-lg); overflow: hidden;">
                     <!-- Header -->
                     <div class="p-4 text-white" style="background: var(--gradient-primary);">

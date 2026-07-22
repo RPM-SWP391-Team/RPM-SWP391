@@ -104,6 +104,16 @@ public class PatientInteractionService {
             throw new IllegalStateException("Bạn chưa được phân công bác sĩ phụ trách, không thể gửi yêu cầu thay đổi phác đồ/lịch khám.");
         }
 
+        if (changeRequest.getPatientReason() == null || changeRequest.getPatientReason().trim().isEmpty()) {
+            throw new IllegalArgumentException("Lý do yêu cầu không được để trống.");
+        }
+        if (changeRequest.getPatientReason().length() > 500) {
+            throw new IllegalArgumentException("Lý do yêu cầu không được vượt quá 500 ký tự.");
+        }
+        if (changeRequest.getRequestType() == null || changeRequest.getRequestType().trim().isEmpty()) {
+            throw new IllegalArgumentException("Loại yêu cầu không được để trống.");
+        }
+
         changeRequest.setPatient(patient);
         changeRequest.setDoctor(doctor);
         changeRequest.setStatus("PENDING");

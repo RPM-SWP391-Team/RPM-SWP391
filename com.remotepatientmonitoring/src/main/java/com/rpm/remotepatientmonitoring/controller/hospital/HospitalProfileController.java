@@ -13,15 +13,24 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/hospital")
 public class HospitalProfileController {
 
-    private final Integer HARDCODED_HOSPITAL_ID = 1;
+    private final Integer FALLBACK_ACCOUNT_ID = 1;
 
     @Autowired
     private HospitalProfileService profileService;
 
+    private Integer getLoggedAccountId() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof com.rpm.remotepatientmonitoring.config.CustomUserDetails) {
+            com.rpm.remotepatientmonitoring.config.CustomUserDetails userDetails = (com.rpm.remotepatientmonitoring.config.CustomUserDetails) auth.getPrincipal();
+            return userDetails.getAccount().getId();
+        }
+        return FALLBACK_ACCOUNT_ID;
+    }
+
     @GetMapping("/profile")
     public String getProfilePage(Model model) {
         if (!model.containsAttribute("profileDTO")) {
-            model.addAttribute("profileDTO", profileService.getProfileByHospitalId(HARDCODED_HOSPITAL_ID));
+            model.addAttribute("profileDTO", profileService.getProfileByAccountId(getLoggedAccountId()));
         }
         return "hospital/profile";
     }
@@ -37,7 +46,7 @@ public class HospitalProfileController {
         }
 
         try {
-            profileService.updateProfile(HARDCODED_HOSPITAL_ID, profileDTO);
+            profileService.updateProfile(getLoggedAccountId(), profileDTO);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin bệnh viện thành công!");
             return "redirect:/hospital/profile";
         } catch (IllegalArgumentException e) {
