@@ -133,6 +133,10 @@ public class PatientInteractionService {
             throw new IllegalArgumentException("Invalid doctor Id: " + doctorId);
         }
         Doctor doctor = doctorOpt.get();
+        if (doctor.getCurrentPatientCount() != null && doctor.getCapacityLimit() != null 
+                && doctor.getCurrentPatientCount() >= doctor.getCapacityLimit()) {
+            throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " hiện đã đạt giới hạn tiếp nhận bệnh nhân (" + doctor.getCapacityLimit() + " bệnh nhân), không thể nhận thêm đơn hẹn mới.");
+        }
 
         Appointment appt = Appointment.builder()
                 .patient(patient)
