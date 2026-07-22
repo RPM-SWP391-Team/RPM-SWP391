@@ -160,6 +160,7 @@ public class DoctorViewController {
             @RequestParam(value = "specialty", required = false) String specialty,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "8") int size,
+            RedirectAttributes redirectAttributes,
             Model model) {
 
         Integer accountId = userDetails.getAccount().getId();
@@ -170,7 +171,8 @@ public class DoctorViewController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
         if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
-            throw new RuntimeException("Bạn không có quyền truy cập hồ sơ của bệnh nhân này!");
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Chỉ Bác sĩ Phụ trách chính mới có quyền thực hiện Chuyển Bác sĩ phụ trách!");
+            return "redirect:/doctor/patient-detail/" + id;
         }
 
         Pageable pageable = PageRequest.of(page, size);
@@ -213,8 +215,8 @@ public class DoctorViewController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
         if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(currentDoctor.getId())) {
-            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền chuyển bệnh nhân này!");
-            return REDIRECT_DASHBOARD;
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Chỉ Bác sĩ Phụ trách chính mới có quyền bàn giao bệnh nhân này!");
+            return "redirect:/doctor/patient-detail/" + id;
         }
 
         Doctor newDoctor = doctorRepository.findById(newDoctorId)
