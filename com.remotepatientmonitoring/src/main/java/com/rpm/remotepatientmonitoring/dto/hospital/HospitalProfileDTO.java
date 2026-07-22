@@ -30,6 +30,16 @@ public class HospitalProfileDTO {
     private String address;
     private String phone;
 
+    // Các trường thông tin cá nhân của Quản trị viên (HospitalAdmin)
+    @NotBlank(message = "Họ tên quản trị viên không được để trống.")
+    private String adminFullName;
+
+    private String adminCode;
+    private String adminDepartment;
+    private String adminPosition;
+    private String adminPhone;
+    private String adminRoleType;
+
     // Các trường phục vụ đổi mật khẩu (Tùy chọn)
     private String currentPassword;
     private String newPassword;
@@ -51,4 +61,17 @@ public class HospitalProfileDTO {
     public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
     public String getConfirmNewPassword() { return confirmNewPassword; }
     public void setConfirmNewPassword(String confirmNewPassword) { this.confirmNewPassword = confirmNewPassword; }
+
+    public String getAdminFullName() { return adminFullName; }
+    public void setAdminFullName(String adminFullName) { this.adminFullName = adminFullName; }
+    public String getAdminCode() { return adminCode; }
+    public void setAdminCode(String adminCode) { this.adminCode = adminCode; }
+    public String getAdminDepartment() { return adminDepartment; }
+    public void setAdminDepartment(String adminDepartment) { this.adminDepartment = adminDepartment; }
+    public String getAdminPosition() { return adminPosition; }
+    public void setAdminPosition(String adminPosition) { this.adminPosition = adminPosition; }
+    public String getAdminPhone() { return adminPhone; }
+    public void setAdminPhone(String adminPhone) { this.adminPhone = adminPhone; }
+    public String getAdminRoleType() { return adminRoleType; }
+    public void setAdminRoleType(String adminRoleType) { this.adminRoleType = adminRoleType; }
 }

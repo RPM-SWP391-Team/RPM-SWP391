@@ -60,6 +60,12 @@ public class HospitalProfileService {
                 .fullName(hospital.getFullName())
                 .address(hospital.getAddress())
                 .phone(hospital.getPhone())
+                .adminCode(admin.getAdminCode())
+                .adminFullName(admin.getFullName())
+                .adminDepartment(admin.getDepartment())
+                .adminPosition(admin.getPosition())
+                .adminPhone(admin.getPhone())
+                .adminRoleType(admin.getAdminRoleType())
                 .build();
     }
 
@@ -79,6 +85,10 @@ public class HospitalProfileService {
         oldLog.put("fullName", hospital.getFullName());
         oldLog.put("address", hospital.getAddress());
         oldLog.put("phone", hospital.getPhone());
+        oldLog.put("adminFullName", admin.getFullName());
+        oldLog.put("adminDepartment", admin.getDepartment());
+        oldLog.put("adminPosition", admin.getPosition());
+        oldLog.put("adminPhone", admin.getPhone());
 
         Map<String, Object> newLog = new HashMap<>(oldLog);
         boolean isChanged = false;
@@ -113,11 +123,46 @@ public class HospitalProfileService {
             isChanged = true;
         }
 
-        // 4. Xử lý cập nhật Số điện thoại
+        // 4. Xử lý cập nhật Số điện thoại hotline bệnh viện
         String newPhone = dto.getPhone() != null ? dto.getPhone().trim() : "";
         if (!newPhone.equals(hospital.getPhone() != null ? hospital.getPhone().trim() : "")) {
             newLog.put("phone", newPhone);
             hospital.setPhone(newPhone.isEmpty() ? null : newPhone);
+            isChanged = true;
+        }
+
+        // 4.5. Xử lý cập nhật Tên hiển thị Quản trị viên
+        String newAdminFullName = dto.getAdminFullName() != null ? dto.getAdminFullName().trim() : "";
+        if (newAdminFullName.isEmpty()) {
+            throw new IllegalArgumentException("Họ tên quản trị viên không được để trống.");
+        }
+        if (!newAdminFullName.equals(admin.getFullName())) {
+            newLog.put("adminFullName", newAdminFullName);
+            admin.setFullName(newAdminFullName);
+            isChanged = true;
+        }
+
+        // 4.6. Xử lý cập nhật Phòng ban
+        String newDept = dto.getAdminDepartment() != null ? dto.getAdminDepartment().trim() : "";
+        if (!newDept.equals(admin.getDepartment() != null ? admin.getDepartment().trim() : "")) {
+            newLog.put("adminDepartment", newDept);
+            admin.setDepartment(newDept.isEmpty() ? null : newDept);
+            isChanged = true;
+        }
+
+        // 4.7. Xử lý cập nhật Chức vụ
+        String newPos = dto.getAdminPosition() != null ? dto.getAdminPosition().trim() : "";
+        if (!newPos.equals(admin.getPosition() != null ? admin.getPosition().trim() : "")) {
+            newLog.put("adminPosition", newPos);
+            admin.setPosition(newPos.isEmpty() ? null : newPos);
+            isChanged = true;
+        }
+
+        // 4.8. Xử lý cập nhật Số điện thoại cá nhân
+        String newAdminPhone = dto.getAdminPhone() != null ? dto.getAdminPhone().trim() : "";
+        if (!newAdminPhone.equals(admin.getPhone() != null ? admin.getPhone().trim() : "")) {
+            newLog.put("adminPhone", newAdminPhone);
+            admin.setPhone(newAdminPhone.isEmpty() ? null : newAdminPhone);
             isChanged = true;
         }
 
