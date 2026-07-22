@@ -1,0 +1,33 @@
+{
+    "timestamp": "2026-07-22T10:58:20.408060",
+    "total_questions": 5,
+    "average_metrics": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "hit_rate": 0.0,
+        "mrr": 0.7,
+        "exact_match": 0.0,
+        "answer_length": 32.0,
+        "rouge_l": 0.0,
+        "bleu": 0.0
+    },
+    "average_latency": 10.717295265197754,
+    "average_retrieval_time": 10.716282558441161,
+    "average_generation_time": 0.001012706756591797,
+    "top_10_correct": [
+        "Khuyến cáo về thời lượng và tần suất tập thể dục cho trẻ em và thanh thiếu niên mắc bệnh đái tháo đường hoặc có nguy cơ đái tháo đường là gì?",
+        "Tần suất đánh giá chức năng thận bằng tỷ lệ UACR và eGFR cho người bệnh đái tháo đường tuýp 1 và tuýp 2 được khuyến cáo như thế nào?",
+        "Khuyến cáo điều trị bằng statin để dự phòng nguyên phát biến cố tim mạch ASCVD cho bệnh nhân đái tháo đường từ 40 đến 75 tuổi như thế nào?",
+        "Người mắc bệnh đái tháo đường cần lưu ý những nguy cơ và giới hạn gì về việc tiêu thụ đồ uống có cồn (rượu bia)?",
+        "Người bệnh đái tháo đường sử dụng thuốc ức chế SGLT (SGLT inhibitor) cần được giáo dục về nguy cơ và phòng ngừa biến chứng gì?"
+    ],
+    "top_10_wrong": [
+        "Người bệnh đái tháo đường sử dụng thuốc ức chế SGLT (SGLT inhibitor) cần được giáo dục về nguy cơ và phòng ngừa biến chứng gì?",
+        "Người mắc bệnh đái tháo đường cần lưu ý những nguy cơ và giới hạn gì về việc tiêu thụ đồ uống có cồn (rượu bia)?",
+        "Khuyến cáo điều trị bằng statin để dự phòng nguyên phát biến cố tim mạch ASCVD cho bệnh nhân đái tháo đường từ 40 đến 75 tuổi như thế nào?",
+        "Tần suất đánh giá chức năng thận bằng tỷ lệ UACR và eGFR cho người bệnh đái tháo đường tuýp 1 và tuýp 2 được khuyến cáo như thế nào?",
+        "Khuyến cáo về thời lượng và tần suất tập thể dục cho trẻ em và thanh thiếu niên mắc bệnh đái tháo đường hoặc có nguy cơ đái tháo đường là gì?"
+    ]
+}

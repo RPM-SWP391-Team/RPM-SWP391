@@ -79,9 +79,24 @@ class MedicalRAGPipeline:
         t0 = time.time()
         
         # 0. Query Expansion & Translation (Vietnamese -> English) for Retrieval
-        translation_prompt = f"You are a medical search query optimizer. Translate the user's Vietnamese query to English and expand it with relevant medical synonyms for a vector search engine.\nCRITICAL RULE: DO NOT answer the question. DO NOT provide medical knowledge or advice. ONLY output the expanded English search query (just keywords/phrases), and absolutely nothing else.\nQuery: {question}"
+        translation_prompt = (
+            f"You are a medical search query optimizer. Translate the user's Vietnamese query to English and expand it with relevant medical synonyms for a vector search engine.\n\n"
+            f"CRITICAL RULES:\n"
+            f"- DO NOT answer the question.\n"
+            f"- DO NOT provide medical knowledge or advice.\n"
+            f"- Output AT MOST 8 distinct keywords/phrases, comma-separated, on a single line.\n"
+            f"- Do NOT repeat any phrase or synonym you have already used.\n"
+            f"- Output ONLY the keyword list, nothing else — no preamble, no explanation, no numbering.\n\n"
+            f"Query: {question}"
+        )
         try:
-            search_query = self.translation_llm.generate(translation_prompt, api_key=api_key).strip()
+            search_query = self.translation_llm.generate(
+                prompt=translation_prompt, 
+                api_key=api_key,
+                max_tokens=100,
+                temperature=0.3,
+                frequency_penalty=0.5
+            ).strip()
             print(f"[*] Translated query for retrieval: '{search_query}'")
         except Exception as e:
             print(f"[*] Translation failed, using original query: {e}")

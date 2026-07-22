@@ -79,7 +79,7 @@ class GroqLLMClient:
         self.model_name = model_name
         self.url = "https://api.groq.com/openai/v1/chat/completions"
 
-    def generate(self, prompt: str, api_key: str = None, system_prompt: str = None) -> str:
+    def generate(self, prompt: str, api_key: str = None, system_prompt: str = None, max_tokens: int = None, temperature: float = None, frequency_penalty: float = None) -> str:
         t0 = time.time()
         messages = []
         if system_prompt:
@@ -89,9 +89,11 @@ class GroqLLMClient:
         payload = {
             "model": self.model_name,
             "messages": messages,
-            "temperature": config.LLM.temperature,
-            "max_tokens": config.LLM.max_output_tokens,
+            "temperature": temperature if temperature is not None else config.LLM.temperature,
+            "max_tokens": max_tokens if max_tokens is not None else config.LLM.max_output_tokens,
         }
+        if frequency_penalty is not None:
+            payload["frequency_penalty"] = frequency_penalty
         
         active_key = api_key if api_key else self.api_key
         if not active_key:
@@ -103,6 +105,8 @@ class GroqLLMClient:
         }
         
         max_retries = 3
+        backup_key = os.getenv("GROQ_TRANSLATION_API_KEY")
+        
         for attempt in range(max_retries):
             try:
                 response = requests.post(self.url, json=payload, headers=headers)
@@ -115,7 +119,16 @@ class GroqLLMClient:
                 return text_response
             except requests.exceptions.HTTPError as e:
                 status_code = e.response.status_code
-                if status_code in (503, 500, 429) and attempt < max_retries - 1:
+                if status_code == 429 and attempt < max_retries - 1:
+                    # Fallback to backup key or lighter model on 429 TPD limit
+                    if backup_key and headers["Authorization"] != f"Bearer {backup_key}":
+                        headers["Authorization"] = f"Bearer {backup_key}"
+                        print(f"[*] Groq 429 Rate limit hit. Switched to Backup API Key.")
+                    else:
+                        payload["model"] = "llama-3.1-8b-instant"
+                        print(f"[*] Groq 429 Rate limit hit. Switched to fallback model 'llama-3.1-8b-instant'.")
+                    time.sleep(1)
+                elif status_code in (503, 500) and attempt < max_retries - 1:
                     wait_time = 2 ** attempt
                     print(f"[*] Groq API {status_code} Error. Retrying in {wait_time}s...")
                     time.sleep(wait_time)
