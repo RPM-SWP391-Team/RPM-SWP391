@@ -37,10 +37,6 @@ public class HealthLogController {
                 }
             }
         }
-        List<Patient> all = patientHealthService.getAllPatients();
-        if (all.size() > 0) {
-            return all.get(0);
-        }
         return null;
     }
 

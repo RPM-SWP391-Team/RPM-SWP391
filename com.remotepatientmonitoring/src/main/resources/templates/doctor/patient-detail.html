@@ -463,6 +463,11 @@
 
 <div class="container pb-2">
 
+    <div th:if="${isPrimaryDoctor != null and !isPrimaryDoctor}" class="alert alert-warning alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: 12px; border-left: 5px solid #ffc107;">
+        <i class="fa-solid fa-shield-halved me-2 fa-lg text-warning"></i>
+        <strong>Chế độ Xem Hồ sơ (Bác sĩ khám lượt hẹn):</strong> Bạn đang xem hồ sơ theo lịch hẹn khám. Chỉ Bác sĩ Phụ trách chính mới được quyền lưu/chỉnh sửa Phác đồ điều trị & Đơn thuốc dài hạn.
+    </div>
+
     <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: 12px; border-left: 5px solid #198754;">
         <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
         <strong th:text="${successMsg}"></strong>
@@ -514,7 +519,7 @@
                     </span>
                 </div>
                 <!-- Nút cấu hình ngưỡng cảnh báo -->
-                <div class="mt-3">
+                <div class="mt-3 d-flex gap-2">
                     <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" class="btn btn-sm btn-outline-light rounded-pill px-3 text-decoration-none">
                         <i class="fa-solid fa-sliders me-1"></i> Ngưỡng cảnh báo:
                         <span th:if="${hasCustomThreshold}" class="badge bg-warning text-dark ms-1">Cá nhân</span>
@@ -523,6 +528,14 @@
                     <button type="button" id="btnAiSummary" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 ms-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#aiSummaryModal">
                         <i class="fa-solid fa-robot text-primary me-1"></i> AI Phân tích Lâm sàng (ESC / ADA / AHA)
                     </button>
+                    <th:block th:if="${isPrimaryDoctor}">
+                        <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/transfer'}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold text-decoration-none">
+                            <i class="fa-solid fa-share-from-square me-1"></i> Chuyển Bác Sĩ
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#returnHospitalModal">
+                            <i class="fa-solid fa-hospital me-1"></i> Trả về Viện
+                        </button>
+                    </th:block>
                 </div>
             </div>
         </div>
@@ -640,6 +653,11 @@
                 <i class="fa-solid fa-calendar-day me-2"></i>Tra cứu ngày
             </button>
         </li>
+        <li class="nav-item ms-2" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded-pill" id="history-plan-tab" data-bs-toggle="tab" data-bs-target="#history-plan" type="button" role="tab" aria-controls="history-plan" aria-selected="false">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử Phác đồ
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="patientDetailTabContent">
@@ -735,8 +753,8 @@
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="baselineFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.baselineFastingGlucose}"
-                                                   placeholder="mg/dL">
-                                            <span class="input-group-text">mg/dL</span>
+                                                   placeholder="mmol/L">
+                                            <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
@@ -751,10 +769,18 @@
                                         <label class="form-label">Cân nặng ban đầu (kg)</label>
                                         <div class="input-group">
                                             <input type="number" min="10" max="500" step="any" name="baselineWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5">
+                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5" required>
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label">Chiều cao (cm)</label>
+                                        <div class="input-group">
+                                            <input type="number" min="30" max="300" step="any" name="heightCm" class="form-control" placeholder="VD: 170.0" required>
+                                            <span class="input-group-text">cm</span>
+                                        </div>
+                                    </div>
+
 
                                     <div class="col-12 mt-3">
                                         <h6 class="fw-bold text-success border-bottom pb-2 mb-2">2. Chỉ số Mục tiêu theo dõi
@@ -775,8 +801,8 @@
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="targetFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.targetFastingGlucose}"
-                                                   placeholder="mg/dL">
-                                            <span class="input-group-text">mg/dL</span>
+                                                   placeholder="mmol/L">
+                                            <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
@@ -1021,8 +1047,8 @@
                             <a href="/doctor/dashboard" class="btn btn-outline-secondary rounded-pill px-4">
                                 <i class="fa-solid fa-xmark me-1"></i>Hủy
                             </a>
-                            <button type="submit" id="saveBtn" class="btn-save">
-                                <i class="fa-solid fa-floppy-disk me-2"></i>Hoàn tất Phác đồ
+                            <button type="submit" id="saveBtn" class="btn-save" th:disabled="${isPrimaryDoctor != null and !isPrimaryDoctor}">
+                                <i class="fa-solid fa-floppy-disk me-2"></i><span th:text="${isPrimaryDoctor != null and !isPrimaryDoctor ? 'Chế độ Xem (Chỉ đọc)' : 'Hoàn tất Phác đồ'}">Hoàn tất Phác đồ</span>
                             </button>
                         </div>
                     </div>
@@ -1261,6 +1287,108 @@
         </div><!-- /row g-4 mt-1 -->
     </div><!-- End Tab 3: Daily Tracking -->
 
+    <!-- Tab 4: Lịch sử Phác đồ cũ -->
+    <div class="tab-pane fade" id="history-plan" role="tabpanel" aria-labelledby="history-plan-tab">
+        <div class="card card-custom p-4 mt-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                <div class="section-header mb-0 border-0 pb-0">
+                    <div class="section-icon icon-blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Lịch sử Các Phiên bản Phác đồ Điều trị</h5>
+                        <small class="text-muted">Danh sách tất cả phác đồ điều trị và chỉ số mục tiêu đã từng được kê trong quá khứ</small>
+                    </div>
+                </div>
+
+                <!-- Form Tìm kiếm Phác đồ -->
+                <form th:action="@{'/doctor/patient-detail/' + ${patient.id}}" method="get" class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm rounded-pill px-3" name="planKeyword" th:value="${planKeyword}" placeholder="Tìm theo tên Bác sĩ, ghi chú chỉ định..." style="width: 280px;">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
+                    </button>
+                    <a th:href="@{'/doctor/patient-detail/' + ${patient.id}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" th:if="${planKeyword != null and !planKeyword.isEmpty()}">
+                        Xóa
+                    </a>
+                </form>
+            </div>
+            
+            <div class="table-responsive" th:if="${planHistoryPage != null and not #lists.isEmpty(planHistoryPage.content)}">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Phiên bản</th>
+                            <th>Bác sĩ kê phác đồ</th>
+                            <th>Ngày áp dụng</th>
+                            <th>Mục tiêu HA (mmHg)</th>
+                            <th>Mục tiêu Đường huyết</th>
+                            <th>Mục tiêu HbA1c</th>
+                            <th>Quy tắc Dinh dưỡng</th>
+                            <th>Ghi chú chỉ định</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="plan, iterStat : ${planHistoryPage.content}">
+                            <td class="fw-bold" th:text="'Phác đồ #' + ${planHistoryPage.totalElements - (planPage * 5 + iterStat.index)}">#1</td>
+                            <td>
+                                <i class="fa-solid fa-user-doctor text-primary me-1"></i>
+                                <span th:text="${plan.doctor != null ? plan.doctor.fullName : 'Hệ thống'}">Bác sĩ</span>
+                            </td>
+                            <td th:text="${plan.effectiveFrom != null ? #temporals.format(plan.effectiveFrom, 'dd/MM/yyyy') : #temporals.format(plan.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
+                            <td>
+                                <span th:text="${plan.targetSystolicBp != null ? plan.targetSystolicBp + '/' + plan.targetDiastolicBp : '-'}">120/80</span>
+                            </td>
+                            <td>
+                                <span th:text="${plan.targetFastingGlucose != null ? plan.targetFastingGlucose + ' mmol/L' : '-'}">6.0</span>
+                            </td>
+                            <td>
+                                <span th:text="${plan.targetHba1c != null ? plan.targetHba1c + ' %' : '-'}">6.5</span>
+                            </td>
+                            <td>
+                                <div th:if="${plan.nutritionRule != null}" style="font-size:0.85rem;" class="lh-sm">
+                                    <div><i class="fa-solid fa-fire text-warning me-1"></i>Calo: <strong th:text="${plan.nutritionRule.maxCaloriesPerDay + ' kcal'}">2000 kcal</strong></div>
+                                    <div><i class="fa-solid fa-wheat-awn text-warning me-1"></i>Carbs: <span th:text="${plan.nutritionRule.maxCarbsG + 'g'}">200g</span> | Muối: <span th:text="${plan.nutritionRule.maxSaltG + 'g'}">5g</span></div>
+                                    <div><i class="fa-solid fa-glass-water text-info me-1"></i>Nước: <span th:text="${plan.nutritionRule.dailyWaterMl + ' ml'}">2000 ml</span></div>
+                                </div>
+                                <span th:if="${plan.nutritionRule == null}" class="text-muted">-</span>
+                            </td>
+                            <td th:text="${plan.medicalOrder != null and !plan.medicalOrder.isEmpty() ? plan.medicalOrder : (plan.additionalNotes != null ? plan.additionalNotes : 'Không có ghi chú')}">Ghi chú</td>
+                            <td>
+                                <span class="badge bg-success" th:if="${plan.isCurrent}">Đang áp dụng</span>
+                                <span class="badge bg-secondary" th:unless="${plan.isCurrent}">Lịch sử (Cũ)</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Phân trang -->
+                <nav th:if="${planHistoryPage.totalPages > 1}" class="mt-4">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${planHistoryPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage - 1}, planKeyword=${planKeyword})}">
+                                <i class="fa-solid fa-chevron-left"></i> Trước
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, planHistoryPage.totalPages - 1)}"
+                            th:classappend="${i == planPage} ? 'active'">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${i}, planKeyword=${planKeyword})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${planHistoryPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage + 1}, planKeyword=${planKeyword})}">
+                                Sau <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div th:if="${planHistoryPage == null or #lists.isEmpty(planHistoryPage.content)}" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
+                <p class="mb-0">Không tìm thấy bản ghi phác đồ điều trị nào phù hợp.</p>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /tab-content -->
 </div><!-- /container -->
 
@@ -1287,7 +1415,9 @@
         }
         const btn = document.getElementById('saveBtn');
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk fa-spin me-2"></i>Đang lưu...';
-        btn.disabled = true;
+        setTimeout(() => {
+            btn.disabled = true;
+        }, 10);
     });
 
     // ===== Dynamic Medication List Operations =====
@@ -1726,6 +1856,7 @@
         .ai-msg-bot strong { font-weight: bold; color: #0d6efd; }
     </style>
 
+<<<<<<< HEAD
     <div class="ai-chat-btn" id="aiChatBtn">
         <i class="fa-solid fa-brain"></i>
     </div>
@@ -1879,5 +2010,29 @@
         });
         /*]]>*/
     </script>
+<!-- Return to Hospital Modal -->
+<div class="modal fade" id="returnHospitalModal" tabindex="-1" aria-labelledby="returnHospitalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header bg-danger text-white" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <h5 class="modal-title fw-bold" id="returnHospitalModalLabel"><i class="fa-solid fa-hospital me-2"></i> Trả bệnh nhân về Viện</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{'/doctor/patient-detail/' + ${patient.id} + '/return-to-hospital'}" method="post">
+                <div class="modal-body p-4">
+                    <p class="mb-4">Bạn đang thao tác trả bệnh nhân <strong class="text-danger" th:text="${patient.fullName}"></strong> về danh sách chờ của Bệnh viện. Bệnh nhân này sẽ không còn nằm trong danh sách quản lý của bạn nữa.</p>
+                    <div class="mb-3">
+                        <label for="returnReason" class="form-label fw-bold">Lý do từ chối/trả về <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="returnReason" name="returnReason" rows="3" required placeholder="Nhập lý do chi tiết (VD: Quá tải, không đúng chuyên môn...)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #f0f2f5;">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác nhận trả về</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 </body>
 </html>

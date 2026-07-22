@@ -38,6 +38,9 @@ class TreatmentPlanWorkflowServiceTest {
     @Mock
     private AuditTrailService auditTrailService;
 
+    @Mock
+    private ClinicalRecordRepository clinicalRecordRepository;
+
     @InjectMocks
     private TreatmentPlanWorkflowService treatmentPlanWorkflowService;
 
@@ -57,7 +60,7 @@ class TreatmentPlanWorkflowServiceTest {
         // Act
         treatmentPlanWorkflowService.createNewTreatmentPlan(
                 patient, doctor, 
-                120, 80, new BigDecimal("5.0"), new BigDecimal("6.0"), new BigDecimal("70.0"), // Baseline
+                120, 80, new BigDecimal("5.0"), new BigDecimal("6.0"), new BigDecimal("70.0"), new BigDecimal("170.0"), new BigDecimal("24.2"), // Baseline
                 110, 70, new BigDecimal("4.5"), new BigDecimal("5.5"), new BigDecimal("68.0"), // Target
                 "Order", "Exercise", "Notes", // Orders & Goals
                 2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes", // Nutrition
@@ -89,7 +92,7 @@ class TreatmentPlanWorkflowServiceTest {
         // Act
         treatmentPlanWorkflowService.createNewTreatmentPlan(
                 patient, doctor, 
-                120, 80, new BigDecimal("5.0"), new BigDecimal("6.0"), new BigDecimal("70.0"), // Baseline
+                120, 80, new BigDecimal("5.0"), new BigDecimal("6.0"), new BigDecimal("70.0"), new BigDecimal("170.0"), new BigDecimal("24.2"), // Baseline
                 110, 70, new BigDecimal("4.5"), new BigDecimal("5.5"), new BigDecimal("68.0"), // Target
                 "Order", "Exercise", "Notes", // Orders & Goals
                 2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes", // Nutrition

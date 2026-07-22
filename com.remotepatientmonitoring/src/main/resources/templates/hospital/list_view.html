@@ -167,6 +167,10 @@
             <i class="bi bi-person-fill-gear"></i>
             <span>Quản lý Bác sĩ</span>
         </a>
+        <a th:href="@{/hospital/patients}" class="menu-item">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý Bệnh nhân</span>
+        </a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item">
             <i class="bi bi-sliders"></i>
             <span>Cấu hình Ngưỡng</span>
@@ -362,7 +366,7 @@
                         </a>
                     </li>
 
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, pageData.totalPages - 1)}" th:classappend="${i == pageData.number} ? 'active'">
+                    <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, pageData.number - 2), T(java.lang.Math).min(pageData.totalPages - 1, pageData.number + 2))}" th:classappend="${i == pageData.number} ? 'active'">
                         <a class="page-link fw-medium" th:href="@{${#httpServletRequest.requestURI}(page=${i})}" th:text="${i + 1}">1</a>
                     </li>
 

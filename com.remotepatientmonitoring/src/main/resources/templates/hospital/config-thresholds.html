@@ -44,6 +44,7 @@
     <div class="sidebar-menu">
         <a th:href="@{/hospital/dashboard}" class="menu-item"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
+        <a th:href="@{/hospital/patients}" class="menu-item"><i class="bi bi-people-fill"></i><span>Quản lý Bệnh nhân</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item active"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
         <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
@@ -92,7 +93,7 @@
                             <div class="row g-3 mb-2">
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold text-danger">Level 1 - Mốc Hạ</label>
-                                    <input type="number" step="0.1" min="1.0" max="4.4" class="form-control border-danger font-monospace" th:field="*{glucoseHypoThreshold}" required>
+                                    <input type="number" step="0.1" min="1.0" max="4.3" class="form-control border-danger font-monospace" th:field="*{glucoseHypoThreshold}" required>
                                     <div class="form-text text-muted">Quy định: &lt; 4.4 mmol/L</div>
                                 </div>
                                 <div class="col-md-4">
@@ -115,7 +116,7 @@
 
                             <h6 class="fw-bold text-secondary mb-2 mt-3">Tâm Thu (Systolic)</h6>
                             <div class="row g-3 mb-4">
-                                <div class="col-md-4"><label class="form-label fw-semibold text-success">🟩 Xanh (Dưới)</label><input type="number" min="60" max="120" class="form-control border-success" th:field="*{systolicNormalMax}" required><div class="form-text">&lt; 120</div></div>
+                                <div class="col-md-4"><label class="form-label fw-semibold text-success">🟩 Xanh (Dưới)</label><input type="number" min="60" max="119" class="form-control border-success" th:field="*{systolicNormalMax}" required><div class="form-text">&lt; 120</div></div>
                                 <div class="col-md-4"><label class="form-label fw-semibold" style="color: #d39e00;">🟨 Vàng (Min)</label><input type="number" min="130" max="139" class="form-control border-warning" th:field="*{systolicWarningMin}" required><div class="form-text">130 - 139</div></div>
                                 <div class="col-md-4"><label class="form-label fw-semibold" style="color: #d39e00;">🟨 Vàng (Max)</label><input type="number" min="130" max="139" class="form-control border-warning" th:field="*{systolicWarningMax}" required><div class="form-text">130 - 139</div></div>
                                 <div class="col-md-4"><label class="form-label fw-semibold" style="color: #fd7e14;">🟧 Cam (Min)</label><input type="number" min="140" max="179" class="form-control" style="border-color:#fd7e14" th:field="*{systolicDangerMin}" required><div class="form-text">140 - 179</div></div>
@@ -125,7 +126,7 @@
 
                             <h6 class="fw-bold text-secondary mb-2">Tâm Trương (Diastolic)</h6>
                             <div class="row g-3">
-                                <div class="col-md-4"><label class="form-label fw-semibold text-success">🟩 Xanh (Dưới)</label><input type="number" min="40" max="80" class="form-control border-success" th:field="*{diastolicNormalMax}" required><div class="form-text">&lt; 80</div></div>
+                                <div class="col-md-4"><label class="form-label fw-semibold text-success">🟩 Xanh (Dưới)</label><input type="number" min="40" max="79" class="form-control border-success" th:field="*{diastolicNormalMax}" required><div class="form-text">&lt; 80</div></div>
                                 <div class="col-md-4"><label class="form-label fw-semibold" style="color: #d39e00;">🟨 Vàng (Min)</label><input type="number" min="85" max="89" class="form-control border-warning" th:field="*{diastolicWarningMin}" required><div class="form-text">85 - 89</div></div>
                                 <div class="col-md-4"><label class="form-label fw-semibold" style="color: #d39e00;">🟨 Vàng (Max)</label><input type="number" min="85" max="89" class="form-control border-warning" th:field="*{diastolicWarningMax}" required><div class="form-text">85 - 89</div></div>
                                 <div class="col-md-4"><label class="form-label fw-semibold" style="color: #fd7e14;">🟧 Cam (Min)</label><input type="number" min="90" max="109" class="form-control" style="border-color:#fd7e14" th:field="*{diastolicDangerMin}" required><div class="form-text">90 - 109</div></div>
