@@ -26,10 +26,10 @@ class DatasetLoader:
         for idx, row in df.iterrows():
             question_id = str(row.get("question_id", idx))
             question = str(row.get("question", ""))
-            reference_answer = str(row.get("reference_answer", row.get("answer", "")))
+            reference_answer = str(row.get("reference_answer", row.get("answer", row.get("expected_answer", ""))))
             
             # Put remaining columns in metadata
-            metadata = {k: v for k, v in row.items() if k not in ["question_id", "question", "reference_answer", "answer"]}
+            metadata = {k: v for k, v in row.items() if k not in ["question_id", "question", "reference_answer", "answer", "expected_answer"]}
             
             yield EvaluationSample(
                 question_id=question_id,

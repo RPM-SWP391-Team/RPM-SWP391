@@ -57,6 +57,12 @@ public class AiChatService {
     @Autowired
     private com.rpm.remotepatientmonitoring.repository.AuditTrailRepository auditTrailRepository;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.AiChatHistoryRepository aiChatHistoryRepository;
+
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.AiClinicalSummaryRepository aiClinicalSummaryRepository;
+
     public String buildContext(String email, Integer patientId) {
         try {
             Optional<Account> accountOpt = accountRepository.findByEmail(email);
@@ -145,8 +151,35 @@ public class AiChatService {
                 request, 
                 AiChatResponse.class
             );
-            return response.getBody();
+            
+            AiChatResponse body = response.getBody();
+            if (body != null && body.getAnswer() != null) {
+                try {
+                    Optional<Account> accountOpt = accountRepository.findByEmail(email);
+                    Integer accId = accountOpt.map(Account::getId).orElse(0);
+                    
+                    String citationsJson = null;
+                    if (body.getCitations() != null && !body.getCitations().isEmpty()) {
+                        citationsJson = body.getCitations().toString();
+                    }
+                    
+                    com.rpm.remotepatientmonitoring.model.AiChatHistory chatHistory = 
+                        new com.rpm.remotepatientmonitoring.model.AiChatHistory(
+                            accId, 
+                            null, 
+                            question, 
+                            body.getAnswer(), 
+                            citationsJson
+                        );
+                    aiChatHistoryRepository.save(chatHistory);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+            
+            return body;
         } catch (Exception e) {
+
             e.printStackTrace();
             AiChatResponse errorResponse = new AiChatResponse();
             errorResponse.setAnswer("Xin lỗi, hệ thống AI hiện tại đang gặp sự cố. Vui lòng thử lại sau. (Lỗi: " + e.getMessage() + ")");
@@ -360,7 +393,7 @@ public class AiChatService {
             );
             
             // Lưu Audit Trail bằng bảng cũ (không đụng chạm cấu trúc DB của team)
-            if (response.getBody() != null) {
+            if (response.getBody() != null && response.getBody().getClinicalSummary() != null) {
                 AuditTrail audit = new AuditTrail();
                 audit.setActorType("DOCTOR");
                 audit.setActorId(0);
@@ -370,7 +403,21 @@ public class AiChatService {
                 audit.setOldValue(adaStatsText + " | " + bpStatsText); // Data gửi cho AI
                 audit.setNewValue(response.getBody().getClinicalSummary()); // Báo cáo AI trả về
                 auditTrailRepository.save(audit);
+
+                // Lưu vào bảng chuyên dụng ai_clinical_summaries
+                try {
+                    com.rpm.remotepatientmonitoring.model.AiClinicalSummary summaryEntity = 
+                        new com.rpm.remotepatientmonitoring.model.AiClinicalSummary(
+                            patientId, 
+                            null, 
+                            response.getBody().getClinicalSummary()
+                        );
+                    aiClinicalSummaryRepository.save(summaryEntity);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
+
             
             return response.getBody();
         } catch (Exception e) {

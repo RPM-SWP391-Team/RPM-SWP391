@@ -19,6 +19,8 @@ def parse_args():
     return parser.parse_args()
 
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
     args = parse_args()
     
     loader = DatasetLoader(args.dataset)
@@ -36,7 +38,7 @@ def main():
     # Mock LLM Client to bypass Gemini API deprecation/404 errors 
     # since we only care about evaluating Retrieval Metrics right now.
     class MockLLM:
-        def generate(self, prompt: str) -> str:
+        def generate(self, prompt: str, **kwargs) -> str:
             return "Mock LLM Response for Benchmark."
     pipeline.llm_client = MockLLM()
     
@@ -67,8 +69,14 @@ def main():
         citation_ids = response.citation_ids
 
 
-        ground_truth_ids = sample.metadata.get("ground_truth_ids", [])
-        
+        ground_truth_ids = sample.metadata.get("ground_truth_ids", sample.metadata.get("chunk_id", []))
+        if isinstance(ground_truth_ids, str):
+            import ast
+            try:
+                ground_truth_ids = ast.literal_eval(ground_truth_ids)
+            except Exception:
+                ground_truth_ids = [ground_truth_ids]
+
         # 2. Compute Metrics
         retrieval_metrics = calculator.compute_retrieval_metrics(
             retrieved_ids=retrieved_ids, 
@@ -98,8 +106,14 @@ def main():
             "citation_ids": citation_ids
         })
         
-        # 4. Print Progress
-        print(f"[{idx}/{total_questions}] Current Question | Latency: {latency:.2f}s | Running Avg: {avg_latency:.2f}s")
+        # 4. Print Progress Live & Transparently
+        is_hit = retrieval_metrics.get("hit_rate", 0) > 0
+        hit_symbol = "[MATCH]" if is_hit else "[MISS]"
+        print(f"\n--- [{idx}/{total_questions}] Question ID: {sample.question_id} ---")
+        print(f"[Question] {sample.question[:80]}...")
+        print(f"[Target Ground Truth ID] {ground_truth_ids}")
+        print(f"[Top-{args.top_k} Retrieved IDs] {retrieved_ids[:args.top_k]}")
+        print(f"[Result] {hit_symbol} | Recall@{args.top_k}: {retrieval_metrics.get(f'recall@{args.top_k}', 0):.2f} | MRR: {retrieval_metrics.get('mrr', 0):.2f} | Latency: {latency:.2f}s")
 
     # 5. Generate Reports
     print("\nEvaluation Completed. Generating reports...")
