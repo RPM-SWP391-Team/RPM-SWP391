@@ -150,6 +150,214 @@ public class DoctorViewController {
     }
 
     // =========================================================
+    // GET: Trang Chọn Bác Sĩ Để Chuyển Tuyến (Transfer)
+    // =========================================================
+    @GetMapping("/patient-detail/{id}/transfer")
+    public String showTransferPatientPage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "specialty", required = false) String specialty,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "8") int size,
+            Model model) {
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor doctor = doctorRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException(MSG_DOCTOR_NOT_FOUND));
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
+
+        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+            throw new RuntimeException("Bạn không có quyền truy cập hồ sơ của bệnh nhân này!");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Doctor> replacementDoctors = doctorRepository.searchReplacementDoctors(
+                doctor.getHospital().getId(), doctor.getId(), keyword, specialty, pageable);
+
+        List<String> specialties = doctorRepository.findDistinctSpecialtiesByHospital(doctor.getHospital().getId());
+
+        model.addAttribute(ATTR_DOCTOR, doctor);
+        model.addAttribute("patient", patient);
+        model.addAttribute("replacementDoctors", replacementDoctors);
+        model.addAttribute("specialties", specialties);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedSpecialty", specialty);
+
+        return "doctor/transfer-patient";
+    }
+
+    // =========================================================
+    // POST: Xử lý Chuyển Bác Sĩ
+    // =========================================================
+    @PostMapping("/patient-detail/{id}/transfer")
+    public String processTransferPatient(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam("newDoctorId") Integer newDoctorId,
+            @RequestParam("transferReason") String transferReason,
+            RedirectAttributes redirectAttributes) {
+
+        if (transferReason == null || transferReason.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Vui lòng nhập lý do bàn giao!");
+            return "redirect:/doctor/patient-detail/" + id + "/transfer";
+        }
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor currentDoctor = doctorRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException(MSG_DOCTOR_NOT_FOUND));
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
+
+        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(currentDoctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền chuyển bệnh nhân này!");
+            return REDIRECT_DASHBOARD;
+        }
+
+        Doctor newDoctor = doctorRepository.findById(newDoctorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Bác sĩ mới."));
+
+        if (!newDoctor.getHospital().getId().equals(currentDoctor.getHospital().getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Chỉ được chuyển tuyến trong cùng Bệnh viện!");
+            return "redirect:/doctor/patient-detail/" + id + "/transfer";
+        }
+
+        if (newDoctor.getCurrentPatientCount() >= newDoctor.getCapacityLimit()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bác sĩ mới đã đạt giới hạn bệnh nhân!");
+            return "redirect:/doctor/patient-detail/" + id + "/transfer";
+        }
+
+        // Cập nhật số lượng bệnh nhân
+        currentDoctor.setCurrentPatientCount(Math.max(0, currentDoctor.getCurrentPatientCount() - 1));
+        newDoctor.setCurrentPatientCount(newDoctor.getCurrentPatientCount() + 1);
+        doctorRepository.save(currentDoctor);
+        doctorRepository.save(newDoctor);
+
+        // Chuyển bác sĩ
+        patient.setDoctor(newDoctor);
+        patient.setUpdatedAt(LocalDateTime.now());
+        patientRepository.save(patient);
+
+        // Lưu Audit Trail
+        String auditDetail = String.format("Chuyển từ Bác sĩ %s sang Bác sĩ %s. Lý do: %s",
+                currentDoctor.getFullName(), newDoctor.getFullName(), transferReason);
+        auditTrailService.logAction(
+                "DOCTOR",
+                currentDoctor.getId(),
+                "TRANSFER_PATIENT",
+                "patients", // targetTable
+                patient.getId(),
+                currentDoctor.getId(),
+                newDoctor.getId(),
+                auditDetail); // notes
+
+        // Thông báo cho bác sĩ mới
+        Notification docNotif = Notification.builder()
+                .doctor(newDoctor)
+                .patient(patient)
+                .recipientType("DOCTOR")
+                .recipientId(newDoctor.getId())
+                .notificationType("SYSTEM")
+                .channel("IN_APP")
+                .status("SENT")
+                .title("Bàn giao bệnh nhân mới")
+                .content("Bác sĩ " + currentDoctor.getFullName() + " vừa bàn giao bệnh nhân " + patient.getFullName() + " cho bạn.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(docNotif);
+
+        // Thông báo cho bệnh nhân
+        Notification patNotif = Notification.builder()
+                .patient(patient)
+                .recipientType("PATIENT")
+                .recipientId(patient.getId())
+                .notificationType("SYSTEM")
+                .channel("IN_APP")
+                .status("SENT")
+                .title("Cập nhật Bác sĩ phụ trách")
+                .content("Bác sĩ phụ trách của bạn đã được chuyển sang Bác sĩ " + newDoctor.getFullName() + ".")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(patNotif);
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã bàn giao bệnh nhân " + patient.getFullName() + " thành công.");
+        return REDIRECT_DASHBOARD;
+    }
+
+    // =========================================================
+    // POST: Trả bệnh nhân về Bệnh viện
+    // =========================================================
+    @PostMapping("/patient-detail/{id}/return-to-hospital")
+    public String processReturnToHospital(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam("returnReason") String returnReason,
+            RedirectAttributes redirectAttributes) {
+
+        if (returnReason == null || returnReason.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Vui lòng nhập lý do từ chối/trả về!");
+            return "redirect:/doctor/patient-detail/" + id;
+        }
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor currentDoctor = doctorRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException(MSG_DOCTOR_NOT_FOUND));
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
+
+        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(currentDoctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền thao tác trên bệnh nhân này!");
+            return REDIRECT_DASHBOARD;
+        }
+
+        // Cập nhật số lượng bệnh nhân
+        currentDoctor.setCurrentPatientCount(Math.max(0, currentDoctor.getCurrentPatientCount() - 1));
+        doctorRepository.save(currentDoctor);
+
+        // Trả về viện
+        patient.setDoctor(null);
+        patient.setUpdatedAt(LocalDateTime.now());
+        patientRepository.save(patient);
+
+        // Lưu Audit Trail
+        String auditDetail = String.format("Trả bệnh nhân %s về Bệnh viện. Lý do: %s",
+                patient.getFullName(), returnReason);
+        auditTrailService.logAction(
+                "DOCTOR",
+                currentDoctor.getId(),
+                "RETURN_TO_HOSPITAL",
+                "patients", // targetTable
+                patient.getId(),
+                currentDoctor.getId(),
+                null,
+                auditDetail); // notes
+
+        // Thông báo cho bệnh nhân
+        Notification patNotif = Notification.builder()
+                .patient(patient)
+                .recipientType("PATIENT")
+                .recipientId(patient.getId())
+                .notificationType("SYSTEM")
+                .channel("IN_APP")
+                .status("SENT")
+                .title("Thông báo về Bác sĩ phụ trách")
+                .content("Bác sĩ phụ trách của bạn đã tạm thời ngừng tiếp nhận. Hệ thống sẽ sớm phân công bác sĩ mới cho bạn.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(patNotif);
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã trả bệnh nhân " + patient.getFullName() + " về Viện thành công.");
+        return REDIRECT_DASHBOARD;
+    }
+
+    // =========================================================
     // 3. GET: Xem & Cấu hình hồ sơ chi tiết bệnh nhân
     // =========================================================
     @GetMapping("/patient-detail/{id}")

@@ -514,12 +514,18 @@
                     </span>
                 </div>
                 <!-- Nút cấu hình ngưỡng cảnh báo -->
-                <div class="mt-3">
+                <div class="mt-3 d-flex gap-2">
                     <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" class="btn btn-sm btn-outline-light rounded-pill px-3 text-decoration-none">
                         <i class="fa-solid fa-sliders me-1"></i> Ngưỡng cảnh báo:
                         <span th:if="${hasCustomThreshold}" class="badge bg-warning text-dark ms-1">Cá nhân</span>
                         <span th:unless="${hasCustomThreshold}" class="badge bg-secondary ms-1">Mặc định BV</span>
                     </a>
+                    <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/transfer'}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold text-decoration-none">
+                        <i class="fa-solid fa-share-from-square me-1"></i> Chuyển Bác Sĩ
+                    </a>
+                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#returnHospitalModal">
+                        <i class="fa-solid fa-hospital me-1"></i> Trả về Viện
+                    </button>
                 </div>
             </div>
         </div>
@@ -706,8 +712,8 @@
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="baselineFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.baselineFastingGlucose}"
-                                                   placeholder="mg/dL">
-                                            <span class="input-group-text">mg/dL</span>
+                                                   placeholder="mmol/L">
+                                            <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
@@ -754,8 +760,8 @@
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="targetFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.targetFastingGlucose}"
-                                                   placeholder="mg/dL">
-                                            <span class="input-group-text">mg/dL</span>
+                                                   placeholder="mmol/L">
+                                            <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
@@ -1596,6 +1602,31 @@
 </script>
 
 
+
+<!-- Return to Hospital Modal -->
+<div class="modal fade" id="returnHospitalModal" tabindex="-1" aria-labelledby="returnHospitalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header bg-danger text-white" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <h5 class="modal-title fw-bold" id="returnHospitalModalLabel"><i class="fa-solid fa-hospital me-2"></i> Trả bệnh nhân về Viện</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{'/doctor/patient-detail/' + ${patient.id} + '/return-to-hospital'}" method="post">
+                <div class="modal-body p-4">
+                    <p class="mb-4">Bạn đang thao tác trả bệnh nhân <strong class="text-danger" th:text="${patient.fullName}"></strong> về danh sách chờ của Bệnh viện. Bệnh nhân này sẽ không còn nằm trong danh sách quản lý của bạn nữa.</p>
+                    <div class="mb-3">
+                        <label for="returnReason" class="form-label fw-bold">Lý do từ chối/trả về <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="returnReason" name="returnReason" rows="3" required placeholder="Nhập lý do chi tiết (VD: Quá tải, không đúng chuyên môn...)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #f0f2f5;">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác nhận trả về</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
