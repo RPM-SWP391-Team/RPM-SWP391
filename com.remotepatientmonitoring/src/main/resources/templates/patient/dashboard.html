@@ -88,6 +88,71 @@
         <div class="row g-4">
             
             <div class="col-lg-5">
+                <!-- Today's Health Log Status Card -->
+                <div class="card card-custom p-4 mb-4 border-0 bg-white" style="border-radius: 16px;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-primary mb-0" style="font-size: 1.15rem;">
+                            <i class="fa-solid fa-clipboard-check me-2"></i>Nhập Liệu Hôm Nay
+                        </h4>
+                        <span th:if="${logStatus.allRequiredDone}" class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-bold" style="font-size: 0.72rem;">
+                            <i class="fa-solid fa-circle-check me-1"></i>Đã đủ chỉ số
+                        </span>
+                        <span th:if="${!logStatus.allRequiredDone}" class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2 fw-bold" style="font-size: 0.72rem;">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>Chưa đủ chỉ số
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr class="text-muted border-bottom" style="font-size: 0.78rem;">
+                                    <th class="pb-2">Thời điểm</th>
+                                    <th class="pb-2">Huyết áp (HA)</th>
+                                    <th class="pb-2">Đường huyết (ĐH)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px dashed #e5e7eb;">
+                                    <td class="py-2.5 fw-semibold"><i class="fa-solid fa-sun text-warning me-1"></i>Sáng (Morning)</td>
+                                    <td class="py-2.5" th:classappend="${logStatus.morningBpClass}">
+                                        <i th:if="${logStatus.morningBpDone}" class="fa-solid fa-check-circle text-success me-1"></i>
+                                        <i th:if="${!logStatus.morningBpDone && logStatus.morningBp != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.morningBp}"></span>
+                                    </td>
+                                    <td class="py-2.5" th:classappend="${logStatus.morningGlClass}">
+                                        <i th:if="${logStatus.morningGlDone}" class="fa-solid fa-check-circle text-success me-1"></i>
+                                        <i th:if="${!logStatus.morningGlDone && logStatus.morningGl != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.morningGl}"></span>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px dashed #e5e7eb;">
+                                    <td class="py-2.5 fw-semibold"><i class="fa-solid fa-moon text-primary me-1"></i>Tối (Evening)</td>
+                                    <td class="py-2.5" th:classappend="${logStatus.eveningBpClass}">
+                                        <i th:if="${logStatus.eveningBpDone}" class="fa-solid fa-check-circle text-success me-1"></i>
+                                        <i th:if="${!logStatus.eveningBpDone && logStatus.eveningBp != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.eveningBp}"></span>
+                                    </td>
+                                    <td class="py-2.5" th:classappend="${logStatus.eveningGlClass}">
+                                        <i th:if="${logStatus.eveningGlDone}" class="fa-solid fa-check-circle text-success me-1"></i>
+                                        <i th:if="${!logStatus.eveningGlDone && logStatus.eveningGl != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.eveningGl}"></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 fw-semibold"><i class="fa-solid fa-circle-info text-secondary me-1"></i>Tự chọn (Random)</td>
+                                    <td class="py-2.5" th:classappend="${logStatus.randomBpClass}" th:text="${logStatus.randomBp}"></td>
+                                    <td class="py-2.5" th:classappend="${logStatus.randomGlClass}" th:text="${logStatus.randomGl}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 pt-3 border-top text-center" th:if="${!logStatus.allRequiredDone}">
+                        <a href="/patient/log" class="btn btn-sm btn-outline-primary rounded-pill px-4" style="font-size: 0.8rem; font-weight: 600;">
+                            <i class="fa-solid fa-plus-circle me-1"></i>Bổ sung chỉ số còn thiếu
+                        </a>
+                    </div>
+                </div>
+
                 <div class="card card-custom treatment-card p-4 mb-4">
                     <h4 class="fw-bold text-primary mb-3">
                         <i class="fa-solid fa-file-medical me-2"></i>Phác Đồ Điều Trị

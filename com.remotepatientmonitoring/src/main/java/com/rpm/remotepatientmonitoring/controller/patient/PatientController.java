@@ -35,6 +35,9 @@ public class PatientController {
     @Autowired
     private ExerciseLogService exerciseLogService;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
+
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
@@ -46,10 +49,6 @@ public class PatientController {
                     return opt.get();
                 }
             }
-        }
-        List<Patient> all = patientService.findAllPatients();
-        if (all.size() > 0) {
-            return all.get(0);
         }
         return null;
     }
@@ -221,6 +220,165 @@ public class PatientController {
         if (exerciseProgress > 100) {
             exerciseProgress = 100;
         }
+
+        // --- Calculate today's health logs completion status ---
+        Map<String, Object> logStatus = new HashMap<>();
+        boolean reqBp = false;
+        boolean reqGl = false;
+        if (patient.getDiseaseProfile() != null) {
+            reqBp = Boolean.TRUE.equals(patient.getDiseaseProfile().getRequiresBpInput());
+            reqGl = Boolean.TRUE.equals(patient.getDiseaseProfile().getRequiresGlucoseInput());
+        } else {
+            reqBp = true;
+            reqGl = true;
+        }
+
+        List<DailyHealthLog> logsList = new ArrayList<>();
+        if (patient.getId() != null) {
+            logsList = healthLogRepository.findByPatientIdAndLogDate(patient.getId(), selectedDate);
+        }
+
+        final List<DailyHealthLog> finalLogs = logsList;
+        
+        // Find logs for MORNING
+        List<DailyHealthLog> morningLogs = finalLogs.stream()
+                .filter(l -> "MORNING".equalsIgnoreCase(l.getLogType()))
+                .toList();
+        DailyHealthLog morningBpLog = morningLogs.stream()
+                .filter(l -> l.getSystolicBp() != null)
+                .max(Comparator.comparing(DailyHealthLog::getLogTime))
+                .orElse(null);
+        DailyHealthLog morningGlLog = morningLogs.stream()
+                .filter(l -> l.getGlucoseLevel() != null)
+                .max(Comparator.comparing(DailyHealthLog::getLogTime))
+                .orElse(null);
+
+        // Find logs for EVENING
+        List<DailyHealthLog> eveningLogs = finalLogs.stream()
+                .filter(l -> "EVENING".equalsIgnoreCase(l.getLogType()))
+                .toList();
+        DailyHealthLog eveningBpLog = eveningLogs.stream()
+                .filter(l -> l.getSystolicBp() != null)
+                .max(Comparator.comparing(DailyHealthLog::getLogTime))
+                .orElse(null);
+        DailyHealthLog eveningGlLog = eveningLogs.stream()
+                .filter(l -> l.getGlucoseLevel() != null)
+                .max(Comparator.comparing(DailyHealthLog::getLogTime))
+                .orElse(null);
+
+        // Find logs for RANDOM
+        List<DailyHealthLog> randomLogs = finalLogs.stream()
+                .filter(l -> "RANDOM".equalsIgnoreCase(l.getLogType()))
+                .toList();
+        DailyHealthLog randomBpLog = randomLogs.stream()
+                .filter(l -> l.getSystolicBp() != null)
+                .max(Comparator.comparing(DailyHealthLog::getLogTime))
+                .orElse(null);
+        DailyHealthLog randomGlLog = randomLogs.stream()
+                .filter(l -> l.getGlucoseLevel() != null)
+                .max(Comparator.comparing(DailyHealthLog::getLogTime))
+                .orElse(null);
+
+        // Morning BP
+        if (reqBp) {
+            if (morningBpLog != null) {
+                String statusText = getBpStatusText(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp());
+                logStatus.put("morningBp", "Đã nhập: " + morningBpLog.getSystolicBp() + "/" + morningBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
+                logStatus.put("morningBpClass", getBpClass(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp()));
+                logStatus.put("morningBpDone", true);
+            } else {
+                logStatus.put("morningBp", "Chưa nhập");
+                logStatus.put("morningBpClass", "text-danger fw-bold");
+                logStatus.put("morningBpDone", false);
+            }
+        } else {
+            logStatus.put("morningBp", "Không yêu cầu");
+            logStatus.put("morningBpClass", "text-muted");
+            logStatus.put("morningBpDone", true);
+        }
+
+        // Morning Glucose
+        if (reqGl) {
+            if (morningGlLog != null) {
+                String statusText = getGlucoseStatusText(morningGlLog.getGlucoseLevel());
+                logStatus.put("morningGl", "Đã nhập: " + morningGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
+                logStatus.put("morningGlClass", getGlucoseClass(morningGlLog.getGlucoseLevel()));
+                logStatus.put("morningGlDone", true);
+            } else {
+                logStatus.put("morningGl", "Chưa nhập");
+                logStatus.put("morningGlClass", "text-danger fw-bold");
+                logStatus.put("morningGlDone", false);
+            }
+        } else {
+            logStatus.put("morningGl", "Không yêu cầu");
+            logStatus.put("morningGlClass", "text-muted");
+            logStatus.put("morningGlDone", true);
+        }
+
+        // Evening BP
+        if (reqBp) {
+            if (eveningBpLog != null) {
+                String statusText = getBpStatusText(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp());
+                logStatus.put("eveningBp", "Đã nhập: " + eveningBpLog.getSystolicBp() + "/" + eveningBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
+                logStatus.put("eveningBpClass", getBpClass(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp()));
+                logStatus.put("eveningBpDone", true);
+            } else {
+                logStatus.put("eveningBp", "Chưa nhập");
+                logStatus.put("eveningBpClass", "text-danger fw-bold");
+                logStatus.put("eveningBpDone", false);
+            }
+        } else {
+            logStatus.put("eveningBp", "Không yêu cầu");
+            logStatus.put("eveningBpClass", "text-muted");
+            logStatus.put("eveningBpDone", true);
+        }
+
+        // Evening Glucose
+        if (reqGl) {
+            if (eveningGlLog != null) {
+                String statusText = getGlucoseStatusText(eveningGlLog.getGlucoseLevel());
+                logStatus.put("eveningGl", "Đã nhập: " + eveningGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
+                logStatus.put("eveningGlClass", getGlucoseClass(eveningGlLog.getGlucoseLevel()));
+                logStatus.put("eveningGlDone", true);
+            } else {
+                logStatus.put("eveningGl", "Chưa nhập");
+                logStatus.put("eveningGlClass", "text-danger fw-bold");
+                logStatus.put("eveningGlDone", false);
+            }
+        } else {
+            logStatus.put("eveningGl", "Không yêu cầu");
+            logStatus.put("eveningGlClass", "text-muted");
+            logStatus.put("eveningGlDone", true);
+        }
+
+        // Random BP & Glucose (Optional)
+        if (randomBpLog != null) {
+            String statusText = getBpStatusText(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp());
+            logStatus.put("randomBp", "Đã nhập: " + randomBpLog.getSystolicBp() + "/" + randomBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
+            logStatus.put("randomBpClass", getBpClass(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp()));
+        } else {
+            logStatus.put("randomBp", "Chưa nhập (Tùy chọn)");
+            logStatus.put("randomBpClass", "text-muted");
+        }
+        if (randomGlLog != null) {
+            String statusText = getGlucoseStatusText(randomGlLog.getGlucoseLevel());
+            logStatus.put("randomGl", "Đã nhập: " + randomGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
+            logStatus.put("randomGlClass", getGlucoseClass(randomGlLog.getGlucoseLevel()));
+        } else {
+            logStatus.put("randomGl", "Chưa nhập (Tùy chọn)");
+            logStatus.put("randomGlClass", "text-muted");
+        }
+
+        // Check if all required logs are completed
+        boolean allRequiredDone = true;
+        if (reqBp && (!Boolean.TRUE.equals(logStatus.get("morningBpDone")) || !Boolean.TRUE.equals(logStatus.get("eveningBpDone")))) {
+            allRequiredDone = false;
+        }
+        if (reqGl && (!Boolean.TRUE.equals(logStatus.get("morningGlDone")) || !Boolean.TRUE.equals(logStatus.get("eveningGlDone")))) {
+            allRequiredDone = false;
+        }
+        logStatus.put("allRequiredDone", allRequiredDone);
+        model.addAttribute("logStatus", logStatus);
 
         // Daily nutritional targets
         model.addAttribute("patient", patient);
@@ -751,5 +909,38 @@ public class PatientController {
         patientService.updateProfile(patient, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
 
         return "redirect:/patient/progress?updateSuccess=true";
+    }
+
+    private String getBpStatusText(Integer sys, Integer dia) {
+        if (sys == null || dia == null) return "Chưa nhập";
+        if (sys >= 180 || dia >= 110) return "Nguy hiểm";
+        if (sys >= 140 || dia >= 90) return "Vượt ngưỡng";
+        if (sys >= 130 || dia >= 85) return "Cần chú ý";
+        return "Đạt mục tiêu";
+    }
+
+    private String getBpClass(Integer sys, Integer dia) {
+        if (sys == null || dia == null) return "text-danger fw-bold";
+        if (sys >= 180 || dia >= 110) return "text-danger fw-bold";
+        if (sys >= 140 || dia >= 90) return "text-warning fw-bold";
+        if (sys >= 130 || dia >= 85) return "text-warning fw-bold";
+        return "text-success fw-bold";
+    }
+
+    private String getGlucoseStatusText(java.math.BigDecimal val) {
+        if (val == null) return "Chưa nhập";
+        double glu = val.doubleValue();
+        if (glu < 4.4) return "Nguy hiểm (Hạ)";
+        if (glu > 16.0) return "Nguy hiểm (Cao)";
+        if (glu > 10.0) return "Vượt ngưỡng";
+        return "Đạt mục tiêu";
+    }
+
+    private String getGlucoseClass(java.math.BigDecimal val) {
+        if (val == null) return "text-danger fw-bold";
+        double glu = val.doubleValue();
+        if (glu < 4.4 || glu > 16.0) return "text-danger fw-bold";
+        if (glu > 10.0) return "text-warning fw-bold";
+        return "text-success fw-bold";
     }
 }

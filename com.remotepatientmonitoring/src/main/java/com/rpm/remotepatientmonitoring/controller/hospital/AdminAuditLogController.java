@@ -1,9 +1,9 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
 import com.rpm.remotepatientmonitoring.model.AuditTrail;
 import com.rpm.remotepatientmonitoring.repository.AuditTrailRepository;
-import com.rpm.remotepatientmonitoring.service.hopital.AuditLogMaskingService;
-import com.rpm.remotepatientmonitoring.service.hopital.ExcelExportService;
+import com.rpm.remotepatientmonitoring.service.hospital.AuditLogMaskingService;
+import com.rpm.remotepatientmonitoring.service.hospital.ExcelExportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;

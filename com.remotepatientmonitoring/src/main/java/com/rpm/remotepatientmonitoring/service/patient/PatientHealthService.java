@@ -240,6 +240,7 @@ public class PatientHealthService {
             res.put("level", 1);
             res.put("emergencyContactName", "Chưa thiết lập");
             res.put("emergencyContactPhone", "");
+            res.put("guides", java.util.List.of());
             return res;
         }
 
@@ -261,6 +262,20 @@ public class PatientHealthService {
         res.put("alertMessage", message);
         res.put("emergencyContactName", patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Người thân");
         res.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
+
+        java.util.List<java.util.Map<String, Object>> guideList = new java.util.ArrayList<>();
+        if (patient.getHospital() != null) {
+            java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyGuide> guides = 
+                emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
+            for (com.rpm.remotepatientmonitoring.model.EmergencyGuide g : guides) {
+                java.util.Map<String, Object> gMap = new java.util.HashMap<>();
+                gMap.put("title", g.getTitle());
+                gMap.put("content", g.getInstructionContent());
+                gMap.put("metricType", g.getMetricType());
+                guideList.add(gMap);
+            }
+        }
+        res.put("guides", guideList);
 
         return res;
     }

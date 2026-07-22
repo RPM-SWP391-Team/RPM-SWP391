@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.controller.hopital;
+package com.rpm.remotepatientmonitoring.controller.hospital;
 
 import com.rpm.remotepatientmonitoring.model.AppRating;
 import com.rpm.remotepatientmonitoring.model.DoctorRating;

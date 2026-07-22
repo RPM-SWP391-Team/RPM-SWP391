@@ -100,14 +100,7 @@ public class PatientInteractionService {
     @Transactional
     public void createChangeRequest(ChangeRequest changeRequest, Patient patient) {
         Doctor doctor = patient.getDoctor();
-        if (doctor == null) {
-            List<Doctor> all = doctorRepository.findAllAvailableDoctors();
-            if (all.size() > 0) {
-                doctor = all.get(0);
-            } else {
-                throw new IllegalStateException("No doctor found in database to receive requests.");
-            }
-        }
+            throw new IllegalStateException("Bạn chưa được phân công bác sĩ phụ trách, không thể gửi yêu cầu thay đổi phác đồ/lịch khám.");
 
         changeRequest.setPatient(patient);
         changeRequest.setDoctor(doctor);
