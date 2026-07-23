@@ -195,6 +195,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
+        // Doctor's Resolution Note block (if doctor provided custom emergency instructions)
+        let doctorNoteBlock = '';
+        if (data.doctorNote) {
+            doctorNoteBlock = `
+                <div class="card p-3 border-danger mb-3 shadow-sm" style="background-color: #fff5f5; border-left: 5px solid #dc3545; border-radius: 10px;">
+                    <h6 class="fw-bold text-danger mb-2" style="font-size: 0.95rem;">
+                        <i class="fa-solid fa-user-doctor me-2"></i>HƯỚNG DẪN XỬ LÝ TỪ BÁC SĨ (${data.doctorName || 'Bác sĩ phụ trách'}):
+                    </h6>
+                    <p class="small text-dark mb-0 fw-bold lh-base" style="font-size: 0.92rem; white-space: pre-line;">${data.doctorNote}</p>
+                </div>
+            `;
+        }
+
         // 6. Create Emergency SOS Modal HTML
         const emergencyModalHtml = `
             <div class="modal fade" id="emergencyModal" tabindex="-1" aria-labelledby="emergencyModalLabel" aria-hidden="true">
@@ -207,6 +220,8 @@ document.addEventListener("DOMContentLoaded", function() {
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body modal-body-custom p-4">
+                            ${doctorNoteBlock}
+
                             <!-- Call options (Top) -->
                             <div class="mb-4">
                                 <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-phone me-2 text-danger"></i>Gọi khẩn cấp</h6>
@@ -322,6 +337,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                     </div>
                                 </div>
                             </div>
+
+                            ${doctorNoteBlock}
 
                             <div class="card p-3 border-0 bg-light rounded-3 shadow-sm mb-2">
                                 <h6 class="fw-bold text-secondary mb-2" style="font-size: 0.95rem;"><i class="fa-solid fa-comment-medical me-2 text-primary"></i>Nhận xét & Khuyên dùng</h6>
