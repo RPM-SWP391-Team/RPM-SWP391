@@ -358,13 +358,13 @@
             <span class="text-muted small" th:text="'Hiển thị trang ' + (${pageObj.number} + 1) + ' / ' + ${pageObj.totalPages}">Trang 1 / 5</span>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" th:classappend="${pageObj.first ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage - 1}, status=${statusFilter})}">Trước</a>
+                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage == 0 ? 0 : currentPage - 1}, status=${statusFilter})}">Trước</a>
                 </li>
                 <li class="page-item" th:each="idx : ${#numbers.sequence(0, pageObj.totalPages - 1)}" th:classappend="${idx == pageObj.number ? 'active' : ''}">
                     <a class="page-link" th:href="@{/hospital/bug-reports(page=${idx}, status=${statusFilter})}" th:text="${idx + 1}">1</a>
                 </li>
                 <li class="page-item" th:classappend="${pageObj.last ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage + 1}, status=${statusFilter})}">Sau</a>
+                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${pageObj.last ? pageObj.totalPages - 1 : currentPage + 1}, status=${statusFilter})}">Sau</a>
                 </li>
             </ul>
         </nav>

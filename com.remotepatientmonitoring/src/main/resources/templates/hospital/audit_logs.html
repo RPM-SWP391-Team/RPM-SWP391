@@ -410,13 +410,13 @@
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage - 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&laquo;</a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage == 0 ? 0 : currentPage - 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&laquo;</a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(logs.totalPages - 1, currentPage + 2))}" th:classappend="${i == currentPage} ? 'active'">
                             <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${i}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage + 1 == logs.totalPages} ? 'disabled'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage + 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&raquo;</a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage + 1 == logs.totalPages ? currentPage : currentPage + 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&raquo;</a>
                         </li>
                     </ul>
                 </nav>
