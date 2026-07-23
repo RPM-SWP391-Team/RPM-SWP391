@@ -318,7 +318,7 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Thất bại: Tiêu đề không được để trống.");
         }
         if(title.trim().length()<10 || title.trim().length()>50) {
-            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 50 ký tự.");
+            throw new IllegalArgumentException("Thất bại: Tiêu đề phải từ 10 đến 50 ký tự.");
         }
         if (instructionContent == null || instructionContent.trim().isEmpty()) {
             throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn không được để trống.");
@@ -421,7 +421,7 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Thất bại: Tiêu đề không được để trống.");
         }
         if(title.trim().length()<10 || title.trim().length()>50) {
-            throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết phải từ 10 đến 50 ký tự.");
+            throw new IllegalArgumentException("Thất bại: Tiêu đề phải từ 10 đến 50 ký tự.");
         }
         if (warningSigns == null || warningSigns.trim().isEmpty()) {
             throw new IllegalArgumentException("Thất bại: Dấu hiệu nhận biết không được để trống.");

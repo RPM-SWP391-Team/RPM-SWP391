@@ -531,7 +531,7 @@
                     <ul class="pagination pagination-sm mb-0 shadow-sm">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                             <a class="page-link rounded-start py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
+                               th:href="@{/hospital/doctors(page=${currentPage == 0 ? 0 : currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         </li>
@@ -545,7 +545,7 @@
 
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
                             <a class="page-link rounded-end py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
+                               th:href="@{/hospital/doctors(page=${currentPage == totalPages - 1 ? totalPages - 1 : currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </li>
