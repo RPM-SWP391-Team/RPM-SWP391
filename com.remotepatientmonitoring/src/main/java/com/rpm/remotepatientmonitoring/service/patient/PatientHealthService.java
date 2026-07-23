@@ -324,6 +324,19 @@ public class PatientHealthService {
         }
         res.put("guides", guideList);
 
+        // Fetch latest doctor resolution note for alert handling instructions
+        com.rpm.remotepatientmonitoring.model.Alert latestDoctorNoteAlert = alertRepository
+                .findFirstByPatientIdAndIsResolvedTrueAndResolutionNotesIsNotNullOrderByResolvedAtDesc(patient.getId())
+                .orElse(null);
+
+        if (latestDoctorNoteAlert != null && latestDoctorNoteAlert.getResolutionNotes() != null && !latestDoctorNoteAlert.getResolutionNotes().trim().isEmpty()) {
+            res.put("doctorNote", latestDoctorNoteAlert.getResolutionNotes());
+            res.put("doctorName", latestDoctorNoteAlert.getResolvedByDoctor() != null ? latestDoctorNoteAlert.getResolvedByDoctor().getFullName() : "Bác sĩ phụ trách");
+            res.put("doctorNoteTime", latestDoctorNoteAlert.getResolvedAt() != null ? latestDoctorNoteAlert.getResolvedAt().toString() : "");
+        } else {
+            res.put("doctorNote", null);
+        }
+
         return res;
     }
 

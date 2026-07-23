@@ -1031,6 +1031,24 @@ public class DoctorViewController {
         alert.setResolutionNotes(resolutionNotes);
         alertRepository.save(alert);
 
+        // Gửi thông báo trực tiếp cho bệnh nhân
+        if (alert.getPatient() != null) {
+            Notification notif = Notification.builder()
+                    .patient(alert.getPatient())
+                    .doctor(doctor)
+                    .recipientType("PATIENT")
+                    .recipientId(alert.getPatient().getId())
+                    .notificationType("ALERT_RESOLVED")
+                    .channel("IN_APP")
+                    .status("SENT")
+                    .title("Hướng dẫn xử lý cảnh báo y tế từ Bác sĩ " + doctor.getFullName())
+                    .content("Bác sĩ " + doctor.getFullName() + " đã xử lý cảnh báo y tế của bạn với ghi chú hướng dẫn: " + resolutionNotes)
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        }
+
         // Ghi Audit Trail
         auditTrailService.logAction(
                 "DOCTOR",

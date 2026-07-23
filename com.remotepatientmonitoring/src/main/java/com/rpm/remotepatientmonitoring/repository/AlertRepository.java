@@ -28,4 +28,6 @@ public interface AlertRepository extends JpaRepository<Alert, Integer> {
     @org.springframework.transaction.annotation.Transactional
     @Query("DELETE FROM Alert a WHERE a.healthLog.id = :healthLogId")
     void deleteByHealthLogId(@Param("healthLogId") Integer healthLogId);
+
+    java.util.Optional<Alert> findFirstByPatientIdAndIsResolvedTrueAndResolutionNotesIsNotNullOrderByResolvedAtDesc(Integer patientId);
 }
