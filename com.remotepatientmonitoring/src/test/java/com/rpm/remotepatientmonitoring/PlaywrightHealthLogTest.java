@@ -22,7 +22,7 @@ public class PlaywrightHealthLogTest {
     @BeforeAll
     static void launchBrowser() {
         playwright = Playwright.create();
-        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false).setSlowMo(1000));
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true).setSlowMo(50));
     }
 
     @AfterAll
@@ -32,7 +32,7 @@ public class PlaywrightHealthLogTest {
 
     @BeforeEach
     void createContextAndPage() {
-        context = browser.newContext(new Browser.NewContextOptions().setBaseURL("http://localhost:" + port));
+        context = browser.newContext(new Browser.NewContextOptions().setBaseURL("http://localhost:" + port).setViewportSize(1920, 1080));
         page = context.newPage();
     }
 
@@ -65,7 +65,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesBp", "Khỏe");
         page.click("button:has-text('Lưu Huyết áp')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
         assertThat(alert.textContent()).contains("Thành công! Chỉ số sức khỏe của bạn đã được ghi nhận vào nhật ký.");
@@ -95,7 +95,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesBp", "Khỏe");
         page.click("button:has-text('Lưu Huyết áp')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
 
@@ -121,7 +121,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesBp", "Khỏe");
         page.click("button:has-text('Lưu Huyết áp')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
 
@@ -148,7 +148,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesGl", "Đo lúc 6h30");
         page.click("button:has-text('Lưu Đường huyết')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
         assertThat(alert.textContent()).contains("Thành công! Chỉ số sức khỏe của bạn đã được ghi nhận vào nhật ký.");
@@ -173,7 +173,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesGl", "Đo lúc 20h");
         page.click("button:has-text('Lưu Đường huyết')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
 
@@ -196,7 +196,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesGl", "02/07/2026 21:30");
         page.click("button:has-text('Lưu Đường huyết')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
 
@@ -226,7 +226,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesBp", "Khỏe");
         page.click("button:has-text('Lưu Huyết áp')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
     }
@@ -246,7 +246,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesBp", "Khỏe");
         page.click("button:has-text('Lưu Huyết áp')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
     }
@@ -266,7 +266,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesBp", "Khỏe");
         page.click("button:has-text('Lưu Huyết áp')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
     }
@@ -284,7 +284,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesGl", "Đo lúc 6h30");
         page.click("button:has-text('Lưu Đường huyết')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
     }
@@ -302,7 +302,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesGl", "Đo lúc 20h");
         page.click("button:has-text('Lưu Đường huyết')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
     }
@@ -320,7 +320,7 @@ public class PlaywrightHealthLogTest {
         page.fill("#notesGl", "02/07/2026 21:30");
         page.click("button:has-text('Lưu Đường huyết')");
 
-        page.waitForURL(url -> url.contains("/patient/dashboard?logSuccess=true"));
+        page.waitForURL(url -> url.contains("/patient/log?saveSuccess=true"));
         Locator alert = page.locator("#successAlert");
         assertThat(alert.isVisible()).isTrue();
     }

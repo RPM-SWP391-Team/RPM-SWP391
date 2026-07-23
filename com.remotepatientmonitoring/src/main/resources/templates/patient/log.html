@@ -435,11 +435,11 @@
                 </form>
 
                 <!-- Alert for saveSuccess -->
-                <div th:if="${param.saveSuccess}" class="alert alert-success border-0 shadow-sm mb-3 mt-3" style="border-radius: 12px; background-color: #ecfdf5; border-left: 4px solid #10b981 !important;">
+                <div th:if="${param.saveSuccess}" id="successAlert" class="alert alert-success border-0 shadow-sm mb-3 mt-3" style="border-radius: 12px; background-color: #ecfdf5; border-left: 4px solid #10b981 !important;">
                     <div class="d-flex align-items-center text-dark">
                         <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
                         <div>
-                            Chỉ số sức khỏe đã được ghi nhận thành công!
+                            Thành công! Chỉ số sức khỏe của bạn đã được ghi nhận vào nhật ký.
                         </div>
                     </div>
                 </div>
