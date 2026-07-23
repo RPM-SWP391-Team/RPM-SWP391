@@ -29,7 +29,7 @@ public class Login04Test {
 
     @BeforeEach
     void setUp() {
-        context = browser.newContext();
+        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
         page = context.newPage();
     }
 

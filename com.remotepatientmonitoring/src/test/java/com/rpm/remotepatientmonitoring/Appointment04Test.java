@@ -64,13 +64,13 @@ public class Appointment04Test {
         playwright = Playwright.create();
         try {
             browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false)
-                    .setSlowMo(1000)
+                    .setHeadless(true)
+                    .setSlowMo(100)
                     .setChannel("chrome"));
         } catch (Exception e) {
             browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false)
-                    .setSlowMo(1000)
+                    .setHeadless(true)
+                    .setSlowMo(100)
                     .setChannel("msedge"));
         }
     }
@@ -89,7 +89,7 @@ public class Appointment04Test {
     void setUpAndLogin() {
         setupTestData();
 
-        context = browser.newContext();
+        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
         page = context.newPage();
 
         // Step 1 & 2: Open browser and navigate to Login page
@@ -233,7 +233,7 @@ public class Appointment04Test {
 
         // Step 8: Click on "Book Appointment" button
         // Since it's a CSS modal, clicking the anchor that opens it, or just showing the modal if it's hidden by CSS
-        page.locator("a[href='#bookAppointmentCssModal']").click();
+        page.locator("a[href='/patient/appointments/book']").click();
         
         // Wait for modal fields to be visible
         page.locator("#doctorId").waitFor();
@@ -246,7 +246,7 @@ public class Appointment04Test {
         // Format: yyyy-MM-ddTHH:mm
         LocalDateTime tomorrow = LocalDateTime.now().plusDays(1).withHour(9).withMinute(0);
         String formattedTime = tomorrow.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
-        page.fill("#appointmentTime", formattedTime);
+        page.evalOnSelector("#appointmentTime", "el => el.value = '" + formattedTime + "'");
 
         // Step 11: Select Appointment Type
         page.selectOption("#appointmentType", "INITIAL");

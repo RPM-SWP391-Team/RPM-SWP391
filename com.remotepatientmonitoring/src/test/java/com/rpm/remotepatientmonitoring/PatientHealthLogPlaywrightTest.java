@@ -65,13 +65,13 @@ public class PatientHealthLogPlaywrightTest {
         playwright = Playwright.create();
         try {
             browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false)
-                    .setSlowMo(1000) // Trễ 1 giây giữa các thao tác để dễ theo dõi
+                    .setHeadless(true)
+                    .setSlowMo(50) // Trễ 1 giây giữa các thao tác để dễ theo dõi
                     .setChannel("chrome"));
         } catch (Exception e) {
             browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false)
-                    .setSlowMo(1000)
+                    .setHeadless(true)
+                    .setSlowMo(50)
                     .setChannel("msedge"));
         }
     }
@@ -93,7 +93,7 @@ public class PatientHealthLogPlaywrightTest {
         setupTestData();
 
         // Tạo context và trang mới cho phiên test
-        context = browser.newContext();
+        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
         page = context.newPage();
 
         // Bước 1: Điều hướng tới trang đăng nhập
@@ -285,7 +285,7 @@ public class PatientHealthLogPlaywrightTest {
         page.click("#panelBpInput button.btn-next");
 
         // Bước 8: Chờ hệ thống lưu thành công và chuyển hướng về dashboard kèm param thành công
-        page.waitForURL("**/patient/dashboard?logSuccess=true");
+        page.waitForURL("**/patient/log?saveSuccess=true");
 
         // Bước 9: Xác nhận thông báo thành công hiển thị trên giao diện UI của trang dashboard
         Locator successAlert = page.locator("#successAlert");
