@@ -51,6 +51,10 @@ class AiChatRequest(BaseModel):
 
 class AiChatResponse(BaseModel):
     answer: str
+    citations: Optional[List[Any]] = None
+    summaryTakeaway: Optional[str] = None
+    disclaimer: Optional[str] = None
+    confidenceLevel: Optional[str] = None
 
 class SearchRequest(BaseModel):
     query: str
@@ -81,30 +85,40 @@ def chat_endpoint(request: AiChatRequest):
             patient_context=patient_context_dict
         )
         
-        # Format the response with clean document citations
-        answer_with_citations = result.answer
+        # Xây dựng danh sách trích dẫn có cấu trúc (Structured Citations)
+        citations_list = []
         if result.retrieved_chunks and "không có đủ dữ liệu" not in result.answer.lower():
-            answer_with_citations += "\n\n📚 Nguồn trích dẫn:\n"
             seen_sources = set()
-            for i, chunk in enumerate(result.retrieved_chunks, 1):
+            for chunk in result.retrieved_chunks:
                 meta = getattr(chunk, "metadata", {}) or {}
-                pdf_name = meta.get("source_file", "ehae178.pdf")
-                if not str(pdf_name).endswith(".pdf"):
-                    pdf_name = "ehae178.pdf"
-                source = meta.get("source_file", meta.get("document_name", meta.get("source_document", "")))
-                if not source or source == "Unknown":
-                    if "Diabetes Care" in chunk.text or "ADA" in chunk.text:
-                        source = "ADA Standards of Care in Diabetes (2024)"
-                    elif "ESC" in chunk.text:
-                        source = "2024 ESC Guidelines (Elevated BP & Diabetes)"
-                    else:
-                        source = "Tài liệu Y khoa Chuyên ngành (ESC / ADA 2024)"
                 
-                if source not in seen_sources:
-                    seen_sources.add(source)
-                    answer_with_citations += f"- [{source}](/docs/{pdf_name})\n"
+                # Tên tài liệu trích dẫn
+                doc_name = meta.get("source_file", meta.get("document_name", meta.get("source_document", "")))
+                if not doc_name or doc_name == "Unknown":
+                    chunk_text = getattr(chunk, "text", "")
+                    if "Diabetes Care" in chunk_text or "ADA" in chunk_text:
+                        doc_name = "ADA Standards of Care in Diabetes (2024)"
+                    elif "ESC" in chunk_text:
+                        doc_name = "2024 ESC Guidelines (Elevated BP & Diabetes)"
+                    else:
+                        doc_name = "Tài liệu Y khoa Chuyên ngành (ESC / ADA 2024)"
+                
+                if doc_name not in seen_sources:
+                    seen_sources.add(doc_name)
+                    chunk_text = getattr(chunk, "text", "")
+                    snippet = chunk_text[:300] + "..." if len(chunk_text) > 300 else chunk_text
+                    score = float(getattr(chunk, "score", 0.90))
+                    
+                    citations_list.append({
+                        "file": doc_name,
+                        "text": snippet,
+                        "score": score
+                    })
             
-        return AiChatResponse(answer=answer_with_citations)
+        return AiChatResponse(
+            answer=result.answer,
+            citations=citations_list
+        )
     except Exception as e:
         logger.error(f"Error during RAG generation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
