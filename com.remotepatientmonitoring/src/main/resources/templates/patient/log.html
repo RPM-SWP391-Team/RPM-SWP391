@@ -98,18 +98,6 @@
         .btn-back { background: none; border: none; color: #6b7280; font-weight: 600; font-size: 0.9rem; padding: 10px 0; }
         .btn-back:hover { color: #2a5298; }
 
-        /* OCR */
-        .ocr-upload-box {
-            border: 2px dashed #cbd5e1; border-radius: 16px; padding: 36px 20px;
-            text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s;
-        }
-        .ocr-upload-box:hover { border-color: #2a5298; background: #eff6ff; }
-        .scanner-line {
-            width: 100%; height: 4px; background: #3b82f6; position: relative;
-            animation: scan 1.5s infinite linear; box-shadow: 0 0 8px #3b82f6;
-        }
-        @keyframes scan { 0% { top: 0; } 50% { top: 180px; } 100% { top: 0; } }
-
         /* Method toggle */
         .method-toggle {
             display: flex; background: rgba(255,255,255,0.12); border-radius: 50px; padding: 3px;
@@ -136,14 +124,6 @@
                     <i class="fa-solid fa-heart-pulse me-1" style="color: #f59e0b;"></i> Nhập sức khỏe
                 </span>
                 <span style="width: 60px;"></span>
-            </div>
-            <div class="method-toggle">
-                <button class="method-toggle-btn active" id="tab-manual" onclick="switchInputMethod('MANUAL')">
-                    <i class="fa-solid fa-keyboard me-1"></i>Nhập tay
-                </button>
-                <button class="method-toggle-btn" id="tab-ocr" onclick="switchInputMethod('OCR')">
-                    <i class="fa-solid fa-camera me-1"></i>Chụp ảnh AI
-                </button>
             </div>
             <div class="steps-bar" id="stepsBar">
                 <div class="step-bar active" id="bar1"></div>
@@ -389,49 +369,6 @@
                         </button>
                     </div>
 
-                    <!-- ========== OCR PANEL ========== -->
-                    <div class="wizard-panel" id="panelOCR">
-                        <p class="text-muted small text-center mb-3">Chụp ảnh màn hình máy đo huyết áp / đường huyết</p>
-                        <div class="ocr-upload-box mb-4" id="upload-box" onclick="triggerPhotoUpload()">
-                            <i class="fa-solid fa-cloud-arrow-up fa-3x mb-3" style="color:#94a3b8;"></i>
-                            <h6 class="fw-bold">Chụp ảnh hoặc chọn tệp</h6>
-                            <p class="text-muted small mb-0">JPG, PNG từ máy đo</p>
-                            <input type="file" id="file-input" style="display:none;" accept="image/*" onchange="uploadPhotoAndProcessOCR()">
-                        </div>
-                        <div id="ocr-loading-area" class="text-center py-4 border rounded-3 bg-light mb-4 d-none">
-                            <div class="spinner-border text-primary mb-3" role="status"></div>
-                            <h6 class="fw-bold">Đang phân tích bằng AI...</h6>
-                            <div class="mx-auto mt-3 border bg-white" style="height:160px;width:160px;overflow:hidden;position:relative;">
-                                <div class="scanner-line"></div>
-                            </div>
-                        </div>
-                        <div id="ocr-error-area" class="alert alert-danger d-none">
-                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                            <strong id="ocr-error-message">Không đọc được — vui lòng nhập tay.</strong>
-                        </div>
-                        <div id="ocr-confirm-area" class="p-3 border rounded-4 bg-light mb-3 d-none">
-                            <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-circle-check me-2"></i>Kết quả AI</h6>
-                            <div id="ocr-result-bp" class="mb-2 d-none">
-                                <div class="row text-center">
-                                    <div class="col-4"><small class="text-muted">Tâm thu</small><h4 class="fw-bold" id="ocr-val-systolic">122</h4></div>
-                                    <div class="col-4"><small class="text-muted">Tâm trương</small><h4 class="fw-bold" id="ocr-val-diastolic">80</h4></div>
-                                    <div class="col-4"><small class="text-muted">Nhịp tim</small><h4 class="fw-bold" id="ocr-val-heartrate">74</h4></div>
-                                </div>
-                            </div>
-                            <div id="ocr-result-glucose" class="mb-2 d-none">
-                                <small class="text-muted">Glucose</small><h4 class="fw-bold" id="ocr-val-glucose">6.5 mmol/L</h4>
-                            </div>
-                            <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn btn-outline-secondary rounded-pill flex-grow-1 btn-sm" onclick="ocrEditManual()">Sửa tay</button>
-                                <button type="button" class="btn btn-success text-white rounded-pill flex-grow-1 btn-sm" onclick="ocrConfirmSubmit()">Xác nhận</button>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2 justify-content-center">
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="simulateSuccessfulPhotoUpload()"><i class="fa-solid fa-vial me-1"></i>Thử thành công</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="simulateFailedPhotoUpload()"><i class="fa-solid fa-bug me-1"></i>Thử lỗi</button>
-                        </div>
-                    </div>
-
                 </form>
 
                 <!-- Alert for saveSuccess -->
@@ -623,181 +560,6 @@
             }
         });
 
-        // ---- Input method switch ----
-        function switchInputMethod(method) {
-            document.getElementById('inputMethodField').value = method;
-            document.getElementById('tab-manual').classList.toggle('active', method === 'MANUAL');
-            document.getElementById('tab-ocr').classList.toggle('active', method === 'OCR');
-            if (method === 'MANUAL') {
-                goHome();
-            } else {
-                showPanel('panelOCR');
-                setBars('active', null, null);
-            }
-        }
-
-        // ---- OCR functions ----
-        function triggerPhotoUpload() { document.getElementById('file-input').click(); }
-        function simulateOCR() { simulateSuccessfulPhotoUpload(); }
-
-        function uploadPhotoAndProcessOCR() {
-            const fileInput = document.getElementById('file-input');
-            if (fileInput.files.length === 0) return;
-
-            const file = fileInput.files[0];
-            const formData = new FormData();
-            formData.append("file", file);
-
-            switchInputMethod('OCR');
-            document.getElementById('upload-box').classList.add('d-none');
-            document.getElementById('ocr-loading-area').classList.remove('d-none');
-            document.getElementById('ocr-confirm-area').classList.add('d-none');
-            document.getElementById('ocr-error-area').classList.add('d-none');
-
-            fetch('/patient/log/ocr', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('ocr-loading-area').classList.add('d-none');
-
-                if (data.error) {
-                    console.error("OCR Error:", data.error);
-                    document.getElementById('ocr-error-message').textContent = data.error;
-                    document.getElementById('ocr-error-area').classList.remove('d-none');
-                    return;
-                }
-
-                // Điền dữ liệu quét được vào vùng hiển thị xác nhận
-                if (hasHypertension) {
-                    document.getElementById('ocr-val-systolic').textContent = data.systolic !== null ? data.systolic : "--";
-                    document.getElementById('ocr-val-diastolic').textContent = data.diastolic !== null ? data.diastolic : "--";
-                    document.getElementById('ocr-val-heartrate').textContent = data.heartRate !== null ? data.heartRate : "--";
-                    
-                    document.getElementById('ocr-result-bp').classList.remove('d-none');
-                }
-
-                if (hasDiabetes) {
-                    document.getElementById('ocr-val-glucose').textContent = data.glucose !== null ? data.glucose + " mmol/L" : "-- mmol/L";
-                    
-                    document.getElementById('ocr-result-glucose').classList.remove('d-none');
-                }
-
-                // Hiển thị vùng xác nhận kết quả
-                document.getElementById('ocr-confirm-area').classList.remove('d-none');
-
-                // Lưu kết quả OCR vào bộ nhớ tạm
-                window.ocrResults = data;
-            })
-            .catch(error => {
-                console.error("AJAX Error:", error);
-                document.getElementById('ocr-loading-area').classList.add('d-none');
-                document.getElementById('ocr-error-message').textContent = "Không thể kết nối đến server.";
-                document.getElementById('ocr-error-area').classList.remove('d-none');
-            });
-        }
-
-        function simulateSuccessfulPhotoUpload() {
-            switchInputMethod('OCR');
-            document.getElementById('upload-box').classList.add('d-none');
-            document.getElementById('ocr-loading-area').classList.remove('d-none');
-            document.getElementById('ocr-confirm-area').classList.add('d-none');
-            document.getElementById('ocr-error-area').classList.add('d-none');
-            setTimeout(() => {
-                document.getElementById('ocr-loading-area').classList.add('d-none');
-                document.getElementById('ocr-confirm-area').classList.remove('d-none');
-                
-                const mockData = {
-                    systolic: 122,
-                    diastolic: 80,
-                    heartRate: 74,
-                    glucose: 6.5
-                };
-                window.ocrResults = mockData;
-
-                if (hasHypertension) {
-                    document.getElementById('ocr-val-systolic').textContent = mockData.systolic;
-                    document.getElementById('ocr-val-diastolic').textContent = mockData.diastolic;
-                    document.getElementById('ocr-val-heartrate').textContent = mockData.heartRate;
-                    document.getElementById('ocr-result-bp').classList.remove('d-none');
-                }
-                if (hasDiabetes) {
-                    document.getElementById('ocr-val-glucose').textContent = mockData.glucose + " mmol/L";
-                    document.getElementById('ocr-result-glucose').classList.remove('d-none');
-                }
-            }, 1800);
-        }
-
-        function simulateFailedPhotoUpload() {
-            switchInputMethod('OCR');
-            document.getElementById('upload-box').classList.add('d-none');
-            document.getElementById('ocr-loading-area').classList.remove('d-none');
-            document.getElementById('ocr-confirm-area').classList.add('d-none');
-            document.getElementById('ocr-error-area').classList.add('d-none');
-            setTimeout(() => {
-                document.getElementById('ocr-loading-area').classList.add('d-none');
-                document.getElementById('ocr-error-message').textContent = "Lỗi giả lập: Không đọc được ảnh máy đo.";
-                document.getElementById('ocr-error-area').classList.remove('d-none');
-                setTimeout(() => {
-                    alert("Không đọc được — vui lòng nhập tay");
-                    switchInputMethod('MANUAL');
-                    document.getElementById('ocr-error-area').classList.add('d-none');
-                    document.getElementById('upload-box').classList.remove('d-none');
-                }, 1500);
-            }, 1800);
-        }
-
-        function ocrEditManual() {
-            const data = window.ocrResults || {};
-            if (hasHypertension) {
-                document.getElementById('systolicBp').value = data.systolic !== null ? data.systolic : "";
-                document.getElementById('diastolicBp').value = data.diastolic !== null ? data.diastolic : "";
-                document.getElementById('heartRate').value = data.heartRate !== null ? data.heartRate : "";
-                document.getElementById('logTypeField').value = 'MORNING';
-                document.getElementById('labelBp').textContent = '🌅 Buổi sáng';
-                switchInputMethod('MANUAL');
-                showPanel('panelBpInput');
-                if (isBothGroups) setBars('done', 'done', 'active');
-                else setBars('done', 'active', null);
-            } else if (hasDiabetes) {
-                document.getElementById('glucoseLevel').value = data.glucose !== null ? data.glucose : "";
-                document.getElementById('logTypeField').value = 'MORNING';
-                document.getElementById('labelGl').textContent = '☀️ Mốc 1';
-                switchInputMethod('MANUAL');
-                showPanel('panelGlInput');
-                if (isBothGroups) setBars('done', 'done', 'active');
-                else setBars('done', 'active', null);
-            }
-            document.getElementById('ocr-confirm-area').classList.add('d-none');
-            document.getElementById('upload-box').classList.remove('d-none');
-        }
-
-        function ocrConfirmSubmit() {
-            const data = window.ocrResults || {};
-            if (hasHypertension) {
-                document.getElementById('systolicBp').value = data.systolic !== null ? data.systolic : "";
-                document.getElementById('diastolicBp').value = data.diastolic !== null ? data.diastolic : "";
-                document.getElementById('heartRate').value = data.heartRate !== null ? data.heartRate : "";
-            } else {
-                const sys = document.getElementById('systolicBp');
-                const dia = document.getElementById('diastolicBp');
-                const hr = document.getElementById('heartRate');
-                if (sys) sys.disabled = true;
-                if (dia) dia.disabled = true;
-                if (hr) hr.disabled = true;
-            }
-            if (hasDiabetes) {
-                document.getElementById('glucoseLevel').value = data.glucose !== null ? data.glucose : "";
-            } else {
-                const gl = document.getElementById('glucoseLevel');
-                if (gl) gl.disabled = true;
-            }
-            const f = document.getElementById('logTypeField');
-            if (!f.value) f.value = 'MORNING';
-            document.getElementById('inputMethodField').value = 'OCR';
-            document.getElementById('healthLogForm').submit();
-        }
         function editHealthLog(element) {
             const id = element.getAttribute('data-id');
             const type = element.getAttribute('data-type');
