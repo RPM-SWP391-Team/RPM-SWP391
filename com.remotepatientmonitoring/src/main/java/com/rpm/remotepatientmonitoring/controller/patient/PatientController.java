@@ -35,8 +35,10 @@ public class PatientController {
     @Autowired
     private ExerciseLogService exerciseLogService;
 
-    @Autowired
     private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
+
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository alertThresholdRepository;
 
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -237,9 +239,15 @@ public class PatientController {
         if (patient.getId() != null) {
             logsList = healthLogRepository.findByPatientIdAndLogDate(patient.getId(), selectedDate);
         }
-
         final List<DailyHealthLog> finalLogs = logsList;
         
+        com.rpm.remotepatientmonitoring.model.AlertThreshold threshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT")
+                .orElseGet(() -> {
+                    if (patient.getHospital() != null) {
+                        return alertThresholdRepository.findByHospitalIdAndScope(patient.getHospital().getId(), "HOSPITAL").orElse(null);
+                    }
+                    return null;
+                });
         // Find logs for MORNING
         List<DailyHealthLog> morningLogs = finalLogs.stream()
                 .filter(l -> "MORNING".equalsIgnoreCase(l.getLogType()))
@@ -282,9 +290,9 @@ public class PatientController {
         // Morning BP
         if (reqBp) {
             if (morningBpLog != null) {
-                String statusText = getBpStatusText(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp());
+                String statusText = getBpStatusText(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp(), threshold);
                 logStatus.put("morningBp", "Đã nhập: " + morningBpLog.getSystolicBp() + "/" + morningBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
-                logStatus.put("morningBpClass", getBpClass(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp()));
+                logStatus.put("morningBpClass", getBpClass(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp(), threshold));
                 logStatus.put("morningBpDone", true);
             } else {
                 logStatus.put("morningBp", "Chưa nhập");
@@ -300,9 +308,9 @@ public class PatientController {
         // Morning Glucose
         if (reqGl) {
             if (morningGlLog != null) {
-                String statusText = getGlucoseStatusText(morningGlLog.getGlucoseLevel());
+                String statusText = getGlucoseStatusText(morningGlLog.getGlucoseLevel(), threshold);
                 logStatus.put("morningGl", "Đã nhập: " + morningGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
-                logStatus.put("morningGlClass", getGlucoseClass(morningGlLog.getGlucoseLevel()));
+                logStatus.put("morningGlClass", getGlucoseClass(morningGlLog.getGlucoseLevel(), threshold));
                 logStatus.put("morningGlDone", true);
             } else {
                 logStatus.put("morningGl", "Chưa nhập");
@@ -318,9 +326,9 @@ public class PatientController {
         // Evening BP
         if (reqBp) {
             if (eveningBpLog != null) {
-                String statusText = getBpStatusText(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp());
+                String statusText = getBpStatusText(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp(), threshold);
                 logStatus.put("eveningBp", "Đã nhập: " + eveningBpLog.getSystolicBp() + "/" + eveningBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
-                logStatus.put("eveningBpClass", getBpClass(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp()));
+                logStatus.put("eveningBpClass", getBpClass(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp(), threshold));
                 logStatus.put("eveningBpDone", true);
             } else {
                 logStatus.put("eveningBp", "Chưa nhập");
@@ -336,9 +344,9 @@ public class PatientController {
         // Evening Glucose
         if (reqGl) {
             if (eveningGlLog != null) {
-                String statusText = getGlucoseStatusText(eveningGlLog.getGlucoseLevel());
+                String statusText = getGlucoseStatusText(eveningGlLog.getGlucoseLevel(), threshold);
                 logStatus.put("eveningGl", "Đã nhập: " + eveningGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
-                logStatus.put("eveningGlClass", getGlucoseClass(eveningGlLog.getGlucoseLevel()));
+                logStatus.put("eveningGlClass", getGlucoseClass(eveningGlLog.getGlucoseLevel(), threshold));
                 logStatus.put("eveningGlDone", true);
             } else {
                 logStatus.put("eveningGl", "Chưa nhập");
@@ -353,17 +361,17 @@ public class PatientController {
 
         // Random BP & Glucose (Optional)
         if (randomBpLog != null) {
-            String statusText = getBpStatusText(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp());
+            String statusText = getBpStatusText(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp(), threshold);
             logStatus.put("randomBp", "Đã nhập: " + randomBpLog.getSystolicBp() + "/" + randomBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
-            logStatus.put("randomBpClass", getBpClass(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp()));
+            logStatus.put("randomBpClass", getBpClass(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp(), threshold));
         } else {
             logStatus.put("randomBp", "Chưa nhập (Tùy chọn)");
             logStatus.put("randomBpClass", "text-muted");
         }
         if (randomGlLog != null) {
-            String statusText = getGlucoseStatusText(randomGlLog.getGlucoseLevel());
+            String statusText = getGlucoseStatusText(randomGlLog.getGlucoseLevel(), threshold);
             logStatus.put("randomGl", "Đã nhập: " + randomGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
-            logStatus.put("randomGlClass", getGlucoseClass(randomGlLog.getGlucoseLevel()));
+            logStatus.put("randomGlClass", getGlucoseClass(randomGlLog.getGlucoseLevel(), threshold));
         } else {
             logStatus.put("randomGl", "Chưa nhập (Tùy chọn)");
             logStatus.put("randomGlClass", "text-muted");
@@ -911,36 +919,58 @@ public class PatientController {
         return "redirect:/patient/progress?updateSuccess=true";
     }
 
-    private String getBpStatusText(Integer sys, Integer dia) {
+    private String getBpStatusText(Integer sys, Integer dia, com.rpm.remotepatientmonitoring.model.AlertThreshold threshold) {
         if (sys == null || dia == null) return "Chưa nhập";
-        if (sys >= 180 || dia >= 110) return "Nguy hiểm";
-        if (sys >= 140 || dia >= 90) return "Vượt ngưỡng";
-        if (sys >= 130 || dia >= 85) return "Cần chú ý";
+        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
+        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+        int sysDangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
+        int diaDangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
+        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
+        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+
+        if (sys >= sysEmerg || dia >= diaEmerg) return "Nguy hiểm";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "Vượt ngưỡng";
+        if (sys >= sysWarnMin || dia >= diaWarnMin) return "Cần chú ý";
         return "Đạt mục tiêu";
     }
 
-    private String getBpClass(Integer sys, Integer dia) {
+    private String getBpClass(Integer sys, Integer dia, com.rpm.remotepatientmonitoring.model.AlertThreshold threshold) {
         if (sys == null || dia == null) return "text-danger fw-bold";
-        if (sys >= 180 || dia >= 110) return "text-danger fw-bold";
-        if (sys >= 140 || dia >= 90) return "text-warning fw-bold";
-        if (sys >= 130 || dia >= 85) return "text-warning fw-bold";
+        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
+        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+        int sysDangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
+        int diaDangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
+        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
+        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+
+        if (sys >= sysEmerg || dia >= diaEmerg) return "text-danger fw-bold";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "text-warning fw-bold"; // Optional: Use text-warning or a custom class if text-orange exists.
+        if (sys >= sysWarnMin || dia >= diaWarnMin) return "text-warning fw-bold";
         return "text-success fw-bold";
     }
 
-    private String getGlucoseStatusText(java.math.BigDecimal val) {
+    private String getGlucoseStatusText(java.math.BigDecimal val, com.rpm.remotepatientmonitoring.model.AlertThreshold threshold) {
         if (val == null) return "Chưa nhập";
         double glu = val.doubleValue();
-        if (glu < 4.4) return "Nguy hiểm (Hạ)";
-        if (glu > 16.0) return "Nguy hiểm (Cao)";
-        if (glu > 10.0) return "Vượt ngưỡng";
+        double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold().doubleValue() : 4.4;
+        double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
+        double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
+
+        if (glu < hypo) return "Nguy hiểm (Hạ)";
+        if (glu > highMax) return "Nguy hiểm (Cao)";
+        if (glu > normMax) return "Vượt ngưỡng";
         return "Đạt mục tiêu";
     }
 
-    private String getGlucoseClass(java.math.BigDecimal val) {
+    private String getGlucoseClass(java.math.BigDecimal val, com.rpm.remotepatientmonitoring.model.AlertThreshold threshold) {
         if (val == null) return "text-danger fw-bold";
         double glu = val.doubleValue();
-        if (glu < 4.4 || glu > 16.0) return "text-danger fw-bold";
-        if (glu > 10.0) return "text-warning fw-bold";
+        double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold().doubleValue() : 4.4;
+        double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
+        double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
+
+        if (glu < hypo || glu > highMax) return "text-danger fw-bold";
+        if (glu > normMax) return "text-warning fw-bold";
         return "text-success fw-bold";
     }
 }

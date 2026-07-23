@@ -43,6 +43,9 @@ class PatientHealthServiceTest {
     @Mock
     private HealthLogRepository healthLogRepository;
 
+    @Mock
+    private com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository alertThresholdRepository;
+
     @InjectMocks
     private PatientHealthService patientHealthService;
 

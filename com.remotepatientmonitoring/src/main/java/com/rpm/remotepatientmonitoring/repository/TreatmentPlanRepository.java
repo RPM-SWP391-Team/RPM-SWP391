@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,15 @@ public interface TreatmentPlanRepository extends JpaRepository<TreatmentPlan, In
     Optional<TreatmentPlan> findByPatientIdAndIsCurrent(Integer patientId, Boolean isCurrent);
     List<TreatmentPlan> findByPatientIdOrderByCreatedAtDesc(Integer patientId);
 
-    @Query("SELECT t FROM TreatmentPlan t WHERE t.patient.id = :patientId AND (:keyword IS NULL OR :keyword = '' OR LOWER(t.medicalOrder) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(t.additionalNotes) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(t.doctor.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY t.createdAt DESC")
-    Page<TreatmentPlan> searchPlanHistory(@Param("patientId") Integer patientId, @Param("keyword") String keyword, Pageable pageable);
+    @Query("SELECT t FROM TreatmentPlan t WHERE t.patient.id = :patientId " +
+           "AND (:keyword IS NULL OR :keyword = '' OR LOWER(t.medicalOrder) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(t.additionalNotes) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(t.doctor.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:startDate IS NULL OR t.createdAt >= :startDate) " +
+           "AND (:endDate IS NULL OR t.createdAt <= :endDate) " +
+           "ORDER BY t.createdAt DESC")
+    Page<TreatmentPlan> searchPlanHistory(@Param("patientId") Integer patientId,
+                                          @Param("keyword") String keyword,
+                                          @Param("startDate") LocalDateTime startDate,
+                                          @Param("endDate") LocalDateTime endDate,
+                                          Pageable pageable);
 }
+

@@ -30,6 +30,9 @@ public class DoctorPatientService {
     @Autowired
     private AuditTrailService auditTrailService;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     // 1. Tìm kiếm bệnh nhân chờ tiếp nhận (lọc theo bệnh viện của bác sĩ)
     public List<PatientSearchResponseDTO> searchUnassignedPatients(String keyword, Integer hospitalId) {
         List<Patient> patients = patientRepository.searchUnassignedPatients(hospitalId, keyword);
@@ -54,7 +57,16 @@ public class DoctorPatientService {
             throw new IllegalStateException("Bác sĩ đã đạt giới hạn tối đa số lượng bệnh nhân (" + docCheck.getCapacityLimit() + " bệnh nhân). Không thể tiếp nhận thêm!");
         }
 
-        String resultMessage = patientRepository.assignPatientToDoctorSP(patientId, doctorId, doctorId, "DOCTOR");
+        // Gọi SP với tham số OUTPUT bằng SimpleJdbcCall
+        SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
+                .withProcedureName("sp_assign_patient_to_doctor");
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("patient_id", patientId)
+                .addValue("doctor_id", doctorId)
+                .addValue("actor_id", doctorId)
+                .addValue("actor_type", "DOCTOR");
+        Map<String, Object> spResult = jdbcCall.execute(params);
+        String resultMessage = (String) spResult.get("result_message");
         if (resultMessage == null) {
             resultMessage = "Thành công tiếp nhận bệnh nhân";
         }

@@ -24,6 +24,8 @@ import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
 
 @Controller
 @RequestMapping("/doctor")
@@ -62,6 +64,7 @@ public class DoctorViewController {
     private final RatingService ratingService;
     private final ChangeRequestRepository changeRequestRepository;
     private final AlertThresholdRepository alertThresholdRepository;
+    private final com.rpm.remotepatientmonitoring.service.patient.PatientHealthService patientHealthService;
     private final com.rpm.remotepatientmonitoring.repository.AuditTrailRepository auditTrailRepository;
     private final com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService auditTrailService;
 
@@ -106,6 +109,8 @@ public class DoctorViewController {
         // 2. Tính số lượng cảnh báo đỏ và vàng chưa xử lý
         long redAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "RED");
         long yellowAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "YELLOW");
+        long orangeAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "ORANGE");
+        yellowAlertsCount += orangeAlertsCount; // Combine YELLOW and ORANGE for the dashboard view
 
         // 3. Lấy chỉ số đo mới nhất của từng bệnh nhân trong trang hiện tại và tính cảnh báo cao nhất
         Map<Integer, DailyHealthLog> latestLogs = new HashMap<>();
@@ -380,7 +385,7 @@ public class DoctorViewController {
         prepareChartAndComplianceData(model, patient, currentRule);
         
         Pageable planPageable = PageRequest.of(planPage, planSize);
-        Page<TreatmentPlan> planHistoryPage = treatmentPlanRepository.searchPlanHistory(patient.getId(), planKeyword, planPageable);
+        Page<TreatmentPlan> planHistoryPage = treatmentPlanRepository.searchPlanHistory(patient.getId(), planKeyword, null, null, planPageable);
 
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("patient", patient);
@@ -929,10 +934,21 @@ public class DoctorViewController {
                     .glucoseLevel(glucoseLevel)
                     .inputMethod("MANUAL")
                     .patientNotes("Chỉ số đo lâm sàng trực tiếp tại viện bởi Bác sĩ " + doctor.getFullName())
-                    .isAlertProcessed(true)
+                    .isAlertProcessed(false)
                     .createdAt(LocalDateTime.now())
                     .build();
             healthLogRepository.save(healthLog);
+            
+            com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest alertReq = new com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest();
+            alertReq.setPatientId(patient.getId());
+            alertReq.setLogType("RANDOM");
+            alertReq.setInputMethod("MANUAL");
+            alertReq.setSystolicBp(systolicBp);
+            alertReq.setDiastolicBp(diastolicBp);
+            alertReq.setHeartRate(heartRate);
+            alertReq.setGlucoseLevel(glucoseLevel);
+            alertReq.setPatientNotes("Chỉ số đo lâm sàng trực tiếp tại viện bởi Bác sĩ " + doctor.getFullName());
+            patientHealthService.evaluateAndGenerateAlerts(alertReq);
         }
 
         // Gửi thông báo cho bệnh nhân
@@ -1365,7 +1381,8 @@ public class DoctorViewController {
     public String updatePatientThresholds(
             @PathVariable Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @ModelAttribute("threshold") AlertThresholdsDTO dto,
+            @Valid @ModelAttribute("threshold") AlertThresholdsDTO dto,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
         Integer accountId = userDetails.getAccount().getId();
@@ -1381,6 +1398,12 @@ public class DoctorViewController {
         if (doctor.getHospital() == null) {
             redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bác sĩ chưa được liên kết với bệnh viện nào.");
             return REDIRECT_DASHBOARD;
+        }
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Vui lòng điền đầy đủ và chính xác các chỉ số (không được bỏ trống).");
+            redirectAttributes.addFlashAttribute("threshold", dto);
+            return "redirect:/doctor/patient-detail/" + id + "/thresholds";
         }
 
         // Validate logic khoảng cảnh báo Tâm thu

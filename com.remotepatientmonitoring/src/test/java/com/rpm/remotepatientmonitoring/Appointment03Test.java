@@ -133,7 +133,6 @@ public class Appointment03Test {
                 hospitalAccount = accountRepository.save(hospitalAccount);
 
                 Hospital newHospital = Hospital.builder()
-                        .account(hospitalAccount)
                         .hospitalCode("HOSP_APT01")
                         .fullName("Hospital APT 01")
                         .isActive(true)
@@ -201,7 +200,8 @@ public class Appointment03Test {
         transactionTemplate.execute(status -> {
             accountRepository.findByEmail(TEST_PATIENT_EMAIL).ifPresent(account -> {
                 patientRepository.findByAccountId(account.getId()).ifPresent(patient -> {
-                    entityManager.createQuery("DELETE FROM Notification n WHERE n.patient.id = :pid").setParameter("pid", patient.getId()).executeUpdate();`n                    entityManager.createQuery("DELETE FROM Appointment a WHERE a.patient.id = :pid")
+                    entityManager.createQuery("DELETE FROM Notification n WHERE n.patient.id = :pid").setParameter("pid", patient.getId()).executeUpdate();
+                    entityManager.createQuery("DELETE FROM Appointment a WHERE a.patient.id = :pid")
                             .setParameter("pid", patient.getId())
                             .executeUpdate();
                     patientRepository.delete(patient);

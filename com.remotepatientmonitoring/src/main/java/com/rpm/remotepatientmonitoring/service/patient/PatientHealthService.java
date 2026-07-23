@@ -23,6 +23,9 @@ public class PatientHealthService {
     private com.rpm.remotepatientmonitoring.repository.AlertRepository alertRepository;
 
     @Autowired
+    private com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository alertThresholdRepository;
+
+    @Autowired
     private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
 
     @Autowired
@@ -60,12 +63,20 @@ public class PatientHealthService {
         return result;
     }
 
-    private void evaluateAndGenerateAlerts(HealthLogRequest req) {
+    public void evaluateAndGenerateAlerts(HealthLogRequest req) {
         com.rpm.remotepatientmonitoring.model.Patient patient = patientRepository.findById(req.getPatientId()).orElse(null);
         if (patient == null || patient.getDoctor() == null) return;
 
         com.rpm.remotepatientmonitoring.model.Doctor doctor = patient.getDoctor();
         com.rpm.remotepatientmonitoring.model.DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(req.getPatientId()).orElse(null);
+
+        com.rpm.remotepatientmonitoring.model.AlertThreshold threshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT")
+                .orElseGet(() -> {
+                    if (doctor.getHospital() != null) {
+                        return alertThresholdRepository.findByHospitalIdAndScope(doctor.getHospital().getId(), "HOSPITAL").orElse(null);
+                    }
+                    return null;
+                });
 
         int systolicLevel = 1;
         int diastolicLevel = 1;
@@ -78,23 +89,35 @@ public class PatientHealthService {
 
         if (req.getSystolicBp() != null) {
             int sys = req.getSystolicBp();
-            if (sys >= 180) { systolicLevel = 4; alertMessage += "Huyết áp tâm thu cấp cứu (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=180"; }
-            else if (sys >= 140) { systolicLevel = 3; alertMessage += "Huyết áp tâm thu nguy hiểm (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=140"; }
-            else if (sys >= 130) { systolicLevel = 2; alertMessage += "Huyết áp tâm thu hơi cao (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=130"; }
+            int warnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
+            int dangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
+            int emerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
+            
+            if (sys >= emerg) { systolicLevel = 4; alertMessage += "Huyết áp tâm thu cấp cứu (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=" + emerg; }
+            else if (sys >= dangMin) { systolicLevel = 3; alertMessage += "Huyết áp tâm thu nguy hiểm (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=" + dangMin; }
+            else if (sys >= warnMin) { systolicLevel = 2; alertMessage += "Huyết áp tâm thu hơi cao (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=" + warnMin; }
         }
 
         if (req.getDiastolicBp() != null) {
             int dia = req.getDiastolicBp();
-            if (dia >= 110) { diastolicLevel = 4; alertMessage += "Huyết áp tâm trương cấp cứu (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=110"; }
-            else if (dia >= 90) { diastolicLevel = 3; alertMessage += "Huyết áp tâm trương nguy hiểm (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=90"; }
-            else if (dia >= 85) { diastolicLevel = 2; alertMessage += "Huyết áp tâm trương hơi cao (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=85"; }
+            int warnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+            int dangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
+            int emerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+
+            if (dia >= emerg) { diastolicLevel = 4; alertMessage += "Huyết áp tâm trương cấp cứu (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=" + emerg; }
+            else if (dia >= dangMin) { diastolicLevel = 3; alertMessage += "Huyết áp tâm trương nguy hiểm (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=" + dangMin; }
+            else if (dia >= warnMin) { diastolicLevel = 2; alertMessage += "Huyết áp tâm trương hơi cao (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=" + warnMin; }
         }
         
         if (req.getGlucoseLevel() != null) {
             double glu = req.getGlucoseLevel().doubleValue();
-            if (glu < 4.4) { glucoseLevel = 3; alertMessage += "Hạ đường huyết (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<4.4"; }
-            else if (glu > 16.0) { glucoseLevel = 3; alertMessage += "Đường huyết khẩn cấp (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">16.0"; }
-            else if (glu > 10.0) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">10.0"; }
+            double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold().doubleValue() : 4.4;
+            double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
+            double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
+
+            if (glu < hypo) { glucoseLevel = 4; alertMessage += "Hạ đường huyết (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<" + hypo; }
+            else if (glu > highMax) { glucoseLevel = 4; alertMessage += "Đường huyết khẩn cấp (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">" + highMax; }
+            else if (glu > normMax) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">" + normMax; }
         }
         
         int finalLevel = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));

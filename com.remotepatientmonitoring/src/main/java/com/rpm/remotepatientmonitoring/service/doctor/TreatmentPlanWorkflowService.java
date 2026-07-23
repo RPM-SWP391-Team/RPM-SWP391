@@ -36,6 +36,9 @@ public class TreatmentPlanWorkflowService {
     private HealthLogRepository healthLogRepository;
 
     @Autowired
+    private com.rpm.remotepatientmonitoring.service.patient.PatientHealthService patientHealthService;
+
+    @Autowired
     private AuditTrailService auditTrailService;
 
     @Transactional
@@ -153,10 +156,20 @@ public class TreatmentPlanWorkflowService {
                     .diastolicBp(baselineDiastolicBp)
                     .glucoseLevel(baselineFastingGlucose)
                     .inputMethod("MANUAL")
-                    .patientNotes("Chỉ số đo tại viện")
+                    .patientNotes("Chỉ số nền từ phác đồ điều trị mới")
+                    .isAlertProcessed(false)
                     .isOcrValidated(false)
                     .build();
             healthLogRepository.save(healthLog);
+            
+            com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest alertReq = new com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest();
+            alertReq.setPatientId(patient.getId());
+            alertReq.setLogType("RANDOM");
+            alertReq.setInputMethod("MANUAL");
+            alertReq.setSystolicBp(baselineSystolicBp);
+            alertReq.setDiastolicBp(baselineDiastolicBp);
+            alertReq.setGlucoseLevel(baselineFastingGlucose);
+            patientHealthService.evaluateAndGenerateAlerts(alertReq);
         }
 
         newPlan.setBaselineSystolicBp(baselineSystolicBp);
