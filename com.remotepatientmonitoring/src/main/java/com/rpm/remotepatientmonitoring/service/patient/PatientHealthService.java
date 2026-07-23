@@ -121,6 +121,16 @@ public class PatientHealthService {
         }
         
         int finalLevel = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));
+
+        String alertColor = "GREEN";
+        if (finalLevel == 4) alertColor = "RED";
+        else if (finalLevel == 3) alertColor = "ORANGE";
+        else if (finalLevel == 2) alertColor = "YELLOW";
+
+        if (latestLog != null) {
+            latestLog.setAlertLevel(alertColor);
+            healthLogRepository.save(latestLog);
+        }
         
         if (finalLevel >= 2) {
             com.rpm.remotepatientmonitoring.model.Alert alert = new com.rpm.remotepatientmonitoring.model.Alert();
@@ -128,10 +138,6 @@ public class PatientHealthService {
             alert.setDoctor(doctor);
             alert.setHealthLog(latestLog);
             alert.setAlertLevel(finalLevel);
-            
-            String alertColor = "YELLOW";
-            if (finalLevel == 4) alertColor = "RED";
-            else if (finalLevel == 3) alertColor = "ORANGE";
             
             alert.setAlertColor(alertColor);
             alert.setMetricType(metricType);
@@ -285,6 +291,24 @@ public class PatientHealthService {
         res.put("alertMessage", message);
         res.put("emergencyContactName", patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Người thân");
         res.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
+
+        // Fetch and populate latest BP and Glucose levels for Today's Health Assessment UI
+        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestBpLog = healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestGlLog = healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+
+        if (latestBpLog != null) {
+            res.put("latestSystolic", latestBpLog.getSystolicBp());
+            res.put("latestDiastolic", latestBpLog.getDiastolicBp());
+        } else {
+            res.put("latestSystolic", null);
+            res.put("latestDiastolic", null);
+        }
+
+        if (latestGlLog != null) {
+            res.put("latestGlucose", latestGlLog.getGlucoseLevel());
+        } else {
+            res.put("latestGlucose", null);
+        }
 
         java.util.List<java.util.Map<String, Object>> guideList = new java.util.ArrayList<>();
         if (patient.getHospital() != null) {
