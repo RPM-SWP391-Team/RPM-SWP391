@@ -302,6 +302,7 @@ public class DoctorViewController {
 
         // Trả về viện
         patient.setDoctor(null);
+        patient.setStatus("NEW");
         patient.setUpdatedAt(LocalDateTime.now());
         patientRepository.save(patient);
 
