@@ -995,7 +995,7 @@
                                         <div class="input-group">
                                             <input type="number" id="maxFatG" name="maxFatG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
-                                                   th:value="${currentRule?.maxFatG}" min="0" max="500" step="any" required
+                                                   th:value="${currentRule != null} ? ${currentRule.maxFatG} : ''" min="0" max="500" step="any" required
                                                    placeholder="Tùy chọn">
                                             <span class="input-group-text">g</span>
                                         </div>
@@ -1008,7 +1008,7 @@
                                         <div class="input-group">
                                             <input type="number" id="minProteinG" name="minProteinG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
-                                                   th:value="${currentRule?.minProteinG}" min="0" max="500" step="any" required
+                                                   th:value="${currentRule != null} ? ${currentRule.minProteinG} : ''" min="0" max="500" step="any" required
                                                    placeholder="Tùy chọn">
                                             <span class="input-group-text">g</span>
                                         </div>
@@ -1035,7 +1035,7 @@
                                                   th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
                                                   rows="3"
                                                   placeholder="VD: Tránh thức ăn chiên, hạn chế đường tinh, ưu tiên rau xanh..."
-                                                  th:text="${currentRule?.additionalNotes}"></textarea>
+                                                  th:text="${currentRule != null} ? ${currentRule.additionalNotes} : ''"></textarea>
                                     </div>
                                 </div>
                             </div><!-- /flex-grow-1 -->
@@ -1300,13 +1300,25 @@
                 </div>
 
                 <!-- Form Tìm kiếm Phác đồ -->
-                <form th:action="@{'/doctor/patient-detail/' + ${patient.id}}" method="get" class="d-flex gap-2">
-                    <input type="text" class="form-control form-control-sm rounded-pill px-3" name="planKeyword" th:value="${planKeyword}" placeholder="Tìm theo tên Bác sĩ, ghi chú chỉ định..." style="width: 280px;">
+                <form th:action="@{'/doctor/patient-detail/' + ${patient.id}}" method="get" class="d-flex flex-wrap gap-2 align-items-end">
+                    <div>
+                        <label class="form-label form-label-sm text-muted mb-1" style="font-size:0.78rem;">Tên bác sĩ / ghi chú</label>
+                        <input type="text" class="form-control form-control-sm rounded-pill px-3" name="planKeyword" th:value="${planKeyword}" placeholder="Tìm theo tên bác sĩ, ghi chú..." style="width: 220px;">
+                    </div>
+                    <div>
+                        <label class="form-label form-label-sm text-muted mb-1" style="font-size:0.78rem;">Từ ngày</label>
+                        <input type="date" class="form-control form-control-sm rounded-pill px-3" name="planStartDate" th:value="${planStartDate}" style="width: 155px;">
+                    </div>
+                    <div>
+                        <label class="form-label form-label-sm text-muted mb-1" style="font-size:0.78rem;">Đến ngày</label>
+                        <input type="date" class="form-control form-control-sm rounded-pill px-3" name="planEndDate" th:value="${planEndDate}" style="width: 155px;">
+                    </div>
                     <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
                         <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
                     </button>
-                    <a th:href="@{'/doctor/patient-detail/' + ${patient.id}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3" th:if="${planKeyword != null and !planKeyword.isEmpty()}">
-                        Xóa
+                    <a th:href="@{'/doctor/patient-detail/' + ${patient.id}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                       th:if="${(planKeyword != null and !planKeyword.isEmpty()) or (planStartDate != null and !planStartDate.isEmpty()) or (planEndDate != null and !planEndDate.isEmpty())}">
+                        <i class="fa-solid fa-xmark me-1"></i>Xóa lọc
                     </a>
                 </form>
             </div>
@@ -1364,17 +1376,17 @@
                 <nav th:if="${planHistoryPage.totalPages > 1}" class="mt-4">
                     <ul class="pagination justify-content-center mb-0">
                         <li class="page-item" th:classappend="${planHistoryPage.first} ? 'disabled'">
-                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage - 1}, planKeyword=${planKeyword})}">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage - 1}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}">
                                 <i class="fa-solid fa-chevron-left"></i> Trước
                             </a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, planHistoryPage.totalPages - 1)}"
                             th:classappend="${i == planPage} ? 'active'">
-                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${i}, planKeyword=${planKeyword})}"
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${i}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}"
                                th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${planHistoryPage.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage + 1}, planKeyword=${planKeyword})}">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage + 1}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}">
                                 Sau <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </li>
@@ -1415,9 +1427,8 @@
         }
         const btn = document.getElementById('saveBtn');
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk fa-spin me-2"></i>Đang lưu...';
-        setTimeout(() => {
-            btn.disabled = true;
-        }, 10);
+        btn.style.pointerEvents = 'none';
+        btn.classList.add('opacity-75');
     });
 
     // ===== Dynamic Medication List Operations =====
