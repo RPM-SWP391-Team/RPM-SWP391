@@ -358,20 +358,21 @@
                 trên tổng số <span class="fw-bold text-dark" th:text="${pageData.totalElements}">29</span> <span th:text="${entityName}">bác sĩ</span>
             </div>
 
-            <nav aria-label="Page navigation" th:if="${pageData.totalPages > 1}">
+            <nav aria-label="Page navigation" th:if="${pageData.totalPages > 1}"
+                 th:with="pageUrl=${#strings.containsIgnoreCase(title, 'Bác sĩ') ? '/hospital/admin/doctors/active' : (#strings.containsIgnoreCase(title, 'điều trị') ? '/hospital/admin/patients/treating' : (#strings.containsIgnoreCase(title, 'mới') ? '/hospital/admin/patients/new' : '/hospital/admin/alerts/red-pending'))}">
                 <ul class="pagination mb-0 shadow-sm">
                     <li class="page-item" th:classappend="${pageData.first} ? 'disabled'">
-                        <a class="page-link text-secondary" th:href="@{${#httpServletRequest.requestURI}(page=${pageData.number - 1})}" aria-label="Previous">
+                        <a class="page-link text-secondary" th:href="@{${pageUrl}(page=${pageData.first ? 0 : pageData.number - 1})}" aria-label="Previous">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
 
                     <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, pageData.number - 2), T(java.lang.Math).min(pageData.totalPages - 1, pageData.number + 2))}" th:classappend="${i == pageData.number} ? 'active'">
-                        <a class="page-link fw-medium" th:href="@{${#httpServletRequest.requestURI}(page=${i})}" th:text="${i + 1}">1</a>
+                        <a class="page-link fw-medium" th:href="@{${pageUrl}(page=${i})}" th:text="${i + 1}">1</a>
                     </li>
 
                     <li class="page-item" th:classappend="${pageData.last} ? 'disabled'">
-                        <a class="page-link text-secondary" th:href="@{${#httpServletRequest.requestURI}(page=${pageData.number + 1})}" aria-label="Next">
+                        <a class="page-link text-secondary" th:href="@{${pageUrl}(page=${pageData.last ? pageData.number : pageData.number + 1})}" aria-label="Next">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>

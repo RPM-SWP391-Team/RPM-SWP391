@@ -52,8 +52,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
             "LOWER(d.doctorCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "CAST(d.id AS string) LIKE CONCAT('%', :keyword, '%'))")
     Page<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty, @Param("status") String status, Pageable pageable);
-    // Tìm kiếm chính xác theo ID (Dùng làm cơ chế dự phòng an toàn)
-    List<Doctor> findById(int id);
 
     // Kiểm tra số điện thoại đã tồn tại ở một bác sĩ khác chưa (loại trừ chính bác sĩ đang sửa)
     @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM Doctor d WHERE d.phone = :phone AND d.id <> :id")

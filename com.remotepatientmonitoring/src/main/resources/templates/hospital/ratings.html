@@ -294,13 +294,13 @@
                     <span class="text-muted small" th:text="'Hiển thị trang ' + (${doctorPageObj.number} + 1) + ' / ' + ${doctorPageObj.totalPages}">Trang 1 / 5</span>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${doctorPageObj.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage - 1}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Trước</a>
+                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage == 0 ? 0 : currentDoctorPage - 1}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Trước</a>
                         </li>
                         <li class="page-item" th:each="idx : ${#numbers.sequence(0, doctorPageObj.totalPages - 1)}" th:classappend="${idx == doctorPageObj.number ? 'active' : ''}">
                             <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${idx}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}" th:text="${idx + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${doctorPageObj.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage + 1}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Sau</a>
+                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${doctorPageObj.last ? doctorPageObj.totalPages - 1 : currentDoctorPage + 1}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Sau</a>
                         </li>
                     </ul>
                 </nav>
@@ -364,13 +364,13 @@
                     <span class="text-muted small" th:text="'Hiển thị trang ' + (${appPageObj.number} + 1) + ' / ' + ${appPageObj.totalPages}">Trang 1 / 5</span>
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${appPageObj.first ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${currentAppPage - 1}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Trước</a>
+                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${currentAppPage == 0 ? 0 : currentAppPage - 1}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Trước</a>
                         </li>
                         <li class="page-item" th:each="idx : ${#numbers.sequence(0, appPageObj.totalPages - 1)}" th:classappend="${idx == appPageObj.number ? 'active' : ''}">
                             <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${idx}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}" th:text="${idx + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${appPageObj.last ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${currentAppPage + 1}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Sau</a>
+                            <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${appPageObj.last ? appPageObj.totalPages - 1 : currentAppPage + 1}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Sau</a>
                         </li>
                     </ul>
                 </nav>

@@ -274,6 +274,7 @@ public class DoctorService {
                 // 2.4. Gửi thông báo hệ thống In-App cho Bệnh nhân
                 try {
                     Notification notif = Notification.builder()
+                            .patient(patient)
                             .recipientType("PATIENT")
                             .recipientId(patient.getId())
                             .notificationType("SYSTEM_UPDATE")
