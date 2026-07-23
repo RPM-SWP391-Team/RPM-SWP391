@@ -41,6 +41,12 @@ class TreatmentPlanWorkflowServiceTest {
     @Mock
     private ClinicalRecordRepository clinicalRecordRepository;
 
+    @Mock
+    private HealthLogRepository healthLogRepository;
+
+    @Mock
+    private com.rpm.remotepatientmonitoring.service.patient.PatientHealthService patientHealthService;
+
     @InjectMocks
     private TreatmentPlanWorkflowService treatmentPlanWorkflowService;
 

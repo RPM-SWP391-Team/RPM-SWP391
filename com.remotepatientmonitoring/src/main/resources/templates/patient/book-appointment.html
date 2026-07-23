@@ -30,12 +30,12 @@
                     
                     <!-- Form Body -->
                     <div class="card-body p-4 bg-white">
-                        <form th:action="@{/patient/book-appointment}" method="POST">
+                        <form id="bookAppointmentForm" th:action="@{/patient/book-appointment}" method="POST">
                             
                             <!-- Appointment Time -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-clock me-2 text-primary"></i>Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control" name="appointmentTime" 
+                                <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" 
                                        th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
                                 <div class="form-text small text-muted">Lịch khám thông thường cần đặt trước và nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6).</div>
                             </div>
@@ -43,7 +43,7 @@
                             <!-- Appointment Type -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-stethoscope me-2 text-primary"></i>Loại lịch hẹn <span class="text-danger">*</span></label>
-                                <select class="form-select" name="appointmentType" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
+                                <select class="form-select" id="appointmentType" name="appointmentType" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
                                     <option value="INITIAL">Khám lần đầu (INITIAL)</option>
                                     <option value="CHECKUP" selected>Tái khám định kỳ (CHECKUP)</option>
                                     <option value="EMERGENCY">Khẩn cấp (EMERGENCY)</option>
@@ -53,7 +53,7 @@
                             <!-- Doctor -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>Bác sĩ khám <span class="text-danger">*</span></label>
-                                <select class="form-select" name="doctorId" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
+                                <select class="form-select" id="doctorId" name="doctorId" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
                                     <option value="" disabled selected>-- Chọn bác sĩ --</option>
                                     <option th:each="doc : ${doctors}" th:value="${doc.id}" 
                                             th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
@@ -63,7 +63,7 @@
                             <!-- Reason text area -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-regular fa-comment-dots me-2 text-primary"></i>Lý do đăng ký khám <span class="text-danger">*</span></label>
-                                <textarea class="form-control" name="patientRequestReason" rows="5" 
+                                <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="5" 
                                           placeholder="Nhập lý do cụ thể..." required maxlength="500" style="border-radius: var(--radius-sm); resize: none; padding: 10px 14px;"></textarea>
                                 <div class="form-text small text-muted">Tối đa 500 ký tự.</div>
                             </div>
