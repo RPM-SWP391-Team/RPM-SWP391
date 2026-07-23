@@ -63,6 +63,9 @@ public class AiChatService {
     @Autowired
     private com.rpm.remotepatientmonitoring.repository.AiClinicalSummaryRepository aiClinicalSummaryRepository;
 
+    @Autowired
+    private com.rpm.remotepatientmonitoring.repository.AlertRepository alertRepository;
+
     public String buildContext(String email, Integer patientId) {
         try {
             Optional<Account> accountOpt = accountRepository.findByEmail(email);
@@ -153,27 +156,36 @@ public class AiChatService {
             );
             
             AiChatResponse body = response.getBody();
-            if (body != null && body.getAnswer() != null) {
-                try {
-                    Optional<Account> accountOpt = accountRepository.findByEmail(email);
-                    Integer accId = accountOpt.map(Account::getId).orElse(0);
-                    
-                    String citationsJson = null;
-                    if (body.getCitations() != null && !body.getCitations().isEmpty()) {
-                        citationsJson = body.getCitations().toString();
+            if (body != null) {
+                body.setDisclaimer("Thông tin chỉ mang tính chất tham khảo cho Bác sĩ (CDSS). Quyết định điều trị cuối cùng thuộc về Bác sĩ chuyên khoa.");
+                body.setConfidenceLevel("HIGH");
+                if (body.getAnswer() != null && !body.getAnswer().isEmpty()) {
+                    String[] lines = body.getAnswer().split("\n");
+                    body.setSummaryTakeaway(lines[0].replace("#", "").trim());
+                }
+
+                if (body.getAnswer() != null) {
+                    try {
+                        Optional<Account> accountOpt = accountRepository.findByEmail(email);
+                        Integer accId = accountOpt.map(Account::getId).orElse(0);
+                        
+                        String citationsJson = null;
+                        if (body.getCitations() != null && !body.getCitations().isEmpty()) {
+                            citationsJson = body.getCitations().toString();
+                        }
+                        
+                        com.rpm.remotepatientmonitoring.model.AiChatHistory chatHistory = 
+                            new com.rpm.remotepatientmonitoring.model.AiChatHistory(
+                                accId, 
+                                null, 
+                                question, 
+                                body.getAnswer(), 
+                                citationsJson
+                            );
+                        aiChatHistoryRepository.save(chatHistory);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
-                    
-                    com.rpm.remotepatientmonitoring.model.AiChatHistory chatHistory = 
-                        new com.rpm.remotepatientmonitoring.model.AiChatHistory(
-                            accId, 
-                            null, 
-                            question, 
-                            body.getAnswer(), 
-                            citationsJson
-                        );
-                    aiChatHistoryRepository.save(chatHistory);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
                 }
             }
             
@@ -380,6 +392,37 @@ public class AiChatService {
             );
         }
         
+        // Lấy danh sách Alert chưa giải quyết từ hệ thống
+        List<com.rpm.remotepatientmonitoring.model.Alert> unresolvedAlerts = alertRepository.findByPatientIdAndIsResolvedFalse(patientId);
+        List<String> activeAlertMessages = new java.util.ArrayList<>();
+        String currentAlertColor = "GREEN";
+
+        for (com.rpm.remotepatientmonitoring.model.Alert alert : unresolvedAlerts) {
+            if (alert.getAlertMessage() != null) {
+                activeAlertMessages.add(alert.getAlertMessage());
+            }
+            String color = alert.getAlertColor();
+            if ("RED".equalsIgnoreCase(color)) {
+                currentAlertColor = "RED";
+            } else if ("ORANGE".equalsIgnoreCase(color) && !"RED".equalsIgnoreCase(currentAlertColor)) {
+                currentAlertColor = "ORANGE";
+            } else if ("YELLOW".equalsIgnoreCase(color) && "GREEN".equalsIgnoreCase(currentAlertColor)) {
+                currentAlertColor = "YELLOW";
+            }
+        }
+
+        // Tự động nâng mức cảnh báo dựa trên chỉ số ADA/AHA nếu cần
+        if (adaStats != null && (adaStats.getTbr() > 4.0 || adaStats.getTar() > 25.0)) {
+            if (!"RED".equalsIgnoreCase(currentAlertColor)) currentAlertColor = "ORANGE";
+        }
+        if (bpStats != null) {
+            if (bpStats.getVeryHighBpCount() > 0) {
+                currentAlertColor = "RED";
+            } else if (bpStats.getHighBpCount() > 3 && "GREEN".equalsIgnoreCase(currentAlertColor)) {
+                currentAlertColor = "YELLOW";
+            }
+        }
+
         AiSummaryRequest request = new AiSummaryRequest();
         request.setPatientInfo(patientInfo);
         request.setAdaStatsText(adaStatsText);
@@ -392,8 +435,18 @@ public class AiChatService {
                 AiSummaryResponse.class
             );
             
+            AiSummaryResponse summaryRes = response.getBody();
+            if (summaryRes == null) {
+                summaryRes = new AiSummaryResponse("Không nhận được phản hồi từ dịch vụ AI.");
+            }
+
+            summaryRes.setAlertColor(currentAlertColor);
+            summaryRes.setActiveAlerts(activeAlertMessages);
+            summaryRes.setAdaStats(adaStats);
+            summaryRes.setBpStats(bpStats);
+
             // Lưu Audit Trail bằng bảng cũ (không đụng chạm cấu trúc DB của team)
-            if (response.getBody() != null && response.getBody().getClinicalSummary() != null) {
+            if (summaryRes.getClinicalSummary() != null) {
                 AuditTrail audit = new AuditTrail();
                 audit.setActorType("DOCTOR");
                 audit.setActorId(0);
@@ -401,7 +454,7 @@ public class AiChatService {
                 audit.setTargetTable("PATIENT");
                 audit.setTargetRecordId(patientId);
                 audit.setOldValue(adaStatsText + " | " + bpStatsText); // Data gửi cho AI
-                audit.setNewValue(response.getBody().getClinicalSummary()); // Báo cáo AI trả về
+                audit.setNewValue(summaryRes.getClinicalSummary()); // Báo cáo AI trả về
                 auditTrailRepository.save(audit);
 
                 // Lưu vào bảng chuyên dụng ai_clinical_summaries
@@ -410,7 +463,7 @@ public class AiChatService {
                         new com.rpm.remotepatientmonitoring.model.AiClinicalSummary(
                             patientId, 
                             null, 
-                            response.getBody().getClinicalSummary()
+                            summaryRes.getClinicalSummary()
                         );
                     aiClinicalSummaryRepository.save(summaryEntity);
                 } catch (Exception ex) {
@@ -418,11 +471,15 @@ public class AiChatService {
                 }
             }
 
-            
-            return response.getBody();
+            return summaryRes;
         } catch (Exception e) {
             e.printStackTrace();
-            return new AiSummaryResponse("Hệ thống AI đang bảo trì hoặc mất kết nối. Lỗi: " + e.getMessage());
+            AiSummaryResponse fallback = new AiSummaryResponse("Hệ thống AI đang bảo trì hoặc mất kết nối. Lỗi: " + e.getMessage());
+            fallback.setAlertColor(currentAlertColor);
+            fallback.setActiveAlerts(activeAlertMessages);
+            fallback.setAdaStats(adaStats);
+            fallback.setBpStats(bpStats);
+            return fallback;
         }
     }
 }

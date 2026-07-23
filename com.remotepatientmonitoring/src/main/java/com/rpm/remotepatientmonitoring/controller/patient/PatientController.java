@@ -35,6 +35,7 @@ public class PatientController {
     @Autowired
     private ExerciseLogService exerciseLogService;
 
+    @Autowired
     private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
 
     @Autowired

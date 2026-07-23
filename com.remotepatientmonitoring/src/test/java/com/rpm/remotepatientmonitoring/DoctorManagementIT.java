@@ -127,7 +127,7 @@ public class DoctorManagementIT {
         // Cấu hình trình duyệt (chạy có giao diện để dễ debug integration test)
         browser = playwright.chromium().launch(
                 new BrowserType.LaunchOptions()
-                        .setHeadless(false)
+                        .setHeadless(true)
                         .setSlowMo(800)
         );
     }

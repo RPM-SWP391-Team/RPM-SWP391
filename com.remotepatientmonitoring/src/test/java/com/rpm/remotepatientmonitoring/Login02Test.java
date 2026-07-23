@@ -25,13 +25,13 @@ public class Login02Test {
         playwright = Playwright.create();
         try {
             browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false)
-                    .setSlowMo(500)
+                    .setHeadless(true)
+                    .setSlowMo(50)
                     .setChannel("chrome"));
         } catch (Exception e) {
             browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(false)
-                    .setSlowMo(500)
+                    .setHeadless(true)
+                    .setSlowMo(50)
                     .setChannel("msedge"));
         }
     }
@@ -48,7 +48,7 @@ public class Login02Test {
 
     @BeforeEach
     void setUp() {
-        context = browser.newContext();
+        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
         page = context.newPage();
     }
 

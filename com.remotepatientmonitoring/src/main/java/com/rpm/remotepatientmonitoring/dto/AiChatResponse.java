@@ -11,4 +11,7 @@ import java.util.List;
 public class AiChatResponse {
     private String answer;
     private List<AiCitation> citations;
+    private String summaryTakeaway;
+    private String disclaimer;
+    private String confidenceLevel;
 }
