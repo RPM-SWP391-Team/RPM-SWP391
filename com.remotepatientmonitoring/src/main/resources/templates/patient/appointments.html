@@ -2,46 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <th:block th:replace="~{patient/fragments :: header-links('Lịch Hẹn & Yêu Cầu Thay Đổi')}"></th:block>
-    <style>
-        .chart-container {
-            position: relative;
-            height: 350px;
-            width: 100%;
-        }
-        .bg-orange { background-color: #f97316 !important; color: #fff !important; }
-        .text-orange { color: #f97316 !important; }
-        .text-yellow-dark { color: #eab308 !important; }
-        .bg-yellow-dark { background-color: #eab308 !important; color: #fff !important; }
-        .level-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.82rem;
-        }
-        .legend-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            font-size: 0.78rem;
-        }
-        .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-right: 18px;
-        }
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-    </style>
 </head>
 <body>
 
@@ -800,31 +760,6 @@
         </div>
     </div>
     
-    <style>
-        /* Pure CSS Modal Styles - No Javascript Required */
-        .css-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1050;
-            align-items: center;
-            justify-content: center;
-        }
-        /* When URL hash matches the id, display the modal */
-        .css-modal-overlay:target {
-            display: flex;
-        }
-        .css-modal-dialog {
-            width: 100%;
-            max-width: 500px;
-            margin: auto;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            background: #fff;
-        }
-    </style>
-
     <!-- Bottom Navigation Bar -->
     <div th:replace="~{patient/fragments :: bottom-nav}"></div>
 
