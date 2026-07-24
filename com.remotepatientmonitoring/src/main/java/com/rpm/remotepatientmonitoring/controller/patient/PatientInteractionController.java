@@ -75,7 +75,8 @@ public class PatientInteractionController {
             @RequestParam(value = "glucosePage", defaultValue = "0") int glucosePage,
             @RequestParam(value = "activeTab", defaultValue = "bp") String activeTab,
             @RequestParam(value = "filterRange", defaultValue = "all") String filterRange,
-            @RequestParam(value = "filterDate", required = false) String filterDateStr,
+            @RequestParam(value = "startDate", required = false) String startDateStr,
+            @RequestParam(value = "endDate", required = false) String endDateStr,
             Model model) throws JsonProcessingException {
         Patient patient = getCurrentPatient();
         if (patient == null) {
@@ -135,25 +136,23 @@ public class PatientInteractionController {
             glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : null);
         }
 
-        // --- Xử lý phân trang phía máy chủ (Server-side Pagination) ---
-        System.out.println("DEBUG PatientInteractionController /appointments - filterDateStr: " + filterDateStr);
-        LocalDate filterDate = null;
-        if (filterDateStr != null && !filterDateStr.trim().isEmpty()) {
-            try {
-                filterDate = LocalDate.parse(filterDateStr);
-                System.out.println("DEBUG PatientInteractionController /appointments - parsed filterDate: " + filterDate);
-            } catch (Exception e) {
-                System.out.println("DEBUG PatientInteractionController /appointments - parsing failed: " + e.getMessage());
-            }
+        // --- Xử lý lọc Từ ngày - Đến ngày ---
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+        if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+            try { startDate = LocalDate.parse(startDateStr.trim()); } catch (Exception ignored) {}
+        }
+        if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+            try { endDate = LocalDate.parse(endDateStr.trim()); } catch (Exception ignored) {}
         }
 
         // Phân trang Huyết áp (systolicBp != null)
         Pageable bpPageable = PageRequest.of(bpPage, 5);
-        Page<DailyHealthLog> bpPageObj = patientInteractionService.getBpLogsPage(patient.getId(), filterRange, filterDate, bpPageable);
+        Page<DailyHealthLog> bpPageObj = patientInteractionService.getBpLogsPageWithRange(patient.getId(), filterRange, startDate, endDate, bpPageable);
 
         // Phân trang Đường huyết (glucoseLevel != null)
         Pageable glucosePageable = PageRequest.of(glucosePage, 5);
-        Page<DailyHealthLog> glucosePageObj = patientInteractionService.getGlucoseLogsPage(patient.getId(), filterRange, filterDate, glucosePageable);
+        Page<DailyHealthLog> glucosePageObj = patientInteractionService.getGlucoseLogsPageWithRange(patient.getId(), filterRange, startDate, endDate, glucosePageable);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -178,7 +177,8 @@ public class PatientInteractionController {
         model.addAttribute("glucosePage", glucosePage);
         model.addAttribute("activeTab", activeTab);
         model.addAttribute("filterRange", filterRange);
-        model.addAttribute("filterDate", filterDate != null ? filterDate.toString() : "");
+        model.addAttribute("startDate", startDateStr != null ? startDateStr : "");
+        model.addAttribute("endDate", endDateStr != null ? endDateStr : "");
 
         model.addAttribute("datesJson", objectMapper.writeValueAsString(dates));
         model.addAttribute("systolicJson", objectMapper.writeValueAsString(systolicList));

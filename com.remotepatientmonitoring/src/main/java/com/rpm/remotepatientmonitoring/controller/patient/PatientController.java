@@ -426,7 +426,8 @@ public class PatientController {
     @GetMapping("/adherence")
     public String getAdherencePage(
             @RequestParam(value = "range", defaultValue = "week") String range,
-            @RequestParam(value = "searchDate", required = false) String searchDateStr,
+            @RequestParam(value = "startDate", required = false) String startDateStr,
+            @RequestParam(value = "endDate", required = false) String endDateStr,
             Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
@@ -503,22 +504,25 @@ public class PatientController {
             }
         }
 
-        LocalDate sDate = null;
-        if (searchDateStr != null && !searchDateStr.trim().isEmpty()) {
-            try {
-                sDate = LocalDate.parse(searchDateStr);
-                range = "custom";
-            } catch (Exception ignored) {
-            }
+        LocalDate filterStart = null;
+        LocalDate filterEnd = null;
+        if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+            try { filterStart = LocalDate.parse(startDateStr.trim()); } catch (Exception ignored) {}
+        }
+        if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+            try { filterEnd = LocalDate.parse(endDateStr.trim()); } catch (Exception ignored) {}
         }
 
         List<MedicationLog> historyLogs = new ArrayList<>();
         try {
             if (patient.getId() != null) {
-                if (sDate != null) {
-                    List<MedicationLog> rawLogs = patientService.findMedicationHistory(patient.getId(), sDate);
+                if (filterStart != null || filterEnd != null) {
+                    range = "custom";
+                    List<MedicationLog> rawLogs = patientService.findMedicationHistory(patient.getId(), null);
                     for (MedicationLog logVal : rawLogs) {
-                        if (logVal.getLogDate().equals(sDate)) {
+                        boolean afterStart = (filterStart == null || !logVal.getLogDate().isBefore(filterStart));
+                        boolean beforeEnd = (filterEnd == null || !logVal.getLogDate().isAfter(filterEnd));
+                        if (afterStart && beforeEnd) {
                             historyLogs.add(logVal);
                         }
                     }
@@ -568,8 +572,14 @@ public class PatientController {
         List<WaterLog> historyWaterLogs = new ArrayList<>();
         try {
             if (patient.getId() != null) {
-                if (sDate != null) {
-                    patientService.findWaterLog(patient.getId(), sDate).ifPresent(historyWaterLogs::add);
+                if (filterStart != null || filterEnd != null) {
+                    LocalDate oldestDate = filterStart != null ? filterStart : LocalDate.of(2000, 1, 1);
+                    List<WaterLog> rawWaterLogs = patientService.findWaterHistory(patient.getId(), oldestDate);
+                    for (WaterLog wl : rawWaterLogs) {
+                        if (filterEnd == null || !wl.getLogDate().isAfter(filterEnd)) {
+                            historyWaterLogs.add(wl);
+                        }
+                    }
                 } else {
                     LocalDate oldestDate = LocalDate.now().minusDays(30); // default
                     if (!historyLogs.isEmpty()) {
@@ -693,7 +703,7 @@ public class PatientController {
         List<WaterLog> recentWaterLogs = new ArrayList<>();
         try {
             if (patient.getId() != null) {
-                LocalDate targetDate = (sDate != null) ? sDate : LocalDate.now();
+                LocalDate targetDate = (filterStart != null) ? filterStart : LocalDate.now();
                 recentWaterLogs = patientService.findWaterLogs(patient.getId(), targetDate);
             }
         } catch (Exception ignored) {}
@@ -710,7 +720,8 @@ public class PatientController {
         model.addAttribute("waterLogs", recentWaterLogs);
         model.addAttribute("history", historyGrouped);
         model.addAttribute("chartData", chartData);
-        model.addAttribute("searchDate", searchDateStr);
+        model.addAttribute("startDate", startDateStr != null ? startDateStr : "");
+        model.addAttribute("endDate", endDateStr != null ? endDateStr : "");
         return "patient/adherence";
     }
 

@@ -234,17 +234,20 @@
                             </h4>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <!-- Date Search Picker -->
-                            <div class="d-flex align-items-center gap-1">
-                                <label for="searchDateInput" class="small text-muted fw-semibold custom-style-18">Chọn ngày:</label>
-                                <div class="input-group input-group-sm custom-style-19">
-                                    <input type="date" id="searchDateInput" 
-                                           th:value="${searchDate}" class="form-control rounded-start-pill px-2 border-success text-center custom-style-20">
-                                    <button type="button" onclick="performDateSearch()" class="btn btn-success rounded-end-pill px-2 custom-style-21">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
+                            <!-- Date Range Search Form (Từ ngày - Đến ngày) -->
+                            <form th:action="@{/patient/adherence}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-semibold fs-11">Từ:</span>
+                                    <input type="date" name="startDate" th:value="${startDate}" class="form-control form-control-sm rounded-pill px-2 border-success text-center fs-12 h-30px" style="max-width: 135px;">
                                 </div>
-                            </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-semibold fs-11">Đến:</span>
+                                    <input type="date" name="endDate" th:value="${endDate}" class="form-control form-control-sm rounded-pill px-2 border-success text-center fs-12 h-30px" style="max-width: 135px;">
+                                </div>
+                                <button type="submit" title="Tìm kiếm theo khoảng ngày" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i>Lọc
+                                </button>
+                            </form>
                             <!-- Button Filters -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc lịch sử">
                                 <a th:href="@{/patient/adherence(range='today')}" class="btn px-3 rounded-start-pill" th:classappend="${range == 'today'} ? 'btn-success text-white' : 'btn-outline-success'">Hôm nay</a>
