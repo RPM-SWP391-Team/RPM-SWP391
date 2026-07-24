@@ -43,6 +43,17 @@ public class PatientInteractionService {
         return healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patientId, chartStartDate);
     }
 
+    public Page<DailyHealthLog> getBpLogsPageWithRange(Integer patientId, String filterRange, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        if (startDate != null && endDate != null) {
+            return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, endDate, pageable);
+        } else if (startDate != null) {
+            return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, LocalDate.now(), pageable);
+        } else if (endDate != null) {
+            return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, LocalDate.of(1970, 1, 1), endDate, pageable);
+        }
+        return getBpLogsPage(patientId, filterRange, null, pageable);
+    }
+
     public Page<DailyHealthLog> getBpLogsPage(Integer patientId, String filterRange, LocalDate filterDate, Pageable pageable) {
         LocalDate rangeStart = null;
         LocalDate rangeEnd = null;
@@ -64,6 +75,17 @@ public class PatientInteractionService {
         } else {
             return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patientId, pageable);
         }
+    }
+
+    public Page<DailyHealthLog> getGlucoseLogsPageWithRange(Integer patientId, String filterRange, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        if (startDate != null && endDate != null) {
+            return healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, endDate, pageable);
+        } else if (startDate != null) {
+            return healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, LocalDate.now(), pageable);
+        } else if (endDate != null) {
+            return healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, LocalDate.of(1970, 1, 1), endDate, pageable);
+        }
+        return getGlucoseLogsPage(patientId, filterRange, null, pageable);
     }
 
     public Page<DailyHealthLog> getGlucoseLogsPage(Integer patientId, String filterRange, LocalDate filterDate, Pageable pageable) {

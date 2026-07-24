@@ -415,24 +415,28 @@
                             </a>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <!-- Date Search Picker -->
-                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-1">
+                            <!-- Date Range Search Form (Từ ngày - Đến ngày) -->
+                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
                                 <input type="hidden" name="activeTab" th:value="${activeTab != null ? activeTab : 'bp'}">
                                 <input type="hidden" name="filterRange" value="all">
-                                <label for="historyDateInput" class="small text-muted fw-semibold fs-11">Chọn ngày:</label>
-                                <div class="input-group input-group-sm mw-180px">
-                                    <input type="date" id="historyDateInput" name="filterDate" th:value="${filterDate}" class="form-control rounded-start-pill px-2 border-primary text-center fs-12 h-30px">
-                                    <button type="submit" title="Tìm kiếm theo ngày" class="btn btn-primary rounded-end-pill px-2 btn-icon-center">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-semibold fs-11">Từ:</span>
+                                    <input type="date" id="historyStartDateInput" name="startDate" th:value="${startDate}" class="form-control form-control-sm rounded-pill px-2 border-primary text-center fs-12 h-30px" style="max-width: 135px;">
                                 </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-semibold fs-11">Đến:</span>
+                                    <input type="date" id="historyEndDateInput" name="endDate" th:value="${endDate}" class="form-control form-control-sm rounded-pill px-2 border-primary text-center fs-12 h-30px" style="max-width: 135px;">
+                                </div>
+                                <button type="submit" title="Tìm kiếm theo khoảng ngày" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i>Lọc
+                                </button>
                             </form>
                             <!-- Button Filters -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc lịch sử">
-                                <a th:href="@{/patient/appointments(filterRange='all', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 rounded-start-pill filter-btn text-decoration-none" th:classappend="${filterRange == 'all' || filterRange == null} ? 'btn-primary active' : 'btn-outline-primary'">Tất cả</a>
-                                <a th:href="@{/patient/appointments(filterRange='today', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 filter-btn text-decoration-none" th:classappend="${filterRange == 'today'} ? 'btn-primary active' : 'btn-outline-primary'">Hôm nay</a>
-                                <a th:href="@{/patient/appointments(filterRange='week', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 filter-btn text-decoration-none" th:classappend="${filterRange == 'week'} ? 'btn-primary active' : 'btn-outline-primary'">Tuần</a>
-                                <a th:href="@{/patient/appointments(filterRange='month', activeTab=${activeTab != null ? activeTab : 'bp'}, filterDate=${filterDate})}" class="btn px-3 rounded-end-pill filter-btn text-decoration-none" th:classappend="${filterRange == 'month'} ? 'btn-primary active' : 'btn-outline-primary'">Tháng</a>
+                                <a th:href="@{/patient/appointments(filterRange='all', activeTab=${activeTab != null ? activeTab : 'bp'}, startDate=${startDate}, endDate=${endDate})}" class="btn px-3 rounded-start-pill filter-btn text-decoration-none" th:classappend="${filterRange == 'all' || filterRange == null} ? 'btn-primary active' : 'btn-outline-primary'">Tất cả</a>
+                                <a th:href="@{/patient/appointments(filterRange='today', activeTab=${activeTab != null ? activeTab : 'bp'}, startDate=${startDate}, endDate=${endDate})}" class="btn px-3 filter-btn text-decoration-none" th:classappend="${filterRange == 'today'} ? 'btn-primary active' : 'btn-outline-primary'">Hôm nay</a>
+                                <a th:href="@{/patient/appointments(filterRange='week', activeTab=${activeTab != null ? activeTab : 'bp'}, startDate=${startDate}, endDate=${endDate})}" class="btn px-3 filter-btn text-decoration-none" th:classappend="${filterRange == 'week'} ? 'btn-primary active' : 'btn-outline-primary'">Tuần</a>
+                                <a th:href="@{/patient/appointments(filterRange='month', activeTab=${activeTab != null ? activeTab : 'bp'}, startDate=${startDate}, endDate=${endDate})}" class="btn px-3 rounded-end-pill filter-btn text-decoration-none" th:classappend="${filterRange == 'month'} ? 'btn-primary active' : 'btn-outline-primary'">Tháng</a>
                             </div>
                         </div>
                     </div>
@@ -440,12 +444,12 @@
                     <!-- Sub-pills for separating BP and Glucose -->
                     <ul class="nav nav-pills mb-3" id="logHistoryTabs" role="tablist">
                         <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 1 or patient.diseaseProfile.id == 3)}">
-                            <a th:href="@{/patient/appointments(activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}" id="bp-history-tab" th:aria-selected="${activeTab == 'bp'}" th:classappend="${activeTab == 'bp'} ? ' active' : ''" class="nav-link me-2 text-decoration-none custom-style-40">
+                            <a th:href="@{/patient/appointments(activeTab='bp', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}" id="bp-history-tab" th:aria-selected="${activeTab == 'bp'}" th:classappend="${activeTab == 'bp'} ? ' active' : ''" class="nav-link me-2 text-decoration-none custom-style-40">
                                 <i class="fa-solid fa-heart-pulse me-1"></i> Lịch Sử Huyết Áp
                             </a>
                         </li>
                         <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 2 or patient.diseaseProfile.id == 3)}">
-                            <a th:href="@{/patient/appointments(activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}" id="glucose-history-tab" th:aria-selected="${activeTab == 'glucose'}" th:classappend="${activeTab == 'glucose'} ? ' active' : ''" class="nav-link me-2 text-decoration-none custom-style-40">
+                            <a th:href="@{/patient/appointments(activeTab='glucose', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}" id="glucose-history-tab" th:aria-selected="${activeTab == 'glucose'}" th:classappend="${activeTab == 'glucose'} ? ' active' : ''" class="nav-link me-2 text-decoration-none custom-style-40">
                                 <i class="fa-solid fa-droplet me-1"></i> Lịch Sử Đường Huyết
                             </a>
                         </li>
@@ -555,13 +559,13 @@
                                 </div>
                                 <ul class="pagination pagination-sm mb-0">
                                     <li class="page-item" th:classappend="${!bpPageObj.hasPrevious()} ? 'disabled'">
-                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage - 1}, glucosePage=${glucosePage}, activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}"><i class="fa-solid fa-chevron-left"></i></a>
+                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage - 1}, glucosePage=${glucosePage}, activeTab='bp', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}"><i class="fa-solid fa-chevron-left"></i></a>
                                     </li>
                                     <li class="page-item" th:each="i : ${#numbers.sequence(0, bpPageObj.totalPages - 1)}" th:classappend="${bpPageObj.number == i} ? 'active'">
-                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${i}, glucosePage=${glucosePage}, activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}" th:text="${i + 1}">1</a>
+                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${i}, glucosePage=${glucosePage}, activeTab='bp', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}" th:text="${i + 1}">1</a>
                                     </li>
                                     <li class="page-item" th:classappend="${!bpPageObj.hasNext()} ? 'disabled'">
-                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage + 1}, glucosePage=${glucosePage}, activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}"><i class="fa-solid fa-chevron-right"></i></a>
+                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage + 1}, glucosePage=${glucosePage}, activeTab='bp', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}"><i class="fa-solid fa-chevron-right"></i></a>
                                     </li>
                                 </ul>
                             </div>
@@ -657,13 +661,13 @@
                                 </div>
                                 <ul class="pagination pagination-sm mb-0">
                                     <li class="page-item" th:classappend="${!glucosePageObj.hasPrevious()} ? 'disabled'">
-                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage}, glucosePage=${glucosePage - 1}, activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}"><i class="fa-solid fa-chevron-left"></i></a>
+                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage}, glucosePage=${glucosePage - 1}, activeTab='glucose', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}"><i class="fa-solid fa-chevron-left"></i></a>
                                     </li>
                                     <li class="page-item" th:each="i : ${#numbers.sequence(0, glucosePageObj.totalPages - 1)}" th:classappend="${glucosePageObj.number == i} ? 'active'">
-                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage}, glucosePage=${i}, activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}" th:text="${i + 1}">1</a>
+                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage}, glucosePage=${i}, activeTab='glucose', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}" th:text="${i + 1}">1</a>
                                     </li>
                                     <li class="page-item" th:classappend="${!glucosePageObj.hasNext()} ? 'disabled'">
-                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage}, glucosePage=${glucosePage + 1}, activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}"><i class="fa-solid fa-chevron-right"></i></a>
+                                        <a class="page-link" th:href="@{/patient/appointments(bpPage=${bpPage}, glucosePage=${glucosePage + 1}, activeTab='glucose', filterRange=${filterRange}, startDate=${startDate}, endDate=${endDate})}"><i class="fa-solid fa-chevron-right"></i></a>
                                     </li>
                                 </ul>
                             </div>
