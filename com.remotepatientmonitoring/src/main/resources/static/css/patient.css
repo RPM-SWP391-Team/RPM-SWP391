@@ -697,6 +697,8 @@ body {
 .h-8px { height: 8px !important; border-radius: 4px !important; }
 .h-10px { height: 10px !important; border-radius: 5px !important; }
 .h-12px { height: 12px !important; border-radius: 6px !important; }
+.h-30px { height: 30px !important; }
+.btn-icon-center { height: 30px; display: flex; align-items: center; justify-content: center; }
 
 /* Automatically Extracted Utility Classes */
 .fs-10 { font-size: 10px !important; }
@@ -765,8 +767,8 @@ body {
 .custom-style-35 { font-size: 0.72rem; letter-spacing: 0.5px; }
 .custom-style-36 { line-height: 1.45; }
 .custom-style-37 { line-height: 1.4; }
-.custom-style-38 { position: relative; z-index: 10000; }
-.custom-style-39 { height: 30px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10001; }
+.custom-style-38 { position: relative; }
+.custom-style-39 { height: 30px; display: flex; align-items: center; justify-content: center; }
 .custom-style-40 { border-radius:20px; font-weight:600; font-size:0.85rem; }
 .custom-style-41 { background-color: #eab308; width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .custom-style-42 { width: 100px; }
@@ -783,7 +785,7 @@ body {
 .custom-style-53 { font-size:.9rem; }
 .custom-style-54 { font-size:.88rem; }
 .custom-style-55 { max-width: 140px; cursor: pointer; color-scheme: dark; }
-.custom-style-56 { position: relative; z-index: 10001; }
+.custom-style-56 { position: relative; }
 .custom-style-57 { border-top:4px solid #667eea; }
 .custom-style-58 { font-size:1.8rem;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
 .custom-style-59 { border-top:4px solid #4facfe; }

@@ -416,13 +416,13 @@
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <!-- Date Search Picker -->
-                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-1 custom-style-38">
+                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-1">
                                 <input type="hidden" name="activeTab" th:value="${activeTab != null ? activeTab : 'bp'}">
                                 <input type="hidden" name="filterRange" value="all">
-                                <label for="historyDateInput" class="small text-muted fw-semibold custom-style-18">Chọn ngày:</label>
-                                <div class="input-group input-group-sm custom-style-19">
-                                    <input type="date" id="historyDateInput" name="filterDate" th:value="${filterDate}" class="form-control rounded-start-pill px-2 border-primary text-center custom-style-20">
-                                    <button type="submit" title="Tìm kiếm theo ngày" class="btn btn-primary rounded-end-pill px-2 custom-style-39">
+                                <label for="historyDateInput" class="small text-muted fw-semibold fs-11">Chọn ngày:</label>
+                                <div class="input-group input-group-sm mw-180px">
+                                    <input type="date" id="historyDateInput" name="filterDate" th:value="${filterDate}" class="form-control rounded-start-pill px-2 border-primary text-center fs-12 h-30px">
+                                    <button type="submit" title="Tìm kiếm theo ngày" class="btn btn-primary rounded-end-pill px-2 btn-icon-center">
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </button>
                                 </div>
