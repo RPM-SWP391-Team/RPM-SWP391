@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Service
@@ -234,18 +235,23 @@ public class DoctorService {
                 throw new IllegalStateException("Không thể vô hiệu hóa! Toàn bộ bác sĩ khác trong viện đều đã QUÁ TẢI.");
             }
 
-            int replacementIndex = 0;
             for (Patient patient : activePatients) {
-                while (replacementIndex < replacements.size() &&
-                        replacements.get(replacementIndex).getTempCount() >= replacements.get(replacementIndex).getCapacityLimit()) {
-                    replacementIndex++;
+                String diseaseCode = patient.getDiseaseProfile() != null ? 
+                                     patient.getDiseaseProfile().getProfileCode() : null;
+
+                ReplacementDoctorDto targetDto = replacements.stream()
+                        .filter(r -> isSpecialtyCompatible(r.getDoctor().getSpecialty(), diseaseCode))
+                        .filter(r -> r.getTempCount() < r.getCapacityLimit())
+                        .max(Comparator.comparingInt(r -> (r.getCapacityLimit() - r.getTempCount())))
+                        .orElse(null);
+
+                if (targetDto == null) {
+                    String diseaseName = patient.getDiseaseProfile() != null ? 
+                                         patient.getDiseaseProfile().getProfileName() : "Chưa xác định";
+                    throw new IllegalStateException("Không thể vô hiệu hóa bác sĩ! Không tìm thấy bác sĩ thay thế phù hợp chuyên khoa còn trống chỗ để tiếp nhận bệnh nhân " 
+                            + patient.getFullName() + " (Bệnh lý: " + diseaseName + ").");
                 }
 
-                if (replacementIndex >= replacements.size()) {
-                    throw new IllegalStateException("Cạn kiệt hạn ngạch tiếp nhận bệnh nhân của bệnh viện!");
-                }
-
-                ReplacementDoctorDto targetDto = replacements.get(replacementIndex);
                 Doctor replacementDoctor = targetDto.getDoctor();
 
                 // 2.1. Điều chuyển bệnh nhân
@@ -452,6 +458,14 @@ public class DoctorService {
         }
 
         if (!Objects.equals(doctor.getSpecialty(), dto.getSpecialty())) {
+            List<Patient> patients = patientRepository.findByDoctorIdAndIsActiveTrue(id);
+            long incompatibleCount = patients.stream()
+                .filter(p -> p.getDiseaseProfile() != null && !isSpecialtyCompatible(dto.getSpecialty(), p.getDiseaseProfile().getProfileCode()))
+                .count();
+            if (incompatibleCount > 0) {
+                throw new IllegalArgumentException("Không thể thay đổi chuyên khoa do bác sĩ đang phụ trách " 
+                        + incompatibleCount + " bệnh nhân không tương thích với chuyên khoa mới. Vui lòng Vô hiệu hóa bác sĩ này trước (hệ thống sẽ tự động chuyển bệnh nhân sang bác sĩ phù hợp khác), sau đó mới cập nhật chuyên khoa và Kích hoạt lại.");
+            }
             newLog.put("specialty", dto.getSpecialty());
             doctor.setSpecialty(dto.getSpecialty());
             isChanged = true;
@@ -475,6 +489,22 @@ public class DoctorService {
             } catch (Exception e) {
                 System.err.println("Lỗi parse JSON Audit Log");
             }
+        }
+    }
+
+    private boolean isSpecialtyCompatible(String doctorSpecialty, String patientDiseaseCode) {
+        if (patientDiseaseCode == null) {
+            return true;
+        }
+        switch (patientDiseaseCode) {
+            case "DIABETES":
+                return "Tiểu đường".equals(doctorSpecialty) || "Cả tiểu đường và huyết áp".equals(doctorSpecialty);
+            case "HYPERTENSION":
+                return "Huyết áp".equals(doctorSpecialty) || "Cả tiểu đường và huyết áp".equals(doctorSpecialty);
+            case "BOTH":
+                return "Cả tiểu đường và huyết áp".equals(doctorSpecialty);
+            default:
+                return false;
         }
     }
 
