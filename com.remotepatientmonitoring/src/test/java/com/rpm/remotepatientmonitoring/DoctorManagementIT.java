@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Integration Test suite cho tính năng Quản lý Bác sĩ (Doctor Management).
  * Module: Hospital Admin
- * Chức năng: Thêm mới Bác sĩ
+ * Chức năng: Thêm mới Bác sĩ (Có bổ sung trường Ngày tháng năm sinh)
  */
 public class DoctorManagementIT {
 
@@ -29,12 +29,11 @@ public class DoctorManagementIT {
     private static final String LOGIN_URL = BASE_URL + "/auth/login";
     private static final String DOCTORS_URL = BASE_URL + "/hospital/doctors";
 
-    private static final String ADMIN_EMAIL = "lethang162005@gmail.com";
+    private static final String ADMIN_EMAIL = "admin@bvdktrunguong-mau.vn";
     private static final String ADMIN_PASSWORD = "123456";
 
     // ============================================================
     // HELPER LOCATORS
-    // Lưu ý: Nếu UI thực tế có ID/CSS Selector khác, hãy cập nhật tại đây.
     // ============================================================
 
     private Locator loginEmailInput() {
@@ -65,6 +64,22 @@ public class DoctorManagementIT {
         return createDoctorModal().locator("#fullName");
     }
 
+    /*
+     * TRƯỜNG MỚI BỔ SUNG: Ngày tháng năm sinh
+     * Ưu tiên tìm theo id #dob / #dateOfBirth / #birthDate hoặc input type='date'
+     */
+    private Locator createDoctorDobInput() {
+        Locator modal = createDoctorModal();
+        if (modal.locator("#dob").count() > 0) {
+            return modal.locator("#dob");
+        } else if (modal.locator("#dateOfBirth").count() > 0) {
+            return modal.locator("#dateOfBirth");
+        } else if (modal.locator("#birthDate").count() > 0) {
+            return modal.locator("#birthDate");
+        }
+        return modal.locator("input[type='date']").first();
+    }
+
     private Locator createDoctorPhoneInput() {
         return createDoctorModal().locator("#phone");
     }
@@ -92,14 +107,13 @@ public class DoctorManagementIT {
     }
 
     private Locator doctorTableBody() {
-        // Loại trừ các bảng phụ khác nếu có trên trang
         return page.locator("table tbody")
                 .filter(new Locator.FilterOptions().setHasNot(page.locator("#detailPatientsTableBody")))
                 .first();
     }
 
     // ============================================================
-    // HELPER METHODS (DỮ LIỆU & ĐỜI SỐNG TRANG)
+    // HELPER METHODS
     // ============================================================
 
     private String generateUniquePhone() {
@@ -108,7 +122,7 @@ public class DoctorManagementIT {
     }
 
     private String generateUniqueEmail(String prefix) {
-        return prefix + System.currentTimeMillis() + "@benhvien.com";
+        return prefix + System.currentTimeMillis() + "@gmail.com";
     }
 
     private void waitForDoctorsPageLoad() {
@@ -124,10 +138,9 @@ public class DoctorManagementIT {
     static void setupAll() {
         playwright = Playwright.create();
 
-        // Cấu hình trình duyệt (chạy có giao diện để dễ debug integration test)
         browser = playwright.chromium().launch(
                 new BrowserType.LaunchOptions()
-                        .setHeadless(true)
+                        .setHeadless(false)
                         .setSlowMo(800)
         );
     }
@@ -135,7 +148,7 @@ public class DoctorManagementIT {
     @BeforeEach
     void setup() {
         context = browser.newContext(
-                new Browser.NewContextOptions().setViewportSize(1600, 900)
+                new Browser.NewContextOptions().setViewportSize(1400, 800)
         );
 
         page = context.newPage();
@@ -149,7 +162,7 @@ public class DoctorManagementIT {
         loginPasswordInput().fill(ADMIN_PASSWORD);
         loginSubmitButton().click();
 
-        // Verification 1: Đăng nhập thành công (chuyển hướng sang Dashboard hoặc Doctors)
+        // Verification 1: Đăng nhập thành công
         page.waitForURL(
                 Pattern.compile(".*(/hospital/dashboard|/hospital/doctors).*"),
                 new Page.WaitForURLOptions().setTimeout(15_000)
@@ -175,7 +188,7 @@ public class DoctorManagementIT {
     // ============================================================
 
     @Test
-    @DisplayName("IT-DOC-01: Kiểm tra luôn luồng Thêm Bác sĩ Mới và verify dữ liệu hiển thị")
+    @DisplayName("IT-DOC-01: Kiểm tra luồng Thêm Bác sĩ Mới (bao gồm Ngày sinh) và verify dữ liệu")
     void testCreateDoctorSuccessfullyIT() {
         // --- STEP 3: Click "Thêm Bác Sĩ Mới" ---
         assertTrue(
@@ -193,6 +206,7 @@ public class DoctorManagementIT {
 
         // --- STEP 4: Nhập thông tin bác sĩ mới ---
         String expectedDoctorName = "Nguyễn Văn Anh";
+        String expectedDob = "1990-05-15"; // Định dạng YYYY-MM-DD cho input[type='date']
         String expectedPhone = generateUniquePhone();
         String expectedEmail = generateUniqueEmail("doctor");
         String expectedCapacity = "40";
@@ -200,6 +214,10 @@ public class DoctorManagementIT {
         String expectedSpecialty = "Tiểu đường";
 
         createDoctorNameInput().fill(expectedDoctorName);
+
+        // Điền trường Ngày tháng năm sinh vừa bổ sung
+        createDoctorDobInput().fill(expectedDob);
+
         createDoctorPhoneInput().fill(expectedPhone);
         createDoctorEmailInput().fill(expectedEmail);
         createDoctorCapacityInput().fill(expectedCapacity);
