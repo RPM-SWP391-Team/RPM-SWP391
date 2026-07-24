@@ -226,7 +226,7 @@
             <li class="page-item" th:classappend="${replacementDoctors.first ? 'disabled' : ''}">
                 <a class="page-link rounded-pill px-3" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/transfer'(page=${replacementDoctors.number - 1}, keyword=${keyword}, specialty=${selectedSpecialty})}">Trước</a>
             </li>
-            <li class="page-item" th:each="i : ${#numbers.sequence(0, replacementDoctors.totalPages - 1)}" th:classappend="${i == replacementDoctors.number ? 'active' : ''}">
+            <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, replacementDoctors.number - 2), T(java.lang.Math).min(replacementDoctors.totalPages - 1, replacementDoctors.number + 2))}" th:classappend="${i == replacementDoctors.number ? 'active' : ''}">
                 <a class="page-link rounded-circle mx-1" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;" th:text="${i + 1}" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/transfer'(page=${i}, keyword=${keyword}, specialty=${selectedSpecialty})}">1</a>
             </li>
             <li class="page-item" th:classappend="${replacementDoctors.last ? 'disabled' : ''}">

@@ -360,7 +360,7 @@
                 <li class="page-item" th:classappend="${pageObj.first ? 'disabled' : ''}">
                     <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage == 0 ? 0 : currentPage - 1}, status=${statusFilter})}">Trước</a>
                 </li>
-                <li class="page-item" th:each="idx : ${#numbers.sequence(0, pageObj.totalPages - 1)}" th:classappend="${idx == pageObj.number ? 'active' : ''}">
+                <li class="page-item" th:each="idx : ${#numbers.sequence(T(java.lang.Math).max(0, pageObj.number - 2), T(java.lang.Math).min(pageObj.totalPages - 1, pageObj.number + 2))}" th:classappend="${idx == pageObj.number ? 'active' : ''}">
                     <a class="page-link" th:href="@{/hospital/bug-reports(page=${idx}, status=${statusFilter})}" th:text="${idx + 1}">1</a>
                 </li>
                 <li class="page-item" th:classappend="${pageObj.last ? 'disabled' : ''}">
