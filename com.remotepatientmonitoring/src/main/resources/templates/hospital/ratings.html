@@ -296,7 +296,7 @@
                         <li class="page-item" th:classappend="${doctorPageObj.first ? 'disabled' : ''}">
                             <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage == 0 ? 0 : currentDoctorPage - 1}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Trước</a>
                         </li>
-                        <li class="page-item" th:each="idx : ${#numbers.sequence(T(java.lang.Math).max(0, doctorPageObj.number - 2), T(java.lang.Math).min(doctorPageObj.totalPages - 1, doctorPageObj.number + 2))}" th:classappend="${idx == doctorPageObj.number ? 'active' : ''}">
+                        <li class="page-item" th:each="idx : ${#numbers.sequence(0, doctorPageObj.totalPages - 1)}" th:classappend="${idx == doctorPageObj.number ? 'active' : ''}">
                             <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${idx}, appPage=${currentAppPage}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}" th:text="${idx + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${doctorPageObj.last ? 'disabled' : ''}">
@@ -366,7 +366,7 @@
                         <li class="page-item" th:classappend="${appPageObj.first ? 'disabled' : ''}">
                             <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${currentAppPage == 0 ? 0 : currentAppPage - 1}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}">Trước</a>
                         </li>
-                        <li class="page-item" th:each="idx : ${#numbers.sequence(T(java.lang.Math).max(0, appPageObj.number - 2), T(java.lang.Math).min(appPageObj.totalPages - 1, appPageObj.number + 2))}" th:classappend="${idx == appPageObj.number ? 'active' : ''}">
+                        <li class="page-item" th:each="idx : ${#numbers.sequence(0, appPageObj.totalPages - 1)}" th:classappend="${idx == appPageObj.number ? 'active' : ''}">
                             <a class="page-link" th:href="@{/hospital/ratings(doctorPage=${currentDoctorPage}, appPage=${idx}, doctorFilter=${doctorFilter}, appFilter=${appFilter})}" th:text="${idx + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${appPageObj.last ? 'disabled' : ''}">

@@ -317,7 +317,7 @@
                                 </a>
                             </li>
 
-                            <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, patientPage.number - 2), T(java.lang.Math).min(patientPage.totalPages - 1, patientPage.number + 2))}"
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, patientPage.totalPages - 1)}"
                                 th:classappend="${patientPage.number == i} ? 'active'">
                                 <a class="page-link" th:href="@{/doctor/dashboard(keyword=${keyword}, page=${i})}" th:text="${i + 1}">1</a>
                             </li>

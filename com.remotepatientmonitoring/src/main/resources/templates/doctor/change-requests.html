@@ -314,7 +314,7 @@
                         <i class="fa-solid fa-chevron-left"></i> Trước
                     </a>
                 </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, changeRequestPage.number - 2), T(java.lang.Math).min(changeRequestPage.totalPages - 1, changeRequestPage.number + 2))}"
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, changeRequestPage.totalPages - 1)}"
                     th:classappend="${changeRequestPage.number == i} ? 'active'">
                     <a class="page-link" th:href="@{/doctor/change-requests(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, patientName=${patientName}, page=${i})}" th:text="${i + 1}">1</a>
                 </li>
