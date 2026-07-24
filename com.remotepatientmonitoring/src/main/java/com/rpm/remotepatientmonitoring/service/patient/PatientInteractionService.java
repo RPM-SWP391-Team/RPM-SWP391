@@ -281,4 +281,9 @@ public class PatientInteractionService {
             notificationRepository.save(notif);
         }
     }
+
+    public Optional<ChangeRequest> findChangeRequestById(Integer id) {
+        return changeRequestRepository.findById(id);
+    }
 }
+

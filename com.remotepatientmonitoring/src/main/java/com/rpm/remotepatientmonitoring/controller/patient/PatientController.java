@@ -36,10 +36,7 @@ public class PatientController {
     private ExerciseLogService exerciseLogService;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
-
-    @Autowired
-    private com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository alertThresholdRepository;
+    private com.rpm.remotepatientmonitoring.service.patient.PatientHealthService patientHealthService;
 
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -238,17 +235,12 @@ public class PatientController {
 
         List<DailyHealthLog> logsList = new ArrayList<>();
         if (patient.getId() != null) {
-            logsList = healthLogRepository.findByPatientIdAndLogDate(patient.getId(), selectedDate);
+            logsList = patientHealthService.getHealthLogsByPatientIdAndDate(patient.getId(), selectedDate);
         }
         final List<DailyHealthLog> finalLogs = logsList;
         
-        com.rpm.remotepatientmonitoring.model.AlertThreshold threshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT")
-                .orElseGet(() -> {
-                    if (patient.getHospital() != null) {
-                        return alertThresholdRepository.findByHospitalIdAndScope(patient.getHospital().getId(), "HOSPITAL").orElse(null);
-                    }
-                    return null;
-                });
+        com.rpm.remotepatientmonitoring.model.AlertThreshold threshold = patientHealthService.getAlertThresholdByPatientOrHospital(patient.getId(), patient.getHospital() != null ? patient.getHospital().getId() : null);
+
         // Find logs for MORNING
         List<DailyHealthLog> morningLogs = finalLogs.stream()
                 .filter(l -> "MORNING".equalsIgnoreCase(l.getLogType()))
@@ -430,7 +422,7 @@ public class PatientController {
 
         return "patient/dashboard";
     }
-
+    
     @GetMapping("/adherence")
     public String getAdherencePage(
             @RequestParam(value = "range", defaultValue = "week") String range,

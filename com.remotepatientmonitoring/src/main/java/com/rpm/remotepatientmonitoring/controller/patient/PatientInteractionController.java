@@ -52,13 +52,7 @@ public class PatientInteractionController {
     private PatientHealthService patientHealthService;
 
     @Autowired
-    private ChangeRequestRepository changeRequestRepository;
-
-    @Autowired
     private RatingService ratingService;
-
-    @Autowired
-    private DoctorRatingRepository doctorRatingRepository;
 
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -167,10 +161,7 @@ public class PatientInteractionController {
         ratingService.populateDoctorRatings(doctors);
 
         // Fetch evaluated appointment IDs
-        List<DoctorRating> patientRatings = doctorRatingRepository.findByPatientId(patient.getId());
-        Set<Integer> evaluatedAppointmentIds = patientRatings.stream()
-                .map(r -> r.getAppointment().getId())
-                .collect(Collectors.toSet());
+        Set<Integer> evaluatedAppointmentIds = ratingService.getEvaluatedAppointmentIdsByPatientId(patient.getId());
 
         model.addAttribute("patient", patient);
         model.addAttribute("doctors", doctors);
@@ -400,7 +391,7 @@ public class PatientInteractionController {
             return "redirect:/auth/login";
         }
 
-        Optional<ChangeRequest> reqOpt = changeRequestRepository.findById(id);
+        Optional<ChangeRequest> reqOpt = patientInteractionService.findChangeRequestById(id);
         if (reqOpt.isEmpty()) {
             return "redirect:/patient/appointments";
         }
