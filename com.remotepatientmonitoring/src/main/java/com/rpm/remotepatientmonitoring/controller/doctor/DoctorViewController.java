@@ -1336,8 +1336,7 @@ public class DoctorViewController {
             @PathVariable Integer id,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
-            @RequestParam(value = "startDate", required = false) String startDateStr,
-            @RequestParam(value = "endDate", required = false) String endDateStr,
+            @RequestParam(value = "date", required = false) @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd") java.time.LocalDate searchDate,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -1402,16 +1401,17 @@ public class DoctorViewController {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
         org.springframework.data.domain.Page<com.rpm.remotepatientmonitoring.model.AuditTrail> historyPage;
         
+        // Target record ID is the threshold ID if it's personalized, otherwise we might not have a patient-specific threshold yet.
+        // Actually we only show history for the PATIENT scope threshold.
         AlertThreshold patientThreshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT").orElse(null);
         
-        LocalDateTime[] dates = parseDateParameters(startDateStr, endDateStr);
-        LocalDateTime filterStart = dates[0];
-        LocalDateTime filterEnd = dates[1];
-
         if (patientThreshold != null) {
-            if (filterStart != null && filterEnd != null) {
+            if (searchDate != null) {
+                java.time.LocalDateTime startOfDay = searchDate.atStartOfDay();
+                java.time.LocalDateTime endOfDay = searchDate.atTime(23, 59, 59, 999999999);
                 historyPage = auditTrailRepository.findByTargetTableAndTargetRecordIdAndActionAndCreatedAtBetweenOrderByCreatedAtDesc(
-                        "AlertThreshold", patientThreshold.getId(), "UPDATE_PATIENT_THRESHOLD", filterStart, filterEnd, pageable);
+                        "AlertThreshold", patientThreshold.getId(), "UPDATE_PATIENT_THRESHOLD", startOfDay, endOfDay, pageable);
+                model.addAttribute("searchDate", searchDate);
             } else {
                 historyPage = auditTrailRepository.findByTargetTableAndTargetRecordIdAndActionOrderByCreatedAtDesc(
                         "AlertThreshold", patientThreshold.getId(), "UPDATE_PATIENT_THRESHOLD", pageable);
@@ -1423,8 +1423,6 @@ public class DoctorViewController {
         model.addAttribute("historyPage", historyPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", historyPage.getTotalPages());
-        model.addAttribute("startDate", startDateStr);
-        model.addAttribute("endDate", endDateStr);
 
         return "doctor/patient-thresholds";
     }

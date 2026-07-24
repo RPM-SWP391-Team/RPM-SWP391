@@ -636,18 +636,11 @@
                 <div class="card-header bg-white border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Lịch sử thay đổi</h5>
                     
-                    <!-- Search by date range form (Từ ngày - Đến ngày) -->
-                    <form th:action="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" method="get" class="d-flex align-items-center gap-2 flex-wrap">
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="small text-muted fw-semibold">Từ:</span>
-                            <input type="date" class="form-control form-control-sm" name="startDate" th:value="${startDate}" style="width: 135px;">
-                        </div>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="small text-muted fw-semibold">Đến:</span>
-                            <input type="date" class="form-control form-control-sm" name="endDate" th:value="${endDate}" style="width: 135px;">
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-outline-secondary fw-semibold">Lọc</button>
-                        <a th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '')}" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" class="btn btn-sm btn-outline-danger" title="Xóa bộ lọc"><i class="fa-solid fa-xmark"></i></a>
+                    <!-- Search by date form -->
+                    <form th:action="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" method="get" class="d-flex align-items-center gap-2">
+                        <input type="date" class="form-control form-control-sm" name="date" th:value="${searchDate}">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Lọc</button>
+                        <a th:if="${searchDate != null}" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" class="btn btn-sm btn-outline-danger" title="Xóa bộ lọc"><i class="fa-solid fa-xmark"></i></a>
                     </form>
                 </div>
                 <div class="card-body p-4">
@@ -684,15 +677,15 @@
                         <nav th:if="${totalPages > 1}" class="mt-4">
                             <ul class="pagination pagination-sm justify-content-center mb-0">
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                    <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'(page=${currentPage - 1}, startDate=${startDate}, endDate=${endDate})}" aria-label="Previous">
+                                    <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'(page=${currentPage - 1}, date=${searchDate})}" aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
-                                <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(totalPages - 1, currentPage + 2))}" th:classappend="${currentPage == i} ? 'active'">
-                                    <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'(page=${i}, startDate=${startDate}, endDate=${endDate})}" th:text="${i + 1}">1</a>
+                                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                                    <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'(page=${i}, date=${searchDate})}" th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'(page=${currentPage + 1}, startDate=${startDate}, endDate=${endDate})}" aria-label="Next">
+                                    <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'(page=${currentPage + 1}, date=${searchDate})}" aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>

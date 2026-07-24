@@ -127,7 +127,7 @@
                     <i class="fa-solid fa-chevron-left"></i> Trước
                 </a>
             </li>
-            <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, notificationPage.number - 2), T(java.lang.Math).min(notificationPage.totalPages - 1, notificationPage.number + 2))}"
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, notificationPage.totalPages - 1)}"
                 th:classappend="${notificationPage.number == i} ? 'active'">
                 <a class="page-link" th:href="@{/doctor/notifications(startDate=${startDate}, endDate=${endDate}, page=${i})}" th:text="${i + 1}">1</a>
             </li>
