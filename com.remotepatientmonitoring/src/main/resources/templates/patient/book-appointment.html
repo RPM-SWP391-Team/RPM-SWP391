@@ -10,7 +10,7 @@
             <div class="col-lg-6 col-md-8">
                 
                 <!-- Error Alert -->
-                <div th:if="${param.bookError}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert" class="custom-style-45">
+                <div th:if="${param.bookError}" role="alert" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm custom-style-45">
                     <i class="fa-solid fa-circle-exclamation me-2"></i>
                     <span th:if="${param.bookError[0] == 'emptyReason'}">Lý do đăng ký khám không được để trống.</span>
                     <span th:if="${param.bookError[0] == 'reasonTooLong'}">Lý do đăng ký khám không được vượt quá 500 ký tự.</span>
@@ -35,15 +35,15 @@
                             <!-- Appointment Time -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-clock me-2 text-primary"></i>Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" 
-                                       th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required class="custom-style-48">
+                                <input type="datetime-local" id="appointmentTime" name="appointmentTime" 
+                                       th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required class="form-control custom-style-48">
                                 <div class="form-text small text-muted">Lịch khám thông thường cần đặt trước và nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6).</div>
                             </div>
                             
                             <!-- Appointment Type -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-stethoscope me-2 text-primary"></i>Loại lịch hẹn <span class="text-danger">*</span></label>
-                                <select class="form-select" id="appointmentType" name="appointmentType" required class="custom-style-48">
+                                <select id="appointmentType" name="appointmentType" required class="form-select custom-style-48">
                                     <option value="INITIAL">Khám lần đầu (INITIAL)</option>
                                     <option value="CHECKUP" selected>Tái khám định kỳ (CHECKUP)</option>
                                     <option value="EMERGENCY">Khẩn cấp (EMERGENCY)</option>
@@ -53,7 +53,7 @@
                             <!-- Doctor -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>Bác sĩ khám <span class="text-danger">*</span></label>
-                                <select class="form-select" id="doctorId" name="doctorId" required class="custom-style-48">
+                                <select id="doctorId" name="doctorId" required class="form-select custom-style-48">
                                     <option value="" disabled selected>-- Chọn bác sĩ --</option>
                                     <option th:each="doc : ${doctors}" th:value="${doc.id}" 
                                             th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
@@ -63,8 +63,8 @@
                             <!-- Reason text area -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-regular fa-comment-dots me-2 text-primary"></i>Lý do đăng ký khám <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="5" 
-                                          placeholder="Nhập lý do cụ thể..." required maxlength="500" class="custom-style-49"></textarea>
+                                <textarea id="patientRequestReason" name="patientRequestReason" rows="5" 
+                                          placeholder="Nhập lý do cụ thể..." required maxlength="500" class="form-control custom-style-49"></textarea>
                                 <div class="form-text small text-muted">Tối đa 500 ký tự.</div>
                             </div>
 

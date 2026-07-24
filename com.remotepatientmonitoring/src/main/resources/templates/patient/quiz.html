@@ -78,9 +78,8 @@
                                 
                                 <!-- Result Mode (Submitted) -->
                                 <div th:if="${isSubmitted}">
-                                    <div class="option-label"
-                                         th:classappend="${oStat.index == q.correctOptionIndex ? 'option-correct' : (oStat.index == userAnswers.get(q.id) ? 'option-wrong' : '')}"
-                                         class="custom-style-135">
+                                    <div
+                                         th:classappend="${oStat.index == q.correctOptionIndex ? 'option-correct' : (oStat.index == userAnswers.get(q.id) ? 'option-wrong' : '')}" class="option-label custom-style-135">
                                         <span class="option-badge" th:text="${oStat.index == 0 ? 'A' : (oStat.index == 1 ? 'B' : (oStat.index == 2 ? 'C' : 'D'))}">A</span>
                                         <span th:text="${opt.substring(3).trim()}">Đáp án</span>
                                         

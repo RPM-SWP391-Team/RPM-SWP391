@@ -6,7 +6,7 @@
 
     <div class="container my-4">
         <!-- Success Alert for Saving Health Logs -->
-        <div id="successAlert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-none" role="alert" class="custom-style-52">
+        <div id="successAlert" role="alert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-none custom-style-52">
             <div class="d-flex align-items-center text-dark">
                 <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
                 <div>
@@ -42,7 +42,7 @@
                                 <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
                             </button>
                         </div>
-                        <a th:if="${!isToday}" href="/patient/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-2" title="Quay về Hôm nay" class="custom-style-56">
+                        <a th:if="${!isToday}" href="/patient/dashboard" title="Quay về Hôm nay" class="btn btn-outline-light btn-sm rounded-pill px-2 custom-style-56">
                             <i class="fa-solid fa-rotate-right"></i>
                         </a>
                     </form>
