@@ -30,6 +30,17 @@
         <div class="row justify-content-center">
             <div class="col-lg-5 col-md-7">
 
+                <!-- Alert for saveSuccess (Placed at TOP for immediate visibility) -->
+                <div th:if="${param.saveSuccess}" id="successAlert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3">
+                    <div class="d-flex align-items-center text-dark">
+                        <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
+                        <div>
+                            <strong class="text-success">Thành công!</strong> Chỉ số sức khỏe của bạn đã được ghi nhận vào nhật ký.
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
                 <form th:action="@{/patient/log}" th:object="${healthLog}" method="POST" id="healthLogForm">
                     <div th:if="${#fields.hasErrors('global')}" class="alert alert-danger border-0 shadow-sm mb-3 custom-style-103">
                         <div class="d-flex align-items-center text-danger">
@@ -262,16 +273,6 @@
                     </div>
 
                 </form>
-
-                <!-- Alert for saveSuccess -->
-                <div th:if="${param.saveSuccess}" id="successAlert" class="alert alert-success border-0 shadow-sm mb-3 mt-3 custom-style-117">
-                    <div class="d-flex align-items-center text-dark">
-                        <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
-                        <div>
-                            Thành công! Chỉ số sức khỏe của bạn đã được ghi nhận vào nhật ký.
-                        </div>
-                    </div>
-                </div>
 
             </div>
         </div>
