@@ -34,9 +34,6 @@ public class PatientHealthLogPlaywrightTest {
     private HospitalRepository hospitalRepository;
 
     @Autowired
-    private HospitalAdminRepository hospitalAdminRepository;
-
-    @Autowired
     private DiseaseProfileRepository diseaseProfileRepository;
 
     @Autowired
@@ -56,29 +53,73 @@ public class PatientHealthLogPlaywrightTest {
     private BrowserContext context;
     private Page page;
 
-    private static final String TEST_EMAIL = "novakimbi179@gmail.com";
+    private static final String TEST_EMAIL = "novakimbi1709@gmail.com";
     private static final String TEST_PASSWORD = "12345678";
 
     @BeforeAll
     static void launchBrowser() {
-        // Khởi tạo Playwright và mở trình duyệt ở chế độ có giao diện (headless = false) để người dùng xem trực quan
-        playwright = Playwright.create();
+        System.out.println("========== [PLAYWRIGHT INIT START] ==========");
         try {
-            browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(true)
-                    .setSlowMo(50) // Trễ 1 giây giữa các thao tác để dễ theo dõi
-                    .setChannel("chrome"));
-        } catch (Exception e) {
-            browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
-                    .setHeadless(true)
-                    .setSlowMo(50)
-                    .setChannel("msedge"));
+            System.out.println("Step 1: Creating Playwright instance...");
+            playwright = Playwright.create();
+            System.out.println("-> Playwright instance created successfully.");
+        } catch (Throwable t) {
+            System.err.println("!!! FAILED to create Playwright instance:");
+            t.printStackTrace();
+            throw t;
         }
+
+        try {
+            System.out.println("Step 2: Launching Chromium with channel='chrome' (headless=false)...");
+            browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                    .setHeadless(false)
+                    .setSlowMo(1000)
+                    .setChannel("chrome"));
+            System.out.println("-> Chromium with channel='chrome' launched successfully.");
+            return;
+        } catch (Throwable t) {
+            System.err.println("!!! Failed to launch with channel 'chrome': " + t.getMessage());
+        }
+
+        try {
+            System.out.println("Step 3: Launching Chromium with channel='msedge' (headless=false)...");
+            browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                    .setHeadless(false)
+                    .setSlowMo(1000)
+                    .setChannel("msedge"));
+            System.out.println("-> Chromium with channel='msedge' launched successfully.");
+            return;
+        } catch (Throwable t) {
+            System.err.println("!!! Failed to launch with channel 'msedge': " + t.getMessage());
+        }
+
+        try {
+            System.out.println("Step 4: Launching default bundled Chromium (headless=false, no channel)...");
+            browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                    .setHeadless(false)
+                    .setSlowMo(1000));
+            System.out.println("-> Bundled Chromium launched successfully.");
+            return;
+        } catch (Throwable t) {
+            System.err.println("!!! Failed to launch bundled Chromium: " + t.getMessage());
+        }
+
+        try {
+            System.out.println("Step 5: Fallback to headless bundled Chromium...");
+            browser = playwright.chromium().launch(new BrowserType.LaunchOptions()
+                    .setHeadless(true));
+            System.out.println("-> Headless Chromium launched successfully.");
+        } catch (Throwable t) {
+            System.err.println("!!! Critical: Failed to launch any browser!");
+            t.printStackTrace();
+            throw new RuntimeException("Cannot launch browser", t);
+        }
+        System.out.println("========== [PLAYWRIGHT INIT SUCCESS] ==========");
     }
 
     @AfterAll
     static void closeBrowser() {
-        // Giải phóng tài nguyên trình duyệt sau khi hoàn thành toàn bộ test class
+        // Đóng trình duyệt sau khi chạy xong tất cả các ca kiểm thử
         if (browser != null) {
             browser.close();
         }
@@ -88,35 +129,34 @@ public class PatientHealthLogPlaywrightTest {
     }
 
     @BeforeEach
-    void setUpAndLogin() {
-        // Thiết lập dữ liệu kiểm thử trong database trước mỗi ca test
-        setupTestData();
-
-        // Tạo context và trang mới cho phiên test
-        context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
-        page = context.newPage();
-
-        // Bước 1: Điều hướng tới trang đăng nhập
-        page.navigate("http://localhost:" + port + "/auth/login");
-
-        // Bước 2: Điền thông tin đăng nhập của bệnh nhân hợp lệ
-        page.fill("#username", TEST_EMAIL);
-        page.fill("#password", TEST_PASSWORD);
-
-        // Bước 3: Click nút đăng nhập
-        page.click("button[type='submit']");
-
-        // Đợi hệ thống xác thực thành công và chuyển hướng tới trang hẹn gặp
-        page.waitForURL("**/patient/appointments");
+    void setUp() {
+        System.out.println("========== [SETUP START] ==========");
+        try {
+            System.out.println("-> Setting up test data...");
+            setupTestData();
+            System.out.println("-> Test data set up successfully.");
+            
+            System.out.println("-> Creating BrowserContext...");
+            context = browser.newContext();
+            System.out.println("-> BrowserContext created.");
+            
+            System.out.println("-> Creating new Page...");
+            page = context.newPage();
+            System.out.println("-> Page created successfully.");
+        } catch (Throwable t) {
+            System.err.println("!!! Critical Error in @BeforeEach setUp:");
+            t.printStackTrace();
+            throw t;
+        }
+        System.out.println("========== [SETUP END] ==========");
     }
 
     @AfterEach
     void tearDown() {
-        // Đóng phiên duyệt web hiện tại
         if (context != null) {
             context.close();
         }
-        // Dọn dẹp sạch dữ liệu kiểm thử đã tạo để không ảnh hưởng database
+        // Dọn dẹp dữ liệu kiểm thử sau khi hoàn thành
         cleanupTestData();
     }
 
@@ -124,45 +164,21 @@ public class PatientHealthLogPlaywrightTest {
         cleanupTestData();
 
         transactionTemplate.execute(status -> {
-            // Lấy hoặc tạo Hospital mẫu để gán cho bệnh nhân
+            // Khởi tạo Bệnh viện mẫu
             Hospital hospital = hospitalRepository.findAll().stream().findFirst().orElseGet(() -> {
-                Account hospitalAccount = Account.builder()
-                        .email("hospital_admin_test@example.com")
-                        .passwordHash(passwordEncoder.encode("Password123"))
-                        .role("HOSPITAL_ADMIN")
-                        .isEmailVerified(true)
-                        .isActive(true)
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build();
-                hospitalAccount = accountRepository.save(hospitalAccount);
-
                 Hospital newHospital = Hospital.builder()
-                        .hospitalCode("HOSP_BM_TEST")
-                        .fullName("Bệnh viện Bạch Mai")
+                        .hospitalCode("HOSP_BM_TEST_E2E")
+                        .fullName("Bệnh viện Bạch Mai E2E")
                         .address("Giải Phóng, Hà Nội")
                         .phone("02438693731")
                         .isActive(true)
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build();
-                newHospital = hospitalRepository.save(newHospital);
-
-                HospitalAdmin admin = HospitalAdmin.builder()
-                        .hospital(newHospital)
-                        .account(hospitalAccount)
-                        .adminCode("ADM_001")
-                        .fullName("Admin Bệnh viện")
-                        .isActive(true)
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build();
-                hospitalAdminRepository.save(admin);
-
-                return newHospital;
+                return hospitalRepository.save(newHospital);
             });
 
-            // Lấy hoặc tạo DiseaseProfile Hypertension (id = 1) để bệnh nhân có hồ sơ cao huyết áp
+            // Khởi tạo Hồ sơ Bệnh lý mẫu (Cao Huyết Áp - ID = 1)
             DiseaseProfile diseaseProfile = diseaseProfileRepository.findById(1).orElseGet(() -> {
                 DiseaseProfile dp = DiseaseProfile.builder()
                         .profileCode("HYPERTENSION")
@@ -174,7 +190,7 @@ public class PatientHealthLogPlaywrightTest {
                 return diseaseProfileRepository.save(dp);
             });
 
-            // Tạo tài khoản Account cho Bệnh nhân test
+            // Tạo tài khoản Account kiểm thử
             Account account = Account.builder()
                     .email(TEST_EMAIL)
                     .passwordHash(passwordEncoder.encode(TEST_PASSWORD))
@@ -191,12 +207,12 @@ public class PatientHealthLogPlaywrightTest {
                     .account(account)
                     .hospital(hospital)
                     .diseaseProfile(diseaseProfile)
-                    .fullName("Nguyễn Văn Kiểm Thử")
+                    .fullName("Nguyễn Văn E2E")
                     .dateOfBirth(LocalDate.of(1985, 10, 15))
                     .gender("MALE")
                     .phone("0987112233")
                     .address("Cầu Giấy, Hà Nội")
-                    .emergencyContactName("Người Thân Kiểm Thử")
+                    .emergencyContactName("Người Thân E2E")
                     .emergencyContactPhone("0987445566")
                     .status("TREATING")
                     .isActive(true)
@@ -211,101 +227,124 @@ public class PatientHealthLogPlaywrightTest {
 
     private void cleanupTestData() {
         transactionTemplate.execute(status -> {
-            accountRepository.findByEmail(TEST_EMAIL).ifPresent(account -> {
-                patientRepository.findByAccountId(account.getId()).ifPresent(patient -> {
-                    // Xóa các record trong medication_logs liên quan đến patient
+            accountRepository.findByEmail(TEST_EMAIL).ifPresent(acc -> {
+                patientRepository.findByAccountId(acc.getId()).ifPresent(p -> {
                     entityManager.createQuery("DELETE FROM MedicationLog ml WHERE ml.patientMedication.id IN (SELECT pm.id FROM PatientMedication pm WHERE pm.patient.id = :pid)")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
-
-                    // Xóa các record trong patient_medications liên quan đến patient
                     entityManager.createQuery("DELETE FROM PatientMedication pm WHERE pm.patient.id = :pid")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
-
-                    // Xóa các record trong exercise_logs liên quan đến patient
                     entityManager.createQuery("DELETE FROM ExerciseLog el WHERE el.patient.id = :pid")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
-
-                    // Xóa các record trong water_logs liên quan đến patient
                     entityManager.createQuery("DELETE FROM WaterLog wl WHERE wl.patient.id = :pid")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
-
-                    // Xóa các record trong notifications liên quan đến patient
                     entityManager.createQuery("DELETE FROM Notification n WHERE n.patient.id = :pid")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
-
-                    // Xóa các record trong alerts liên quan đến patient
                     entityManager.createQuery("DELETE FROM Alert a WHERE a.patient.id = :pid")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
-
-                    // Xóa sạch các chỉ số sức khỏe liên quan trước để tránh lỗi ràng buộc khóa ngoại
                     entityManager.createQuery("DELETE FROM DailyHealthLog hl WHERE hl.patient.id = :pid")
-                            .setParameter("pid", patient.getId())
+                            .setParameter("pid", p.getId())
                             .executeUpdate();
 
-                    patientRepository.delete(patient);
+                    patientRepository.delete(p);
                 });
-                accountRepository.delete(account);
+                accountRepository.delete(acc);
             });
 
-            // Xóa hospital test và account liên quan
-            hospitalRepository.findByHospitalCode("HOSP_BM_TEST").ifPresent(hospital -> {
+            hospitalRepository.findByHospitalCode("HOSP_BM_TEST_E2E").ifPresent(hospital -> {
                 hospitalRepository.delete(hospital);
             });
-            accountRepository.findByEmail("hospital_admin_test@example.com").ifPresent(account -> {
-                accountRepository.delete(account);
-            });
+
+            entityManager.flush();
             return null;
         });
     }
 
     @Test
     void testPatientFillsAndSavesDailyHealthLog() {
-        // Bước 4: Bệnh nhân di chuyển trực tiếp tới trang ghi nhận chỉ số sức khỏe
-        page.navigate("http://localhost:" + port + "/patient/log");
+        System.out.println("========== [TEST START] testPatientFillsAndSavesDailyHealthLog ==========");
+        try {
+            // Bước 1: Điều hướng tới trang đăng nhập với timeout 15 giây
+            String loginUrl = "http://localhost:" + port + "/auth/login";
+            System.out.println("Step 1: Navigating to " + loginUrl + " (timeout=15s)...");
+            page.navigate(loginUrl, new Page.NavigateOptions().setTimeout(15000));
+            System.out.println("-> Navigation to login successful.");
 
-        // Bước 5: Click chọn mốc đo thời điểm "Buổi sáng" (giới hạn trong panelBpMilestone để tránh trùng với panel đường huyết)
-        page.locator("#panelBpMilestone .ms-card:has-text('Buổi sáng')").click();
+            // Bước 2: Điền thông tin đăng nhập của bệnh nhân
+            System.out.println("Step 2: Filling username and password...");
+            page.fill("#username", TEST_EMAIL);
+            page.fill("#password", TEST_PASSWORD);
+            System.out.println("-> Login credentials filled.");
 
-        // Đợi panel nhập chỉ số huyết áp của mốc đo hiển thị
-        page.locator("#systolicBp").waitFor();
+            // Bước 3: Click nút đăng nhập và chờ chuyển hướng
+            System.out.println("Step 3: Clicking submit button and waiting for navigation...");
+            page.click("form button[type='submit']");
+            page.waitForURL("**/patient/**", new Page.WaitForURLOptions().setTimeout(15000));
+            System.out.println("-> Redirection successful. Current URL: " + page.url());
 
-        // Bước 6: Điền đầy đủ các chỉ số sức khỏe yêu cầu (Huyết áp tâm thu, Tâm trương, Nhịp tim, Ghi chú)
-        page.fill("#systolicBp", "125");
-        page.fill("#diastolicBp", "85");
-        page.fill("#heartRate", "78");
-        page.fill("#notesBp", "Đo huyết áp sau khi ngủ dậy, cảm thấy bình thường.");
+            // Bước 4: Điều hướng trực tiếp tới trang ghi nhận chỉ số sức khỏe
+            String logUrl = "http://localhost:" + port + "/patient/log";
+            System.out.println("Step 4: Navigating to " + logUrl + " (timeout=15s)...");
+            page.navigate(logUrl, new Page.NavigateOptions().setTimeout(15000));
+            System.out.println("-> Navigation to log successful.");
 
-        // Bước 7: Nhấn nút lưu chỉ số huyết áp
-        page.click("#panelBpInput button.btn-next");
+            // Bước 5: Chọn mốc đo thời điểm "Buổi sáng" trên giao diện wizard
+            System.out.println("Step 5: Clicking Morning milestone card...");
+            page.click("#panelBpMilestone .ms-card:has-text('Buổi sáng')");
 
-        // Bước 8: Chờ hệ thống lưu thành công và chuyển hướng về dashboard kèm param thành công
-        page.waitForURL("**/patient/log?saveSuccess=true");
+            // Đợi panel nhập chỉ số hiển thị
+            System.out.println("-> Waiting for systolicBp input field to be visible...");
+            page.locator("#systolicBp").waitFor();
 
-        // Bước 9: Xác nhận thông báo thành công hiển thị trên giao diện UI của trang dashboard
-        Locator successAlert = page.locator("#successAlert");
-        assertTrue(successAlert.isVisible(), "Thông báo thành công trên giao diện phải hiển thị!");
-        assertTrue(successAlert.textContent().contains("Chỉ số sức khỏe của bạn đã được ghi nhận vào nhật ký."), "Nội dung thông báo thành công không đúng!");
+            // Bước 6: Điền các thông số huyết áp, nhịp tim và ghi chú
+            System.out.println("Step 6: Filling health indicator values...");
+            page.fill("#systolicBp", "125");
+            page.fill("#diastolicBp", "85");
+            page.fill("#heartRate", "78");
+            page.fill("#notesBp", "Đo huyết áp sau khi ngủ dậy, cảm thấy bình thường.");
 
-        // Bước 10: Xác nhận dữ liệu được lưu chính xác trong Cơ sở dữ liệu (DB) thông qua Repository
-        accountRepository.findByEmail(TEST_EMAIL).ifPresent(account -> {
-            patientRepository.findByAccountId(account.getId()).ifPresent(patient -> {
-                List<DailyHealthLog> logs = healthLogRepository.findByPatientIdOrderByLogTimeDesc(patient.getId());
-                assertFalse(logs.isEmpty(), "Dữ liệu nhật ký sức khỏe không được lưu vào DB!");
-                
-                DailyHealthLog latestLog = logs.get(0);
-                assertEquals(125, latestLog.getSystolicBp(), "Chỉ số Huyết áp Tâm thu lưu trong DB bị sai!");
-                assertEquals(85, latestLog.getDiastolicBp(), "Chỉ số Huyết áp Tâm trương lưu trong DB bị sai!");
-                assertEquals(78, latestLog.getHeartRate(), "Chỉ số Nhịp tim lưu trong DB bị sai!");
-                assertEquals("Đo huyết áp sau khi ngủ dậy, cảm thấy bình thường.", latestLog.getPatientNotes(), "Nội dung Ghi chú lưu trong DB bị sai!");
-                assertEquals("MANUAL", latestLog.getInputMethod(), "Phương thức nhập không phải MANUAL!");
-                assertEquals("MORNING", latestLog.getLogType(), "Mốc thời điểm đo lưu trong DB không phải MORNING!");
+            // Bước 7: Nhấn nút lưu chỉ số huyết áp
+            System.out.println("Step 7: Clicking Save button...");
+            page.click("button:has-text('Lưu Huyết áp')");
+
+            // Bước 8: Chờ chuyển hướng thành công
+            System.out.println("Step 8: Waiting for saveSuccess URL parameter...");
+            page.waitForURL("**/patient/log?saveSuccess=true", new Page.WaitForURLOptions().setTimeout(15000));
+            System.out.println("-> Form save redirect successful. URL: " + page.url());
+
+            // Bước 9: Xác nhận thông báo thành công hiển thị trên UI
+            System.out.println("Step 9: Verifying success alert on UI...");
+            Locator successAlert = page.locator(".alert-success");
+            assertTrue(successAlert.isVisible(), "Thông báo thành công trên giao diện phải hiển thị!");
+            assertTrue(successAlert.textContent().contains("Chỉ số sức khỏe đã được ghi nhận thành công!"), "Nội dung thông báo thành công không đúng!");
+            System.out.println("-> UI assertion passed.");
+
+            // Bước 10: Xác nhận dữ liệu được ghi nhận chính xác trong DB
+            System.out.println("Step 10: Verifying data in database...");
+            accountRepository.findByEmail(TEST_EMAIL).ifPresent(acc -> {
+                patientRepository.findByAccountId(acc.getId()).ifPresent(p -> {
+                    List<DailyHealthLog> logs = healthLogRepository.findByPatientIdOrderByLogTimeDesc(p.getId());
+                    assertFalse(logs.isEmpty(), "Nhật ký sức khỏe chưa được lưu vào database!");
+
+                    DailyHealthLog latestLog = logs.get(0);
+                    assertEquals(125, latestLog.getSystolicBp(), "Chỉ số Huyết áp Tâm thu lưu trong DB không khớp!");
+                    assertEquals(85, latestLog.getDiastolicBp(), "Chỉ số Huyết áp Tâm trương lưu trong DB không khớp!");
+                    assertEquals(78, latestLog.getHeartRate(), "Chỉ số Nhịp tim lưu trong DB không khớp!");
+                    assertEquals("Đo huyết áp sau khi ngủ dậy, cảm thấy bình thường.", latestLog.getPatientNotes(), "Nội dung Ghi chú lưu trong DB không khớp!");
+                    assertEquals("MANUAL", latestLog.getInputMethod(), "Phương thức nhập không phải MANUAL!");
+                    assertEquals("MORNING", latestLog.getLogType(), "Mốc thời điểm đo lưu trong DB không phải MORNING!");
+                });
             });
-        });
+            System.out.println("========== [TEST SUCCESS] All assertions passed! ==========");
+        } catch (Throwable t) {
+            System.err.println("========== [TEST FAILED] Exception caught inside test method: ==========");
+            t.printStackTrace();
+            throw t;
+        }
     }
 }
