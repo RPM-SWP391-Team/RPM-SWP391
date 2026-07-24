@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring;
+package com.rpm.remotepatientmonitoring.patient;
 
 import com.microsoft.playwright.*;
 import com.rpm.remotepatientmonitoring.model.*;
