@@ -2,44 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <th:block th:replace="~{patient/fragments :: header-links('Cẩm nang y tế')}"></th:block>
-    <style>
-        body { background: #f5f7fb; }
-        .handbook-header {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            padding: 24px 0 20px;
-            color: #fff;
-        }
-        .article-card {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 4px solid #3b82f6 !important;
-        }
-        .article-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        .article-card.glucose-card {
-            border-left-color: #0d9488 !important;
-        }
-        .sidebar-nav .nav-link {
-            color: #4b5563;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 12px 16px;
-            transition: all 0.2s;
-        }
-        .sidebar-nav .nav-link.active {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-        }
-        .sidebar-nav .nav-link#pills-glucose-tab.active {
-            background-color: #f0fdf4;
-            color: #0d9488;
-        }
-    </style>
 </head>
 <body>
 
