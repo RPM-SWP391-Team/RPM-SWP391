@@ -103,7 +103,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-sm table-borderless align-middle mb-0" style="font-size: 0.85rem;">
+                        <table class="table table-sm table-borderless align-middle mb-0 fs-085">
                             <thead>
                                 <tr class="text-muted border-bottom" style="font-size: 0.78rem;">
                                     <th class="pb-2">Thời điểm</th>
@@ -191,7 +191,7 @@
                             <span class="small text-muted">Hôm nay đã uống: <strong class="text-success" th:text="${takenMeds} + '/' + ${totalMeds}">0/0</strong> loại thuốc</span>
                             <span class="badge bg-success-subtle text-success" th:text="${medProgress} + '%'">0%</span>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress h-12px">
                             <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
                                  th:style="'width: ' + ${medProgress} + '%'" 
                                  th:aria-valuenow="${medProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -212,7 +212,7 @@
                             <span class="small text-muted">Hôm nay đã uống: <strong class="text-primary" th:text="${currentWater} + '/' + ${targetWater} + ' ml'">0/2000 ml</strong></span>
                             <span class="badge bg-primary-subtle text-primary" th:text="${waterProgress} + '%'">0%</span>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress h-12px">
                             <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" 
                                  th:style="'width: ' + ${waterProgress} + '%'" 
                                  th:aria-valuenow="${waterProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -233,7 +233,7 @@
                             <span class="small text-muted">Hôm nay đã tập: <strong class="text-success" th:text="${totalExerciseMinutes} + '/' + ${targetExerciseMinutes} + ' phút'">0/30 phút</strong></span>
                             <span class="badge bg-success-subtle text-success" th:text="${exerciseProgress} + '%'">0%</span>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress h-12px">
                             <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
                                  th:style="'width: ' + ${exerciseProgress} + '%'" 
                                  th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -331,7 +331,7 @@
                                     <small class="text-muted fw-semibold">Lượng Calo</small>
                                     <span class="badge bg-danger-subtle text-danger" th:text="(${totalCalories != null} ? ${totalCalories} : 'null') + '/' + (${targetCalories != null} ? ${targetCalories} + ' kcal' : 'null')">0/null kcal</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-danger" role="progressbar" 
                                          th:style="'width: ' + ${caloriesPercent} + '%'" 
                                          th:aria-valuenow="${caloriesPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -345,7 +345,7 @@
                                     <small class="text-muted fw-semibold">Glucid (Carbs)</small>
                                     <span class="badge bg-warning-subtle text-warning" th:text="(${totalCarbs != null} ? ${totalCarbs} : 'null') + '/' + (${targetCarbs != null} ? ${targetCarbs} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-warning" role="progressbar" 
                                          th:style="'width: ' + ${carbsPercent} + '%'" 
                                          th:aria-valuenow="${carbsPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -359,7 +359,7 @@
                                     <small class="text-muted fw-semibold">Lipid (Chất béo)</small>
                                     <span class="badge bg-info-subtle text-info" th:text="(${totalFat != null} ? ${totalFat} : 'null') + '/' + (${targetFat != null} ? ${targetFat} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-info" role="progressbar" 
                                          th:style="'width: ' + ${fatPercent} + '%'" 
                                          th:aria-valuenow="${fatPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -373,7 +373,7 @@
                                     <small class="text-muted fw-semibold">Protein (Đạm)</small>
                                     <span class="badge bg-secondary-subtle text-secondary" th:text="(${totalProtein != null} ? ${totalProtein} : 'null') + '/' + (${targetProtein != null} ? ${targetProtein} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-secondary" role="progressbar" 
                                          th:style="'width: ' + ${proteinPercent} + '%'" 
                                          th:aria-valuenow="${proteinPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -387,7 +387,7 @@
                                     <small class="text-muted fw-semibold">Lượng Muối</small>
                                     <span class="badge bg-primary-subtle text-primary" th:text="(${totalSalt != null} ? ${totalSalt} : 'null') + '/' + (${targetSalt != null} ? ${targetSalt} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-primary" role="progressbar" 
                                          th:style="'width: ' + ${saltPercent} + '%'" 
                                          th:aria-valuenow="${saltPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -401,7 +401,7 @@
                                     <small class="text-muted fw-semibold">Chất Xơ</small>
                                     <span class="badge bg-success-subtle text-success" th:text="(${totalFiber != null} ? ${totalFiber} : 'null') + '/' + (${targetFiber != null} ? ${targetFiber} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-success" role="progressbar" 
                                          th:style="'width: ' + ${fiberPercent} + '%'" 
                                          th:aria-valuenow="${fiberPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -415,7 +415,7 @@
                                     <small class="text-muted fw-semibold">Lượng Nước</small>
                                     <span class="badge bg-primary-subtle text-primary" th:text="(${currentWater != null} ? ${currentWater} : 'null') + '/' + (${targetWater != null} ? ${targetWater} + ' ml' : 'null')">0/null ml</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-info" role="progressbar" 
                                          th:style="'width: ' + ${waterProgress} + '%'" 
                                          th:aria-valuenow="${waterProgress}" aria-valuemin="0" aria-valuemax="100"></div>

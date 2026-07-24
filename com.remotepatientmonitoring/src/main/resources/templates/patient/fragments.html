@@ -47,7 +47,7 @@
                 <!-- Profile Dropdown -->
                 <div class="dropdown">
                     <div class="d-flex align-items-center text-white" 
-                         id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                         id="userProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" class="cursor-pointer">
                         <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);">
                         <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-regular fa-user-circle fa-2x me-2"></i>
                         <div class="text-start me-2">
@@ -144,11 +144,11 @@
                         
                         <!-- Star rating selector -->
                         <div class="d-flex justify-content-center gap-2 mb-3" id="appRatingStars">
-                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="1" style="color: #ffc107; cursor: pointer;"></i>
-                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="2" style="color: #ffc107; cursor: pointer;"></i>
-                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="3" style="color: #ffc107; cursor: pointer;"></i>
-                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="4" style="color: #ffc107; cursor: pointer;"></i>
-                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="5" style="color: #ffc107; cursor: pointer;"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="1" class="text-star-yellow"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="2" class="text-star-yellow"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="3" class="text-star-yellow"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="4" class="text-star-yellow"></i>
+                            <i class="fa-regular fa-star fa-2x cursor-pointer star-btn" data-value="5" class="text-star-yellow"></i>
                         </div>
                         <input type="hidden" id="appRatingValue" value="0">
                         

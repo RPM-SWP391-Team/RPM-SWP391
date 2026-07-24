@@ -178,7 +178,7 @@
                     <p class="text-muted small mb-3">Tỷ lệ tuân thủ uống thuốc hàng ngày (Xuất sắc: >= 80%) và uống nước đạt chỉ tiêu.</p>
                     
                     <!-- Chú giải Legend -->
-                    <div class="d-flex flex-wrap gap-3 mb-4" style="font-size: 11px;">
+                    <div class="d-flex flex-wrap gap-3 mb-4 fs-11">
                         <div class="d-flex align-items-center gap-1">
                             <span style="display: inline-block; width: 10px; height: 10px; background-color: #198754; border-radius: 2px;"></span>
                             <span>Thuốc (Đạt >= 80%)</span>
@@ -268,7 +268,7 @@
                             <div class="d-flex flex-column gap-3">
                                 <!-- Medication status -->
                                 <div>
-                                    <small class="text-muted d-block mb-1 fw-semibold" style="font-size: 11px;">
+                                    <small class="text-muted d-block mb-1 fw-semibold fs-11">
                                         <i class="fa-solid fa-pills me-1 text-success"></i>Lịch uống thuốc:
                                     </small>
                                     <div class="d-flex flex-wrap gap-2">
@@ -278,7 +278,7 @@
                                             <i th:class="${log.isTaken} ? 'fa-solid fa-circle-check text-success' : 'fa-solid fa-circle-xmark text-danger'"></i>
                                             <div class="flex-grow-1">
                                                 <div class="fw-bold text-dark" th:text="${log.medicineName}">Tên thuốc</div>
-                                                <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                                <small class="text-muted d-block mt-1 fs-11">
                                                     <i class="fa-regular fa-clock me-1"></i>Giờ uống: <span th:text="${log.scheduledTime}">08:00</span>
                                                 </small>
                                                 <small th:if="${log.isTaken and log.takenAt != null}" class="text-success d-block mt-1" style="font-size: 10px;">
@@ -295,7 +295,7 @@
                                 
                                 <!-- Water status -->
                                 <div>
-                                    <small class="text-muted d-block mb-1 fw-semibold" style="font-size: 11px;">
+                                    <small class="text-muted d-block mb-1 fw-semibold fs-11">
                                         <i class="fa-solid fa-glass-water me-1 text-primary"></i>Lượng nước uống:
                                     </small>
                                     <div class="d-flex align-items-center gap-2">
@@ -304,7 +304,7 @@
                                             <i class="fa-solid fa-droplet text-primary"></i>
                                             <div>
                                                 <span class="fw-bold" th:text="${entry.value['waterAmount'] != null ? entry.value['waterAmount'] : 0} + '/' + ${entry.value['waterTarget'] != null ? entry.value['waterTarget'] : 2000} + ' ml'">1500/2200 ml</span>
-                                                <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                                <small class="text-muted d-block mt-1 fs-11">
                                                     Đạt: <span th:text="${entry.value['waterPercent'] != null ? entry.value['waterPercent'] : 0}">0</span>% mục tiêu
                                                 </small>
                                             </div>
@@ -328,7 +328,7 @@
     <!-- ==================== MODAL: THÊM THUỐC MỚI ==================== -->
     <div class="modal fade" id="addMedicationModal" tabindex="-1" aria-labelledby="addMedicationLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="addMedicationLabel">
                         <i class="fa-solid fa-plus-circle me-2"></i>Thêm Thuốc Mới
@@ -368,7 +368,7 @@
     <!-- ==================== MODAL: CHỈNH SỬA THUỐC ==================== -->
     <div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="editMedicationLabel">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Thuốc
@@ -409,7 +409,7 @@
     <!-- ==================== MODAL: THÊM LỊCH SỬ UỐNG NƯỚC (DÀNH CHO NGÀY KHÁC) ==================== -->
     <div class="modal fade" id="addWaterHistoryModal" tabindex="-1" aria-labelledby="addWaterHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="addWaterHistoryLabel">
                         <i class="fa-solid fa-plus-circle me-2"></i>Nhập Nước Ngày Khác
@@ -439,7 +439,7 @@
     <!-- ==================== MODAL: CHỈNH SỬA LỊCH SỬ UỐNG NƯỚC ==================== -->
     <div class="modal fade" id="editWaterHistoryModal" tabindex="-1" aria-labelledby="editWaterHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="editWaterHistoryLabel">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Sử Uống Nước
@@ -470,7 +470,7 @@
     <!-- ==================== MODAL: NHẬP THUỐC NGÀY KHÁC ==================== -->
     <div class="modal fade" id="addMedHistoryModal" tabindex="-1" aria-labelledby="addMedHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="addMedHistoryLabel">
                         <i class="fa-solid fa-plus-circle me-2"></i>Nhập Thuốc Ngày Khác
@@ -518,7 +518,7 @@
     <!-- ==================== MODAL: CHỈNH SỬA LỊCH SỬ UỐNG THUỐC ==================== -->
     <div class="modal fade" id="editMedHistoryModal" tabindex="-1" aria-labelledby="editMedHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="editMedHistoryLabel">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Sử Uống Thuốc

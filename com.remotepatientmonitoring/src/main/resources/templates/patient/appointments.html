@@ -410,7 +410,7 @@
                         <div class="d-flex align-items-center">
                             <i class="fa-solid fa-clock-rotate-left text-primary fa-xl me-2"></i>
                             <h4 class="mb-0 fw-bold me-3">Nhật Ký Nhập Liệu Gần Đây</h4>
-                            <a href="/patient/log" class="btn btn-primary btn-sm rounded-pill px-3 animate-hover" style="font-size: 0.8rem;">
+                            <a href="/patient/log" class="btn btn-primary btn-sm rounded-pill px-3 animate-hover fs-08">
                                 <i class="fa-solid fa-plus me-1"></i>Nhập chỉ số
                             </a>
                         </div>
@@ -501,7 +501,7 @@
                                                 <span class="badge bg-light text-dark border" th:text="${log.inputMethod}">MANUAL</span>
                                             </td>
                                             <td class="text-center">
-                                                <div th:if="${log.logDate.equals(T(java.time.LocalDate).now())}" class="d-flex gap-2 justify-content-center" style="cursor: pointer;">
+                                                <div th:if="${log.logDate.equals(T(java.time.LocalDate).now())}" class="d-flex gap-2 justify-content-center cursor-pointer">
                                                     <a th:href="'/patient/log?id=' + ${log.id}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Sửa"><i class="fa-solid fa-pen"></i></a>
                                                     <button class="btn btn-sm btn-outline-danger py-0 px-2" th:data-id="${log.id}" onclick="deleteHealthLog(this.getAttribute('data-id'))" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                                 </div>
@@ -534,14 +534,14 @@
                                     <h6 class="fw-bold mb-2 text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                                     <div class="row g-2 mb-2 text-center bg-light p-2 rounded mx-0">
                                         <div class="col-6">
-                                            <small class="text-muted d-block" style="font-size:0.72rem;">Huyết áp</small>
-                                            <strong class="fw-bold" style="font-size:0.88rem;"
+                                            <small class="text-muted d-block fs-072">Huyết áp</small>
+                                            <strong class="fw-bold fs-088"
                                                     th:classappend="${bpLevel == 'GREEN' ? 'text-success' : (bpLevel == 'YELLOW' ? 'text-yellow-dark' : (bpLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
                                                     th:text="${log.systolicBp + '/' + log.diastolicBp + ' mmHg'}">120/80 mmHg</strong>
                                         </div>
                                         <div class="col-6">
-                                            <small class="text-muted d-block" style="font-size:0.72rem;">Nhịp tim</small>
-                                            <strong style="font-size:0.88rem;" th:text="${log.heartRate != null ? log.heartRate + ' bpm' : '-'}">75 bpm</strong>
+                                            <small class="text-muted d-block fs-072">Nhịp tim</small>
+                                            <strong class="fs-088" th:text="${log.heartRate != null ? log.heartRate + ' bpm' : '-'}">75 bpm</strong>
                                         </div>
                                     </div>
                                     <p class="mb-0 small text-muted" th:text="'Ghi chú: ' + ${log.patientNotes != null ? log.patientNotes : 'Không có'}"></p>
@@ -610,7 +610,7 @@
                                                 <span class="badge bg-light text-dark border" th:text="${log.inputMethod}">MANUAL</span>
                                             </td>
                                             <td class="text-center">
-                                                <div th:if="${log.logDate.equals(T(java.time.LocalDate).now())}" class="d-flex gap-2 justify-content-center" style="cursor: pointer;">
+                                                <div th:if="${log.logDate.equals(T(java.time.LocalDate).now())}" class="d-flex gap-2 justify-content-center cursor-pointer">
                                                     <a th:href="'/patient/log?id=' + ${log.id}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Sửa"><i class="fa-solid fa-pen"></i></a>
                                                     <button class="btn btn-sm btn-outline-danger py-0 px-2" th:data-id="${log.id}" onclick="deleteHealthLog(this.getAttribute('data-id'))" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                                 </div>
@@ -641,8 +641,8 @@
                                     </div>
                                     <h6 class="fw-bold mb-2 text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                                     <div class="bg-light p-2 rounded text-center mb-2">
-                                        <small class="text-muted d-block" style="font-size:0.72rem;">Đường huyết</small>
-                                        <strong class="fw-bold" style="font-size:0.88rem;"
+                                        <small class="text-muted d-block fs-072">Đường huyết</small>
+                                        <strong class="fw-bold fs-088"
                                                 th:classappend="${glLevel == 'GREEN' ? 'text-success' : (glLevel == 'YELLOW' ? 'text-yellow-dark' : (glLevel == 'ORANGE' ? 'text-orange' : 'text-danger'))}"
                                                 th:text="${log.glucoseLevel + ' mmol/L'}">6.5 mmol/L</strong>
                                     </div>
