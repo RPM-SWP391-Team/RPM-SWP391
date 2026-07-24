@@ -6,7 +6,7 @@
 
     <div class="container my-4">
         <!-- Success Alert for Saving Health Logs -->
-        <div id="successAlert" role="alert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-none custom-style-52">
+        <div th:if="${param.saveSuccess}" id="successAlert" role="alert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 custom-style-52">
             <div class="d-flex align-items-center text-dark">
                 <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
                 <div>
