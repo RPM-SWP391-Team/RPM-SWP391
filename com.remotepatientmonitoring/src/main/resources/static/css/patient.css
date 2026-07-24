@@ -681,3 +681,19 @@ body {
     justify-content: center;
     margin: 0 auto 16px;
 }
+
+/* Common Utility Classes for Clean HTML Templates */
+.cursor-pointer { cursor: pointer !important; }
+.rounded-16 { border-radius: 16px !important; }
+.text-amber-dark { color: #b45309 !important; }
+.text-star-yellow { color: #ffc107 !important; cursor: pointer; }
+.fs-11 { font-size: 11px !important; }
+.fs-08 { font-size: 0.8rem !important; }
+.fs-085 { font-size: 0.85rem !important; }
+.fs-088 { font-size: 0.88rem !important; }
+.fs-072 { font-size: 0.72rem !important; }
+.pb-120 { padding-bottom: 120px !important; }
+.w-100px { width: 100px !important; }
+.h-8px { height: 8px !important; border-radius: 4px !important; }
+.h-10px { height: 10px !important; border-radius: 5px !important; }
+.h-12px { height: 12px !important; border-radius: 6px !important; }

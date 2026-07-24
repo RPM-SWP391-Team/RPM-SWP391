@@ -26,7 +26,7 @@
                             <span class="small fw-semibold text-muted">Lượng Calo tiêu thụ</span>
                             <span class="badge bg-danger-subtle text-danger" th:text="${totalCalories} + ' / ' + ${targetCalories} + ' kcal'">0 / 1400 kcal</span>
                         </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress h-10px">
                             <div class="progress-bar bg-danger" role="progressbar" 
                                  th:style="'width: ' + ${caloriesPercent} + '%'" 
                                  th:aria-valuenow="${caloriesPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -39,7 +39,7 @@
                             <span class="small fw-semibold text-muted">Lượng Muối nạp vào</span>
                             <span class="badge bg-primary-subtle text-primary" th:text="${totalSalt} + ' / ' + ${targetSalt} + ' g'">0 / 2.5 g</span>
                         </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress h-10px">
                             <div class="progress-bar bg-primary" role="progressbar" 
                                  th:style="'width: ' + ${saltPercent} + '%'" 
                                  th:aria-valuenow="${saltPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -52,7 +52,7 @@
                             <span class="small fw-semibold text-muted">Lượng Chất xơ tiêu thụ</span>
                             <span class="badge bg-success-subtle text-success" th:text="${totalFiber} + ' / ' + ${targetFiber} + ' g'">0 / 20 g</span>
                         </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress h-10px">
                             <div class="progress-bar bg-success" role="progressbar" 
                                  th:style="'width: ' + ${fiberPercent} + '%'" 
                                  th:aria-valuenow="${fiberPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -65,7 +65,7 @@
                             <span class="small fw-semibold text-muted">Đường bột (Carbs)</span>
                             <span class="badge bg-info-subtle text-info" th:text="${totalCarbs} + ' / ' + ${targetCarbs} + ' g'">0 / 150 g</span>
                         </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress h-10px">
                             <div class="progress-bar bg-info" role="progressbar" 
                                  th:style="'width: ' + ${carbsPercent} + '%'" 
                                  th:aria-valuenow="${carbsPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -78,7 +78,7 @@
                             <span class="small fw-semibold text-muted">Chất đạm (Protein)</span>
                             <span class="badge" style="color: #b45309 !important; background-color: #fef3c7 !important;" th:text="${totalProtein} + ' / ' + ${targetProtein} + ' g'">0 / 60 g</span>
                         </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress h-10px">
                             <div class="progress-bar bg-warning" role="progressbar" 
                                  th:style="'width: ' + ${proteinPercent} + '%'" 
                                  th:aria-valuenow="${proteinPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -91,7 +91,7 @@
                             <span class="small fw-semibold text-muted">Chất béo (Lipid)</span>
                             <span class="badge bg-secondary-subtle text-secondary" th:text="${totalFat} + ' / ' + ${targetFat} + ' g'">0 / 50 g</span>
                         </div>
-                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress h-10px">
                             <div class="progress-bar bg-secondary" role="progressbar" 
                                  th:style="'width: ' + ${fatPercent} + '%'" 
                                  th:aria-valuenow="${fatPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -149,12 +149,12 @@
                                             <td class="text-center fw-semibold text-muted"><span th:text="${meal.quantityG}">100</span> g</td>
                                             <td class="text-center fw-semibold text-danger"><span th:text="${meal.calories}">130</span> kcal</td>
                                             <td class="text-center text-info fw-semibold"><span th:text="${meal.glucidG != null ? meal.glucidG : 0.0}">28.0</span> g</td>
-                                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
+                                            <td class="text-center text-warning-dark fw-semibold text-amber-dark"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -193,12 +193,12 @@
                                             <td class="text-center fw-semibold text-muted"><span th:text="${meal.quantityG}">100</span> g</td>
                                             <td class="text-center fw-semibold text-danger"><span th:text="${meal.calories}">130</span> kcal</td>
                                             <td class="text-center text-info fw-semibold"><span th:text="${meal.glucidG != null ? meal.glucidG : 0.0}">28.0</span> g</td>
-                                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
+                                            <td class="text-center text-warning-dark fw-semibold text-amber-dark"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -237,12 +237,12 @@
                                             <td class="text-center fw-semibold text-muted"><span th:text="${meal.quantityG}">100</span> g</td>
                                             <td class="text-center fw-semibold text-danger"><span th:text="${meal.calories}">130</span> kcal</td>
                                             <td class="text-center text-info fw-semibold"><span th:text="${meal.glucidG != null ? meal.glucidG : 0.0}">28.0</span> g</td>
-                                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
+                                            <td class="text-center text-warning-dark fw-semibold text-amber-dark"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -281,12 +281,12 @@
                                             <td class="text-center fw-semibold text-muted"><span th:text="${meal.quantityG}">100</span> g</td>
                                             <td class="text-center fw-semibold text-danger"><span th:text="${meal.calories}">130</span> kcal</td>
                                             <td class="text-center text-info fw-semibold"><span th:text="${meal.glucidG != null ? meal.glucidG : 0.0}">28.0</span> g</td>
-                                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
+                                            <td class="text-center text-warning-dark fw-semibold text-amber-dark"><span th:text="${meal.proteinG != null ? meal.proteinG : 0.0}">2.7</span> g</td>
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" style="cursor: pointer;" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" style="cursor: pointer;" title="Xóa"></i>
+                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
+                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -336,7 +336,7 @@
                             <td class="fw-bold text-dark food-name-cell" th:text="${food.foodName}">Cơm trắng</td>
                             <td class="text-center fw-semibold text-danger"><span th:text="${food.energyKcal}">130</span> kcal</td>
                             <td class="text-center text-info fw-semibold"><span th:text="${food.glucidG != null ? food.glucidG : 0.0}">28.0</span> g</td>
-                            <td class="text-center text-warning-dark fw-semibold" style="color: #b45309;"><span th:text="${food.proteinG != null ? food.proteinG : 0.0}">2.7</span> g</td>
+                            <td class="text-center text-warning-dark fw-semibold text-amber-dark"><span th:text="${food.proteinG != null ? food.proteinG : 0.0}">2.7</span> g</td>
                             <td class="text-center text-secondary fw-semibold"><span th:text="${food.lipidG != null ? food.lipidG : 0.0}">0.3</span> g</td>
                             <td class="text-center text-success fw-semibold"><span th:text="${food.cellulozaG != null ? food.cellulozaG : 0.0}">0.4</span> g</td>
                             <td class="text-center text-primary fw-semibold"><span th:text="${food.ashG != null ? food.ashG : 0.0}">0.1</span> g</td>
@@ -372,7 +372,7 @@
     <!-- ==================== MODAL: GHI NHẬN BỮA ĂN ==================== -->
     <div class="modal fade" id="addMealModal" tabindex="-1" aria-labelledby="addMealLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #ff9900, #ff5500); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="addMealLabel">
                         <i class="fa-solid fa-utensils me-2"></i>Ghi Nhận Bữa Ăn Mới

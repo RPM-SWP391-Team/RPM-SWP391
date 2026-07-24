@@ -61,7 +61,7 @@
                                     <span class="small fw-semibold text-muted">Thời gian tập luyện</span>
                                     <span class="badge bg-success-subtle text-success" id="todayProgressBadge" th:text="${totalMinutes} + ' / ' + ${targetMinutes} + ' phút'">0 / 30 phút</span>
                                 </div>
-                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                <div class="progress h-10px">
                                     <div class="progress-bar bg-success" id="todayProgressBar" role="progressbar" 
                                          th:style="'width: ' + ${exerciseProgress} + '%'" 
                                          th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -128,7 +128,7 @@
                             </h5>
                             
                             <div class="mb-3">
-                                <span class="badge bg-success-subtle text-success py-1 px-2 rounded-pill fw-semibold mb-2" style="font-size: 0.8rem;">
+                                <span class="badge bg-success-subtle text-success py-1 px-2 rounded-pill fw-semibold mb-2 fs-08">
                                     <i class="fa-solid fa-clipboard-list me-1"></i>Chỉ dẫn từ bác sĩ / cố vấn
                                 </span>
                                 <p class="text-muted small mb-0" style="white-space: pre-line; line-height: 1.5;" th:text="${exerciseRecommendation}">
@@ -243,7 +243,7 @@
                                    th:data-steps="${ex.stepsCount}"
                                    th:data-calories="${ex.caloriesBurned}"
                                    onclick="openEditModal(this)"
-                                   style="cursor: pointer;"></i>
+                                   class="cursor-pointer"></i>
                                 <i class="fa-solid fa-trash action-icon delete" 
                                    th:data-id="${ex.id}"
                                    onclick="deleteExercise(this)"
@@ -297,7 +297,7 @@
     <!-- ==================== MODAL: GHI NHẬN BÀI TẬP ==================== -->
     <div class="modal fade" id="addExerciseModal" tabindex="-1" aria-labelledby="addExerciseLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-content rounded-16 overflow-hidden">
                 <div class="modal-header" style="background: linear-gradient(135deg, #198754, #157347); border: none;">
                     <h5 class="modal-title text-white fw-bold" id="addExerciseModalTitle">
                         <i class="fa-solid fa-person-running me-2"></i>Ghi Nhận Bài Tập Mới
