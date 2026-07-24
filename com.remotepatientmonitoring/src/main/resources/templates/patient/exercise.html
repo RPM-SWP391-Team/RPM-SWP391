@@ -236,18 +236,16 @@
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-pen text-primary me-2 edit-btn" 
+                                <i 
                                    th:data-id="${ex.id}"
                                    th:data-type="${ex.exerciseType}"
                                    th:data-duration="${ex.durationMinutes}"
                                    th:data-steps="${ex.stepsCount}"
                                    th:data-calories="${ex.caloriesBurned}"
-                                   onclick="openEditModal(this)"
-                                   class="cursor-pointer"></i>
-                                <i class="fa-solid fa-trash action-icon delete" 
+                                   onclick="openEditModal(this)" class="fa-solid fa-pen text-primary me-2 edit-btn cursor-pointer"></i>
+                                <i 
                                    th:data-id="${ex.id}"
-                                   onclick="deleteExercise(this)"
-                                   class="custom-style-84"></i>
+                                   onclick="deleteExercise(this)" class="fa-solid fa-trash action-icon delete custom-style-84"></i>
                             </div>
                         </div>
                         <div th:if="${#lists.isEmpty(exercises)}" id="emptyListMessage" class="text-center text-muted py-5">

@@ -153,8 +153,8 @@
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
+                                                    <i th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" title="Sửa" class="fa-solid fa-pen action-icon edit text-primary cursor-pointer"></i>
+                                                    <i th:data-id="${meal.id}" onclick="deleteMeal(this)" title="Xóa" class="fa-solid fa-trash action-icon delete text-danger cursor-pointer"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -197,8 +197,8 @@
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
+                                                    <i th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" title="Sửa" class="fa-solid fa-pen action-icon edit text-primary cursor-pointer"></i>
+                                                    <i th:data-id="${meal.id}" onclick="deleteMeal(this)" title="Xóa" class="fa-solid fa-trash action-icon delete text-danger cursor-pointer"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -241,8 +241,8 @@
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
+                                                    <i th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" title="Sửa" class="fa-solid fa-pen action-icon edit text-primary cursor-pointer"></i>
+                                                    <i th:data-id="${meal.id}" onclick="deleteMeal(this)" title="Xóa" class="fa-solid fa-trash action-icon delete text-danger cursor-pointer"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -285,8 +285,8 @@
                                             <td class="text-center text-secondary fw-semibold"><span th:text="${meal.lipidG != null ? meal.lipidG : 0.0}">0.3</span> g</td>
                                             <td class="text-center">
                                                 <div class="d-flex gap-2 justify-content-center">
-                                                    <i class="fa-solid fa-pen action-icon edit text-primary" th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" class="cursor-pointer" title="Sửa"></i>
-                                                    <i class="fa-solid fa-trash action-icon delete text-danger" th:data-id="${meal.id}" onclick="deleteMeal(this)" class="cursor-pointer" title="Xóa"></i>
+                                                    <i th:data-id="${meal.id}" th:data-food-name="${meal.foodName}" th:data-quantity="${meal.quantityG}" onclick="openEditMeal(this)" title="Sửa" class="fa-solid fa-pen action-icon edit text-primary cursor-pointer"></i>
+                                                    <i th:data-id="${meal.id}" onclick="deleteMeal(this)" title="Xóa" class="fa-solid fa-trash action-icon delete text-danger cursor-pointer"></i>
                                                 </div>
                                             </td>
                                         </tr>
@@ -313,7 +313,7 @@
                 </div>
                 <div class="input-group custom-style-121">
                     <span class="input-group-text bg-light border-end-0 custom-style-122"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" id="foodSearchInput" class="form-control bg-light border-start-0" placeholder="Tìm kiếm món ăn, thực phẩm..." onkeyup="filterFoodDictionary()" class="custom-style-123">
+                    <input type="text" id="foodSearchInput" placeholder="Tìm kiếm món ăn, thực phẩm..." onkeyup="filterFoodDictionary()" class="form-control bg-light border-start-0 custom-style-123">
                 </div>
             </div>
             <div class="table-responsive">

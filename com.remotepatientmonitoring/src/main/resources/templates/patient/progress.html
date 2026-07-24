@@ -38,9 +38,8 @@
             <!-- Left Column: Biography & Medical Info (Non-editable) -->
             <div class="col-lg-5">
                 <div class="card card-custom p-4 text-center mb-4 custom-style-127">
-                    <div class="profile-avatar-container position-relative overflow-hidden cursor-pointer" 
-                         class="custom-style-128"
-                         onclick="triggerAvatarUpload()">
+                    <div
+                         onclick="triggerAvatarUpload()" class="profile-avatar-container position-relative overflow-hidden cursor-pointer custom-style-128">
                         <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="w-100 h-100 custom-style-129">
                         <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-solid fa-user"></i>
                         <div class="avatar-hover-overlay position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-50 text-white py-1 custom-style-130">

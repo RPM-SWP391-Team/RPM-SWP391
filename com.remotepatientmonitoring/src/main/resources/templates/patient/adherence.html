@@ -238,9 +238,9 @@
                             <div class="d-flex align-items-center gap-1">
                                 <label for="searchDateInput" class="small text-muted fw-semibold custom-style-18">Chọn ngày:</label>
                                 <div class="input-group input-group-sm custom-style-19">
-                                    <input type="date" id="searchDateInput" class="form-control rounded-start-pill px-2 border-success text-center" 
-                                           th:value="${searchDate}" class="custom-style-20">
-                                    <button class="btn btn-success rounded-end-pill px-2" type="button" onclick="performDateSearch()" class="custom-style-21">
+                                    <input type="date" id="searchDateInput" 
+                                           th:value="${searchDate}" class="form-control rounded-start-pill px-2 border-success text-center custom-style-20">
+                                    <button type="button" onclick="performDateSearch()" class="btn btn-success rounded-end-pill px-2 custom-style-21">
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </button>
                                 </div>
@@ -272,9 +272,8 @@
                                         <i class="fa-solid fa-pills me-1 text-success"></i>Lịch uống thuốc:
                                     </small>
                                     <div class="d-flex flex-wrap gap-2">
-                                        <div th:each="log : ${entry.value['meds']}" class="badge border py-2 px-3 d-flex align-items-center gap-2 text-wrap text-start lh-sm fs-6"
-                                             th:classappend="${log.isTaken} ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger'"
-                                             class="custom-style-25">
+                                        <div th:each="log : ${entry.value['meds']}"
+                                             th:classappend="${log.isTaken} ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger'" class="badge border py-2 px-3 d-flex align-items-center gap-2 text-wrap text-start lh-sm fs-6 custom-style-25">
                                             <i th:class="${log.isTaken} ? 'fa-solid fa-circle-check text-success' : 'fa-solid fa-circle-xmark text-danger'"></i>
                                             <div class="flex-grow-1">
                                                 <div class="fw-bold text-dark" th:text="${log.medicineName}">Tên thuốc</div>
@@ -299,8 +298,7 @@
                                         <i class="fa-solid fa-glass-water me-1 text-primary"></i>Lượng nước uống:
                                     </small>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="badge border py-2 px-3 d-flex align-items-center gap-2 text-start fs-6 bg-primary-subtle text-primary border-primary"
-                                              class="custom-style-26">
+                                        <span class="badge border py-2 px-3 d-flex align-items-center gap-2 text-start fs-6 bg-primary-subtle text-primary border-primary custom-style-26">
                                             <i class="fa-solid fa-droplet text-primary"></i>
                                             <div>
                                                 <span class="fw-bold" th:text="${entry.value['waterAmount'] != null ? entry.value['waterAmount'] : 0} + '/' + ${entry.value['waterTarget'] != null ? entry.value['waterTarget'] : 2000} + ' ml'">1500/2200 ml</span>

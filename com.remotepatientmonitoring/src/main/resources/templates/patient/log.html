@@ -31,7 +31,7 @@
             <div class="col-lg-5 col-md-7">
 
                 <form th:action="@{/patient/log}" th:object="${healthLog}" method="POST" id="healthLogForm">
-                    <div class="alert alert-danger border-0 shadow-sm mb-3" th:if="${#fields.hasErrors('global')}" class="custom-style-103">
+                    <div th:if="${#fields.hasErrors('global')}" class="alert alert-danger border-0 shadow-sm mb-3 custom-style-103">
                         <div class="d-flex align-items-center text-danger">
                             <i class="fa-solid fa-triangle-exclamation me-2"></i>
                             <span th:errors="${healthLog}">Lỗi toàn cục</span>
@@ -45,14 +45,14 @@
                     <div class="wizard-panel active" id="panel0">
                         <p class="text-center text-muted small mb-3">Bạn muốn nhập chỉ số gì?</p>
                         <div class="row g-3" id="categoryRow">
-                            <div class="col-6" id="cat-bp-col" class="custom-style-104">
+                            <div id="cat-bp-col" class="col-6 custom-style-104">
                                 <div class="cat-card" onclick="goToBpMilestones()">
                                     <div class="cat-icon bp"><i class="fa-solid fa-heart-pulse"></i></div>
                                     <h6>Huyết áp</h6>
                                     <p>Tâm thu, tâm trương, nhịp tim</p>
                                 </div>
                             </div>
-                            <div class="col-6" id="cat-gl-col" class="custom-style-104">
+                            <div id="cat-gl-col" class="col-6 custom-style-104">
                                 <div class="cat-card" onclick="goToGlucoseMilestones()">
                                     <div class="cat-icon gl"><i class="fa-solid fa-droplet"></i></div>
                                     <h6>Đường huyết</h6>
@@ -221,7 +221,7 @@
                                 <span class="fw-bold fs-088">Ghi chú</span>
                                 <span class="text-muted small">(tùy chọn)</span>
                             </div>
-                            <textarea th:field="*{patientNotes}" class="form-control" rows="2" placeholder="Triệu chứng, cảm nhận..." class="custom-style-114" id="notesBp"></textarea>
+                            <textarea th:field="*{patientNotes}" rows="2" placeholder="Triệu chứng, cảm nhận..." id="notesBp" class="form-control custom-style-114"></textarea>
                         </div>
                         <button type="button" class="btn-next" onclick="submitBp()">
                             <i class="fa-solid fa-floppy-disk me-2"></i>Lưu Huyết áp
@@ -254,7 +254,7 @@
                                 <span class="fw-bold fs-088">Ghi chú</span>
                                 <span class="text-muted small">(tùy chọn)</span>
                             </div>
-                            <textarea class="form-control" rows="2" placeholder="Triệu chứng, cảm nhận..." class="custom-style-114" id="notesGl"></textarea>
+                            <textarea rows="2" placeholder="Triệu chứng, cảm nhận..." id="notesGl" class="form-control custom-style-114"></textarea>
                         </div>
                         <button type="button" class="btn-next" onclick="submitGl()">
                             <i class="fa-solid fa-floppy-disk me-2"></i>Lưu Đường huyết

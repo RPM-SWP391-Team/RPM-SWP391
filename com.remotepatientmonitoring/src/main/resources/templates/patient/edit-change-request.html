@@ -17,7 +17,7 @@
                 </div>
                 
                 <!-- Error Alert -->
-                <div th:if="${param.editError}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert" class="custom-style-45">
+                <div th:if="${param.editError}" role="alert" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm custom-style-45">
                     <i class="fa-solid fa-circle-exclamation me-2"></i>
                     <span th:if="${param.editError[0] == 'emptyReason'}">Mô tả lý do thay đổi không được để trống.</span>
                     <span th:if="${param.editError[0] == 'reasonTooLong'}">Mô tả lý do thay đổi không được vượt quá 500 ký tự.</span>
@@ -38,7 +38,7 @@
                             <!-- Request Type -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-list-check me-2 text-primary"></i>Loại yêu cầu thay đổi</label>
-                                <select name="requestType" class="form-select" required class="custom-style-48">
+                                <select name="requestType" required class="form-select custom-style-48">
                                     <option value="TREATMENT_PLAN" th:selected="${changeRequest.requestType == 'TREATMENT_PLAN'}">Thay đổi phác đồ điều trị (Treatment Plan)</option>
                                     <option value="SCHEDULE" th:selected="${changeRequest.requestType == 'SCHEDULE'}">Thay đổi lịch sinh hoạt (Schedule)</option>
                                     <option value="DIET" th:selected="${changeRequest.requestType == 'DIET'}">Thay đổi quy tắc dinh dưỡng (Diet)</option>
@@ -50,7 +50,7 @@
                             <!-- Reason text area -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-regular fa-comment-dots me-2 text-primary"></i>Mô tả lý do thay đổi</label>
-                                <textarea name="patientReason" class="form-control" rows="6" placeholder="Mô tả cụ thể lý do..." required maxlength="500" class="custom-style-49" th:text="${changeRequest.patientReason}"></textarea>
+                                <textarea name="patientReason" rows="6" placeholder="Mô tả cụ thể lý do..." required maxlength="500" th:text="${changeRequest.patientReason}" class="form-control custom-style-49"></textarea>
                                 <div class="form-text small text-muted">Tối đa 500 ký tự.</div>
                             </div>
 
