@@ -22,20 +22,20 @@
             <div class="col-lg-6 col-md-8">
 
                 <!-- Result Card -->
-                <div th:if="${isSubmitted}" class="card border-0 shadow-sm p-4 text-center mb-4 bg-white" style="border-radius: 16px;">
+                <div th:if="${isSubmitted}" class="card border-0 shadow-sm p-4 text-center mb-4 bg-white custom-style-65">
                     <div class="score-circle">
                         <span class="fs-2 fw-bold text-success" th:text="${score + '/' + questions.size()}">20/20</span>
-                        <small class="text-muted" style="font-size: 0.65rem; font-weight: bold; margin-top: -4px;">ĐÚNG</small>
+                        <small class="text-muted custom-style-133">ĐÚNG</small>
                     </div>
                     <h5 class="fw-bold text-dark mb-2" th:text="${score == questions.size() ? 'Xuất sắc!' : (score >= (questions.size() * 3 / 5) ? 'Kết quả rất tốt!' : 'Cần cố gắng thêm!')}">Kết quả</h5>
-                    <p class="text-secondary small mb-4 px-2" style="line-height: 1.5;"
+                    <p class="text-secondary small mb-4 px-2 custom-style-134"
                        th:text="${score == questions.size() ? 'Bạn nắm vững 100% kiến thức tự bảo vệ và chăm sóc sức khỏe.' : (score >= (questions.size() * 3 / 5) ? 'Bạn có kiến thức tương đối tốt. Hãy đọc thêm cẩm nang để xử trí hoàn hảo hơn.' : 'Bạn nên đọc lại cẩm nang hướng dẫn để có thể xử trí an toàn khi gặp sự cố.')}">
                     </p>
                     <div class="d-flex gap-2">
-                        <a href="/patient/quiz" class="btn btn-success flex-grow-1 py-2.5 rounded-pill fw-bold text-decoration-none shadow-sm" style="font-size: 0.9rem;">
+                        <a href="/patient/quiz" class="btn btn-success flex-grow-1 py-2.5 rounded-pill fw-bold text-decoration-none shadow-sm custom-style-74">
                             <i class="fa-solid fa-rotate-right me-1"></i> Làm lại bài trắc nghiệm
                         </a>
-                        <a href="/patient/dashboard" class="btn btn-outline-secondary px-4 py-2.5 rounded-pill fw-bold text-decoration-none" style="font-size: 0.9rem;">
+                        <a href="/patient/dashboard" class="btn btn-outline-secondary px-4 py-2.5 rounded-pill fw-bold text-decoration-none custom-style-74">
                             Về trang chủ
                         </a>
                     </div>
@@ -80,7 +80,7 @@
                                 <div th:if="${isSubmitted}">
                                     <div class="option-label"
                                          th:classappend="${oStat.index == q.correctOptionIndex ? 'option-correct' : (oStat.index == userAnswers.get(q.id) ? 'option-wrong' : '')}"
-                                         style="cursor: default;">
+                                         class="custom-style-135">
                                         <span class="option-badge" th:text="${oStat.index == 0 ? 'A' : (oStat.index == 1 ? 'B' : (oStat.index == 2 ? 'C' : 'D'))}">A</span>
                                         <span th:text="${opt.substring(3).trim()}">Đáp án</span>
                                         

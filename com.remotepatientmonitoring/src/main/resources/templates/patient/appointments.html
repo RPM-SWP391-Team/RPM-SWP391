@@ -159,7 +159,7 @@
                                             <a th:href="'#editAppointmentCssModal-' + ${appt.id}" class="btn btn-sm btn-outline-primary">
                                                 <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
                                             </a>
-                                            <form th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');" style="display:inline;">
+                                            <form th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');" class="custom-style-30">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                                     <i class="fa-solid fa-trash-can me-1"></i>Xóa
                                                 </button>
@@ -294,12 +294,12 @@
                          <table class="table table-hover align-middle mb-0 bg-white">
                              <thead class="table-light">
                                  <tr>
-                                     <th style="width: 180px;">Thời gian khám</th>
-                                     <th style="width: 150px;">Bác sĩ khám</th>
-                                     <th style="width: 130px;">Loại khám</th>
+                                     <th class="custom-style-31">Thời gian khám</th>
+                                     <th class="custom-style-32">Bác sĩ khám</th>
+                                     <th class="custom-style-33">Loại khám</th>
                                      <th>Lý do khám / Triệu chứng</th>
-                                     <th style="width: 320px;">Kết luận của bác sĩ / Chỉ dẫn</th>
-                                     <th style="width: 150px;">Địa điểm</th>
+                                     <th class="custom-style-34">Kết luận của bác sĩ / Chỉ dẫn</th>
+                                     <th class="custom-style-32">Địa điểm</th>
                                  </tr>
                              </thead>
                              <tbody>
@@ -316,8 +316,8 @@
                                          <td th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do</td>
                                          <td>
                                              <div class="bg-light p-2.5 rounded border-start border-success border-3">
-                                                 <strong class="text-success small" style="font-size: 0.72rem; letter-spacing: 0.5px;"><i class="fa-solid fa-notes-medical me-1"></i>KẾT LUẬN & DẶN DÒ:</strong>
-                                                 <p class="mb-0 mt-1 text-dark small" style="line-height: 1.45;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}">Nội dung</p>
+                                                 <strong class="text-success small custom-style-35"><i class="fa-solid fa-notes-medical me-1"></i>KẾT LUẬN & DẶN DÒ:</strong>
+                                                 <p class="mb-0 mt-1 text-dark small custom-style-36" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}">Nội dung</p>
                                              </div>
                                          </td>
                                          <td th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</td>
@@ -343,7 +343,7 @@
                                  <p class="mb-2 text-muted small"><strong>Triệu chứng:</strong> <span th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do</span></p>
                                  <div class="bg-light p-2.5 rounded mb-2">
                                      <strong class="text-success small d-block mb-1"><i class="fa-solid fa-notes-medical me-1"></i>Kết luận của bác sĩ:</strong>
-                                     <p class="mb-0 small text-dark" style="line-height: 1.4;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}"></p>
+                                     <p class="mb-0 small text-dark custom-style-37" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}"></p>
                                  </div>
                                  <p class="mb-0 text-muted small"><i class="fa-solid fa-location-dot me-1"></i><span th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</span></p>
                              </div>
@@ -416,14 +416,14 @@
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <!-- Date Search Picker -->
-                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-1" style="position: relative; z-index: 10000;">
+                            <form th:action="@{/patient/appointments}" method="GET" class="d-flex align-items-center gap-1 custom-style-38">
                                 <input type="hidden" name="activeTab" th:value="${activeTab != null ? activeTab : 'bp'}">
                                 <input type="hidden" name="filterRange" value="all">
-                                <label for="historyDateInput" class="small text-muted fw-semibold" style="font-size: 11px; white-space: nowrap;">Chọn ngày:</label>
-                                <div class="input-group input-group-sm" style="max-width: 180px;">
+                                <label for="historyDateInput" class="small text-muted fw-semibold custom-style-18">Chọn ngày:</label>
+                                <div class="input-group input-group-sm custom-style-19">
                                     <input type="date" id="historyDateInput" name="filterDate" th:value="${filterDate}" class="form-control rounded-start-pill px-2 border-primary text-center" 
-                                           style="font-size: 12px; height: 30px;">
-                                    <button class="btn btn-primary rounded-end-pill px-2" type="submit" style="height: 30px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10001;" title="Tìm kiếm theo ngày">
+                                           class="custom-style-20">
+                                    <button class="btn btn-primary rounded-end-pill px-2" type="submit" class="custom-style-39" title="Tìm kiếm theo ngày">
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </button>
                                 </div>
@@ -441,12 +441,12 @@
                     <!-- Sub-pills for separating BP and Glucose -->
                     <ul class="nav nav-pills mb-3" id="logHistoryTabs" role="tablist">
                         <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 1 or patient.diseaseProfile.id == 3)}">
-                            <a th:href="@{/patient/appointments(activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}" class="nav-link me-2 text-decoration-none" id="bp-history-tab" th:aria-selected="${activeTab == 'bp'}" th:classappend="${activeTab == 'bp'} ? ' active' : ''" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
+                            <a th:href="@{/patient/appointments(activeTab='bp', filterRange=${filterRange}, filterDate=${filterDate})}" class="nav-link me-2 text-decoration-none" id="bp-history-tab" th:aria-selected="${activeTab == 'bp'}" th:classappend="${activeTab == 'bp'} ? ' active' : ''" class="custom-style-40">
                                 <i class="fa-solid fa-heart-pulse me-1"></i> Lịch Sử Huyết Áp
                             </a>
                         </li>
                         <li class="nav-item" role="presentation" th:if="${patient.diseaseProfile != null and (patient.diseaseProfile.id == 2 or patient.diseaseProfile.id == 3)}">
-                            <a th:href="@{/patient/appointments(activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}" class="nav-link me-2 text-decoration-none" id="glucose-history-tab" th:aria-selected="${activeTab == 'glucose'}" th:classappend="${activeTab == 'glucose'} ? ' active' : ''" style="border-radius:20px; font-weight:600; font-size:0.85rem;">
+                            <a th:href="@{/patient/appointments(activeTab='glucose', filterRange=${filterRange}, filterDate=${filterDate})}" class="nav-link me-2 text-decoration-none" id="glucose-history-tab" th:aria-selected="${activeTab == 'glucose'}" th:classappend="${activeTab == 'glucose'} ? ' active' : ''" class="custom-style-40">
                                 <i class="fa-solid fa-droplet me-1"></i> Lịch Sử Đường Huyết
                             </a>
                         </li>
@@ -460,7 +460,7 @@
                             <div class="legend-box d-flex flex-wrap align-items-center">
                                 <span class="fw-bold me-3">Mức cảnh báo Huyết áp:</span>
                                 <div class="legend-item"><span class="legend-dot bg-success"></span><span>Bình thường (&lt; 120/80 mmHg)</span></div>
-                                <div class="legend-item"><span class="legend-dot bg-warning-yellow" style="background-color: #eab308; width: 10px; height: 10px; border-radius: 50%; display: inline-block;"></span><span>Cần theo dõi (120-139 / 80-89)</span></div>
+                                <div class="legend-item"><span class="legend-dot bg-warning-yellow custom-style-41"></span><span>Cần theo dõi (120-139 / 80-89)</span></div>
                                 <div class="legend-item"><span class="legend-dot bg-orange"></span><span>Nguy cơ cao (140-179 / 90-109)</span></div>
                                 <div class="legend-item"><span class="legend-dot bg-danger"></span><span>Nguy hiểm (&ge; 180 / 110 mmHg)</span></div>
                             </div>
@@ -477,7 +477,7 @@
                                             <th>Nhịp tim</th>
                                             <th>Ghi chú</th>
                                             <th>Phương thức</th>
-                                            <th class="text-center" style="width: 100px;">Thao tác</th>
+                                            <th class="text-center custom-style-42">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -590,7 +590,7 @@
                                             <th>Chỉ số Glucose</th>
                                             <th>Ghi chú</th>
                                             <th>Phương thức</th>
-                                            <th class="text-center" style="width: 100px;">Thao tác</th>
+                                            <th class="text-center custom-style-42">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -689,7 +689,7 @@
                 <div class="py-3 px-4">
                     <div class="mb-3">
                         <label for="requestType" class="form-label small fw-semibold text-muted">Loại yêu cầu thay đổi <span class="text-danger">*</span></label>
-                        <select class="form-select" id="requestType" name="requestType" required style="border-radius: var(--radius-sm);">
+                        <select class="form-select" id="requestType" name="requestType" required class="custom-style-43">
                             <option value="TREATMENT_PLAN">Thay đổi phác đồ điều trị (Treatment Plan)</option>
                             <option value="SCHEDULE">Thay đổi lịch sinh hoạt (Schedule)</option>
                             <option value="DIET">Thay đổi quy tắc dinh dưỡng (Diet)</option>
@@ -700,12 +700,12 @@
                         <label for="patientReason" class="form-label small fw-semibold text-muted">Mô tả lý do thay đổi <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="patientReason" name="patientReason" rows="5" 
                                   placeholder="Mô tả cụ thể lý do tại sao bạn muốn thay đổi (Ví dụ: thuốc gây mệt mỏi, muốn dời giờ đi bộ, thức ăn không phù hợp...)" required maxlength="1000" 
-                                  style="border-radius: var(--radius-sm); resize: none;"></textarea>
+                                  class="custom-style-44"></textarea>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
-                    <a href="#!" class="btn btn-secondary small" style="border-radius: var(--radius-sm);">Hủy</a>
-                    <button type="submit" class="btn btn-primary small" style="border-radius: var(--radius-sm);">Gửi yêu cầu</button>
+                    <a href="#!" class="btn btn-secondary small custom-style-43">Hủy</a>
+                    <button type="submit" class="btn btn-primary small custom-style-43">Gửi yêu cầu</button>
                 </div>
             </form>
         </div>
@@ -726,11 +726,11 @@
                         <label class="form-label small fw-semibold text-muted">Thời gian khám mong muốn <span class="text-danger">*</span></label>
                         <input type="datetime-local" class="form-control" name="appointmentTime" 
                                th:value="${#temporals.format(appt.appointmentTime, 'yyyy-MM-dd''T''HH:mm')}"
-                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required style="border-radius: var(--radius-sm);">
+                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required class="custom-style-43">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Loại lịch hẹn <span class="text-danger">*</span></label>
-                        <select class="form-select" name="appointmentType" required style="border-radius: var(--radius-sm);">
+                        <select class="form-select" name="appointmentType" required class="custom-style-43">
                             <option value="INITIAL" th:selected="${appt.appointmentType == 'INITIAL'}">Khám lần đầu (INITIAL)</option>
                             <option value="CHECKUP" th:selected="${appt.appointmentType == 'CHECKUP'}">Tái khám định kỳ (CHECKUP)</option>
                             <option value="EMERGENCY" th:selected="${appt.appointmentType == 'EMERGENCY'}">Khẩn cấp (EMERGENCY)</option>
@@ -738,7 +738,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Bác sĩ khám <span class="text-danger">*</span></label>
-                        <select class="form-select" name="doctorId" required style="border-radius: var(--radius-sm);">
+                        <select class="form-select" name="doctorId" required class="custom-style-43">
                             <option th:each="doc : ${doctors}" th:value="${doc.id}" 
                                     th:selected="${appt.doctor.id == doc.id}"
                                     th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
@@ -748,13 +748,13 @@
                         <label class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="patientRequestReason" rows="3" 
                                   placeholder="Nhập lý do của bạn..." required maxlength="500" 
-                                  style="border-radius: var(--radius-sm); resize: none;" th:text="${appt.patientRequestReason}"></textarea>
+                                  class="custom-style-44" th:text="${appt.patientRequestReason}"></textarea>
                         <small class="text-muted">Tối đa 500 ký tự.</small>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
-                    <a href="#!" class="btn btn-secondary small" style="border-radius: var(--radius-sm);">Hủy</a>
-                    <button type="submit" class="btn btn-primary small" style="border-radius: var(--radius-sm);">Cập nhật</button>
+                    <a href="#!" class="btn btn-secondary small custom-style-43">Hủy</a>
+                    <button type="submit" class="btn btn-primary small custom-style-43">Cập nhật</button>
                 </div>
             </form>
         </div>
