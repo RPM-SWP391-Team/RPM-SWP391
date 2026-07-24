@@ -1380,7 +1380,7 @@
                                 <i class="fa-solid fa-chevron-left"></i> Trước
                             </a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, planHistoryPage.totalPages - 1)}"
+                        <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, planHistoryPage.number - 2), T(java.lang.Math).min(planHistoryPage.totalPages - 1, planHistoryPage.number + 2))}"
                             th:classappend="${i == planPage} ? 'active'">
                             <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${i}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}"
                                th:text="${i + 1}">1</a>

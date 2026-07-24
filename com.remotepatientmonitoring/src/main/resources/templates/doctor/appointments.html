@@ -427,7 +427,7 @@
                             <i class="fa-solid fa-chevron-left"></i> Trước
                         </a>
                     </li>
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, appointmentPage.totalPages - 1)}"
+                    <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, appointmentPage.number - 2), T(java.lang.Math).min(appointmentPage.totalPages - 1, appointmentPage.number + 2))}"
                         th:classappend="${appointmentPage.number == i} ? 'active'">
                         <a class="page-link"
                             th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${i})}"
