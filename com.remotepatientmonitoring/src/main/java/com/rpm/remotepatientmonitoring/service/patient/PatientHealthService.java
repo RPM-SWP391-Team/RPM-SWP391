@@ -344,4 +344,19 @@ public class PatientHealthService {
         if (hospitalId == null) return java.util.List.of();
         return emergencyProtocolRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
     }
+
+    public java.util.List<com.rpm.remotepatientmonitoring.model.DailyHealthLog> getHealthLogsByPatientIdAndDate(Integer patientId, java.time.LocalDate date) {
+        return healthLogRepository.findByPatientIdAndLogDate(patientId, date);
+    }
+
+    public com.rpm.remotepatientmonitoring.model.AlertThreshold getAlertThresholdByPatientOrHospital(Integer patientId, Integer hospitalId) {
+        return alertThresholdRepository.findByPatientIdAndScope(patientId, "PATIENT")
+                .orElseGet(() -> {
+                    if (hospitalId != null) {
+                        return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL").orElse(null);
+                    }
+                    return null;
+                });
+    }
 }
+
