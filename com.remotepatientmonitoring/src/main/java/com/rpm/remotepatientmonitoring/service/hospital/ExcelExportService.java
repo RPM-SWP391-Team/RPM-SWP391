@@ -25,11 +25,12 @@ public class ExcelExportService {
 
         try (PrintWriter writer = new PrintWriter(out, true, StandardCharsets.UTF_8)) {
             // Header Row
-            writer.println("STT,Thời Gian,Vai Trò,ID Người Thực Hiện,Hành Động,Bảng Tác Động,ID Bản Ghi,IP Nguồn,Thiết Bị,Ghi Chú / Giải Trình");
+            writer.println("STT,Thời Gian,Tên Người Thực Hiện,Vai Trò,ID Người Thực Hiện,Hành Động,Bảng Tác Động,ID Bản Ghi,IP Nguồn,Thiết Bị,Ghi Chú / Giải Trình");
 
             int index = 1;
             for (AuditTrail log : logs) {
                 String timeStr = log.getCreatedAt() != null ? log.getCreatedAt().format(DATE_FORMATTER) : "";
+                String actorName = escapeCsv(log.getActorName());
                 String actorType = escapeCsv(log.getActorType());
                 String actorId = log.getActorId() != null ? log.getActorId().toString() : "";
                 String action = escapeCsv(log.getAction());
@@ -39,8 +40,8 @@ public class ExcelExportService {
                 String deviceInfo = escapeCsv(log.getDeviceInfo());
                 String notes = escapeCsv(log.getNotes());
 
-                writer.printf("%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"%n",
-                        index++, timeStr, actorType, actorId, action, targetTable, targetRecordId, ipAddress, deviceInfo, notes);
+                writer.printf("%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"%n",
+                        index++, timeStr, actorName, actorType, actorId, action, targetTable, targetRecordId, ipAddress, deviceInfo, notes);
             }
 
             writer.flush();
