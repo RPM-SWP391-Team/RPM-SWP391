@@ -463,7 +463,19 @@
             .then(data => {
                 loadingEl.style.display = 'none';
                 if (!data.results || data.results.length === 0) {
-                    dataEl.innerHTML = '<div class="alert alert-warning">Không tìm thấy tài liệu nào khớp với yêu cầu.</div>';
+                    dataEl.innerHTML = `
+                        <div class="alert alert-warning p-4 rounded-3 shadow-sm border-0 mb-0" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a !important;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fa-solid fa-triangle-exclamation text-warning me-2" style="font-size: 22px;"></i>
+                                <h5 class="fw-bold mb-0">Không tìm thấy tài liệu Y khoa nào phù hợp</h5>
+                            </div>
+                            <p class="mb-0 text-dark" style="font-size: 0.95em; line-height: 1.6;">
+                                Từ khóa tra cứu của bạn không liên quan đến thông số y khoa hoặc không tìm thấy trong bộ chuẩn ADA/ESC. 
+                                Vui lòng thử lại với các từ khóa chuyên môn như: 
+                                <strong class="text-primary">Metformin, Đường huyết cao, Hạ đường huyết, HbA1c, Huyết áp...</strong>
+                            </p>
+                        </div>
+                    `;
                     return;
                 }
 
@@ -486,8 +498,8 @@
                             </div>
                             <h5 style="color: #1e293b; font-size: 16px; margin: 0 0 10px 0; font-weight: 700;">
                                 <i class="fa-solid fa-file-pdf text-danger me-2"></i>
-                                <a href="${chunk.pdf_url || chunk.pdfUrl || '/docs/ehae178.pdf'}" target="_blank" class="text-decoration-none text-primary fw-bold" title="Click để mở tài liệu PDF gốc">
-                                    ${chunk.source} <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 12px;"></i>
+                                <a href="${chunk.pdf_url || (chunk.pdf_file ? '/docs/' + chunk.pdf_file : (chunk.file ? '/docs/' + chunk.file : '/docs/dc26s002.pdf'))}" target="_blank" class="text-decoration-none text-primary fw-bold" title="Click để mở tài liệu PDF gốc">
+                                    ${chunk.source || 'Tài liệu Y khoa (ADA / ESC)'} <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 12px;"></i>
                                 </a>
                             </h5>
                             <p style="color: #475569; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
@@ -735,9 +747,12 @@
     </div>
 
     <div class="ai-chat-window" id="aiChatWindow">
-        <div class="ai-chat-header">
+        <div class="ai-chat-header d-flex justify-content-between align-items-center">
             <span><i class="fa-solid fa-brain me-2"></i> Trợ lý Trí tuệ Nhân tạo (Dành cho Bác sĩ)</span>
-            <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-trash-can me-3 cursor-pointer" id="aiChatClear" style="cursor: pointer;" title="Xóa toàn bộ lịch sử hội thoại"></i>
+                <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
+            </div>
         </div>
         <div class="ai-chat-body" id="aiChatBody">
             <div class="ai-msg ai-msg-bot">
@@ -755,25 +770,59 @@
             const btn = document.getElementById('aiChatBtn');
             const windowEl = document.getElementById('aiChatWindow');
             const closeBtn = document.getElementById('aiChatClose');
+            const clearBtn = document.getElementById('aiChatClear');
             const sendBtn = document.getElementById('aiChatSend');
             const inputEl = document.getElementById('aiChatInput');
             const bodyEl = document.getElementById('aiChatBody');
 
             if (btn && windowEl) {
+                let isHistoryLoaded = false;
+                function loadChatHistory() {
+                    if (isHistoryLoaded) return;
+                    fetch('/api/chatbot/history')
+                        .then(res => res.json())
+                        .then(list => {
+                            if (list && list.length > 0) {
+                                list.reverse().forEach(item => {
+                                    addMessage(item.question, true);
+                                    addMessage(item.answer, false);
+                                });
+                                isHistoryLoaded = true;
+                            }
+                        })
+                        .catch(err => {});
+                }
+
                 btn.addEventListener('click', () => {
-                    windowEl.style.display = windowEl.style.display === 'flex' ? 'none' : 'flex';
+                    const isOpening = windowEl.style.display !== 'flex';
+                    windowEl.style.display = isOpening ? 'flex' : 'none';
+                    if (isOpening) loadChatHistory();
                 });
 
                 closeBtn.addEventListener('click', () => {
                     windowEl.style.display = 'none';
                 });
 
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại AI không?')) {
+                            fetch('/api/chatbot/history', { method: 'DELETE' })
+                                .then(res => res.json())
+                                .then(data => {
+                                    bodyEl.innerHTML = '<div class="ai-msg ai-msg-bot"><i class="fa-solid fa-check-circle text-success me-1"></i> Đã làm mới hội thoại. Bác sĩ cần hỗ trợ thông tin y khoa gì thêm ạ?</div>';
+                                    isHistoryLoaded = true;
+                                });
+                        }
+                    });
+                }
+
                 function addMessage(text, isUser) {
                     const div = document.createElement('div');
                     div.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
                     if (!isUser) {
                         text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        text = text.replace(/\[Source\s*(\d+)\]/gi, '<a href="/docs/ehae178.pdf" target="_blank" class="badge bg-primary text-decoration-none ms-1 me-1" title="Click mở PDF"><i class="fa-solid fa-file-pdf"></i> Nguồn $1</a>');
+                        text = text.replace(/\[Source\s*(\d+)\]/gi, '<span class="badge bg-primary ms-1 me-1" title="Trích dẫn tài liệu y khoa"><i class="fa-solid fa-book-medical"></i> Nguồn $1</span>');
+                        text = text.replace(/\[(\d+)\]/g, '<span class="badge bg-primary ms-1 me-1" title="Trích dẫn tài liệu y khoa"><i class="fa-solid fa-book-medical"></i> Nguồn $1</span>');
                         text = text.replace(/\n/g, '<br>');
                     }
                     div.innerHTML = text;
@@ -806,16 +855,46 @@
                         const lEl = document.getElementById(loadingId);
                         if (lEl) lEl.remove();
                         let replyHtml = data.answer;
-                        if (data.citations && data.citations.length > 0) {
+                        const qCheck = text.trim().toLowerCase();
+                        const greetingsList = ["chào", "chào bạn", "chào buổi sáng", "chào bác sĩ", "chào em", "chào ad", "hi", "hello", "xin chào", "good morning", "good afternoon", "good evening", "alo"];
+                        const isGreeting = greetingsList.includes(qCheck) || ["chào ", "xin chào ", "hello ", "hi "].some(prefix => qCheck.startsWith(prefix));
+                        if (!isGreeting && data.citations && data.citations.length > 0) {
                             replyHtml += '<hr style="margin: 10px 0; border-color: rgba(0,0,0,0.1);"><strong><i class="fa-solid fa-book-medical"></i> Nguồn tham khảo:</strong><ul style="margin: 5px 0; padding-left: 20px; font-size: 0.85em; opacity: 0.9;">';
+                            const pdfTitleMap = {
+                                "dc26s001.pdf": "ADA 2026: Cải thiện Chăm sóc & Sức khỏe Cộng đồng (Sec. 1)",
+                                "dc26s002.pdf": "ADA 2026: Chẩn đoán & Phân loại Đái tháo đường (Sec. 2)",
+                                "dc26s003.pdf": "ADA 2026: Dự phòng & Trì hoãn Đái tháo đường Týp 2 (Sec. 3)",
+                                "dc24s004.pdf": "ADA 2024: Đánh giá Y khoa Toàn diện & Bệnh kèm theo (Sec. 4)",
+                                "dc26s005.pdf": "ADA 2026: Hành vi Sức khỏe, Dinh dưỡng & Tập luyện (Sec. 5)",
+                                "dc26s006.pdf": "ADA 2026: Mục tiêu Kiểm soát Đường huyết & Hạ đường huyết (Sec. 6)",
+                                "dc26s007.pdf": "ADA 2026: Công nghệ Y tế & Đo đường huyết liên tục CGM (Sec. 7)",
+                                "dc26s008.pdf": "ADA 2026: Quản lý Béo phì & Cân nặng bệnh nhân T2D (Sec. 8)",
+                                "dc26s009.pdf": "ADA 2026: Phác đồ Thuốc hạ Đường huyết Metformin & Insulin (Sec. 9)",
+                                "dc26s010.pdf": "ADA 2026: Bệnh Tim mạch & Quản lý Nguy cơ Tim mạch (Sec. 10)",
+                                "dc26s011.pdf": "ADA 2026: Bệnh Thận Mạn tính ở Bệnh nhân Đái tháo đường (Sec. 11)",
+                                "dc26s012.pdf": "ADA 2026: Biến chứng Vọng mạc, Thần kinh & Bàn chân (Sec. 12)",
+                                "dc26s013.pdf": "ADA 2026: Quản lý Đái tháo đường ở Người cao tuổi (Sec. 13)",
+                                "dc26s014.pdf": "ADA 2026: Đái tháo đường ở Trẻ em & Thanh thiếu niên (Sec. 14)",
+                                "dc26s015.pdf": "ADA 2026: Quản lý Đái tháo đường ở Phụ nữ Mang thai (Sec. 15)",
+                                "dc26s016.pdf": "ADA 2026: Chăm sóc Đái tháo đường Nội trú tại Bệnh viện (Sec. 16)",
+                                "dc26s017.pdf": "ADA 2026: Tiêu chuẩn Chăm sóc & Quyền lợi Bệnh nhân (Sec. 17)",
+                                "dc26sint.pdf": "ADA 2026: Giới thiệu & Tổng quan Hướng dẫn Lâm sàng",
+                                "dc26srev.pdf": "ADA 2026: Tóm tắt Các Điểm Cập nhật Mới",
+                                "ehae178.pdf": "ESC 2023: Hướng dẫn Quản lý Bệnh Tim mạch ở Bệnh nhân Đái tháo đường"
+                            };
                             const uniqueFiles = new Map();
                             data.citations.forEach(c => {
-                                if (c.file && c.file !== 'Unknown' && !uniqueFiles.has(c.file)) {
-                                    uniqueFiles.set(c.file, c.text);
+                                let fileName = c.file || c.source_file || c.source || '';
+                                if (fileName && !fileName.toLowerCase().includes('unknown')) {
+                                    let pdfName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+                                    if (!uniqueFiles.has(pdfName)) {
+                                        let docTitle = pdfTitleMap[pdfName] || `Tài liệu Y khoa (${pdfName})`;
+                                        uniqueFiles.set(pdfName, { title: docTitle, text: c.text || '' });
+                                    }
                                 }
                             });
-                            uniqueFiles.forEach((text, file) => {
-                                replyHtml += `<li><a href="/docs/${file}" target="_blank" style="color: #0d6efd; text-decoration: underline;">${file}</a></li>`;
+                            uniqueFiles.forEach((info, file) => {
+                                replyHtml += `<li><a href="/docs/${file}" target="_blank" style="color: #0d6efd; font-weight: 600; text-decoration: underline;"><i class="fa-solid fa-file-pdf text-danger me-1"></i> ${info.title}</a></li>`;
                             });
                             replyHtml += '</ul>';
                         }
