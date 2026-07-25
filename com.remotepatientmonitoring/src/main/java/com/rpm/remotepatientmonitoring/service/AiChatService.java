@@ -87,7 +87,46 @@ public class AiChatService {
                         if (patientOpt.isPresent()) {
                             docContext.append("Đang xem hồ sơ bệnh nhân: ").append(buildPatientContextString(patientOpt.get()));
                         }
+                    } else {
+                        docContext.append("Bác sĩ đang ở Dashboard tổng quan, tư vấn và trả lời phác đồ y khoa tổng quát.");
                     }
+
+                    // Nạp 3 câu thoại gần nhất làm bộ nhớ ngữ cảnh hội thoại đa lượt (Multi-turn Conversation Memory)
+                    try {
+                        List<com.rpm.remotepatientmonitoring.model.AiChatHistory> recentChats;
+                        if (patientId != null) {
+                            recentChats = aiChatHistoryRepository.findTop20ByPatientIdOrderByCreatedAtDesc(patientId);
+                        } else {
+                            recentChats = aiChatHistoryRepository.findTop20ByAccountIdAndPatientIdIsNullOrderByCreatedAtDesc(account.getId());
+                        }
+
+                        if (recentChats != null && !recentChats.isEmpty()) {
+                            // Lọc các câu thoại lỗi "trang Dashboard" nếu đang ở trong hồ sơ bệnh nhân
+                            List<com.rpm.remotepatientmonitoring.model.AiChatHistory> validChats = new java.util.ArrayList<>();
+                            for (com.rpm.remotepatientmonitoring.model.AiChatHistory h : recentChats) {
+                                String ans = h.getAnswer() != null ? h.getAnswer() : "";
+                                if (patientId != null && ans.contains("trang Dashboard")) {
+                                    continue; // Bỏ qua câu trả lời lỗi bị nhiễm từ trước
+                                }
+                                validChats.add(h);
+                            }
+
+                            if (!validChats.isEmpty()) {
+                                docContext.append("\n[Lịch sử hội thoại 3 câu gần nhất]: ");
+                                int limit = Math.min(validChats.size(), 3);
+                                List<com.rpm.remotepatientmonitoring.model.AiChatHistory> subList = new java.util.ArrayList<>(validChats.subList(0, limit));
+                                java.util.Collections.reverse(subList);
+                                for (com.rpm.remotepatientmonitoring.model.AiChatHistory h : subList) {
+                                    String cleanAns = h.getAnswer().replaceAll("<[^>]*>", "").replaceAll("\\s+", " ").trim();
+                                    String shortAns = cleanAns.length() > 120 ? cleanAns.substring(0, 120) + "..." : cleanAns;
+                                    docContext.append(String.format("(Hỏi: %s | AI trả lời: %s) ", h.getQuestion(), shortAns));
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
                     return docContext.toString();
                 }
                 return "Bác sĩ chưa có thông tin chi tiết.";
@@ -109,7 +148,11 @@ public class AiChatService {
         // Thông tin cơ bản
         int age = patient.getDateOfBirth() != null ? Period.between(patient.getDateOfBirth(), LocalDate.now()).getYears() : 0;
         String genderStr = "Nam".equalsIgnoreCase(patient.getGender()) ? "Nam" : ("Nữ".equalsIgnoreCase(patient.getGender()) ? "Nữ" : "Không xác định");
-        context.append(String.format("Bệnh nhân %s, %d tuổi. ", genderStr, age));
+        String pName = patient.getFullName() != null ? patient.getFullName() : ("Bệnh nhân " + patient.getId());
+        String pCode = patient.getPatientCode() != null ? patient.getPatientCode() : ("PAT" + patient.getId());
+        
+        context.append(String.format("Hồ sơ Bệnh nhân: %s (Mã: %s), Giới tính: %s, %d tuổi. Trạng thái: %s. ", 
+            pName, pCode, genderStr, age, patient.getStatus() != null ? patient.getStatus() : "Đang điều trị"));
         
         // Bệnh lý nền
         if (patient.getDiseaseProfile() != null) {
@@ -121,16 +164,57 @@ public class AiChatService {
         if (planOpt.isPresent()) {
             TreatmentPlan plan = planOpt.get();
             if (plan.getMedicalOrder() != null && !plan.getMedicalOrder().isEmpty()) {
-                context.append("Đang sử dụng thuốc: ").append(plan.getMedicalOrder().replace("\n", " ")).append(". ");
+                context.append("Thuốc điều trị hiện tại: ").append(plan.getMedicalOrder().replace("\n", " ")).append(". ");
             }
             if (plan.getExerciseGoal() != null && !plan.getExerciseGoal().isEmpty()) {
-                context.append("Chỉ định tập luyện: ").append(plan.getExerciseGoal().replace("\n", " ")).append(". ");
+                context.append("Chỉ định sinh hoạt/tập luyện: ").append(plan.getExerciseGoal().replace("\n", " ")).append(". ");
             }
         }
+
+        // Tích hợp Thống kê 14 ngày gần nhất chuẩn ADA/AHA vào ngữ cảnh Chatbot
+        try {
+            PatientAdaStats adaStats = calculateAdaStats(patient.getId(), null, null);
+            if (adaStats != null) {
+                context.append(String.format(
+                    "[Thống kê Đường huyết 14 ngày gần nhất - %d lần đo]: Trung bình: %.2f mmol/L (Min: %.2f, Max: %.2f), " +
+                    "TIR (Trong mục tiêu 3.9-10.0): %.1f%%, TAR (Cao >10.0): %.1f%%, TBR (Hạ <3.9): %.1f%%, Độ biến thiên CV: %.1f%%, GMI: %.1f%%. ",
+                    adaStats.getTotalReadings(), adaStats.getMeanGlucose(), adaStats.getMinGlucose(), adaStats.getMaxGlucose(),
+                    adaStats.getTir(), adaStats.getTar(), adaStats.getTbr(), adaStats.getCv(), adaStats.getGmi()
+                ));
+            } else {
+                context.append("[Thống kê Đường huyết 14 ngày gần nhất]: Chưa có nhật ký đo đường huyết. ");
+            }
+
+            PatientBpStats bpStats = calculateBpStats(patient.getId(), null, null);
+            if (bpStats != null) {
+                context.append(String.format(
+                    "[Thống kê Huyết áp 14 ngày gần nhất - %d lần đo]: Trung bình: %.1f/%.1f mmHg (Sáng: %.1f/%.1f, Tối: %.1f/%.1f), " +
+                    "Cao nhất: %d/%d, Thấp nhất: %d/%d, Số lần Huyết áp cao (>=140/90): %d, Báo động (>=180/120): %d. ",
+                    bpStats.getTotalReadings(), bpStats.getAverageSbp(), bpStats.getAverageDbp(),
+                    bpStats.getMorningAvgSbp(), bpStats.getMorningAvgDbp(), bpStats.getEveningAvgSbp(), bpStats.getEveningAvgDbp(),
+                    bpStats.getHighestSbp(), bpStats.getHighestDbp(), bpStats.getLowestSbp(), bpStats.getLowestDbp(),
+                    bpStats.getHighBpCount(), bpStats.getVeryHighBpCount()
+                ));
+            } else {
+                context.append("[Thống kê Huyết áp 14 ngày gần nhất]: Chưa có nhật ký đo huyết áp. ");
+            }
+
+            // Cảnh báo y tế chưa xử lý
+            List<com.rpm.remotepatientmonitoring.model.Alert> unresolvedAlerts = alertRepository.findByPatientIdAndIsResolvedFalse(patient.getId());
+            if (unresolvedAlerts != null && !unresolvedAlerts.isEmpty()) {
+                context.append("[Cảnh báo y tế đang chờ xử lý]: ");
+                for (com.rpm.remotepatientmonitoring.model.Alert alert : unresolvedAlerts) {
+                    context.append(String.format("(%s: %s, Giá trị: %s) ", alert.getMetricType(), alert.getAlertMessage(), alert.getMetricValue()));
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         return context.toString();
     }
 
-    public AiChatResponse getChatbotResponse(String email, String question, String userContext) {
+    public AiChatResponse getChatbotResponse(String email, Integer patientId, String question, String userContext) {
         // AI chỉ dành cho bác sĩ
         try {
             Optional<Account> accountOpt = accountRepository.findByEmail(email);
@@ -146,7 +230,7 @@ public class AiChatService {
             e.printStackTrace();
         }
 
-        AiChatRequest request = new AiChatRequest(email, null, question, userContext);
+        AiChatRequest request = new AiChatRequest(email, patientId, question, userContext);
         
         try {
             ResponseEntity<AiChatResponse> response = restTemplate.postForEntity(
@@ -177,7 +261,7 @@ public class AiChatService {
                         com.rpm.remotepatientmonitoring.model.AiChatHistory chatHistory = 
                             new com.rpm.remotepatientmonitoring.model.AiChatHistory(
                                 accId, 
-                                null, 
+                                request.getPatientId(), 
                                 question, 
                                 body.getAnswer(), 
                                 citationsJson
@@ -199,6 +283,36 @@ public class AiChatService {
         }
     }
 
+    public List<com.rpm.remotepatientmonitoring.model.AiChatHistory> getChatHistory(String email, Integer patientId) {
+        try {
+            if (patientId != null) {
+                return aiChatHistoryRepository.findTop20ByPatientIdOrderByCreatedAtDesc(patientId);
+            }
+            Optional<Account> accountOpt = accountRepository.findByEmail(email);
+            if (accountOpt.isPresent()) {
+                return aiChatHistoryRepository.findTop20ByAccountIdAndPatientIdIsNullOrderByCreatedAtDesc(accountOpt.get().getId());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return java.util.Collections.emptyList();
+    }
+
+    public void clearChatHistory(String email, Integer patientId) {
+        try {
+            if (patientId != null) {
+                aiChatHistoryRepository.deleteByPatientId(patientId);
+            } else {
+                Optional<Account> accountOpt = accountRepository.findByEmail(email);
+                if (accountOpt.isPresent()) {
+                    aiChatHistoryRepository.deleteByAccountIdAndPatientIdIsNull(accountOpt.get().getId());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public AiSearchResponse getSemanticSearchResults(String query) {
         AiSearchRequest request = new AiSearchRequest(query);
         try {
@@ -217,15 +331,38 @@ public class AiChatService {
     }
 
     public PatientAdaStats calculateAdaStats(Integer patientId) {
-        LocalDate startDate = LocalDate.now().minusDays(14);
-        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patientId, startDate);
+        return calculateAdaStats(patientId, null, null);
+    }
+
+    public PatientAdaStats calculateAdaStats(Integer patientId, LocalDate customStartDate) {
+        return calculateAdaStats(patientId, customStartDate, null);
+    }
+
+    public PatientAdaStats calculateAdaStats(Integer patientId, LocalDate customStartDate, LocalDate customEndDate) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = customStartDate;
+        LocalDate endDate = customEndDate;
+        if (startDate != null && startDate.isAfter(today)) startDate = today;
+        if (endDate != null && endDate.isAfter(today)) endDate = today;
+
+        if (startDate == null && endDate == null) {
+            endDate = today;
+            startDate = endDate.minusDays(14);
+        } else if (startDate != null && endDate == null) {
+            endDate = startDate.plusDays(14);
+            if (endDate.isAfter(today)) endDate = today;
+        } else if (startDate == null && endDate != null) {
+            startDate = endDate.minusDays(14);
+        }
+
+        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateBetweenOrderByLogDateAsc(patientId, startDate, endDate);
         
         List<DailyHealthLog> glucoseLogs = logs.stream()
                 .filter(log -> log.getGlucoseLevel() != null)
                 .collect(java.util.stream.Collectors.toList());
                 
-        if (glucoseLogs.size() < 10) {
-            return null; // Not enough data
+        if (glucoseLogs.isEmpty()) {
+            return null; // No glucose data
         }
         
         double targetMin = 3.9;
@@ -278,15 +415,38 @@ public class AiChatService {
     }
 
     public PatientBpStats calculateBpStats(Integer patientId) {
-        LocalDate startDate = LocalDate.now().minusDays(14);
-        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patientId, startDate);
+        return calculateBpStats(patientId, null, null);
+    }
+
+    public PatientBpStats calculateBpStats(Integer patientId, LocalDate customStartDate) {
+        return calculateBpStats(patientId, customStartDate, null);
+    }
+
+    public PatientBpStats calculateBpStats(Integer patientId, LocalDate customStartDate, LocalDate customEndDate) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = customStartDate;
+        LocalDate endDate = customEndDate;
+        if (startDate != null && startDate.isAfter(today)) startDate = today;
+        if (endDate != null && endDate.isAfter(today)) endDate = today;
+
+        if (startDate == null && endDate == null) {
+            endDate = today;
+            startDate = endDate.minusDays(14);
+        } else if (startDate != null && endDate == null) {
+            endDate = startDate.plusDays(14);
+            if (endDate.isAfter(today)) endDate = today;
+        } else if (startDate == null && endDate != null) {
+            startDate = endDate.minusDays(14);
+        }
+
+        List<DailyHealthLog> logs = healthLogRepository.findByPatientIdAndLogDateBetweenOrderByLogDateAsc(patientId, startDate, endDate);
         
         List<DailyHealthLog> bpLogs = logs.stream()
                 .filter(log -> log.getSystolicBp() != null && log.getDiastolicBp() != null)
                 .collect(java.util.stream.Collectors.toList());
                 
-        if (bpLogs.size() < 10) {
-            return null; // Not enough data
+        if (bpLogs.isEmpty()) {
+            return null; // No BP data
         }
         
         double sumSbp = 0;
@@ -322,15 +482,17 @@ public class AiChatService {
                 highBpCount++;
             }
             
-            int hour = log.getLogTime().getHour();
-            if (hour >= 5 && hour < 12) {
-                morningSumSbp += sbp;
-                morningSumDbp += dbp;
-                morningCount++;
-            } else if (hour >= 17 && hour < 24) {
-                eveningSumSbp += sbp;
-                eveningSumDbp += dbp;
-                eveningCount++;
+            if (log.getLogTime() != null) {
+                int hour = log.getLogTime().getHour();
+                if (hour >= 5 && hour <= 11) {
+                    morningSumSbp += sbp;
+                    morningSumDbp += dbp;
+                    morningCount++;
+                } else if (hour >= 17 && hour <= 23) {
+                    eveningSumSbp += sbp;
+                    eveningSumDbp += dbp;
+                    eveningCount++;
+                }
             }
         }
         
@@ -354,38 +516,65 @@ public class AiChatService {
     }
 
     public AiSummaryResponse analyzePatientCondition(Integer patientId) {
+        return analyzePatientCondition(patientId, null, null);
+    }
+
+    public AiSummaryResponse analyzePatientCondition(Integer patientId, LocalDate customStartDate) {
+        return analyzePatientCondition(patientId, customStartDate, null);
+    }
+
+    public AiSummaryResponse analyzePatientCondition(Integer patientId, LocalDate customStartDate, LocalDate customEndDate) {
         Optional<Patient> patientOpt = patientRepository.findById(patientId);
         if (patientOpt.isEmpty()) {
             return new AiSummaryResponse("Không tìm thấy bệnh nhân.");
         }
         Patient patient = patientOpt.get();
         
-        String patientInfo = buildPatientContextString(patient);
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = customStartDate;
+        LocalDate endDate = customEndDate;
+        if (startDate != null && startDate.isAfter(today)) startDate = today;
+        if (endDate != null && endDate.isAfter(today)) endDate = today;
+
+        if (startDate == null && endDate == null) {
+            endDate = today;
+            startDate = endDate.minusDays(14);
+        } else if (startDate != null && endDate == null) {
+            endDate = startDate.plusDays(14);
+            if (endDate.isAfter(today)) endDate = today;
+        } else if (startDate == null && endDate != null) {
+            startDate = endDate.minusDays(14);
+        }
+
+        String periodLabel = String.format("Giai đoạn (%s đến %s)", 
+            startDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")), 
+            endDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
+        String patientInfo = buildPatientContextString(patient) + " [Phân tích " + periodLabel + "]";
         String adaStatsText = "";
         
-        
-        PatientAdaStats adaStats = calculateAdaStats(patientId);
+        PatientAdaStats adaStats = calculateAdaStats(patientId, startDate, endDate);
         if (adaStats == null) {
-            adaStatsText = "ĐƯỜNG HUYẾT: Dữ liệu đo đường huyết ngắt quãng, không đủ số lượng để phân tích chuẩn ADA (dưới 10 lần trong 14 ngày qua).";
+            adaStatsText = "ĐƯỜNG HUYẾT: Không có dữ liệu đo đường huyết trong " + periodLabel + ".";
         } else {
             adaStatsText = String.format(
-                "ĐƯỜNG HUYẾT (14 ngày qua - %d lần đo): Mean: %.2f mmol/L, Min: %.2f, Max: %.2f. " +
+                "ĐƯỜNG HUYẾT (%s - %d lần đo): Mean: %.2f mmol/L, Min: %.2f, Max: %.2f. " +
                 "TIR (3.9-10.0): %.1f%%, TAR (>10.0): %.1f%%, TBR (<3.9): %.1f%%. " +
                 "Độ biến thiên (CV): %.1f%%. Chỉ số GMI ước tính: %.1f%%.",
-                adaStats.getTotalReadings(), adaStats.getMeanGlucose(), adaStats.getMinGlucose(), adaStats.getMaxGlucose(),
+                periodLabel, adaStats.getTotalReadings(), adaStats.getMeanGlucose(), adaStats.getMinGlucose(), adaStats.getMaxGlucose(),
                 adaStats.getTir(), adaStats.getTar(), adaStats.getTbr(), adaStats.getCv(), adaStats.getGmi()
             );
         }
 
         String bpStatsText = "";
-        PatientBpStats bpStats = calculateBpStats(patientId);
+        PatientBpStats bpStats = calculateBpStats(patientId, startDate, endDate);
         if (bpStats == null) {
-            bpStatsText = "HUYẾT ÁP: Dữ liệu đo huyết áp ngắt quãng, không đủ số lượng để phân tích chuẩn AHA (dưới 10 lần trong 14 ngày qua).";
+            bpStatsText = "HUYẾT ÁP: Không có dữ liệu đo huyết áp trong " + periodLabel + ".";
         } else {
             bpStatsText = String.format(
-                "HUYẾT ÁP (14 ngày qua - %d lần đo): Avg: %.1f/%.1f, Sáng: %.1f/%.1f, Tối: %.1f/%.1f. " +
+                "HUYẾT ÁP (%s - %d lần đo): Avg: %.1f/%.1f, Sáng: %.1f/%.1f, Tối: %.1f/%.1f. " +
                 "Cao nhất: %d/%d, Thấp nhất: %d/%d. Số lần Huyết áp cao (>=140/90): %d, Báo động (>=180/120): %d.",
-                bpStats.getTotalReadings(), bpStats.getAverageSbp(), bpStats.getAverageDbp(),
+                periodLabel, bpStats.getTotalReadings(), bpStats.getAverageSbp(), bpStats.getAverageDbp(),
                 bpStats.getMorningAvgSbp(), bpStats.getMorningAvgDbp(), bpStats.getEveningAvgSbp(), bpStats.getEveningAvgDbp(),
                 bpStats.getHighestSbp(), bpStats.getHighestDbp(), bpStats.getLowestSbp(), bpStats.getLowestDbp(),
                 bpStats.getHighBpCount(), bpStats.getVeryHighBpCount()
