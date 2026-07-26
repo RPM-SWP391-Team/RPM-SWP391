@@ -133,7 +133,13 @@ public class PatientService {
         }
         
         List<WaterLog> logs = waterLogRepository.findAllByPatientIdAndLogDate(patient.getId(), today);
-        return logs.stream().mapToInt(WaterLog::getAmountMl).sum();
+        int totalAmount = 0;
+        for (WaterLog log : logs) {
+            if (log != null && log.getAmountMl() != null) {
+                totalAmount += log.getAmountMl();
+            }
+        }
+        return totalAmount;
     }
 
     @Transactional
