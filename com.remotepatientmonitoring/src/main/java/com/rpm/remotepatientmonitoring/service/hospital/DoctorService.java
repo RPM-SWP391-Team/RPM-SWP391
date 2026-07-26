@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -80,8 +81,11 @@ public class DoctorService {
 
     @Transactional
     public void activateDoctor(Integer doctorId) {
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId));
+        Optional<Doctor> doctorOpt = doctorRepository.findById(doctorId);
+        if (!doctorOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId);
+        }
+        Doctor doctor = doctorOpt.get();
 
         if (doctor.getIsActive()) {
             throw new IllegalStateException("Tài khoản bác sĩ này hiện đã ở trạng thái hoạt động.");
@@ -135,8 +139,11 @@ public class DoctorService {
             throw new IllegalArgumentException("Email đã được đăng ký tài khoản.");
         }
 
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
+        Optional<Hospital> hospitalOpt = hospitalRepository.findById(hospitalId);
+        if (!hospitalOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId);
+        }
+        Hospital hospital = hospitalOpt.get();
 
         String finalPassword = generatePassword();
 
@@ -220,8 +227,11 @@ public class DoctorService {
      */
     @Transactional
     public void deactivateDoctor(Integer doctorId) {
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId));
+        Optional<Doctor> doctorOpt = doctorRepository.findById(doctorId);
+        if (!doctorOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId);
+        }
+        Doctor doctor = doctorOpt.get();
 
         List<Patient> activePatients = patientRepository.findByDoctorIdAndIsActiveTrue(doctorId);
 
@@ -239,11 +249,19 @@ public class DoctorService {
                 String diseaseCode = patient.getDiseaseProfile() != null ? 
                                      patient.getDiseaseProfile().getProfileCode() : null;
 
-                ReplacementDoctorDto targetDto = replacements.stream()
-                        .filter(r -> isSpecialtyCompatible(r.getDoctor().getSpecialty(), diseaseCode))
-                        .filter(r -> r.getTempCount() < r.getCapacityLimit())
-                        .max(Comparator.comparingInt(r -> (r.getCapacityLimit() - r.getTempCount())))
-                        .orElse(null);
+                ReplacementDoctorDto targetDto = null;
+                int maxRemainingCapacity = -1;
+                for (ReplacementDoctorDto r : replacements) {
+                    if (isSpecialtyCompatible(r.getDoctor().getSpecialty(), diseaseCode)) {
+                        if (r.getTempCount() < r.getCapacityLimit()) {
+                            int remaining = r.getCapacityLimit() - r.getTempCount();
+                            if (remaining > maxRemainingCapacity) {
+                                maxRemainingCapacity = remaining;
+                                targetDto = r;
+                            }
+                        }
+                    }
+                }
 
                 if (targetDto == null) {
                     String diseaseName = patient.getDiseaseProfile() != null ? 
@@ -360,8 +378,11 @@ public class DoctorService {
     }
 
     public Doctor getDoctorById(int id) {
-        return doctorRepository.findById(Integer.valueOf(id))
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id));
+        Optional<Doctor> doctorOpt = doctorRepository.findById(Integer.valueOf(id));
+        if (!doctorOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id);
+        }
+        return doctorOpt.get();
     }
 
     public List<Patient> getPatientsByDoctorId(int doctorId) {
@@ -373,8 +394,11 @@ public class DoctorService {
      */
     @Transactional
     public void updateDoctor(int id, DoctorEditDTO dto) {
-        Doctor doctor = doctorRepository.findById(Integer.valueOf(id))
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id));
+        Optional<Doctor> doctorOpt = doctorRepository.findById(Integer.valueOf(id));
+        if (!doctorOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + id);
+        }
+        Doctor doctor = doctorOpt.get();
 
         if (doctorRepository.existsByPhoneAndIdNot(dto.getPhone(), id)) {
             throw new IllegalArgumentException("Số điện thoại đã được đăng ký bởi một bác sĩ khác.");
@@ -459,9 +483,12 @@ public class DoctorService {
 
         if (!Objects.equals(doctor.getSpecialty(), dto.getSpecialty())) {
             List<Patient> patients = patientRepository.findByDoctorIdAndIsActiveTrue(id);
-            long incompatibleCount = patients.stream()
-                .filter(p -> p.getDiseaseProfile() != null && !isSpecialtyCompatible(dto.getSpecialty(), p.getDiseaseProfile().getProfileCode()))
-                .count();
+            long incompatibleCount = 0;
+            for (Patient p : patients) {
+                if (p.getDiseaseProfile() != null && !isSpecialtyCompatible(dto.getSpecialty(), p.getDiseaseProfile().getProfileCode())) {
+                    incompatibleCount++;
+                }
+            }
             if (incompatibleCount > 0) {
                 throw new IllegalArgumentException("Không thể thay đổi chuyên khoa do bác sĩ đang phụ trách " 
                         + incompatibleCount + " bệnh nhân không tương thích với chuyên khoa mới. Vui lòng Vô hiệu hóa bác sĩ này trước (hệ thống sẽ tự động chuyển bệnh nhân sang bác sĩ phù hợp khác), sau đó mới cập nhật chuyên khoa và Kích hoạt lại.");
@@ -510,9 +537,12 @@ public class DoctorService {
 
     private List<ReplacementDoctorDto> getReplacementCapacityList(Integer hospitalId, Integer currentDoctorId) {
         List<com.rpm.remotepatientmonitoring.model.Doctor> docs = doctorRepository.findBestReplacementDoctors(hospitalId, currentDoctorId);
-        return docs.stream()
-                .map(d -> new ReplacementDoctorDto(d, d.getCurrentPatientCount(), d.getCapacityLimit()))
-                .collect(Collectors.toList());
+        List<ReplacementDoctorDto> list = new ArrayList<>();
+        for (com.rpm.remotepatientmonitoring.model.Doctor d : docs) {
+            ReplacementDoctorDto dto = new ReplacementDoctorDto(d, d.getCurrentPatientCount(), d.getCapacityLimit());
+            list.add(dto);
+        }
+        return list;
     }
 
     private static class ReplacementDoctorDto {
