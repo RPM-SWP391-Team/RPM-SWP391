@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -74,36 +75,41 @@ public class HospitalConfigService {
     }
 
     public AlertThreshold getGlobalThreshold(Integer hospitalId) {
-        return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL")
-                .orElseGet(() -> {
-                    Hospital hospital = hospitalRepository.findById(hospitalId)
-                            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
+        Optional<AlertThreshold> thresholdOpt = alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL");
+        if (thresholdOpt.isPresent()) {
+            return thresholdOpt.get();
+        }
 
-                    AlertThreshold defaultThreshold = AlertThreshold.builder()
-                            .hospital(hospital)
-                            .scope("HOSPITAL")
-                            .metricType("COMBINED")
-                            .glucoseHypoThreshold(BigDecimal.valueOf(4.4))
-                            .glucoseNormalMax(BigDecimal.valueOf(10.0))
-                            .glucoseHighMax(BigDecimal.valueOf(16.0))
-                            .systolicNormalMax(120)
-                            .systolicWarningMin(130)
-                            .systolicWarningMax(139)
-                            .systolicDangerMin(140)
-                            .systolicDangerMax(179)
-                            .systolicEmergencyThreshold(180)
-                            .diastolicNormalMax(80)
-                            .diastolicWarningMin(85)
-                            .diastolicWarningMax(89)
-                            .diastolicDangerMin(90)
-                            .diastolicDangerMax(109)
-                            .diastolicEmergencyThreshold(110)
-                            .createdAt(LocalDateTime.now())
-                            .updatedAt(LocalDateTime.now())
-                            .build();
+        Optional<Hospital> hospitalOpt = hospitalRepository.findById(hospitalId);
+        if (!hospitalOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId);
+        }
+        Hospital hospital = hospitalOpt.get();
 
-                    return alertThresholdRepository.save(defaultThreshold);
-                });
+        AlertThreshold defaultThreshold = AlertThreshold.builder()
+                .hospital(hospital)
+                .scope("HOSPITAL")
+                .metricType("COMBINED")
+                .glucoseHypoThreshold(BigDecimal.valueOf(4.4))
+                .glucoseNormalMax(BigDecimal.valueOf(10.0))
+                .glucoseHighMax(BigDecimal.valueOf(16.0))
+                .systolicNormalMax(120)
+                .systolicWarningMin(130)
+                .systolicWarningMax(139)
+                .systolicDangerMin(140)
+                .systolicDangerMax(179)
+                .systolicEmergencyThreshold(180)
+                .diastolicNormalMax(80)
+                .diastolicWarningMin(85)
+                .diastolicWarningMax(89)
+                .diastolicDangerMin(90)
+                .diastolicDangerMax(109)
+                .diastolicEmergencyThreshold(110)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        return alertThresholdRepository.save(defaultThreshold);
     }
 
     @Transactional
@@ -269,8 +275,11 @@ public class HospitalConfigService {
 
     @Transactional
     public EmergencyGuide addEmergencyGuide(Integer hospitalId, String alertLevel, String metricType, String title, String instructionContent) {
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
+        Optional<Hospital> hospitalOpt = hospitalRepository.findById(hospitalId);
+        if (!hospitalOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId);
+        }
+        Hospital hospital = hospitalOpt.get();
 
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Tiêu đề hướng dẫn không được để trống.");
@@ -326,8 +335,11 @@ public class HospitalConfigService {
         if (instructionContent.trim().length() < 20 || instructionContent.trim().length() > 2000) {
             throw new IllegalArgumentException("Thất bại: Nội dung chỉ dẫn khẩn cấp phải từ 20 đến 2000 ký tự.");
         }
-        EmergencyGuide guide = emergencyGuideRepository.findById(guideId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hướng dẫn với ID: " + guideId));
+        Optional<EmergencyGuide> guideOpt = emergencyGuideRepository.findById(guideId);
+        if (!guideOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy hướng dẫn với ID: " + guideId);
+        }
+        EmergencyGuide guide = guideOpt.get();
 
         // Lấy toàn bộ thông tin cũ
         Map<String, Object> oldLog = new HashMap<>();
@@ -370,8 +382,11 @@ public class HospitalConfigService {
 
     @Transactional
     public EmergencyProtocol addEmergencyProtocol(Integer hospitalId, String conditionType, String title, String warningSigns, String instructionContent) {
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId));
+        Optional<Hospital> hospitalOpt = hospitalRepository.findById(hospitalId);
+        if (!hospitalOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bệnh viện với ID: " + hospitalId);
+        }
+        Hospital hospital = hospitalOpt.get();
 
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("Tiêu đề cẩm nang không được để trống.");
@@ -436,8 +451,11 @@ public class HospitalConfigService {
             throw new IllegalArgumentException("Thất bại: Nội dung cẩm nang xử lý phải từ 20 đến 2000 ký tự.");
         }
 
-        EmergencyProtocol protocol = emergencyProtocolRepository.findById(protocolId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cẩm nang với ID: " + protocolId));
+        Optional<EmergencyProtocol> protocolOpt = emergencyProtocolRepository.findById(protocolId);
+        if (!protocolOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy cẩm nang với ID: " + protocolId);
+        }
+        EmergencyProtocol protocol = protocolOpt.get();
 
         // Lấy toàn bộ thông tin cũ
         Map<String, Object> oldLog = new HashMap<>();
@@ -480,8 +498,11 @@ public class HospitalConfigService {
     @Transactional
     public void deleteEmergencyGuide(Integer guideId) {
         // 1. Tìm bản ghi hiện tại
-        EmergencyGuide existing = emergencyGuideRepository.findById(guideId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId));
+        Optional<EmergencyGuide> guideOpt = emergencyGuideRepository.findById(guideId);
+        if (!guideOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId);
+        }
+        EmergencyGuide existing = guideOpt.get();
 
         // 2. Thực hiện vô hiệu hóa (Soft Delete)
         existing.setIsActive(false);
@@ -501,8 +522,11 @@ public class HospitalConfigService {
     @Transactional
     public void deleteEmergencyProtocol(Integer protocolId) {
         // 1. Tìm bản ghi hiện tại
-        EmergencyProtocol existing = emergencyProtocolRepository.findById(protocolId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Cẩm nang nhận biết bệnh lý với ID: " + protocolId));
+        Optional<EmergencyProtocol> protocolOpt = emergencyProtocolRepository.findById(protocolId);
+        if (!protocolOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy Cẩm nang nhận biết bệnh lý với ID: " + protocolId);
+        }
+        EmergencyProtocol existing = protocolOpt.get();
 
         // 2. Thực hiện vô hiệu hóa (Soft Delete)
         existing.setIsActive(false);
@@ -521,8 +545,11 @@ public class HospitalConfigService {
 
     @Transactional
     public EmergencyGuide restoreEmergencyGuide(Integer guideId) {
-        EmergencyGuide existing = emergencyGuideRepository.findById(guideId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId));
+        Optional<EmergencyGuide> guideOpt = emergencyGuideRepository.findById(guideId);
+        if (!guideOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy Hướng dẫn xử lý khẩn cấp với ID: " + guideId);
+        }
+        EmergencyGuide existing = guideOpt.get();
 
         // Kiểm tra xem vị trí này đã bị bản ghi mới nào chiếm chỗ chưa
         if (emergencyGuideRepository.existsByHospitalIdAndAlertLevelAndMetricTypeAndIsActiveTrue(
@@ -540,8 +567,11 @@ public class HospitalConfigService {
 
     @Transactional
     public EmergencyProtocol restoreEmergencyProtocol(Integer protocolId) {
-        EmergencyProtocol existing = emergencyProtocolRepository.findById(protocolId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Cẩm nang với ID: " + protocolId));
+        Optional<EmergencyProtocol> protocolOpt = emergencyProtocolRepository.findById(protocolId);
+        if (!protocolOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy Cẩm nang với ID: " + protocolId);
+        }
+        EmergencyProtocol existing = protocolOpt.get();
 
         // Kiểm tra xem vị trí này đã bị bản ghi mới nào chiếm chỗ chưa
         if (emergencyProtocolRepository.existsByHospitalIdAndConditionTypeAndIsActiveTrue(
@@ -650,16 +680,22 @@ public class HospitalConfigService {
     public ExerciseGuideline addExerciseGuideline(Integer hospitalId, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
         validateGuideline(diseaseProfileId, title, recommendedContent, avoidContent);
 
-        exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, hospitalId)
-                .ifPresent(existing -> {
-                    throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
-                });
+        Optional<ExerciseGuideline> existingOpt = exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, hospitalId);
+        if (existingOpt.isPresent()) {
+            throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
+        }
 
-        DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý."));
+        Optional<DiseaseProfile> profileOpt = diseaseProfileRepository.findById(diseaseProfileId);
+        if (!profileOpt.isPresent()) {
+            throw new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý.");
+        }
+        DiseaseProfile profile = profileOpt.get();
 
-        Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bệnh viện."));
+        Optional<Hospital> hospitalOpt = hospitalRepository.findById(hospitalId);
+        if (!hospitalOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy bệnh viện.");
+        }
+        Hospital hospital = hospitalOpt.get();
 
         ExerciseGuideline guideline = new ExerciseGuideline();
         guideline.setHospital(hospital);
@@ -689,18 +725,22 @@ public class HospitalConfigService {
 
     @Transactional
     public ExerciseGuideline editExerciseGuideline(Integer id, Integer diseaseProfileId, String title, String recommendedContent, String avoidContent) {
-        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+        Optional<ExerciseGuideline> existingOpt = exerciseGuidelineRepository.findById(id);
+        if (!existingOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id);
+        }
+        ExerciseGuideline existing = existingOpt.get();
 
         validateGuideline(diseaseProfileId, title, recommendedContent, avoidContent);
 
         if (!existing.getDiseaseProfile().getId().equals(diseaseProfileId)) {
-            exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, existing.getHospital().getId())
-                    .ifPresent(other -> {
-                        if (!other.getId().equals(id)) {
-                            throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
-                        }
-                    });
+            Optional<ExerciseGuideline> otherOpt = exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(diseaseProfileId, existing.getHospital().getId());
+            if (otherOpt.isPresent()) {
+                ExerciseGuideline other = otherOpt.get();
+                if (!other.getId().equals(id)) {
+                    throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa bản ghi hiện có thay vì tạo mới.");
+                }
+            }
         }
 
         // Snapshot dữ liệu cũ
@@ -709,8 +749,11 @@ public class HospitalConfigService {
         String oldRec = existing.getRecommendedContent();
         String oldAvoid = existing.getAvoidContent();
 
-        DiseaseProfile profile = diseaseProfileRepository.findById(diseaseProfileId)
-                .orElseThrow(() -> new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý."));
+        Optional<DiseaseProfile> profileOpt = diseaseProfileRepository.findById(diseaseProfileId);
+        if (!profileOpt.isPresent()) {
+            throw new IllegalArgumentException("diseaseProfileId:Không tìm thấy nhóm bệnh lý.");
+        }
+        DiseaseProfile profile = profileOpt.get();
 
         existing.setDiseaseProfile(profile);
         existing.setTitle(title != null ? title.trim() : "");
@@ -745,8 +788,11 @@ public class HospitalConfigService {
 
     @Transactional
     public void deleteExerciseGuideline(Integer id) {
-        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+        Optional<ExerciseGuideline> existingOpt = exerciseGuidelineRepository.findById(id);
+        if (!existingOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id);
+        }
+        ExerciseGuideline existing = existingOpt.get();
 
         existing.setIsActive(false);
         exerciseGuidelineRepository.save(existing);
@@ -756,13 +802,16 @@ public class HospitalConfigService {
 
     @Transactional
     public ExerciseGuideline restoreExerciseGuideline(Integer id) {
-        ExerciseGuideline existing = exerciseGuidelineRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id));
+        Optional<ExerciseGuideline> existingOpt = exerciseGuidelineRepository.findById(id);
+        if (!existingOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy khuyến nghị tập luyện với ID: " + id);
+        }
+        ExerciseGuideline existing = existingOpt.get();
 
-        exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(existing.getDiseaseProfile().getId(), existing.getHospital().getId())
-                .ifPresent(active -> {
-                    throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa hoặc vô hiệu hóa bản ghi hiện có trước.");
-                });
+        Optional<ExerciseGuideline> activeOpt = exerciseGuidelineRepository.findByDiseaseProfileIdAndHospitalIdAndIsActiveTrue(existing.getDiseaseProfile().getId(), existing.getHospital().getId());
+        if (activeOpt.isPresent()) {
+            throw new IllegalArgumentException("diseaseProfileId:Nhóm bệnh này đã có khuyến nghị đang áp dụng. Vui lòng sửa hoặc vô hiệu hóa bản ghi hiện có trước.");
+        }
 
         existing.setIsActive(true);
         ExerciseGuideline saved = exerciseGuidelineRepository.save(existing);
@@ -840,8 +889,11 @@ public class HospitalConfigService {
 
     @Transactional
     public FoodDictionary editFood(Integer id, FoodDictionary updated) {
-        FoodDictionary existing = foodDictionaryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
+        Optional<FoodDictionary> existingOpt = foodDictionaryRepository.findById(id);
+        if (!existingOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id);
+        }
+        FoodDictionary existing = existingOpt.get();
 
         validateFood(updated);
         updated.setFoodCode(updated.getFoodCode().trim());
@@ -884,8 +936,11 @@ public class HospitalConfigService {
 
     @Transactional
     public FoodDictionary toggleFoodActive(Integer id) {
-        FoodDictionary existing = foodDictionaryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id));
+        Optional<FoodDictionary> existingOpt = foodDictionaryRepository.findById(id);
+        if (!existingOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy món ăn với ID: " + id);
+        }
+        FoodDictionary existing = existingOpt.get();
 
         boolean oldStatus = existing.getIsActive();
         boolean newStatus = !oldStatus;

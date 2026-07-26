@@ -71,10 +71,10 @@ public class AdminAuditLogController {
         // Audit Logs (Lưu vết thao tác DOCTOR, PATIENT, HOSPITAL_ADMIN với Data Masking)
         Page<AuditTrail> rawLogs = auditTrailRepository.filterAuditLogs(actorType, action, keyword, start, end, pageable);
         
-        // Masking dữ liệu y tế nhạy cảm cho role Admin theo Mục 1.4 BRD
-        List<AuditTrail> maskedContent = rawLogs.getContent().stream()
-                .map(auditLogMaskingService::maskAuditTrailForAdmin)
-                .collect(Collectors.toList());
+        List<AuditTrail> maskedContent = new java.util.ArrayList<>();
+        for (AuditTrail log : rawLogs.getContent()) {
+            maskedContent.add(auditLogMaskingService.maskAuditTrailForAdmin(log));
+        }
 
         for (AuditTrail log : maskedContent) {
             log.setActorName(getActorNameHelper(log.getActorType(), log.getActorId()));
@@ -106,9 +106,10 @@ public class AdminAuditLogController {
         LocalDateTime end = parseToDate(toDate);
 
         List<AuditTrail> rawLogs = auditTrailRepository.filterAuditLogsForExport(actorType, action, keyword, start, end);
-        List<AuditTrail> maskedLogs = rawLogs.stream()
-                .map(auditLogMaskingService::maskAuditTrailForAdmin)
-                .collect(Collectors.toList());
+        List<AuditTrail> maskedLogs = new java.util.ArrayList<>();
+        for (AuditTrail log : rawLogs) {
+            maskedLogs.add(auditLogMaskingService.maskAuditTrailForAdmin(log));
+        }
 
         for (AuditTrail log : maskedLogs) {
             log.setActorName(getActorNameHelper(log.getActorType(), log.getActorId()));
