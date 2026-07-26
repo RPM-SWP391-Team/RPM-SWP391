@@ -64,3 +64,5 @@ Hãy viết báo cáo theo đúng cấu trúc yêu cầu.
         return {
             "clinicalSummary": f"Lỗi trong quá trình phân tích AI: {str(e)}"
         }
+
+generate_clinical_summary = generate_patient_summary

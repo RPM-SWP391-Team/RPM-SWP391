@@ -1,5 +1,7 @@
 package com.rpm.remotepatientmonitoring.service.patient;
 
+import com.rpm.remotepatientmonitoring.repository.NotificationRepository;
+
 import com.rpm.remotepatientmonitoring.model.ExerciseLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.model.TreatmentPlan;
@@ -42,7 +44,7 @@ public class ExerciseLogService {
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private ExerciseGuidelineRepository exerciseGuidelineRepository;

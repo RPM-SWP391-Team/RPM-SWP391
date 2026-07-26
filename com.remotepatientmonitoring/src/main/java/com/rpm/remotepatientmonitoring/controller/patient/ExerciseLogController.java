@@ -1,5 +1,8 @@
 package com.rpm.remotepatientmonitoring.controller.patient;
 
+import com.rpm.remotepatientmonitoring.model.ExerciseGuideline;
+import com.rpm.remotepatientmonitoring.model.Notification;
+
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.model.ExerciseLog;
 import com.rpm.remotepatientmonitoring.model.Patient;
@@ -69,7 +72,7 @@ public class ExerciseLogController {
         Map<String, Object> latestBmi = exerciseLogService.getLatestBmi(patient.getId());
 
         // Lấy danh sách thông báo tập luyện chưa đọc hôm nay
-        List<com.rpm.remotepatientmonitoring.model.Notification> exerciseNotifications = 
+        List<Notification> exerciseNotifications = 
                 exerciseLogService.getUnreadExerciseNotificationsToday(patient.getId());
 
         // Lấy khuyến nghị và mức độ tuân thủ
@@ -77,7 +80,7 @@ public class ExerciseLogController {
         ExerciseLogService.WeeklyCompliance compliance = exerciseLogService.getWeeklyComplianceRate(patient.getId());
 
         // Lấy hướng dẫn vận động tĩnh từ DB
-        Optional<com.rpm.remotepatientmonitoring.model.ExerciseGuideline> guidelineOpt = 
+        Optional<ExerciseGuideline> guidelineOpt = 
                 exerciseLogService.getExerciseGuideline(patient.getId());
 
         int targetMinutesVal = summary.get("targetMinutes") != null ? ((Number) summary.get("targetMinutes")).intValue() : ExerciseLogService.DAILY_GOAL_MINUTES;

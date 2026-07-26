@@ -5,12 +5,12 @@
     <nav th:replace="~{patient/fragments :: top-nav}"></nav>
 
     <!-- Form Container -->
-    <div class="container my-5" style="padding-bottom: 120px;">
+    <div class="container my-5 pb-120">
         <div class="row justify-content-center">
             <div class="col-lg-6 col-md-8">
                 
                 <!-- Error Alert -->
-                <div th:if="${param.bookError}" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: var(--radius-md);">
+                <div th:if="${param.bookError}" role="alert" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm custom-style-45">
                     <i class="fa-solid fa-circle-exclamation me-2"></i>
                     <span th:if="${param.bookError[0] == 'emptyReason'}">Lý do đăng ký khám không được để trống.</span>
                     <span th:if="${param.bookError[0] == 'reasonTooLong'}">Lý do đăng ký khám không được vượt quá 500 ký tự.</span>
@@ -21,9 +21,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
 
-                <div class="card shadow-sm border-0" style="border-radius: var(--radius-lg); overflow: hidden;">
+                <div class="card shadow-sm border-0 custom-style-46">
                     <!-- Header -->
-                    <div class="p-4 text-white" style="background: var(--gradient-primary);">
+                    <div class="p-4 text-white custom-style-47">
                         <h2 class="fw-bold mb-1"><i class="fa-solid fa-calendar-plus me-2 text-warning"></i>Đặt Lịch Hẹn Khám</h2>
                         <p class="mb-0 text-white-50 small">Đăng ký lịch khám mới với bác sĩ điều trị của bạn</p>
                     </div>
@@ -35,15 +35,15 @@
                             <!-- Appointment Time -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-clock me-2 text-primary"></i>Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                                <input type="datetime-local" class="form-control" id="appointmentTime" name="appointmentTime" 
-                                       th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
+                                <input type="datetime-local" id="appointmentTime" name="appointmentTime" 
+                                       th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required class="form-control custom-style-48">
                                 <div class="form-text small text-muted">Lịch khám thông thường cần đặt trước và nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6).</div>
                             </div>
                             
                             <!-- Appointment Type -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-stethoscope me-2 text-primary"></i>Loại lịch hẹn <span class="text-danger">*</span></label>
-                                <select class="form-select" id="appointmentType" name="appointmentType" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
+                                <select id="appointmentType" name="appointmentType" required class="form-select custom-style-48">
                                     <option value="INITIAL">Khám lần đầu (INITIAL)</option>
                                     <option value="CHECKUP" selected>Tái khám định kỳ (CHECKUP)</option>
                                     <option value="EMERGENCY">Khẩn cấp (EMERGENCY)</option>
@@ -53,7 +53,7 @@
                             <!-- Doctor -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-user-doctor me-2 text-primary"></i>Bác sĩ khám <span class="text-danger">*</span></label>
-                                <select class="form-select" id="doctorId" name="doctorId" required style="border-radius: var(--radius-sm); padding: 10px 14px;">
+                                <select id="doctorId" name="doctorId" required class="form-select custom-style-48">
                                     <option value="" disabled selected>-- Chọn bác sĩ --</option>
                                     <option th:each="doc : ${doctors}" th:value="${doc.id}" 
                                             th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
@@ -63,18 +63,18 @@
                             <!-- Reason text area -->
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-regular fa-comment-dots me-2 text-primary"></i>Lý do đăng ký khám <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="patientRequestReason" name="patientRequestReason" rows="5" 
-                                          placeholder="Nhập lý do cụ thể..." required maxlength="500" style="border-radius: var(--radius-sm); resize: none; padding: 10px 14px;"></textarea>
+                                <textarea id="patientRequestReason" name="patientRequestReason" rows="5" 
+                                          placeholder="Nhập lý do cụ thể..." required maxlength="500" class="form-control custom-style-49"></textarea>
                                 <div class="form-text small text-muted">Tối đa 500 ký tự.</div>
                             </div>
 
                             <!-- Action Buttons -->
                             <div class="row g-3 mt-4">
                                 <div class="col-6">
-                                    <a href="/patient/appointments" class="btn btn-secondary w-100 py-2.5 fw-bold" style="border-radius: var(--radius-sm); background-color: #6c757d; border-color: #6c757d;">Hủy bỏ</a>
+                                    <a href="/patient/appointments" class="btn btn-secondary w-100 py-2.5 fw-bold custom-style-50">Hủy bỏ</a>
                                 </div>
                                 <div class="col-6">
-                                    <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold" style="border-radius: var(--radius-sm); background: var(--gradient-primary); border: none;">Đặt Lịch Hẹn</button>
+                                    <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold custom-style-51">Đặt Lịch Hẹn</button>
                                 </div>
                             </div>
 
