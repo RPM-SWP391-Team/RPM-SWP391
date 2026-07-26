@@ -1,5 +1,23 @@
 package com.rpm.remotepatientmonitoring.service.patient;
 
+import com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto;
+import com.rpm.remotepatientmonitoring.model.Alert;
+import com.rpm.remotepatientmonitoring.model.AlertThreshold;
+import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
+import com.rpm.remotepatientmonitoring.model.Doctor;
+import com.rpm.remotepatientmonitoring.model.EmergencyGuide;
+import com.rpm.remotepatientmonitoring.model.EmergencyProtocol;
+import com.rpm.remotepatientmonitoring.model.Notification;
+import com.rpm.remotepatientmonitoring.model.Patient;
+import com.rpm.remotepatientmonitoring.repository.AlertRepository;
+import com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository;
+import com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository;
+import com.rpm.remotepatientmonitoring.repository.EmergencyProtocolRepository;
+import com.rpm.remotepatientmonitoring.repository.HealthLogRepository;
+import com.rpm.remotepatientmonitoring.repository.NotificationRepository;
+import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import java.util.*;
+
 import com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest;
 import com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +27,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class PatientHealthService {
@@ -17,25 +36,25 @@ public class PatientHealthService {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.PatientRepository patientRepository;
+    private PatientRepository patientRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.AlertRepository alertRepository;
+    private AlertRepository alertRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.AlertThresholdRepository alertThresholdRepository;
+    private AlertThresholdRepository alertThresholdRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+    private NotificationRepository notificationRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
+    private HealthLogRepository healthLogRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.EmergencyGuideRepository emergencyGuideRepository;
+    private EmergencyGuideRepository emergencyGuideRepository;
 
     @Autowired
-    private com.rpm.remotepatientmonitoring.repository.EmergencyProtocolRepository emergencyProtocolRepository;
+    private EmergencyProtocolRepository emergencyProtocolRepository;
 
     @Autowired
     private AuditTrailService auditTrailService;
@@ -64,19 +83,22 @@ public class PatientHealthService {
     }
 
     public void evaluateAndGenerateAlerts(HealthLogRequest req) {
-        com.rpm.remotepatientmonitoring.model.Patient patient = patientRepository.findById(req.getPatientId()).orElse(null);
+        Patient patient = patientRepository.findById(req.getPatientId()).orElse(null);
         if (patient == null || patient.getDoctor() == null) return;
 
-        com.rpm.remotepatientmonitoring.model.Doctor doctor = patient.getDoctor();
-        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(req.getPatientId()).orElse(null);
+        Doctor doctor = patient.getDoctor();
+        DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(req.getPatientId()).orElse(null);
 
-        com.rpm.remotepatientmonitoring.model.AlertThreshold threshold = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT")
-                .orElseGet(() -> {
-                    if (doctor.getHospital() != null) {
-                        return alertThresholdRepository.findByHospitalIdAndScope(doctor.getHospital().getId(), "HOSPITAL").orElse(null);
-                    }
-                    return null;
-                });
+        Optional<AlertThreshold> patientThresholdOpt = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT");
+        AlertThreshold threshold = null;
+        if (patientThresholdOpt.isPresent()) {
+            threshold = patientThresholdOpt.get();
+        } else if (doctor.getHospital() != null) {
+            Optional<AlertThreshold> hospitalThresholdOpt = alertThresholdRepository.findByHospitalIdAndScope(doctor.getHospital().getId(), "HOSPITAL");
+            if (hospitalThresholdOpt.isPresent()) {
+                threshold = hospitalThresholdOpt.get();
+            }
+        }
 
         int systolicLevel = 1;
         int diastolicLevel = 1;
@@ -133,7 +155,7 @@ public class PatientHealthService {
         }
         
         if (finalLevel >= 2) {
-            com.rpm.remotepatientmonitoring.model.Alert alert = new com.rpm.remotepatientmonitoring.model.Alert();
+            Alert alert = new Alert();
             alert.setPatient(patient);
             alert.setDoctor(doctor);
             alert.setHealthLog(latestLog);
@@ -152,7 +174,7 @@ public class PatientHealthService {
             
             // Only notify DOCTOR if level >= 3 (Orange/Red)
             if (finalLevel >= 3) {
-                com.rpm.remotepatientmonitoring.model.Notification notif = new com.rpm.remotepatientmonitoring.model.Notification();
+                Notification notif = new Notification();
                 notif.setPatient(patient);
                 notif.setDoctor(doctor);
                 notif.setRecipientType("DOCTOR");
@@ -171,8 +193,8 @@ public class PatientHealthService {
     }
 
     @org.springframework.transaction.annotation.Transactional
-    public void saveDailyHealthLog(Integer id, com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
-        com.rpm.remotepatientmonitoring.model.DailyHealthLog log;
+    public void saveDailyHealthLog(Integer id, Patient patient, DailyHealthLogFormDto formDto) {
+        DailyHealthLog log;
         if (id != null) {
             log = healthLogRepository.findById(id).orElse(null);
             if (log != null) {
@@ -208,8 +230,8 @@ public class PatientHealthService {
         evaluateAndGenerateAlerts(alertReq);
     }
 
-    private com.rpm.remotepatientmonitoring.model.DailyHealthLog createNewDailyHealthLogEntity(com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
-        return com.rpm.remotepatientmonitoring.model.DailyHealthLog.builder()
+    private DailyHealthLog createNewDailyHealthLogEntity(Patient patient, DailyHealthLogFormDto formDto) {
+        return DailyHealthLog.builder()
                 .patient(patient)
                 .logDate(java.time.LocalDate.now())
                 .logTime(java.time.LocalDateTime.now())
@@ -233,23 +255,23 @@ public class PatientHealthService {
         healthLogRepository.deleteById(id);
     }
 
-    public java.util.List<com.rpm.remotepatientmonitoring.model.DailyHealthLog> getRecentDailyHealthLogs(Integer patientId) {
+    public List<DailyHealthLog> getRecentDailyHealthLogs(Integer patientId) {
         return healthLogRepository.findByPatientIdOrderByLogTimeDesc(patientId);
     }
 
-    public com.rpm.remotepatientmonitoring.model.DailyHealthLog getDailyHealthLogById(Integer id) {
+    public DailyHealthLog getDailyHealthLogById(Integer id) {
         return healthLogRepository.findById(id).orElse(null);
     }
 
-    public com.rpm.remotepatientmonitoring.model.Patient getPatientByAccountId(Integer accountId) {
+    public Patient getPatientByAccountId(Integer accountId) {
         return patientRepository.findByAccountId(accountId).orElse(null);
     }
 
-    public java.util.List<com.rpm.remotepatientmonitoring.model.Patient> getAllPatients() {
+    public List<Patient> getAllPatients() {
         return patientRepository.findAll();
     }
 
-    public void saveDailyHealthLog(com.rpm.remotepatientmonitoring.model.Patient patient, com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto formDto) {
+    public void saveDailyHealthLog(Patient patient, DailyHealthLogFormDto formDto) {
         if (patient == null || formDto == null) return;
         HealthLogRequest req = new HealthLogRequest();
         req.setPatientId(patient.getId());
@@ -262,18 +284,18 @@ public class PatientHealthService {
         submitDailyHealthLog(req);
     }
 
-    public java.util.Map<String, Object> getEmergencyStatus(com.rpm.remotepatientmonitoring.model.Patient patient) {
-        java.util.Map<String, Object> res = new java.util.HashMap<>();
+    public Map<String, Object> getEmergencyStatus(Patient patient) {
+        Map<String, Object> res = new java.util.HashMap<>();
         if (patient == null) {
             res.put("isEmergency", false);
             res.put("level", 1);
             res.put("emergencyContactName", "Chưa thiết lập");
             res.put("emergencyContactPhone", "");
-            res.put("guides", java.util.List.of());
+            res.put("guides", List.of());
             return res;
         }
 
-        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(patient.getId()).orElse(null);
+        DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(patient.getId()).orElse(null);
         boolean isEmergency = false;
         int level = 1;
         String message = "Chỉ số an toàn";
@@ -293,8 +315,8 @@ public class PatientHealthService {
         res.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
 
         // Fetch and populate latest BP and Glucose levels for Today's Health Assessment UI
-        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestBpLog = healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
-        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestGlLog = healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+        DailyHealthLog latestBpLog = healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+        DailyHealthLog latestGlLog = healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
 
         if (latestBpLog != null) {
             res.put("latestSystolic", latestBpLog.getSystolicBp());
@@ -310,12 +332,12 @@ public class PatientHealthService {
             res.put("latestGlucose", null);
         }
 
-        java.util.List<java.util.Map<String, Object>> guideList = new java.util.ArrayList<>();
+        List<Map<String, Object>> guideList = new java.util.ArrayList<>();
         if (patient.getHospital() != null) {
-            java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyGuide> guides = 
+            List<EmergencyGuide> guides = 
                 emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
-            for (com.rpm.remotepatientmonitoring.model.EmergencyGuide g : guides) {
-                java.util.Map<String, Object> gMap = new java.util.HashMap<>();
+            for (EmergencyGuide g : guides) {
+                Map<String, Object> gMap = new java.util.HashMap<>();
                 gMap.put("title", g.getTitle());
                 gMap.put("content", g.getInstructionContent());
                 gMap.put("metricType", g.getMetricType());
@@ -325,7 +347,7 @@ public class PatientHealthService {
         res.put("guides", guideList);
 
         // Fetch latest doctor resolution note for alert handling instructions
-        com.rpm.remotepatientmonitoring.model.Alert latestDoctorNoteAlert = alertRepository
+        Alert latestDoctorNoteAlert = alertRepository
                 .findFirstByPatientIdAndIsResolvedTrueAndResolutionNotesIsNotNullOrderByResolvedAtDesc(patient.getId())
                 .orElse(null);
 
@@ -340,23 +362,27 @@ public class PatientHealthService {
         return res;
     }
 
-    public java.util.List<com.rpm.remotepatientmonitoring.model.EmergencyProtocol> getEmergencyProtocols(Integer hospitalId) {
-        if (hospitalId == null) return java.util.List.of();
+    public List<EmergencyProtocol> getEmergencyProtocols(Integer hospitalId) {
+        if (hospitalId == null) return List.of();
         return emergencyProtocolRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
     }
 
-    public java.util.List<com.rpm.remotepatientmonitoring.model.DailyHealthLog> getHealthLogsByPatientIdAndDate(Integer patientId, java.time.LocalDate date) {
+    public List<DailyHealthLog> getHealthLogsByPatientIdAndDate(Integer patientId, java.time.LocalDate date) {
         return healthLogRepository.findByPatientIdAndLogDate(patientId, date);
     }
 
-    public com.rpm.remotepatientmonitoring.model.AlertThreshold getAlertThresholdByPatientOrHospital(Integer patientId, Integer hospitalId) {
-        return alertThresholdRepository.findByPatientIdAndScope(patientId, "PATIENT")
-                .orElseGet(() -> {
-                    if (hospitalId != null) {
-                        return alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL").orElse(null);
-                    }
-                    return null;
-                });
+    public AlertThreshold getAlertThresholdByPatientOrHospital(Integer patientId, Integer hospitalId) {
+        Optional<AlertThreshold> opt = alertThresholdRepository.findByPatientIdAndScope(patientId, "PATIENT");
+        if (opt.isPresent()) {
+            return opt.get();
+        }
+        if (hospitalId != null) {
+            Optional<AlertThreshold> hospOpt = alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL");
+            if (hospOpt.isPresent()) {
+                return hospOpt.get();
+            }
+        }
+        return null;
     }
 }
 
