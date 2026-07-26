@@ -47,8 +47,11 @@ public class HospitalProfileService {
     private HospitalAdminRepository hospitalAdminRepository;
 
     public HospitalProfileDTO getProfileByAccountId(Integer accountId) {
-        HospitalAdmin admin = hospitalAdminRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin quản trị viên bệnh viện."));
+        java.util.Optional<HospitalAdmin> adminOpt = hospitalAdminRepository.findByAccountId(accountId);
+        if (!adminOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy thông tin quản trị viên bệnh viện.");
+        }
+        HospitalAdmin admin = adminOpt.get();
 
         Hospital hospital = admin.getHospital();
         Account account = admin.getAccount();
@@ -71,8 +74,11 @@ public class HospitalProfileService {
 
     @Transactional
     public void updateProfile(Integer accountId, HospitalProfileDTO dto) {
-        HospitalAdmin admin = hospitalAdminRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin quản trị viên bệnh viện."));
+        java.util.Optional<HospitalAdmin> adminOpt = hospitalAdminRepository.findByAccountId(accountId);
+        if (!adminOpt.isPresent()) {
+            throw new IllegalArgumentException("Không tìm thấy thông tin quản trị viên bệnh viện.");
+        }
+        HospitalAdmin admin = adminOpt.get();
 
         Hospital hospital = admin.getHospital();
         Account account = admin.getAccount();
