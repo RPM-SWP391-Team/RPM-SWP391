@@ -8,265 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #1A73E8;
-            --primary-hover: #155cb4;
-            --primary-light: #E8F0FE;
-            --bg-light: #F4F7FE;
-            --text-dark: #1E293B;
-            --text-muted: #64748B;
-            --sidebar-width: 260px;
-            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            --accent-color: #00d2ff;
-        }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Styling */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            border-right: 1px solid #E2E8F0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-brand {
-            padding: 1.5rem 1.5rem;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            border-bottom: 1px solid #F1F5F9;
-        }
-        .sidebar-menu {
-            padding: 1.5rem 1rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .menu-item:hover, .menu-item.active {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-        }
-        .sidebar-footer {
-            padding: 1.5rem 1rem;
-            border-top: 1px solid #F1F5F9;
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: all 0.3s ease;
-            padding: 1.25rem 1.5rem;
-            box-sizing: border-box;
-        }
-        .navbar-top {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* List and Table Custom styles */
-        .card-custom {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-            background: #ffffff;
-            transition: transform 0.2s, box-shadow 0.2s;
-            max-width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-        .table-responsive {
-            border-radius: 12px;
-            overflow-x: auto;
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Ép cố định cấu hình layout để tránh lệch nhảy bảng khi tăng nhân sự */
-        .table-custom {
-            table-layout: fixed;
-            width: 100%;
-        }
-        .table-custom thead {
-            background: var(--primary-gradient);
-            color: white;
-        }
-        .table-custom th {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            padding: 16px;
-        }
-
-        /* ĐÃ SỬA: Phân bổ đủ 100% không gian cho cả 7 cột */
-        .table-custom th:nth-child(1), .table-custom td:nth-child(1) { width: 10%; } /* Mã BS */
-        .table-custom th:nth-child(2), .table-custom td:nth-child(2) { width: 18%; } /* Họ và tên */
-        .table-custom th:nth-child(3), .table-custom td:nth-child(3) { width: 22%; } /* Liên hệ */
-        .table-custom th:nth-child(4), .table-custom td:nth-child(4) { width: 12%; } /* Chuyên khoa */
-        .table-custom th:nth-child(5), .table-custom td:nth-child(5) { width: 15%; } /* Khối lượng tải */
-        .table-custom th:nth-child(6), .table-custom td:nth-child(6) { width: 10%; } /* Trạng thái */
-        .table-custom th:nth-child(7), .table-custom td:nth-child(7) { width: 13%; } /* Hành động */
-
-        .table-custom td {
-            padding: 16px;
-            vertical-align: middle;
-        }
-
-        /* ĐÃ SỬA: Đổi display thành inline-block */
-        .text-ellipsis {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: inline-block;
-            max-width: 100%;
-        }
-
-        .progress {
-            height: 12px;
-            border-radius: 10px;
-            background-color: #e9ecef;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .progress-bar-custom {
-            border-radius: 10px;
-            transition: width 0.6s ease;
-        }
-        .btn-gradient {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 10px 24px;
-            box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
-            transition: all 0.3s;
-        }
-        .btn-gradient:hover {
-            color: white;
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
-        }
-        .badge-status {
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-        .modal-content {
-            border-radius: 20px;
-            border: none;
-            overflow: hidden;
-        }
-        .modal-header {
-            background: var(--primary-gradient);
-            color: white;
-        }
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #ced4da;
-            transition: all 0.3s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #2a5298;
-            box-shadow: 0 0 0 0.2rem rgba(42, 82, 152, 0.25);
-        }
-        .alert-dismissible {
-            border-radius: 12px;
-        }
-
-        /* CSS Tối ưu trực quan cho thanh phân trang */
-        .pagination {
-            gap: 2px;
-        }
-        .page-link {
-            color: var(--text-dark);
-            border: 1px solid #E2E8F0;
-            background-color: #ffffff;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border-radius: 6px !important;
-        }
-        .page-link:hover {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-            border-color: #ced4da;
-        }
-        .page-item.active .page-link {
-            background: var(--primary-gradient);
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 10px rgba(30, 60, 114, 0.2);
-        }
-        .page-item.disabled .page-link {
-            background-color: #F8FAFC;
-            color: #94A3B8;
-            border-color: #E2E8F0;
-            cursor: not-allowed;
-        }
-
-        /* Mobile responsive toggle */
-        .sidebar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            cursor: pointer;
-        }
-
-        @media (max-width: 991.98px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 1.5rem;
-            }
-            .sidebar-toggle {
-                display: block;
-            }
-        }
-    </style>
+    <link th:href="@{/css/hospital.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -531,7 +273,7 @@
                     <ul class="pagination pagination-sm mb-0 shadow-sm">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                             <a class="page-link rounded-start py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
+                               th:href="@{/hospital/doctors(page=${currentPage == 0 ? 0 : currentPage - 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         </li>
@@ -545,9 +287,19 @@
 
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
                             <a class="page-link rounded-end py-2 px-3"
-                               th:href="@{/hospital/doctors(page=${currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
+                               th:href="@{/hospital/doctors(page=${currentPage == totalPages - 1 ? totalPages - 1 : currentPage + 1}, search=${searchKeyword}, specialty=${selectedSpecialty}, status=${selectedStatus})}">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
+                        </li>
+                        <li class="page-item align-self-center ms-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-muted small">Đi tới:</span>
+                                <input type="number" class="form-control form-control-sm text-center px-1" 
+                                       id="jumpPageInput" min="1" th:max="${totalPages}" placeholder="..." 
+                                       style="width: 50px; height: 28px;">
+                                <button class="btn btn-sm btn-outline-primary px-2" type="button" 
+                                        id="btnJumpPage" style="height: 28px; line-height: 1;">Đi</button>
+                            </div>
                         </li>
                     </ul>
                 </nav>
@@ -958,6 +710,32 @@
             .catch(error => {
                 alert('Lỗi: ' + error.message);
             });
+    }
+
+    // Javascript xử lý chuyển trang nhanh cho Bác sĩ
+    const btnJump = document.getElementById('btnJumpPage');
+    const inputJump = document.getElementById('jumpPageInput');
+    if (btnJump && inputJump) {
+        const executeJump = () => {
+            const pageNum = parseInt(inputJump.value);
+            const maxPage = parseInt(inputJump.getAttribute('max'));
+            
+            if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPage) {
+                alert('Vui lòng nhập số trang hợp lệ từ 1 đến ' + maxPage);
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('page', pageNum - 1);
+            window.location.href = window.location.pathname + '?' + urlParams.toString();
+        };
+        
+        btnJump.addEventListener('click', executeJump);
+        inputJump.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeJump();
+            }
+        });
     }
 </script>
 </body>

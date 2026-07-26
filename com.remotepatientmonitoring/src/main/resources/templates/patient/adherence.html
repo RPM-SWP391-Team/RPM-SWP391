@@ -45,7 +45,7 @@
                                     <span class="badge bg-light text-dark border mt-1">
                                         <i class="fa-regular fa-clock me-1 text-primary"></i><span th:text="${med.scheduledTime}">08:00</span>
                                     </span>
-                                    <span th:if="${med.isOverdue}" class="badge bg-danger text-white mt-1 ms-1" style="font-size: 10px;">
+                                    <span th:if="${med.isOverdue}" class="badge bg-danger text-white mt-1 ms-1 custom-style-1">
                                         <i class="fa-solid fa-triangle-exclamation me-1"></i>Trễ giờ
                                     </span>
                                 </div>
@@ -77,7 +77,7 @@
                         <i class="fa-solid fa-glass-water me-2"></i>Theo Dõi Uống Nước
                     </h4>
                     
-                    <div class="text-center p-3 mb-4 rounded-3" style="background-color: #f0f7ff;">
+                    <div class="text-center p-3 mb-4 rounded-3 custom-style-2">
                         <h2 class="fw-bold text-primary mb-0">
                             <span id="txtCurrent" th:text="${currentWater}">0</span> <span class="fs-5 text-muted">/ <span th:text="${targetWater}">2000</span> ml</span>
                         </h2>
@@ -122,13 +122,13 @@
                         <h6 class="fw-semibold text-primary mb-2">
                             <i class="fa-solid fa-clock-rotate-left me-1"></i>Lịch sử uống nước (30 ngày gần đây)
                         </h6>
-                        <div style="max-height: 180px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 13px;">
+                        <div class="custom-style-3">
+                            <table class="table table-sm table-hover mb-0 custom-style-4">
                                 <thead class="table-light sticky-top">
                                     <tr>
                                         <th>Ngày</th>
                                         <th>Lượng (ml)</th>
-                                        <th class="text-center" style="width: 80px;">Thao tác</th>
+                                        <th class="text-center custom-style-5">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -142,13 +142,13 @@
                                             <span class="text-muted"> ml</span>
                                         </td>
                                         <td class="text-center">
-                                            <i class="fa-solid fa-pen text-primary me-2" style="cursor:pointer; font-size: 12px;"
+                                            <i class="fa-solid fa-pen text-primary me-2 custom-style-6"
                                                th:if="${wl.logDate.equals(T(java.time.LocalDate).now())}"
                                                th:data-id="${wl.id}"
                                                th:data-date="${#temporals.format(wl.logDate, 'yyyy-MM-dd')}"
                                                th:data-amount="${wl.amountMl}"
                                                onclick="openEditWaterHistory(this)"></i>
-                                            <i class="fa-solid fa-trash text-danger" style="cursor:pointer; font-size: 12px;"
+                                            <i class="fa-solid fa-trash text-danger custom-style-6"
                                                th:if="${wl.logDate.equals(T(java.time.LocalDate).now())}"
                                                th:data-id="${wl.id}"
                                                onclick="deleteWaterHistory(this.getAttribute('data-id'))"></i>
@@ -178,34 +178,34 @@
                     <p class="text-muted small mb-3">Tỷ lệ tuân thủ uống thuốc hàng ngày (Xuất sắc: >= 80%) và uống nước đạt chỉ tiêu.</p>
                     
                     <!-- Chú giải Legend -->
-                    <div class="d-flex flex-wrap gap-3 mb-4" style="font-size: 11px;">
+                    <div class="d-flex flex-wrap gap-3 mb-4 fs-11">
                         <div class="d-flex align-items-center gap-1">
-                            <span style="display: inline-block; width: 10px; height: 10px; background-color: #198754; border-radius: 2px;"></span>
+                            <span class="custom-style-7"></span>
                             <span>Thuốc (Đạt >= 80%)</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <span style="display: inline-block; width: 10px; height: 10px; background-color: #ffc107; border-radius: 2px;"></span>
+                            <span class="custom-style-8"></span>
                             <span>Thuốc (Đạt 50%-79%)</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <span style="display: inline-block; width: 10px; height: 10px; background-color: #dc3545; border-radius: 2px;"></span>
+                            <span class="custom-style-9"></span>
                             <span>Thuốc (Kém < 50%)</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
-                            <span style="display: inline-block; width: 10px; height: 10px; background-color: #0d6efd; border-radius: 2px;"></span>
+                            <span class="custom-style-10"></span>
                             <span>Nước uống đạt tỷ lệ</span>
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-end justify-content-between pt-4 px-2" style="height: 180px; border-bottom: 2px solid #e9ecef; border-left: 2px solid #e9ecef;">
-                        <div th:each="day : ${chartData}" class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end pb-1" style="max-width: 60px;">
+                    <div class="d-flex align-items-end justify-content-between pt-4 px-2 custom-style-11">
+                        <div th:each="day : ${chartData}" class="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end pb-1 custom-style-12">
                             <!-- Percent Labels -->
-                            <div class="d-flex justify-content-center gap-1 mb-1" style="font-size: 8px; font-weight: bold; width: 100%;">
-                                <span style="color: #198754;" th:text="${day.medPercent} + '%'">100%</span>
-                                <span style="color: #0d6efd;" th:text="${day.waterPercent} + '%'">80%</span>
+                            <div class="d-flex justify-content-center gap-1 mb-1 custom-style-13">
+                                <span class="custom-style-14" th:text="${day.medPercent} + '%'">100%</span>
+                                <span class="custom-style-15" th:text="${day.waterPercent} + '%'">80%</span>
                             </div>
                             <!-- Two Bars -->
-                            <div class="d-flex align-items-end justify-content-center gap-1 w-100" style="height: 100px;">
+                            <div class="d-flex align-items-end justify-content-center gap-1 w-100 custom-style-16">
                                 <!-- Medication Bar -->
                                 <div class="rounded-top" 
                                      th:style="'width: 10px; height: ' + ${day.medPercent} + '%; background-color: ' + (${day.medPercent >= 80} ? '#198754' : (${day.medPercent >= 50} ? '#ffc107' : '#dc3545'))"
@@ -218,7 +218,7 @@
                                 </div>
                             </div>
                             <!-- Date Label -->
-                            <span class="small text-muted mt-2" style="font-size: 10px; min-height: 15px;" th:text="${day.dateLabel}">21/06</span>
+                            <span class="small text-muted mt-2 custom-style-17" th:text="${day.dateLabel}">21/06</span>
                         </div>
                     </div>
                 </div>
@@ -234,17 +234,20 @@
                             </h4>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <!-- Date Search Picker -->
-                            <div class="d-flex align-items-center gap-1">
-                                <label for="searchDateInput" class="small text-muted fw-semibold" style="font-size: 11px; white-space: nowrap;">Chọn ngày:</label>
-                                <div class="input-group input-group-sm" style="max-width: 180px;">
-                                    <input type="date" id="searchDateInput" class="form-control rounded-start-pill px-2 border-success text-center" 
-                                           th:value="${searchDate}" style="font-size: 12px; height: 30px;">
-                                    <button class="btn btn-success rounded-end-pill px-2" type="button" onclick="performDateSearch()" style="height: 30px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
+                            <!-- Date Range Search Form (Từ ngày - Đến ngày) -->
+                            <form th:action="@{/patient/adherence}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-semibold fs-11">Từ:</span>
+                                    <input type="date" name="startDate" th:value="${startDate}" class="form-control form-control-sm rounded-pill px-2 border-success text-center fs-12 h-30px" style="max-width: 135px;">
                                 </div>
-                            </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted fw-semibold fs-11">Đến:</span>
+                                    <input type="date" name="endDate" th:value="${endDate}" class="form-control form-control-sm rounded-pill px-2 border-success text-center fs-12 h-30px" style="max-width: 135px;">
+                                </div>
+                                <button type="submit" title="Tìm kiếm theo khoảng ngày" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i>Lọc
+                                </button>
+                            </form>
                             <!-- Button Filters -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc lịch sử">
                                 <a th:href="@{/patient/adherence(range='today')}" class="btn px-3 rounded-start-pill" th:classappend="${range == 'today'} ? 'btn-success text-white' : 'btn-outline-success'">Hôm nay</a>
@@ -255,10 +258,10 @@
                         </div>
                     </div>
 
-                    <div class="timeline mt-3" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                        <div th:each="entry : ${history}" class="mb-4 position-relative ps-4" style="border-left: 2px solid #20c997;">
+                    <div class="timeline mt-3 custom-style-22">
+                        <div th:each="entry : ${history}" class="mb-4 position-relative ps-4 custom-style-23">
                             <!-- Timeline dot -->
-                            <div class="position-absolute" style="left: -7px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background-color: #20c997;"></div>
+                            <div class="position-absolute custom-style-24"></div>
                             
                             <h6 class="fw-bold text-primary mb-3">
                                 <i class="fa-regular fa-calendar me-1"></i>
@@ -268,20 +271,19 @@
                             <div class="d-flex flex-column gap-3">
                                 <!-- Medication status -->
                                 <div>
-                                    <small class="text-muted d-block mb-1 fw-semibold" style="font-size: 11px;">
+                                    <small class="text-muted d-block mb-1 fw-semibold fs-11">
                                         <i class="fa-solid fa-pills me-1 text-success"></i>Lịch uống thuốc:
                                     </small>
                                     <div class="d-flex flex-wrap gap-2">
-                                        <div th:each="log : ${entry.value['meds']}" class="badge border py-2 px-3 d-flex align-items-center gap-2 text-wrap text-start lh-sm fs-6"
-                                             th:classappend="${log.isTaken} ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger'"
-                                             style="font-weight: 500; border-radius: 8px; max-width: 320px;">
+                                        <div th:each="log : ${entry.value['meds']}"
+                                             th:classappend="${log.isTaken} ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger'" class="badge border py-2 px-3 d-flex align-items-center gap-2 text-wrap text-start lh-sm fs-6 custom-style-25">
                                             <i th:class="${log.isTaken} ? 'fa-solid fa-circle-check text-success' : 'fa-solid fa-circle-xmark text-danger'"></i>
                                             <div class="flex-grow-1">
                                                 <div class="fw-bold text-dark" th:text="${log.medicineName}">Tên thuốc</div>
-                                                <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                                <small class="text-muted d-block mt-1 fs-11">
                                                     <i class="fa-regular fa-clock me-1"></i>Giờ uống: <span th:text="${log.scheduledTime}">08:00</span>
                                                 </small>
-                                                <small th:if="${log.isTaken and log.takenAt != null}" class="text-success d-block mt-1" style="font-size: 10px;">
+                                                <small th:if="${log.isTaken and log.takenAt != null}" class="text-success d-block mt-1 custom-style-1">
                                                     <i class="fa-solid fa-check me-1"></i>Uống lúc: <span th:text="${#temporals.format(log.takenAt, 'HH:mm')}">08:05</span>
                                                 </small>
                                             </div>
@@ -295,16 +297,15 @@
                                 
                                 <!-- Water status -->
                                 <div>
-                                    <small class="text-muted d-block mb-1 fw-semibold" style="font-size: 11px;">
+                                    <small class="text-muted d-block mb-1 fw-semibold fs-11">
                                         <i class="fa-solid fa-glass-water me-1 text-primary"></i>Lượng nước uống:
                                     </small>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="badge border py-2 px-3 d-flex align-items-center gap-2 text-start fs-6 bg-primary-subtle text-primary border-primary"
-                                              style="font-weight: 500; border-radius: 8px; width: fit-content;">
+                                        <span class="badge border py-2 px-3 d-flex align-items-center gap-2 text-start fs-6 bg-primary-subtle text-primary border-primary custom-style-26">
                                             <i class="fa-solid fa-droplet text-primary"></i>
                                             <div>
                                                 <span class="fw-bold" th:text="${entry.value['waterAmount'] != null ? entry.value['waterAmount'] : 0} + '/' + ${entry.value['waterTarget'] != null ? entry.value['waterTarget'] : 2000} + ' ml'">1500/2200 ml</span>
-                                                <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                                <small class="text-muted d-block mt-1 fs-11">
                                                     Đạt: <span th:text="${entry.value['waterPercent'] != null ? entry.value['waterPercent'] : 0}">0</span>% mục tiêu
                                                 </small>
                                             </div>
@@ -328,8 +329,8 @@
     <!-- ==================== MODAL: THÊM THUỐC MỚI ==================== -->
     <div class="modal fade" id="addMedicationModal" tabindex="-1" aria-labelledby="addMedicationLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
+            <div class="modal-content rounded-16 overflow-hidden">
+                <div class="modal-header custom-style-27">
                     <h5 class="modal-title text-white fw-bold" id="addMedicationLabel">
                         <i class="fa-solid fa-plus-circle me-2"></i>Thêm Thuốc Mới
                     </h5>
@@ -368,8 +369,8 @@
     <!-- ==================== MODAL: CHỈNH SỬA THUỐC ==================== -->
     <div class="modal fade" id="editMedicationModal" tabindex="-1" aria-labelledby="editMedicationLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
+            <div class="modal-content rounded-16 overflow-hidden">
+                <div class="modal-header custom-style-28">
                     <h5 class="modal-title text-white fw-bold" id="editMedicationLabel">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Thuốc
                     </h5>
@@ -409,8 +410,8 @@
     <!-- ==================== MODAL: THÊM LỊCH SỬ UỐNG NƯỚC (DÀNH CHO NGÀY KHÁC) ==================== -->
     <div class="modal fade" id="addWaterHistoryModal" tabindex="-1" aria-labelledby="addWaterHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
+            <div class="modal-content rounded-16 overflow-hidden">
+                <div class="modal-header custom-style-29">
                     <h5 class="modal-title text-white fw-bold" id="addWaterHistoryLabel">
                         <i class="fa-solid fa-plus-circle me-2"></i>Nhập Nước Ngày Khác
                     </h5>
@@ -439,8 +440,8 @@
     <!-- ==================== MODAL: CHỈNH SỬA LỊCH SỬ UỐNG NƯỚC ==================== -->
     <div class="modal fade" id="editWaterHistoryModal" tabindex="-1" aria-labelledby="editWaterHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
+            <div class="modal-content rounded-16 overflow-hidden">
+                <div class="modal-header custom-style-29">
                     <h5 class="modal-title text-white fw-bold" id="editWaterHistoryLabel">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Sử Uống Nước
                     </h5>
@@ -470,8 +471,8 @@
     <!-- ==================== MODAL: NHẬP THUỐC NGÀY KHÁC ==================== -->
     <div class="modal fade" id="addMedHistoryModal" tabindex="-1" aria-labelledby="addMedHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #198754, #20c997); border: none;">
+            <div class="modal-content rounded-16 overflow-hidden">
+                <div class="modal-header custom-style-27">
                     <h5 class="modal-title text-white fw-bold" id="addMedHistoryLabel">
                         <i class="fa-solid fa-plus-circle me-2"></i>Nhập Thuốc Ngày Khác
                     </h5>
@@ -518,8 +519,8 @@
     <!-- ==================== MODAL: CHỈNH SỬA LỊCH SỬ UỐNG THUỐC ==================== -->
     <div class="modal fade" id="editMedHistoryModal" tabindex="-1" aria-labelledby="editMedHistoryLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #2a5298, #1e3c72); border: none;">
+            <div class="modal-content rounded-16 overflow-hidden">
+                <div class="modal-header custom-style-28">
                     <h5 class="modal-title text-white fw-bold" id="editMedHistoryLabel">
                         <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Sử Uống Thuốc
                     </h5>

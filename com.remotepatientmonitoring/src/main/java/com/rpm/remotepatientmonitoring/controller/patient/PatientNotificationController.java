@@ -1,5 +1,7 @@
 package com.rpm.remotepatientmonitoring.controller.patient;
 
+import com.rpm.remotepatientmonitoring.model.Notification;
+
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
@@ -47,13 +49,13 @@ public class PatientNotificationController {
 
     @GetMapping("/{id}/read-redirect")
     public String markAsReadAndRedirect(@PathVariable Integer id, HttpServletRequest request) {
-        Optional<com.rpm.remotepatientmonitoring.model.Notification> notificationOptional = 
+        Optional<Notification> notificationOptional = 
                 patientNotificationService.getNotificationById(id);
 
         String targetUrl = null;
 
         if (notificationOptional.isPresent()) {
-            com.rpm.remotepatientmonitoring.model.Notification notification = notificationOptional.get();
+            Notification notification = notificationOptional.get();
             patientNotificationService.markAsRead(id);
 
             String type = notification.getNotificationType();

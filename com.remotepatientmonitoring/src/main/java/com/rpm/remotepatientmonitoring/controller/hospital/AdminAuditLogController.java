@@ -1,6 +1,13 @@
 package com.rpm.remotepatientmonitoring.controller.hospital;
 
 import com.rpm.remotepatientmonitoring.model.AuditTrail;
+import com.rpm.remotepatientmonitoring.model.HospitalAdmin;
+import com.rpm.remotepatientmonitoring.model.Doctor;
+import com.rpm.remotepatientmonitoring.model.Patient;
+import com.rpm.remotepatientmonitoring.repository.HospitalAdminRepository;
+import com.rpm.remotepatientmonitoring.repository.DoctorRepository;
+import com.rpm.remotepatientmonitoring.repository.PatientRepository;
+import java.util.Optional;
 import com.rpm.remotepatientmonitoring.repository.AuditTrailRepository;
 import com.rpm.remotepatientmonitoring.service.hospital.AuditLogMaskingService;
 import com.rpm.remotepatientmonitoring.service.hospital.ExcelExportService;
@@ -37,6 +44,15 @@ public class AdminAuditLogController {
     @Autowired
     private ExcelExportService excelExportService;
 
+    @Autowired
+    private HospitalAdminRepository hospitalAdminRepository;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
+
     @GetMapping("/hospital/audit-logs")
     public String getAuditLogs(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -55,10 +71,14 @@ public class AdminAuditLogController {
         // Audit Logs (Lưu vết thao tác DOCTOR, PATIENT, HOSPITAL_ADMIN với Data Masking)
         Page<AuditTrail> rawLogs = auditTrailRepository.filterAuditLogs(actorType, action, keyword, start, end, pageable);
         
-        // Masking dữ liệu y tế nhạy cảm cho role Admin theo Mục 1.4 BRD
-        List<AuditTrail> maskedContent = rawLogs.getContent().stream()
-                .map(auditLogMaskingService::maskAuditTrailForAdmin)
-                .collect(Collectors.toList());
+        List<AuditTrail> maskedContent = new java.util.ArrayList<>();
+        for (AuditTrail log : rawLogs.getContent()) {
+            maskedContent.add(auditLogMaskingService.maskAuditTrailForAdmin(log));
+        }
+
+        for (AuditTrail log : maskedContent) {
+            log.setActorName(getActorNameHelper(log.getActorType(), log.getActorId()));
+        }
 
         Page<AuditTrail> maskedLogs = new PageImpl<>(maskedContent, pageable, rawLogs.getTotalElements());
         model.addAttribute("logs", maskedLogs);
@@ -86,9 +106,14 @@ public class AdminAuditLogController {
         LocalDateTime end = parseToDate(toDate);
 
         List<AuditTrail> rawLogs = auditTrailRepository.filterAuditLogsForExport(actorType, action, keyword, start, end);
-        List<AuditTrail> maskedLogs = rawLogs.stream()
-                .map(auditLogMaskingService::maskAuditTrailForAdmin)
-                .collect(Collectors.toList());
+        List<AuditTrail> maskedLogs = new java.util.ArrayList<>();
+        for (AuditTrail log : rawLogs) {
+            maskedLogs.add(auditLogMaskingService.maskAuditTrailForAdmin(log));
+        }
+
+        for (AuditTrail log : maskedLogs) {
+            log.setActorName(getActorNameHelper(log.getActorType(), log.getActorId()));
+        }
 
         ByteArrayInputStream in = excelExportService.exportAuditLogsToCsv(maskedLogs);
 
@@ -120,5 +145,44 @@ public class AdminAuditLogController {
         } catch (Exception e) {
             return LocalDateTime.of(9999, 12, 31, 23, 59, 59);
         }
+    }
+
+    private String getActorNameHelper(String actorType, Integer actorId) {
+        if (actorType == null || actorId == null) {
+            return "-";
+        }
+        try {
+            if ("HOSPITAL_ADMIN".equalsIgnoreCase(actorType)) {
+                Optional<HospitalAdmin> adminOpt = hospitalAdminRepository.findByAccountId(actorId);
+                if (adminOpt.isPresent()) {
+                    return adminOpt.get().getFullName();
+                }
+                adminOpt = hospitalAdminRepository.findById(actorId);
+                if (adminOpt.isPresent()) {
+                    return adminOpt.get().getFullName();
+                }
+            } else if ("DOCTOR".equalsIgnoreCase(actorType)) {
+                Optional<Doctor> docOpt = doctorRepository.findById(actorId);
+                if (docOpt.isPresent()) {
+                    return docOpt.get().getFullName();
+                }
+                docOpt = doctorRepository.findByAccountId(actorId);
+                if (docOpt.isPresent()) {
+                    return docOpt.get().getFullName();
+                }
+            } else if ("PATIENT".equalsIgnoreCase(actorType)) {
+                Optional<Patient> patOpt = patientRepository.findById(actorId);
+                if (patOpt.isPresent()) {
+                    return patOpt.get().getFullName();
+                }
+                patOpt = patientRepository.findByAccountId(actorId);
+                if (patOpt.isPresent()) {
+                    return patOpt.get().getFullName();
+                }
+            }
+        } catch (Exception e) {
+            // ignore and fallback
+        }
+        return actorType + " (ID: " + actorId + ")";
     }
 }
