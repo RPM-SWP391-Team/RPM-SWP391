@@ -24,7 +24,7 @@
                     <form th:action="@{/patient/appointments/update/{id}(id=${appointment.id})}" method="POST">
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-dark">Bác sĩ phụ trách</label>
-                            <select name="doctorId" class="form-select rounded-3 py-2" required th:disabled="${appointment.status != 'PENDING'}">
+                            <select name="doctorId" class="form-select rounded-3 py-2" required>
                                 <option th:each="doc : ${doctors}" 
                                         th:value="${doc.id}" 
                                         th:selected="${appointment.doctor != null and appointment.doctor.id == doc.id}"
@@ -35,7 +35,7 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-dark">Hình thức khám</label>
-                            <select name="appointmentType" class="form-select rounded-3 py-2" required th:disabled="${appointment.status != 'PENDING'}">
+                            <select name="appointmentType" class="form-select rounded-3 py-2" required>
                                 <option value="CHECKUP" th:selected="${appointment.appointmentType == 'CHECKUP'}">Khám định kỳ (CHECKUP)</option>
                                 <option value="CONSULTATION" th:selected="${appointment.appointmentType == 'CONSULTATION'}">Tư vấn sức khỏe (CONSULTATION)</option>
                                 <option value="EMERGENCY" th:selected="${appointment.appointmentType == 'EMERGENCY'}">Khám cấp cứu (EMERGENCY)</option>
@@ -48,8 +48,7 @@
                                    name="appointmentTime" 
                                    class="form-control rounded-3 py-2" 
                                    th:value="${#temporals.format(appointment.appointmentTime, 'yyyy-MM-dd''T''HH:mm')}" 
-                                   required 
-                                   th:disabled="${appointment.status != 'PENDING'}">
+                                   required>
                             <small class="text-muted d-block mt-1">Giờ hành chính: 08:00 - 17:00 (Thứ 2 đến Thứ 6).</small>
                         </div>
 
@@ -60,13 +59,12 @@
                                       rows="4" 
                                       maxlength="500" 
                                       required 
-                                      th:text="${appointment.patientRequestReason}"
-                                      th:disabled="${appointment.status != 'PENDING'}"></textarea>
+                                      th:text="${appointment.patientRequestReason}"></textarea>
                         </div>
 
                         <div class="d-flex gap-2">
                             <a href="/patient/appointments" class="btn btn-light py-2 w-50 fw-semibold rounded-3">Hủy bỏ</a>
-                            <button type="submit" class="btn btn-primary py-2 w-50 fw-bold rounded-3" th:disabled="${appointment.status != 'PENDING'}">
+                            <button type="submit" class="btn btn-primary py-2 w-50 fw-bold rounded-3">
                                 <i class="fa-solid fa-floppy-disk me-1"></i>Lưu Cập Nhật
                             </button>
                         </div>
