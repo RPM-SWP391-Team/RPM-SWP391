@@ -337,7 +337,6 @@ public class DoctorViewController {
 
         // Trả về viện
         patient.setDoctor(null);
-        patient.setStatus("NEW");
         patient.setUpdatedAt(LocalDateTime.now());
         patientRepository.save(patient);
 
@@ -1520,19 +1519,7 @@ public class DoctorViewController {
         entity.setDiastolicDangerMax(dto.getDiastolicDangerMax());
         entity.setDiastolicEmergencyThreshold(dto.getDiastolicEmergencyThreshold());
 
-        AlertThreshold savedEntity = alertThresholdRepository.save(entity);
-
-        // Ghi lịch sử thay đổi (Audit Trail)
-        auditTrailService.logAction(
-                "DOCTOR",
-                doctor.getId(),
-                "UPDATE_PATIENT_THRESHOLD",
-                "AlertThreshold",
-                savedEntity.getId(),
-                null,
-                savedEntity,
-                "Bác sĩ " + doctor.getFullName() + " đã cập nhật cấu hình ngưỡng cảnh báo riêng cho bệnh nhân: " + patient.getFullName()
-        );
+        alertThresholdRepository.save(entity);
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã lưu ngưỡng cảnh báo riêng cho bệnh nhân.");
         return "redirect:/doctor/patient-detail/" + id + "/thresholds";

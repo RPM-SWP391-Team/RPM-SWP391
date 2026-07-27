@@ -19,9 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -756,8 +753,6 @@ public class PatientController {
     @GetMapping("/nutrition")
     public String getNutritionPage(
             @RequestParam(value = "date", required = false) String dateStr,
-            @RequestParam(value = "foodPage", defaultValue = "0") int foodPage,
-            @RequestParam(value = "foodSearch", required = false) String foodSearch,
             Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
@@ -854,14 +849,8 @@ public class PatientController {
         model.addAttribute("fatPercent", fatPercent);
         model.addAttribute("proteinPercent", proteinPercent);
         
-        Pageable foodPageable = PageRequest.of(foodPage < 0 ? 0 : foodPage, 10);
-        Page<FoodDictionary> foodPageObj = patientService.findActiveFoods(foodSearch, foodPageable);
-
-        model.addAttribute("foodPageObj", foodPageObj);
-        model.addAttribute("foods", foodPageObj.getContent());
-        model.addAttribute("allActiveFoods", patientService.findActiveFoods());
-        model.addAttribute("foodPage", foodPage);
-        model.addAttribute("foodSearch", foodSearch != null ? foodSearch.trim() : "");
+        List<FoodDictionary> foods = patientService.findActiveFoods();
+        model.addAttribute("foods", foods);
 
         return "patient/nutrition";
     }
@@ -899,6 +888,7 @@ public class PatientController {
 
     @PostMapping("/progress/update")
     public String updateProfile(
+            @RequestParam(value = "fullName", required = false) String fullName,
             @RequestParam("phone") String phone,
             @RequestParam("address") String address,
             @RequestParam(value = "currentPassword", required = false) String currentPassword,
@@ -944,7 +934,7 @@ public class PatientController {
             }
         }
 
-        patientService.updateProfile(patient, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
+        patientService.updateProfile(patient, fullName, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
 
         return "redirect:/patient/progress?updateSuccess=true";
     }

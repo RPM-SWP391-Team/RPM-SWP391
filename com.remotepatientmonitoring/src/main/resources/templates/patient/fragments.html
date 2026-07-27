@@ -52,7 +52,7 @@
                         <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-regular fa-user-circle fa-2x me-2"></i>
                         <div class="text-start me-2">
                             <div class="fw-bold" th:text="${patient.fullName}">Nguyễn Văn A</div>
-                            <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : 'Không có bệnh lý nền'}">Bệnh lý nền</small>
+                            <small class="text-white-50" th:text="${patient.diseaseProfile != null ? patient.diseaseProfile.profileName : (patient.status == 'NEW' || patient.status == 'PENDING' ? 'Chưa tiếp nhận' : 'Không có bệnh lý nền')}">Bệnh lý nền</small>
                         </div>
                         <i class="fa-solid fa-chevron-down small text-white-50"></i>
                 </div>
