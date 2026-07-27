@@ -1,4 +1,4 @@
-package com.rpm.remotepatientmonitoring.controller.doctor;
+package com.rpm.remotepatientmonitoring.controller.doctor.api;
 
 import com.rpm.remotepatientmonitoring.config.CustomUserDetails;
 import com.rpm.remotepatientmonitoring.dto.doctor.AssignPatientRequestDTO;

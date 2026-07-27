@@ -118,4 +118,111 @@ class TreatmentPlanWorkflowServiceTest {
         // Không đổi status bệnh nhân vì đã là TREATING
         verify(patientRepository, never()).save(patient);
     }
+
+    @Test
+    void createNewTreatmentPlan_TC03_NoBaselineVitals_EmptyMedications_CoversFalseBranches() {
+        Patient patient = new Patient(); patient.setId(100); patient.setStatus("TREATING");
+        Doctor doctor = new Doctor(); doctor.setId(50);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(nutritionRuleRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(patientMedicationRepository.findByPatientIdAndIsActiveTrue(100)).thenReturn(Collections.emptyList());
+
+        NutritionRule savedRule = new NutritionRule();
+        when(nutritionRuleRepository.save(any(NutritionRule.class))).thenReturn(savedRule);
+
+        treatmentPlanWorkflowService.createNewTreatmentPlan(
+                patient, doctor,
+                null, null, null, null, null, null, null, // Baseline all null
+                110, 70, new BigDecimal("4.5"), new BigDecimal("5.5"), new BigDecimal("68.0"), // Target
+                "Order", "Exercise", "Notes", // Orders & Goals
+                2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes", // Nutrition
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList() // Empty Med list
+        );
+
+        verify(healthLogRepository, never()).save(any());
+        verify(patientMedicationRepository, never()).save(any());
+    }
+
+    @Test
+    void createNewTreatmentPlan_TC04_MedicationsWithNullDosageAndTimeLists() {
+        Patient patient = new Patient(); patient.setId(100); patient.setStatus("TREATING");
+        Doctor doctor = new Doctor(); doctor.setId(50);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(nutritionRuleRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(patientMedicationRepository.findByPatientIdAndIsActiveTrue(100)).thenReturn(Collections.emptyList());
+
+        NutritionRule savedRule = new NutritionRule();
+        when(nutritionRuleRepository.save(any(NutritionRule.class))).thenReturn(savedRule);
+
+        treatmentPlanWorkflowService.createNewTreatmentPlan(
+                patient, doctor,
+                120, null, null, null, null, null, null,
+                110, 70, null, null, null,
+                "Order", "Exercise", "Notes",
+                2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes",
+                Collections.singletonList("Aspirin"), null, null // MedDosages and MedScheduledTimes null
+        );
+
+        verify(patientMedicationRepository, times(1)).save(any(PatientMedication.class));
+    }
+
+    @Test
+    void createNewTreatmentPlan_TC05_CoverDiastolicBpAndGlucoseOnlyBranches() {
+        Patient patient = new Patient(); patient.setId(100); patient.setStatus("TREATING");
+        Doctor doctor = new Doctor(); doctor.setId(50);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(nutritionRuleRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(patientMedicationRepository.findByPatientIdAndIsActiveTrue(100)).thenReturn(Collections.emptyList());
+
+        // 1. baselineSystolicBp is null, but baselineDiastolicBp is non-null
+        treatmentPlanWorkflowService.createNewTreatmentPlan(
+                patient, doctor,
+                null, 80, null, null, null, null, null,
+                110, 70, null, null, null,
+                "Order", "Exercise", "Notes",
+                2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes",
+                null, null, null
+        );
+
+        // 2. baselineSystolicBp & baselineDiastolicBp are null, but baselineFastingGlucose is non-null
+        treatmentPlanWorkflowService.createNewTreatmentPlan(
+                patient, doctor,
+                null, null, new BigDecimal("5.5"), null, null, null, null,
+                110, 70, null, null, null,
+                "Order", "Exercise", "Notes",
+                2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes",
+                null, null, null
+        );
+
+        verify(healthLogRepository, times(2)).save(any());
+    }
+
+    @Test
+    void createNewTreatmentPlan_TC06_CoverMedicationsMismatchedListLengthsAndNullMedicineName() {
+        Patient patient = new Patient(); patient.setId(100); patient.setStatus("TREATING");
+        Doctor doctor = new Doctor(); doctor.setId(50);
+
+        when(treatmentPlanRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(nutritionRuleRepository.findByPatientIdAndIsCurrent(100, true)).thenReturn(Optional.empty());
+        when(patientMedicationRepository.findByPatientIdAndIsActiveTrue(100)).thenReturn(Collections.emptyList());
+
+        // medNames has null name + 2 valid names, but medDosages and medScheduledTimes only have 1 element
+        treatmentPlanWorkflowService.createNewTreatmentPlan(
+                patient, doctor,
+                null, null, null, null, null, null, null,
+                110, 70, null, null, null,
+                "Order", "Exercise", "Notes",
+                2000, new BigDecimal("200"), new BigDecimal("5"), new BigDecimal("30"), new BigDecimal("50"), new BigDecimal("100"), 2000, "NutriNotes",
+                Arrays.asList(null, "Aspirin", "Paracetamol"),
+                Collections.singletonList("500mg"),
+                Collections.singletonList("08:00")
+        );
+
+        verify(patientMedicationRepository, times(2)).save(any(PatientMedication.class));
+    }
 }
+
+
