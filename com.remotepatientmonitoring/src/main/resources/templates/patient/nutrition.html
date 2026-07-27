@@ -368,9 +368,9 @@
             <!-- Pure Thymeleaf Server-Side Pagination Controls -->
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top" th:if="${foodPageObj != null and foodPageObj.totalElements > 0}">
                 <div class="small text-muted">
-                    Hiển thị <b th:text="${foodPageObj.number * foodPageObj.size + 1}">1</b> - <b th:text="${(foodPageObj.number + 1) * foodPageObj.size < foodPageObj.totalElements ? (foodPageObj.number + 1) * foodPageObj.size : foodPageObj.totalElements}">5</b> trong tổng số <b th:text="${foodPageObj.totalElements}">0</b> thực phẩm
+                    Hiển thị <b th:text="${foodPageObj.number * foodPageObj.size + 1}">1</b> - <b th:text="${(foodPageObj.number + 1) * foodPageObj.size < foodPageObj.totalElements ? (foodPageObj.number + 1) * foodPageObj.size : foodPageObj.totalElements}">10</b> trong tổng số <b th:text="${foodPageObj.totalElements}">0</b> thực phẩm
                 </div>
-                <nav aria-label="Phân trang từ điển thực phẩm" th:if="${foodPageObj.totalPages > 0}">
+                <nav aria-label="Phân trang từ điển thực phẩm" th:if="${foodPageObj.totalPages > 1}">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${foodPageObj.first} ? 'disabled'">
                             <a class="page-link" th:href="@{/patient/nutrition(foodPage=0, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang đầu"><i class="fa-solid fa-angles-left"></i></a>
@@ -378,9 +378,19 @@
                         <li class="page-item" th:classappend="${!foodPageObj.hasPrevious()} ? 'disabled'">
                             <a class="page-link" th:href="@{/patient/nutrition(foodPage=${foodPageObj.number - 1}, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang trước"><i class="fa-solid fa-chevron-left"></i></a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, foodPageObj.totalPages - 1)}" th:classappend="${i == foodPageObj.number} ? 'active'">
+                        
+                        <li class="page-item disabled" th:if="${foodPageObj.number > 2}">
+                            <span class="page-link">...</span>
+                        </li>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence( (foodPageObj.number - 2 < 0 ? 0 : foodPageObj.number - 2), (foodPageObj.number + 2 > foodPageObj.totalPages - 1 ? foodPageObj.totalPages - 1 : foodPageObj.number + 2) )}" th:classappend="${i == foodPageObj.number} ? 'active'">
                             <a class="page-link" th:href="@{/patient/nutrition(foodPage=${i}, foodSearch=${foodSearch}, date=${currentDate})}" th:text="${i + 1}">1</a>
                         </li>
+
+                        <li class="page-item disabled" th:if="${foodPageObj.number < foodPageObj.totalPages - 3}">
+                            <span class="page-link">...</span>
+                        </li>
+
                         <li class="page-item" th:classappend="${!foodPageObj.hasNext()} ? 'disabled'">
                             <a class="page-link" th:href="@{/patient/nutrition(foodPage=${foodPageObj.number + 1}, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang sau"><i class="fa-solid fa-chevron-right"></i></a>
                         </li>
