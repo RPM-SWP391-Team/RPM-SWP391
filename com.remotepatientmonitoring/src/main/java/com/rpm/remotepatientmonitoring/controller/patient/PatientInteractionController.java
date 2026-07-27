@@ -311,7 +311,9 @@ public class PatientInteractionController {
             return "redirect:/patient/appointments";
         }
 
-        List<Doctor> doctors = patientInteractionService.getAvailableDoctors(patient.getHospital().getId());
+        List<Doctor> doctors = (patient.getHospital() != null)
+                ? patientInteractionService.getAvailableDoctors(patient.getHospital().getId())
+                : new ArrayList<>();
         model.addAttribute("patient", patient);
         model.addAttribute("appointment", appt);
         model.addAttribute("doctors", doctors);
