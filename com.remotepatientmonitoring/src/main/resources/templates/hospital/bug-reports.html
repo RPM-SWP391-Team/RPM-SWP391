@@ -8,132 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #1A73E8;
-            --primary-hover: #155cb4;
-            --primary-light: #E8F0FE;
-            --bg-light: #F4F7FE;
-            --text-dark: #1E293B;
-            --text-muted: #64748B;
-            --sidebar-width: 260px;
-        }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-        /* Sidebar Styling */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            border-right: 1px solid #E2E8F0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-brand {
-            padding: 1.5rem 1.5rem;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            border-bottom: 1px solid #F1F5F9;
-        }
-        .sidebar-menu {
-            padding: 1.5rem 1rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .menu-item:hover, .menu-item.active {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-        }
-        .sidebar-footer {
-            padding: 1.5rem 1rem;
-            border-top: 1px solid #F1F5F9;
-        }
-        /* Main Content Styling */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: all 0.3s ease;
-            padding: 2rem;
-        }
-        .navbar-top {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .card-custom {
-            background-color: #ffffff;
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .table-custom th {
-            font-weight: 600;
-            color: var(--text-muted);
-            border-bottom-width: 1px;
-            background-color: #F8FAFC;
-        }
-        .table-custom td {
-            vertical-align: middle;
-        }
-        
-        /* Badges */
-        .badge-new { background-color: #FEE2E2; color: #EF4444; border: 1px solid #FCA5A5; }
-        .badge-progress { background-color: #DBEAFE; color: #2563EB; border: 1px solid #93C5FD; }
-        .badge-resolved { background-color: #D1FAE5; color: #059669; border: 1px solid #6EE7B7; }
-        .badge-rejected { background-color: #F3F4F6; color: #4B5563; border: 1px solid #D1D5DB; }
-
-        /* Filter Pills */
-        .filter-pills .btn {
-            border-radius: 20px;
-            padding: 0.4rem 1.2rem;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            border: 1px solid #E2E8F0;
-            background-color: #ffffff;
-            color: var(--text-muted);
-        }
-        .filter-pills .btn.active {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            border-color: var(--primary-color);
-            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2);
-        }
-    </style>
+    <link th:href="@{/css/hospital.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -358,13 +233,13 @@
             <span class="text-muted small" th:text="'Hiển thị trang ' + (${pageObj.number} + 1) + ' / ' + ${pageObj.totalPages}">Trang 1 / 5</span>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item" th:classappend="${pageObj.first ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage - 1}, status=${statusFilter})}">Trước</a>
+                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage == 0 ? 0 : currentPage - 1}, status=${statusFilter})}">Trước</a>
                 </li>
                 <li class="page-item" th:each="idx : ${#numbers.sequence(0, pageObj.totalPages - 1)}" th:classappend="${idx == pageObj.number ? 'active' : ''}">
                     <a class="page-link" th:href="@{/hospital/bug-reports(page=${idx}, status=${statusFilter})}" th:text="${idx + 1}">1</a>
                 </li>
                 <li class="page-item" th:classappend="${pageObj.last ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${currentPage + 1}, status=${statusFilter})}">Sau</a>
+                    <a class="page-link" th:href="@{/hospital/bug-reports(page=${pageObj.last ? pageObj.totalPages - 1 : currentPage + 1}, status=${statusFilter})}">Sau</a>
                 </li>
             </ul>
         </nav>

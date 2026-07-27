@@ -525,9 +525,6 @@
                         <span th:if="${hasCustomThreshold}" class="badge bg-warning text-dark ms-1">Cá nhân</span>
                         <span th:unless="${hasCustomThreshold}" class="badge bg-secondary ms-1">Mặc định BV</span>
                     </a>
-                    <button type="button" id="btnAiSummary" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#aiSummaryModal">
-                        <i class="fa-solid fa-robot text-primary me-1"></i> AI Phân tích Lâm sàng (ESC / ADA / AHA)
-                    </button>
                     <th:block th:if="${isPrimaryDoctor}">
                         <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/transfer'}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold text-decoration-none">
                             <i class="fa-solid fa-share-from-square me-1"></i> Chuyển Bác Sĩ
@@ -1284,6 +1281,58 @@
                 </div>
             </div>
 
+            <!-- KHUNG BÁO CÁO PHÂN TÍCH AI SUMMARY NGAY DƯỚI MỤC TRA CỨU NGÀY -->
+            <div class="card card-custom p-4 mt-4" id="dailyTrackingSummaryCard" style="border: 2px solid #cbd5e1; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="section-icon icon-purple" style="width: 44px; height: 44px; font-size: 1.1rem;"><i class="fa-solid fa-brain"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-primary">Báo cáo Phân tích Lâm sàng AI (ADA / ESC / AHA)</h5>
+                            <small class="text-muted" id="dailySummaryPeriodText">Phân tích chuyên sâu dữ liệu chỉ số y tế & hướng dẫn điều trị</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BẢNG BẮT ĐẦU VÀ KẾT THÚC KÈM 2 NÚT SUMMARY AI -->
+                <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3 col-6">
+                            <label class="form-label form-label-sm fw-bold text-secondary mb-1" style="font-size: 0.8rem;">
+                                <i class="fa-solid fa-calendar-minus me-1 text-primary"></i> Từ ngày bắt đầu:
+                            </label>
+                            <input type="date" id="dailySummaryStartDate" class="form-control form-control-sm rounded-pill px-3 fw-semibold" th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label form-label-sm fw-bold text-secondary mb-1" style="font-size: 0.8rem;">
+                                <i class="fa-solid fa-calendar-plus me-1 text-primary"></i> Đến ngày kết thúc:
+                            </label>
+                            <input type="date" id="dailySummaryEndDate" class="form-control form-control-sm rounded-pill px-3 fw-semibold" th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-6 col-12 d-flex gap-2 justify-content-md-end flex-wrap">
+                            <!-- Nút 1: Phân tích theo khoảng ngày chọn -->
+                            <button type="button" id="btnRunCustomRangeSummary" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-bold" title="Phân tích dữ liệu theo khoảng Từ ngày đến Đến ngày đã chọn">
+                                <i class="fa-solid fa-calendar-week me-1"></i> Phân tích Theo Khoảng Ngày Chọn
+                            </button>
+                            <!-- Nút 2: Phân tích 14 ngày gần nhất từ hôm nay đổ về trước -->
+                            <button type="button" id="btnRun14DaysSummary" class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm" title="Phân tích 14 ngày gần nhất tính từ Hôm nay trở về trước">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Phân tích 14 Ngày Gần Nhất (Hôm nay đổ về trước)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dailySummaryLoading" style="display: none;" class="text-center py-4">
+                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                    <p class="small text-muted fw-semibold mb-0">Đang tính toán số liệu ADA/AHA và truy xuất khuyến cáo y khoa từ RAG Pipeline...</p>
+                </div>
+                <div id="dailySummaryContent" style="line-height: 1.7; font-size: 0.95rem;">
+                    <div class="text-center text-muted py-4">
+                        <i class="fa-solid fa-chart-pie fs-1 text-secondary mb-3 d-block opacity-25"></i>
+                        <span>Vui lòng chọn ngày hoặc bấm <strong>"Phân tích 14 Ngày Gần Nhất"</strong> ở trên để tạo Báo cáo Phân tích Lâm sàng chuẩn ADA / ESC cho bệnh nhân này.</span>
+                    </div>
+                </div>
+            </div>
+
         </div><!-- /row g-4 mt-1 -->
     </div><!-- End Tab 3: Daily Tracking -->
 
@@ -1673,6 +1722,16 @@
 
                 dayDiv.addEventListener('click', () => {
                     selectedDate = new Date(year, month, i);
+                    activeSelectedDateStr = dateStr;
+                    
+                    const startInput = document.getElementById('dailySummaryStartDate');
+                    const endInput = document.getElementById('dailySummaryEndDate');
+                    if (startInput) startInput.value = dateStr;
+                    
+                    const endDateObj = new Date(year, month, i + 14);
+                    const endDateStr = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+                    if (endInput) endInput.value = endDateStr;
+
                     renderCalendar(); 
                     fetchDayDetails(dateStr);
                 });
@@ -1748,11 +1807,110 @@
             } else { medDiv.innerHTML = '<span class="text-muted">Không có dữ liệu thuốc</span>'; }
         }
 
+        let activeSelectedDateStr = null;
+
         // Initialize
         renderCalendar();
         
         const initDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
         fetchDayDetails(initDateStr);
+
+        function executeAiSummary(startDate, endDate) {
+            const loadingEl = document.getElementById('dailySummaryLoading');
+            const contentEl = document.getElementById('dailySummaryContent');
+            const labelEl = document.getElementById('dailySummaryPeriodText');
+            
+            loadingEl.style.display = 'block';
+            contentEl.style.display = 'none';
+
+            let url = '/api/chatbot/summary/' + patientId;
+            let params = [];
+            if (startDate) params.push('startDate=' + startDate);
+            if (endDate) params.push('endDate=' + endDate);
+            if (params.length > 0) url += '?' + params.join('&');
+
+            if (labelEl) {
+                if (startDate && endDate) {
+                    labelEl.innerText = `Giai đoạn phân tích: Từ ${startDate} đến ${endDate}`;
+                } else if (startDate) {
+                    labelEl.innerText = `Giai đoạn phân tích: 14 ngày kể từ ${startDate}`;
+                } else {
+                    labelEl.innerText = `Giai đoạn phân tích: 14 ngày gần nhất tính từ Hôm nay trở về trước`;
+                }
+            }
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+                    if (data && data.clinicalSummary) {
+                        let formattedText = data.clinicalSummary
+                            .replace(/^### (.*$)/gim, '<h5 class="fw-bold text-primary mt-3 mb-2"><i class="fa-solid fa-file-medical me-2"></i>$1</h5>')
+                            .replace(/^## (.*$)/gim, '<h4 class="fw-bold text-dark mt-3 mb-2">$1</h4>')
+                            .replace(/^\- (.*$)/gim, '<li class="ms-3 mb-1">$1</li>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br/>');
+                        contentEl.innerHTML = '<div class="p-4 rounded-3" style="background:#ffffff; border:1px solid #cbd5e1; color:#1e293b; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">' + formattedText + '</div>';
+                    } else {
+                        contentEl.innerHTML = '<div class="alert alert-warning">Không nhận được báo cáo phân tích từ AI.</div>';
+                    }
+                })
+                .catch(err => {
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+                    contentEl.innerHTML = '<div class="alert alert-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Không thể kết nối đến máy chủ AI. Vui lòng kiểm tra lại dịch vụ AI Service trên Port 8000.</div>';
+                });
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const sInput = document.getElementById('dailySummaryStartDate');
+        const eInput = document.getElementById('dailySummaryEndDate');
+        if (sInput) sInput.max = todayStr;
+        if (eInput) eInput.max = todayStr;
+
+        // Nút 1: Phân tích theo khoảng ngày chọn
+        const btnCustomRange = document.getElementById('btnRunCustomRangeSummary');
+        if (btnCustomRange) {
+            btnCustomRange.addEventListener('click', function() {
+                const s = sInput ? sInput.value : '';
+                const e = eInput ? eInput.value : '';
+
+                if (s && s > todayStr) {
+                    alert('Ngày bắt đầu không được lớn hơn ngày hôm nay!');
+                    sInput.value = todayStr;
+                    return;
+                }
+                if (e && e > todayStr) {
+                    alert('Ngày kết thúc không được lớn hơn ngày hôm nay!');
+                    eInput.value = todayStr;
+                    return;
+                }
+                if (s && e && s > e) {
+                    alert('Ngày bắt đầu không được lớn hơn ngày kết thúc!');
+                    return;
+                }
+                executeAiSummary(s, e);
+            });
+        }
+
+        // Nút 2: Phân tích 14 ngày gần nhất từ hôm nay đổ về trước (Auto điền ô Từ ngày & Đến ngày)
+        const btn14Days = document.getElementById('btnRun14DaysSummary');
+        if (btn14Days) {
+            btn14Days.addEventListener('click', function() {
+                const now = new Date();
+                const endStr = now.toISOString().split('T')[0];
+                
+                const fourteenDaysAgo = new Date();
+                fourteenDaysAgo.setDate(now.getDate() - 14);
+                const startStr = fourteenDaysAgo.toISOString().split('T')[0];
+
+                if (sInput) sInput.value = startStr;
+                if (eInput) eInput.value = endStr;
+
+                executeAiSummary(startStr, endStr);
+            });
+        }
     });
     /*]]>*/
 </script>
@@ -1867,19 +2025,21 @@
         .ai-msg-bot strong { font-weight: bold; color: #0d6efd; }
     </style>
 
-<<<<<<< HEAD
     <div class="ai-chat-btn" id="aiChatBtn">
         <i class="fa-solid fa-brain"></i>
     </div>
 
     <div class="ai-chat-window" id="aiChatWindow">
-        <div class="ai-chat-header">
-            <span><i class="fa-solid fa-brain me-2"></i> Trợ lý Trí tuệ Nhân tạo (Dành cho Bác sĩ)</span>
-            <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
+        <div class="ai-chat-header d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-brain me-2"></i> Trợ lý Trí tuệ Nhân tạo (Hồ sơ: <span th:text="${patient.fullName}">Bệnh nhân</span>)</span>
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-trash-can me-3 cursor-pointer" id="aiChatClear" style="cursor: pointer;" title="Xóa toàn bộ lịch sử hội thoại"></i>
+                <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
+            </div>
         </div>
         <div class="ai-chat-body" id="aiChatBody">
             <div class="ai-msg ai-msg-bot">
-                Xin chào Bác sĩ! Tôi là Trợ lý AI y khoa dựa trên dữ liệu RAG. Tôi có thể hỗ trợ tra cứu phác đồ điều trị, thông tin thuốc, và tư vấn y khoa dựa trên tài liệu hướng dẫn. Bác sĩ cần tôi hỗ trợ gì ạ?
+                Xin chào Bác sĩ! Tôi là Trợ lý AI y khoa RAG. Tôi đã sẵn sàng hỗ trợ Bác sĩ tra cứu thông tin và phác đồ điều trị cho bệnh nhân <strong th:text="${patient.fullName}">Bệnh nhân</strong>. Bác sĩ cần tôi hỗ trợ gì ạ?
             </div>
         </div>
         <div class="ai-chat-footer">
@@ -1888,30 +2048,80 @@
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
         document.addEventListener('DOMContentLoaded', function() {
             const btn = document.getElementById('aiChatBtn');
             const windowEl = document.getElementById('aiChatWindow');
             const closeBtn = document.getElementById('aiChatClose');
+            const clearBtn = document.getElementById('aiChatClear');
             const sendBtn = document.getElementById('aiChatSend');
             const inputEl = document.getElementById('aiChatInput');
             const bodyEl = document.getElementById('aiChatBody');
 
+            let isHistoryLoaded = false;
+            function loadChatHistory() {
+                if (isHistoryLoaded) return;
+                let currentPatientId = /*[[${patient.id}]]*/ null;
+                if (!currentPatientId) {
+                    let urlMatch = window.location.pathname.match(/\/patient-detail\/(\d+)/);
+                    if (urlMatch && urlMatch[1]) {
+                        currentPatientId = parseInt(urlMatch[1]);
+                    }
+                }
+                let url = '/api/chatbot/history' + (currentPatientId ? '?patientId=' + currentPatientId : '');
+                fetch(url)
+                    .then(res => res.json())
+                    .then(list => {
+                        if (list && list.length > 0) {
+                            list.reverse().forEach(item => {
+                                addMessage(item.question, true);
+                                addMessage(item.answer, false);
+                            });
+                            isHistoryLoaded = true;
+                        }
+                    })
+                    .catch(err => {});
+            }
+
             btn.addEventListener('click', () => {
-                windowEl.style.display = windowEl.style.display === 'flex' ? 'none' : 'flex';
+                const isOpening = windowEl.style.display !== 'flex';
+                windowEl.style.display = isOpening ? 'flex' : 'none';
+                if (isOpening) loadChatHistory();
             });
 
             closeBtn.addEventListener('click', () => {
                 windowEl.style.display = 'none';
             });
 
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện AI này không?')) {
+                        let currentPatientId = /*[[${patient.id}]]*/ null;
+                        if (!currentPatientId) {
+                            let urlMatch = window.location.pathname.match(/\/patient-detail\/(\d+)/);
+                            if (urlMatch && urlMatch[1]) {
+                                currentPatientId = parseInt(urlMatch[1]);
+                            }
+                        }
+                        let url = '/api/chatbot/history' + (currentPatientId ? '?patientId=' + currentPatientId : '');
+                        fetch(url, { method: 'DELETE' })
+                            .then(res => res.json())
+                            .then(data => {
+                                bodyEl.innerHTML = '<div class="ai-msg ai-msg-bot"><i class="fa-solid fa-check-circle text-success me-1"></i> Đã làm mới hội thoại. Bác sĩ cần tôi hỗ trợ tư vấn y khoa gì thêm ạ?</div>';
+                                isHistoryLoaded = true;
+                            });
+                    }
+                });
+            }
+
             function addMessage(text, isUser) {
                 const div = document.createElement('div');
                 div.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
                 if (!isUser) {
                     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    text = text.replace(/\[Source\s*(\d+)\]/gi, '<a href="/docs/ehae178.pdf" target="_blank" class="badge bg-primary text-decoration-none ms-1 me-1" title="Click để mở tài liệu PDF gốc"><i class="fa-solid fa-file-pdf"></i> Nguồn $1</a>');
-                    text = text.replace(/\[(\d+)\]/g, '<a href="/docs/ehae178.pdf" target="_blank" class="badge bg-primary text-decoration-none ms-1 me-1" title="Click để mở tài liệu PDF gốc"><i class="fa-solid fa-file-pdf"></i> Nguồn $1</a>');
+                    text = text.replace(/\[Source\s*(\d+)\]/gi, '<span class="badge bg-primary ms-1 me-1" title="Trích dẫn tài liệu y khoa"><i class="fa-solid fa-book-medical"></i> Nguồn $1</span>');
+                    text = text.replace(/\[(\d+)\]/g, '<span class="badge bg-primary ms-1 me-1" title="Trích dẫn tài liệu y khoa"><i class="fa-solid fa-book-medical"></i> Nguồn $1</span>');
                     text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-primary fw-bold text-decoration-underline ms-1 me-1" title="Click để mở toàn văn PDF gốc"><i class="fa-solid fa-file-pdf text-danger"></i> $1 <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i></a>');
                     text = text.replace(/\n/g, '<br>');
                 }
@@ -1935,31 +2145,68 @@
                 bodyEl.appendChild(loadingDiv);
                 bodyEl.scrollTop = bodyEl.scrollHeight;
 
+                let currentPatientId = /*[[${patient.id}]]*/ null;
+                if (!currentPatientId) {
+                    let urlMatch = window.location.pathname.match(/\/patient-detail\/(\d+)/);
+                    if (urlMatch && urlMatch[1]) {
+                        currentPatientId = parseInt(urlMatch[1]);
+                    }
+                }
+
                 fetch('/api/chatbot/ask', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         question: text,
-                        patientId: (window.location.pathname.match(/\/patient-detail\/(\d+)/) || [])[1] || null
+                        patientId: currentPatientId
                     })
                 })
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById(loadingId).remove();
                     let replyHtml = data.answer;
-                    if (data.citations && data.citations.length > 0) {
+                    const qCheck = text.trim().toLowerCase();
+                    const greetingsList = ["chào", "chào bạn", "chào buổi sáng", "chào bác sĩ", "chào em", "chào ad", "hi", "hello", "xin chào", "good morning", "good afternoon", "good evening", "alo"];
+                    const isGreeting = greetingsList.includes(qCheck) || ["chào ", "xin chào ", "hello ", "hi "].some(prefix => qCheck.startsWith(prefix));
+                    if (!isGreeting && data.citations && data.citations.length > 0) {
                         replyHtml += '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);"><strong><i class="fa-solid fa-book-medical"></i> Nguồn tham khảo:</strong><ul style="margin: 5px 0; padding-left: 20px; font-size: 0.9em; opacity: 0.9;">';
                         
-                        // Lọc trùng lặp file nguồn
+                        const pdfTitleMap = {
+                            "dc26s001.pdf": "ADA 2026: Cải thiện Chăm sóc & Sức khỏe Cộng đồng (Sec. 1)",
+                            "dc26s002.pdf": "ADA 2026: Chẩn đoán & Phân loại Đái tháo đường (Sec. 2)",
+                            "dc26s003.pdf": "ADA 2026: Dự phòng & Trì hoãn Đái tháo đường Týp 2 (Sec. 3)",
+                            "dc24s004.pdf": "ADA 2024: Đánh giá Y khoa Toàn diện & Bệnh kèm theo (Sec. 4)",
+                            "dc26s005.pdf": "ADA 2026: Hành vi Sức khỏe, Dinh dưỡng & Tập luyện (Sec. 5)",
+                            "dc26s006.pdf": "ADA 2026: Mục tiêu Kiểm soát Đường huyết & Hạ đường huyết (Sec. 6)",
+                            "dc26s007.pdf": "ADA 2026: Công nghệ Y tế & Đo đường huyết liên tục CGM (Sec. 7)",
+                            "dc26s008.pdf": "ADA 2026: Quản lý Béo phì & Cân nặng bệnh nhân T2D (Sec. 8)",
+                            "dc26s009.pdf": "ADA 2026: Phác đồ Thuốc hạ Đường huyết Metformin & Insulin (Sec. 9)",
+                            "dc26s010.pdf": "ADA 2026: Bệnh Tim mạch & Quản lý Nguy cơ Tim mạch (Sec. 10)",
+                            "dc26s011.pdf": "ADA 2026: Bệnh Thận Mạn tính ở Bệnh nhân Đái tháo đường (Sec. 11)",
+                            "dc26s012.pdf": "ADA 2026: Biến chứng Vọng mạc, Thần kinh & Bàn chân (Sec. 12)",
+                            "dc26s013.pdf": "ADA 2026: Quản lý Đái tháo đường ở Người cao tuổi (Sec. 13)",
+                            "dc26s014.pdf": "ADA 2026: Đái tháo đường ở Trẻ em & Thanh thiếu niên (Sec. 14)",
+                            "dc26s015.pdf": "ADA 2026: Quản lý Đái tháo đường ở Phụ nữ Mang thai (Sec. 15)",
+                            "dc26s016.pdf": "ADA 2026: Chăm sóc Đái tháo đường Nội trú tại Bệnh viện (Sec. 16)",
+                            "dc26s017.pdf": "ADA 2026: Tiêu chuẩn Chăm sóc & Quyền lợi Bệnh nhân (Sec. 17)",
+                            "dc26sint.pdf": "ADA 2026: Giới thiệu & Tổng quan Hướng dẫn Lâm sàng",
+                            "dc26srev.pdf": "ADA 2026: Tóm tắt Các Điểm Cập nhật Mới",
+                            "ehae178.pdf": "ESC 2023: Hướng dẫn Quản lý Bệnh Tim mạch ở Bệnh nhân Đái tháo đường"
+                        };
                         const uniqueFiles = new Map();
                         data.citations.forEach(c => {
-                            if (c.file && c.file !== 'Unknown' && !uniqueFiles.has(c.file)) {
-                                uniqueFiles.set(c.file, c.text);
+                            let fileName = c.file || c.source_file || c.source || '';
+                            if (fileName && !fileName.toLowerCase().includes('unknown')) {
+                                let pdfName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+                                if (!uniqueFiles.has(pdfName)) {
+                                    let docTitle = pdfTitleMap[pdfName] || `Tài liệu Y khoa (${pdfName})`;
+                                    uniqueFiles.set(pdfName, { title: docTitle, text: c.text || '' });
+                                }
                             }
                         });
                         
-                        uniqueFiles.forEach((text, file) => {
-                            replyHtml += `<li><a href="/docs/${file}" target="_blank" style="color: #fff; text-decoration: underline;" title="${text.substring(0, 100)}...">${file}</a></li>`;
+                        uniqueFiles.forEach((info, file) => {
+                            replyHtml += `<li><a href="/docs/${file}" target="_blank" style="color: #0d6efd; font-weight: 600; text-decoration: underline;" title="${info.text.substring(0, 100)}..."><i class="fa-solid fa-file-pdf text-danger me-1"></i> ${info.title}</a></li>`;
                         });
                         replyHtml += '</ul>';
                     }
@@ -1976,6 +2223,7 @@
                 if (e.key === 'Enter') sendMessage();
             });
         });
+        /*]]>*/
     </script>
     <!-- CHATBOT WIDGET END -->
 
@@ -1989,12 +2237,19 @@
                     const loadingEl = document.getElementById('aiSummaryLoading');
                     const contentEl = document.getElementById('aiSummaryContent');
                     const patientId = /*[[${patient.id}]]*/ 0;
+                    const dateInput = document.getElementById('aiSummaryStartDate');
+                    const startDateVal = dateInput ? dateInput.value : '';
 
                     loadingEl.style.display = 'block';
                     contentEl.style.display = 'none';
                     contentEl.innerHTML = '';
 
-                    fetch('/api/chatbot/summary/' + patientId)
+                    let url = '/api/chatbot/summary/' + patientId;
+                    if (startDateVal) {
+                        url += '?startDate=' + startDateVal;
+                    }
+
+                    fetch(url)
                         .then(res => res.json())
                         .then(data => {
                             loadingEl.style.display = 'none';

@@ -12,6 +12,9 @@ class PatientContextFormatter:
         if not patient_data:
             return "Không có thông tin bệnh nhân."
             
+        if "context" in patient_data and patient_data["context"]:
+            return str(patient_data["context"]).strip()
+            
         lines = []
         
         # Age

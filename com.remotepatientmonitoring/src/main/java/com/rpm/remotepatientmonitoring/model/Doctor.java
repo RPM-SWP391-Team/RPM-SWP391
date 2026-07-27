@@ -86,37 +86,4 @@ public class Doctor {
         }
         return String.format("%s %.1f/5 (%d đánh giá)", sb.toString(), avg, ratingCount);
     }
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Account getAccount() { return account; }
-    public void setAccount(Account account) { this.account = account; }
-    public Hospital getHospital() { return hospital; }
-    public void setHospital(Hospital hospital) { this.hospital = hospital; }
-    public String getDoctorCode() { return doctorCode; }
-    public void setDoctorCode(String doctorCode) { this.doctorCode = doctorCode; }
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getSpecialty() { return specialty; }
-    public void setSpecialty(String specialty) { this.specialty = specialty; }
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
-    public Integer getCapacityLimit() { return capacityLimit; }
-    public void setCapacityLimit(Integer capacityLimit) { this.capacityLimit = capacityLimit; }
-    public Integer getCurrentPatientCount() { return currentPatientCount; }
-    public void setCurrentPatientCount(Integer currentPatientCount) { this.currentPatientCount = currentPatientCount; }
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
-    public java.time.LocalDate getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(java.time.LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public Double getAverageRating() { return averageRating; }
-    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
-    public Long getRatingCount() { return ratingCount; }
-    public void setRatingCount(Long ratingCount) { this.ratingCount = ratingCount; }
 }

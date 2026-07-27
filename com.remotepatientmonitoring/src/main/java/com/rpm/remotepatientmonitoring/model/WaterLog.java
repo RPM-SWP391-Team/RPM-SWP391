@@ -32,13 +32,4 @@ public class WaterLog {
 
     @Column(name = "logged_at")
     private java.time.LocalDateTime loggedAt;
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
-    public LocalDate getLogDate() { return logDate; }
-    public void setLogDate(LocalDate logDate) { this.logDate = logDate; }
-    public Integer getAmountMl() { return amountMl; }
-    public void setAmountMl(Integer amountMl) { this.amountMl = amountMl; }
 }

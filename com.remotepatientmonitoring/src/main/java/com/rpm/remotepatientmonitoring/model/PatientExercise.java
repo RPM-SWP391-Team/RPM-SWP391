@@ -54,19 +54,4 @@ public class PatientExercise {
         }
         return "";
     }
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
-    public LocalDate getLogDate() { return logDate; }
-    public void setLogDate(LocalDate logDate) { this.logDate = logDate; }
-    public String getExerciseType() { return exerciseType; }
-    public void setExerciseType(String exerciseType) { this.exerciseType = exerciseType; }
-    public Integer getDurationMinutes() { return durationMinutes; }
-    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
-    public Integer getStepsCount() { return stepsCount; }
-    public void setStepsCount(Integer stepsCount) { this.stepsCount = stepsCount; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

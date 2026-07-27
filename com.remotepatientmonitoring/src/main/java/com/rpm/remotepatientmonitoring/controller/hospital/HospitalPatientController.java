@@ -52,29 +52,31 @@ public class HospitalPatientController {
     @GetMapping("/patients/{id}")
     @ResponseBody
     public ResponseEntity<PatientDetailDTO> getPatientDetail(@PathVariable Integer id) {
-        return patientRepository.findById(id)
-                .map(p -> {
-                    PatientDetailDTO dto = PatientDetailDTO.builder()
-                            .id(p.getId())
-                            .patientCode(p.getPatientCode())
-                            .fullName(p.getFullName())
-                            .email(p.getAccount() != null ? p.getAccount().getEmail() : null)
-                            .phone(p.getPhone())
-                            .gender(p.getGender() != null ? ("MALE".equalsIgnoreCase(p.getGender()) ? "Nam" : ("FEMALE".equalsIgnoreCase(p.getGender()) ? "Nữ" : "Khác")) : "-")
-                            .dateOfBirth(p.getDateOfBirth())
-                            .address(p.getAddress())
-                            .status("NEW".equals(p.getStatus()) ? "Mới đăng ký" : ("TREATING".equals(p.getStatus()) ? "Đang điều trị" : p.getStatus()))
-                            .registrationSource(p.getRegistrationSource())
-                            .diseaseProfileName(p.getDiseaseProfile() != null ? p.getDiseaseProfile().getProfileName() : "Không có")
-                            .doctorName(p.getDoctor() != null ? p.getDoctor().getFullName() : "Chưa phân công")
-                            .emergencyContactName(p.getEmergencyContactName() != null ? p.getEmergencyContactName() : "-")
-                            .emergencyContactPhone(p.getEmergencyContactPhone() != null ? p.getEmergencyContactPhone() : "-")
-                            .isActive(p.getIsActive())
-                            .createdAt(p.getCreatedAt())
-                            .updatedAt(p.getUpdatedAt())
-                            .build();
-                    return ResponseEntity.ok(dto);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        java.util.Optional<Patient> patientOpt = patientRepository.findById(id);
+        if (patientOpt.isPresent()) {
+            Patient p = patientOpt.get();
+            PatientDetailDTO dto = PatientDetailDTO.builder()
+                    .id(p.getId())
+                    .patientCode(p.getPatientCode())
+                    .fullName(p.getFullName())
+                    .email(p.getAccount() != null ? p.getAccount().getEmail() : null)
+                    .phone(p.getPhone())
+                    .gender(p.getGender() != null ? ("MALE".equalsIgnoreCase(p.getGender()) ? "Nam" : ("FEMALE".equalsIgnoreCase(p.getGender()) ? "Nữ" : "Khác")) : "-")
+                    .dateOfBirth(p.getDateOfBirth())
+                    .address(p.getAddress())
+                    .status("NEW".equals(p.getStatus()) ? "Mới đăng ký" : ("TREATING".equals(p.getStatus()) ? "Đang điều trị" : p.getStatus()))
+                    .registrationSource(p.getRegistrationSource())
+                    .diseaseProfileName(p.getDiseaseProfile() != null ? p.getDiseaseProfile().getProfileName() : "Không có")
+                    .doctorName(p.getDoctor() != null ? p.getDoctor().getFullName() : "Chưa phân công")
+                    .emergencyContactName(p.getEmergencyContactName() != null ? p.getEmergencyContactName() : "-")
+                    .emergencyContactPhone(p.getEmergencyContactPhone() != null ? p.getEmergencyContactPhone() : "-")
+                    .isActive(p.getIsActive())
+                    .createdAt(p.getCreatedAt())
+                    .updatedAt(p.getUpdatedAt())
+                    .build();
+            return ResponseEntity.ok(dto);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
