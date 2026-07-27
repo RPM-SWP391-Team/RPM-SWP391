@@ -67,87 +67,50 @@ def clean_corrupted_pdf_text(text: str) -> str:
     text = re.sub(r'\s{2,}', ' ', text)
     return text.strip()
 
-def is_medical_query(query: str) -> bool:
+def is_medical_query(query: str, engine: Any = None, api_key: str = None) -> bool:
     """
-    Kiểm tra từ khóa tra cứu có chứa ý định Y khoa / Lâm sàng hay không.
+    Deprecated keyword checker kept for backward compatibility.
+    Now delegates to QueryUnderstandingService if engine is provided.
     """
+    if engine and hasattr(engine, "query_understanding_service"):
+        plan = engine.query_understanding_service.analyze(query, api_key=api_key)
+        return plan.is_medical and plan.need_retrieval
+    
     q = query.strip().lower()
-    if len(q) < 3:
-        return False
-        
-    non_medical_phrases = [
-        "chào", "chào buổi sáng", "chào bác sĩ", "hi", "hello", "xin chào", 
-        "good morning", "hôm nay thế nào", "bạn là ai", "thời tiết", "ăn gì", "chơi gì"
-    ]
-    if q in non_medical_phrases:
-        return False
-        
-    # Danh sách từ khóa Y khoa chuyên môn phổ biến
-    medical_keywords = [
-        "đường huyết", "tiểu đường", "đái tháo đường", "huyết áp", "tim mạch", "thận", "mắt",
-        "chế độ ăn", "tập luyện", "metformin", "insulin", "hba1c", "cgm", "ada", "esc", "bệnh",
-        "triệu chứng", "thuốc", "liều", "chẩn đoán", "dự phòng", "biến chứng", "nội trú", "thai kỳ",
-        "trẻ em", "người cao tuổi", "béo phì", "cân nặng", "glucose", "hypertension", "diabetes",
-        "cardiovascular", "kidney", "nephropathy", "retinopathy", "neuropathy", "dose", "patient"
-    ]
-    for kw in medical_keywords:
-        if kw in q:
-            return True
-            
-    # Nếu từ khóa chứa từ tiếng Việt y khoa hoặc câu hỏi chuyên môn
-    if re.search(r'\b(bệnh|thuốc|điều trị|liều|xử lý|khám|chỉ số|chẩn đoán)\b', q):
-        return True
-        
-    return False
+    return len(q) >= 3 and not any(g in q for g in ["chào", "hi", "hello", "thời tiết"])
 
 def execute_semantic_search(query: str, engine: Any, api_key: str = None) -> Dict[str, Any]:
     """
-    Thực hiện Semantic Search dựa trên động cơ MedicalRAGPipeline có sẵn.
-    Nếu từ khóa không liên quan đến y khoa, trả về không tìm thấy (total_found: 0).
+    Thực hiện Semantic Search dựa trên động cơ MedicalRAGPipeline sử dụng QueryUnderstandingService.
+    Nếu từ khóa không liên quan đến y khoa hoặc không cần retrieval, trả về 0 kết quả.
     """
     t0 = time.time()
     
-    # Kiểm tra từ khóa có liên quan đến Y khoa hay không
-    if not is_medical_query(query):
-        logger.info(f"[*] Query '{query}' identified as non-medical/irrelevant. Returning 0 results.")
+    # 1. Query Understanding & Query Planning Phase
+    if hasattr(engine, "query_understanding_service"):
+        query_plan = engine.query_understanding_service.analyze(question=query, api_key=api_key)
+    else:
+        from src.query_understanding import QueryUnderstandingService
+        service = QueryUnderstandingService(llm_client=getattr(engine, "translation_llm", None))
+        query_plan = service.analyze(question=query, api_key=api_key)
+        
+    if not query_plan.is_medical or not query_plan.need_retrieval:
+        logger.info(f"[*] Query '{query}' identified as non-medical/no-retrieval (Intent: {query_plan.intent}). Returning 0 results.")
         return {
             "results": [],
             "total_found": 0,
             "latency_seconds": round(time.time() - t0, 3)
         }
-    
-    # 1. Query Expansion & Translation cho Retrieval
-    translation_prompt = (
-        f"You are a medical search query optimizer. Translate the user's Vietnamese query to English and expand it with relevant medical synonyms for a vector search engine.\n\n"
-        f"CRITICAL RULES:\n"
-        f"- DO NOT answer the question.\n"
-        f"- DO NOT provide medical knowledge or advice.\n"
-        f"- Output AT MOST 8 distinct keywords/phrases, comma-separated, on a single line.\n"
-        f"- Do NOT repeat any phrase or synonym you have already used.\n"
-        f"- Output ONLY the keyword list, nothing else — no preamble, no explanation, no numbering.\n\n"
-        f"Query: {query}"
-    )
-    
-    try:
-        search_query = engine.translation_llm.generate(
-            prompt=translation_prompt, 
-            api_key=api_key,
-            max_tokens=100,
-            temperature=0.3,
-            frequency_penalty=0.5
-        ).strip()
-        logger.info(f"[*] Translated query for retrieval: '{search_query}'")
-    except Exception as e:
-        logger.warning(f"[*] Translation failed, using original query: {e}")
-        search_query = query
 
-    # Combined query for max recall across BM25 and Vector search
-    combined_query = f"{query} {search_query}" if search_query != query else query
+    search_query = " ".join(query_plan.search_queries) if query_plan.search_queries else query
+    logger.info(f"[*] Planned search query for retrieval: '{search_query}'")
 
     # 2. Retrieval Phase
     pipeline_result = engine.rag_pipeline.run(
-        query=combined_query,
+        query=search_query,
         node_lookup=engine.chunk_store._store,
+        patient=None
+    )
         patient=None
     )
     
