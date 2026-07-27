@@ -87,22 +87,14 @@ def chat_endpoint(request: AiChatRequest):
         
         cleaned_answer = clean_answer_text(result.answer)
         
-        q_lower = request.question.strip().lower()
-        greetings = ["chào", "chào bạn", "chào buổi sáng", "chào bác sĩ", "chào em", "chào ad", "hi", "hello", "xin chào", "good morning", "good afternoon", "good evening", "alo"]
-        is_greeting = q_lower in greetings or any(q_lower.startswith(g) for g in ["chào ", "xin chào ", "hello ", "hi "])
-        
-        # Nhận diện câu hỏi ngoài lề (off-topic)
-        off_topic_keywords = [
-            "thời tiết", "mấy giờ", "ăn gì", "1+", "2+", "1 +", "2 +", "là ai", "bạn tên gì",
-            "bóng đá", "thể thao", "hát", "nghe nhạc", "game", "quán ăn", "nhà hàng", "dịch giúp",
-            "viết văn", "kể chuyện", "thời gian"
-        ]
-        is_off_topic = any(kw in q_lower for kw in off_topic_keywords)
+        q_plan = getattr(result, "query_plan", None)
+        is_greeting = q_plan.intent == "greeting" if q_plan else False
+        is_off_topic = (q_plan.intent == "off_topic" or not q_plan.is_medical) if q_plan else False
 
         # Xây dựng danh sách trích dẫn có cấu trúc (Structured Citations)
         citations_list = []
-        # Chỉ đính kèm trích dẫn nếu KHÔNG PHẢI chào hỏi, KHÔNG PHẢI off-topic và answer không có "không có đủ dữ liệu"
-        if not is_greeting and not is_off_topic and len(q_lower) >= 3 and result.retrieved_chunks and "không có đủ dữ liệu" not in cleaned_answer.lower():
+        # Chỉ đính kèm trích dẫn nếu KHÔNG PHẢI chào hỏi, KHÔNG PHẢI off-topic và answer không chứa thông báo thiếu dữ liệu
+        if not is_greeting and not is_off_topic and result.retrieved_chunks and "không có đủ dữ liệu" not in cleaned_answer.lower():
             seen_sources = set()
             for chunk in result.retrieved_chunks:
                 meta = getattr(chunk, "metadata", {}) or {}

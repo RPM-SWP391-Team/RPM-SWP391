@@ -12,6 +12,7 @@ from .llm_client import GeminiLLMClient, GroqLLMClient
 from .retriever import BM25RetrieverImpl, FAISSVectorIndex, HybridRetriever
 from .embedder import ModelLoader
 from .reranker import CrossEncoderReranker
+from .query_understanding import QueryUnderstandingService, QueryPlan
 from .patient_formatter import PatientContextFormatter
 from .context_builder import ContextBuilder
 from .patient_context import PatientContextInjector
@@ -25,10 +26,11 @@ class MedicalPipelineResult:
     citation_ids: List[str]
     retrieval_time: float
     generation_time: float
+    query_plan: Optional[QueryPlan] = None
 
 class MedicalRAGPipeline:
     """
-    Orchestrator kết nối RAGPipeline (Retrieval) với PromptBuilder và LLM.
+    Orchestrator kết nối RAGPipeline (Retrieval) với QueryUnderstandingService, PromptBuilder và LLM.
     """
     def __init__(self):
         # Initialize components
@@ -78,39 +80,49 @@ class MedicalRAGPipeline:
         import os
         self.llm_client = GroqLLMClient(api_key=os.environ.get("GROQ_API_KEY"), model_name="llama-3.3-70b-versatile")
         self.translation_llm = GroqLLMClient(api_key=os.environ.get("GROQ_TRANSLATION_API_KEY") or os.environ.get("GROQ_API_KEY"), model_name="llama-3.1-8b-instant")
+        self.query_understanding_service = QueryUnderstandingService(llm_client=self.translation_llm)
 
     def run(self, question: str, patient_context: Optional[Dict[str, Any]] = None, api_key: str = None) -> MedicalPipelineResult:
         t0 = time.time()
         
-        # 0. Query Expansion & Translation (Vietnamese -> English) for Retrieval
-        translation_prompt = (
-            f"You are a medical search query optimizer. Translate the user's Vietnamese query to English and expand it with relevant medical synonyms for a vector search engine.\n\n"
-            f"CRITICAL RULES:\n"
-            f"- DO NOT answer the question.\n"
-            f"- DO NOT provide medical knowledge or advice.\n"
-            f"- Output AT MOST 8 distinct keywords/phrases, comma-separated, on a single line.\n"
-            f"- Do NOT repeat any phrase or synonym you have already used.\n"
-            f"- Output ONLY the keyword list, nothing else — no preamble, no explanation, no numbering.\n\n"
-            f"Query: {question}"
+        # 0. Query Understanding & Query Planning Phase
+        query_plan: QueryPlan = self.query_understanding_service.analyze(
+            question=question,
+            patient_context=patient_context,
+            api_key=api_key
         )
-        try:
-            search_query = self.translation_llm.generate(
-                prompt=translation_prompt, 
-                api_key=api_key,
-                max_tokens=100,
-                temperature=0.3,
-                frequency_penalty=0.5
-            ).strip()
-            print(f"[*] Translated query for retrieval: '{search_query}'")
-        except Exception as e:
-            print(f"[*] Translation failed, using original query: {e}")
+        print(f"[*] Query Understanding Intent: '{query_plan.intent}', Search Queries: {query_plan.search_queries}")
+
+        # Routing logic based on query intent
+        if query_plan.intent == "greeting":
+            return MedicalPipelineResult(
+                answer="Xin chào! Tôi là Trợ lý Y khoa AI. Tôi có thể hỗ trợ gì cho bạn về các hướng dẫn điều trị hoặc chỉ số sức khỏe?",
+                retrieved_chunks=[],
+                citation_ids=[],
+                retrieval_time=time.time() - t0,
+                generation_time=0.0,
+                query_plan=query_plan
+            )
+        elif query_plan.intent == "off_topic" or not query_plan.is_medical:
+            return MedicalPipelineResult(
+                answer="Xin lỗi, tôi là Trợ lý Y khoa CDSS chuyên tư vấn các câu hỏi về y tế và quản lý bệnh lý (như Đái tháo đường, Tăng huyết áp). Tôi không thể hỗ trợ các câu hỏi ngoài lề này.",
+                retrieved_chunks=[],
+                citation_ids=[],
+                retrieval_time=time.time() - t0,
+                generation_time=0.0,
+                query_plan=query_plan
+            )
+
+        # 1. Retrieval Phase using search_queries planned by LLM
+        if query_plan.need_retrieval and query_plan.search_queries:
+            search_query = " ".join(query_plan.search_queries)
+        else:
             search_query = question
 
-        # 1. Retrieval Phase
         pipeline_result = self.rag_pipeline.run(
             query=search_query,
             node_lookup=self.chunk_store._store,
-            patient=None # Simplification for now, or adapt to PatientContext obj
+            patient=None
         )
         retrieval_time = time.time() - t0
         
@@ -128,7 +140,6 @@ class MedicalRAGPipeline:
         answer = self.llm_client.generate(prompt_result.prompt_text, api_key=api_key)
         generation_time = time.time() - t1
         
-        # Extract citation IDs for metrics
         citation_ids = [chunk.node_id for chunk in prompt_result.citation_map.values()]
         
         return MedicalPipelineResult(
@@ -136,5 +147,7 @@ class MedicalRAGPipeline:
             retrieved_chunks=pipeline_result.expanded_context.chunks,
             citation_ids=citation_ids,
             retrieval_time=retrieval_time,
-            generation_time=generation_time
+            generation_time=generation_time,
+            query_plan=query_plan
         )
+
