@@ -467,8 +467,9 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Thời gian hẹn <span class="text-danger">*</span></label>
-                            <input type="datetime-local" name="appointmentTime" class="form-control" required>
+                            <label class="form-label fw-bold">Thời gian hẹn <span class="text-danger">*</span> <small class="text-primary fw-normal">(Giờ làm việc: 08:00 - 17:00)</small></label>
+                            <input type="datetime-local" name="appointmentTime" id="appointmentTimeInput" class="form-control" required>
+                            <small class="text-muted mt-1 d-block"><i class="fa-solid fa-clock me-1"></i>Chỉ nhận lịch trong khoảng từ 08:00 sáng đến 17:00 chiều.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Địa điểm (Phòng khám) <span
@@ -508,6 +509,20 @@
                 allowClear: true,
                 dropdownParent: $('#createAppointmentModal'),
                 width: '100%'
+            });
+
+            // Kiểm tra giờ làm việc (08:00 - 17:00) khi submit form tạo lịch hẹn
+            $('#createAppointmentModal form').on('submit', function (e) {
+                const timeVal = $('#appointmentTimeInput').val();
+                if (timeVal) {
+                    const dateObj = new Date(timeVal);
+                    const hours = dateObj.getHours();
+                    if (hours < 8 || hours >= 17) {
+                        e.preventDefault();
+                        alert('⚠️ Thời gian hẹn khám phải nằm trong giờ làm việc (từ 08:00 sáng đến 17:00 chiều). Vui lòng chọn lại giờ khám!');
+                        return false;
+                    }
+                }
             });
         });
     </script>
