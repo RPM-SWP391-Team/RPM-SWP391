@@ -1,9 +1,0 @@
-{
-    "benchmark": "Generation Pipeline",
-    "total_queries": 3,
-    "mean_latency_ms": 0.18707911173502603,
-    "mean_prompt_tokens": 141.0,
-    "mean_completion_tokens": 8.333333333333334,
-    "mean_citation_coverage": 0.5,
-    "mean_keyword_hit_rate": 1.0
-}

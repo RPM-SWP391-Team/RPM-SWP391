@@ -32,7 +32,7 @@ class GeminiLLMClient:
         self.model_name = config.LLM.model_name
         self.url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={self.api_key}"
 
-    def generate(self, prompt: str, system_prompt: str = None) -> str:
+    def generate(self, prompt: str, api_key: str = None, system_prompt: str = None, **kwargs) -> str:
         t0 = time.time()
         text_content = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
         payload = {
@@ -127,7 +127,7 @@ class GroqLLMClient:
                     else:
                         payload["model"] = "llama-3.1-8b-instant"
                         print(f"[*] Groq 429 Rate limit hit. Switched to fallback model 'llama-3.1-8b-instant'.")
-                    time.sleep(1)
+                    time.sleep(5)
                 elif status_code in (503, 500) and attempt < max_retries - 1:
                     wait_time = 2 ** attempt
                     print(f"[*] Groq API {status_code} Error. Retrying in {wait_time}s...")
