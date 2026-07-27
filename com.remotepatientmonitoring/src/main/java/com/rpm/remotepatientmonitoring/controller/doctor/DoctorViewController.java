@@ -5,7 +5,7 @@ import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.service.doctor.TreatmentPlanWorkflowService;
 import com.rpm.remotepatientmonitoring.service.RatingService;
-import com.rpm.remotepatientmonitoring.dto.hopital.AlertThresholdsDTO;
+import com.rpm.remotepatientmonitoring.dto.hospital.AlertThresholdsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +24,8 @@ import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
 
 @Controller
 @RequestMapping("/doctor")
@@ -62,6 +64,7 @@ public class DoctorViewController {
     private final RatingService ratingService;
     private final ChangeRequestRepository changeRequestRepository;
     private final AlertThresholdRepository alertThresholdRepository;
+    private final com.rpm.remotepatientmonitoring.service.patient.PatientHealthService patientHealthService;
     private final com.rpm.remotepatientmonitoring.repository.AuditTrailRepository auditTrailRepository;
     private final com.rpm.remotepatientmonitoring.service.doctor.AuditTrailService auditTrailService;
 
@@ -106,15 +109,52 @@ public class DoctorViewController {
         // 2. Tính số lượng cảnh báo đỏ và vàng chưa xử lý
         long redAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "RED");
         long yellowAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "YELLOW");
+        long orangeAlertsCount = alertRepository.countUnresolvedAlertsByColor(doctor.getId(), "ORANGE");
+        yellowAlertsCount += orangeAlertsCount; // Combine YELLOW and ORANGE for the dashboard view
 
         // 3. Lấy chỉ số đo mới nhất của từng bệnh nhân trong trang hiện tại và tính cảnh báo cao nhất
         Map<Integer, DailyHealthLog> latestLogs = new HashMap<>();
         Map<Integer, String> patientHighestAlerts = new HashMap<>();
         
         for (Patient p : patientPage.getContent()) {
-            healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(p.getId())
-                    .ifPresent(log -> latestLogs.put(p.getId(), log));
+            DailyHealthLog mergedLog = new DailyHealthLog();
             
+            // Get latest BP
+            healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(p.getId())
+                    .ifPresent(bpLog -> {
+                        mergedLog.setSystolicBp(bpLog.getSystolicBp());
+                        mergedLog.setDiastolicBp(bpLog.getDiastolicBp());
+                        mergedLog.setHeartRate(bpLog.getHeartRate());
+                        mergedLog.setLogDate(bpLog.getLogDate());
+                        mergedLog.setLogTime(bpLog.getLogTime());
+                        mergedLog.setLogType(bpLog.getLogType());
+                    });
+            
+            // Get latest Glucose
+            healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(p.getId())
+                    .ifPresent(glLog -> {
+                        mergedLog.setGlucoseLevel(glLog.getGlucoseLevel());
+                        if (mergedLog.getLogTime() == null || glLog.getLogTime().isAfter(mergedLog.getLogTime())) {
+                            mergedLog.setLogDate(glLog.getLogDate());
+                            mergedLog.setLogTime(glLog.getLogTime());
+                            mergedLog.setLogType(glLog.getLogType());
+                        }
+                    });
+            
+            // Get latest log overall to inherit other properties if needed
+            healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(p.getId())
+                    .ifPresent(log -> {
+                        mergedLog.setId(log.getId());
+                        mergedLog.setPatient(log.getPatient());
+                        mergedLog.setInputMethod(log.getInputMethod());
+                        mergedLog.setPatientNotes(log.getPatientNotes());
+                        mergedLog.setAlertLevel(log.getAlertLevel());
+                    });
+            
+            if (mergedLog.getPatient() != null) {
+                latestLogs.put(p.getId(), mergedLog);
+            }
+
             List<Alert> alerts = alertRepository.findByPatientIdAndIsResolvedFalse(p.getId());
             patientHighestAlerts.put(p.getId(), calculateHighestAlertColor(alerts));
         }
@@ -150,6 +190,189 @@ public class DoctorViewController {
     }
 
     // =========================================================
+    // GET: Trang Chọn Bác Sĩ Để Chuyển Tuyến (Transfer)
+    // =========================================================
+    @GetMapping("/patient-detail/{id}/transfer")
+    public String showTransferPatientPage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "specialty", required = false) String specialty,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "8") int size,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor doctor = doctorRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException(MSG_DOCTOR_NOT_FOUND));
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
+
+        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Chỉ Bác sĩ Phụ trách chính mới có quyền thực hiện Chuyển Bác sĩ phụ trách!");
+            return "redirect:/doctor/patient-detail/" + id;
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Doctor> replacementDoctors = doctorRepository.searchReplacementDoctors(
+                doctor.getHospital().getId(), doctor.getId(), keyword, specialty, pageable);
+
+        List<String> specialties = doctorRepository.findDistinctSpecialtiesByHospital(doctor.getHospital().getId());
+
+        model.addAttribute(ATTR_DOCTOR, doctor);
+        model.addAttribute("patient", patient);
+        model.addAttribute("replacementDoctors", replacementDoctors);
+        model.addAttribute("specialties", specialties);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedSpecialty", specialty);
+
+        return "doctor/transfer-patient";
+    }
+
+    // =========================================================
+    // POST: Xử lý Chuyển Bác Sĩ
+    // =========================================================
+    @PostMapping("/patient-detail/{id}/transfer")
+    public String processTransferPatient(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam("newDoctorId") Integer newDoctorId,
+            @RequestParam("transferReason") String transferReason,
+            RedirectAttributes redirectAttributes) {
+
+        if (transferReason == null || transferReason.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Vui lòng nhập lý do bàn giao!");
+            return "redirect:/doctor/patient-detail/" + id + "/transfer";
+        }
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor currentDoctor = doctorRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException(MSG_DOCTOR_NOT_FOUND));
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
+
+        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(currentDoctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Chỉ Bác sĩ Phụ trách chính mới có quyền bàn giao bệnh nhân này!");
+            return "redirect:/doctor/patient-detail/" + id;
+        }
+
+        Doctor newDoctor = doctorRepository.findById(newDoctorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Bác sĩ mới."));
+
+        if (!newDoctor.getHospital().getId().equals(currentDoctor.getHospital().getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Chỉ được chuyển tuyến trong cùng Bệnh viện!");
+            return "redirect:/doctor/patient-detail/" + id + "/transfer";
+        }
+
+        if (newDoctor.getCurrentPatientCount() >= newDoctor.getCapacityLimit()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bác sĩ mới đã đạt giới hạn bệnh nhân!");
+            return "redirect:/doctor/patient-detail/" + id + "/transfer";
+        }
+
+        // Tạo Yêu cầu Bàn giao bệnh nhân (ChangeRequest) chờ Bác sĩ mới (Doctor B) xác nhận tiếp nhận
+        ChangeRequest transferReq = ChangeRequest.builder()
+                .patient(patient)
+                .doctor(newDoctor) // Bác sĩ B nhận yêu cầu trong Quản lý Yêu cầu
+                .requestType("TREATMENT_PLAN")
+                .patientReason("[BÀN GIAO BÁC SĨ] Yêu cầu bàn giao từ Bác sĩ " + currentDoctor.getFullName() + ". Lý do: " + transferReason)
+                .status("PENDING")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        changeRequestRepository.save(transferReq);
+
+        // Thông báo cho bác sĩ mới (Doctor B)
+        Notification docNotif = Notification.builder()
+                .doctor(newDoctor)
+                .patient(patient)
+                .recipientType("DOCTOR")
+                .recipientId(newDoctor.getId())
+                .notificationType("SYSTEM")
+                .channel("IN_APP")
+                .status("SENT")
+                .title("Yêu cầu bàn giao bệnh nhân mới")
+                .content("Bác sĩ " + currentDoctor.getFullName() + " vừa gửi yêu cầu bàn giao bệnh nhân " + patient.getFullName() + " cho bạn. Vui lòng vào Quản lý Yêu cầu để duyệt tiếp nhận.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(docNotif);
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã gửi yêu cầu bàn giao bệnh nhân " + patient.getFullName() + " đến Bác sĩ " + newDoctor.getFullName() + ". Đang chờ Bác sĩ " + newDoctor.getFullName() + " duyệt tiếp nhận.");
+        return "redirect:/doctor/patient-detail/" + id;
+    }
+
+    // =========================================================
+    // POST: Trả bệnh nhân về Bệnh viện
+    // =========================================================
+    @PostMapping("/patient-detail/{id}/return-to-hospital")
+    public String processReturnToHospital(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Integer id,
+            @RequestParam("returnReason") String returnReason,
+            RedirectAttributes redirectAttributes) {
+
+        if (returnReason == null || returnReason.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Vui lòng nhập lý do từ chối/trả về!");
+            return "redirect:/doctor/patient-detail/" + id;
+        }
+
+        Integer accountId = userDetails.getAccount().getId();
+        Doctor currentDoctor = doctorRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException(MSG_DOCTOR_NOT_FOUND));
+
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
+
+        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(currentDoctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền thao tác trên bệnh nhân này!");
+            return REDIRECT_DASHBOARD;
+        }
+
+        // Cập nhật số lượng bệnh nhân
+        currentDoctor.setCurrentPatientCount(Math.max(0, currentDoctor.getCurrentPatientCount() - 1));
+        doctorRepository.save(currentDoctor);
+
+        // Trả về viện
+        patient.setDoctor(null);
+        patient.setUpdatedAt(LocalDateTime.now());
+        patientRepository.save(patient);
+
+        // Lưu Audit Trail
+        String auditDetail = String.format("Trả bệnh nhân %s về Bệnh viện. Lý do: %s",
+                patient.getFullName(), returnReason);
+        auditTrailService.logAction(
+                "DOCTOR",
+                currentDoctor.getId(),
+                "RETURN_TO_HOSPITAL",
+                "patients", // targetTable
+                patient.getId(),
+                currentDoctor.getId(),
+                null,
+                auditDetail); // notes
+
+        // Thông báo cho bệnh nhân
+        Notification patNotif = Notification.builder()
+                .patient(patient)
+                .recipientType("PATIENT")
+                .recipientId(patient.getId())
+                .notificationType("SYSTEM")
+                .channel("IN_APP")
+                .status("SENT")
+                .title("Thông báo về Bác sĩ phụ trách")
+                .content("Bác sĩ phụ trách của bạn đã tạm thời ngừng tiếp nhận. Hệ thống sẽ sớm phân công bác sĩ mới cho bạn.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(patNotif);
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã trả bệnh nhân " + patient.getFullName() + " về Viện thành công.");
+        return REDIRECT_DASHBOARD;
+    }
+
+    // =========================================================
     // 3. GET: Xem & Cấu hình hồ sơ chi tiết bệnh nhân
     // =========================================================
     @GetMapping("/patient-detail/{id}")
@@ -157,6 +380,9 @@ public class DoctorViewController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer id,
             @RequestParam(value = "success", required = false) String success,
+            @RequestParam(value = "planPage", defaultValue = "0") int planPage,
+            @RequestParam(value = "planSize", defaultValue = "5") int planSize,
+            @RequestParam(value = "planKeyword", required = false) String planKeyword,
             Model model) {
 
         // Lấy đúng bác sĩ từ session Spring Security — không hardcode ID
@@ -168,8 +394,11 @@ public class DoctorViewController {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
-        // Kiểm tra bảo mật (Chống IDOR): Bệnh nhân phải thuộc quyền quản lý của bác sĩ đang đăng nhập
-        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
+        // Kiểm tra bảo mật: Bệnh nhân phải thuộc quyền quản lý của bác sĩ HOẶC bác sĩ có lịch hẹn khám với bệnh nhân này
+        boolean isPrimaryDoctor = patient.getDoctor() != null && patient.getDoctor().getId().equals(doctor.getId());
+        boolean hasAppointment = appointmentRepository.existsByPatientIdAndDoctorId(patient.getId(), doctor.getId());
+
+        if (!isPrimaryDoctor && !hasAppointment) {
             throw new RuntimeException("Bạn không có quyền truy cập hồ sơ của bệnh nhân này!");
         }
 
@@ -190,12 +419,19 @@ public class DoctorViewController {
 
         prepareChartAndComplianceData(model, patient, currentRule);
         
+        Pageable planPageable = PageRequest.of(planPage, planSize);
+        Page<TreatmentPlan> planHistoryPage = treatmentPlanRepository.searchPlanHistory(patient.getId(), planKeyword, null, null, planPageable);
+
         model.addAttribute(ATTR_DOCTOR, doctor);
         model.addAttribute("patient", patient);
+        model.addAttribute("isPrimaryDoctor", isPrimaryDoctor);
         model.addAttribute("allProfiles", allProfiles);
         model.addAttribute("currentRule", currentRule);
         model.addAttribute("currentPlan", currentPlan);
         model.addAttribute("currentMeds", currentMeds);
+        model.addAttribute("planHistoryPage", planHistoryPage);
+        model.addAttribute("planKeyword", planKeyword != null ? planKeyword : "");
+        model.addAttribute("planPage", planPage);
         model.addAttribute("success", success);
 
         // Lấy cấu hình ngưỡng cảnh báo
@@ -251,6 +487,8 @@ public class DoctorViewController {
             @RequestParam(value = "baselineFastingGlucose", required = false) BigDecimal baselineFastingGlucose,
             @RequestParam(value = "baselineHba1c", required = false) BigDecimal baselineHba1c,
             @RequestParam(value = "baselineWeightKg", required = false) BigDecimal baselineWeightKg,
+            @RequestParam(value = "heightCm", required = false) BigDecimal heightCm,
+            @RequestParam(value = "bmi", required = false) BigDecimal bmi,
             // Target measurements
             @RequestParam(value = "targetSystolicBp", required = false) Integer targetSystolicBp,
             @RequestParam(value = "targetDiastolicBp", required = false) Integer targetDiastolicBp,
@@ -273,7 +511,8 @@ public class DoctorViewController {
             // Medications
             @RequestParam(value = "medNames", required = false) List<String> medNames,
             @RequestParam(value = "medDosages", required = false) List<String> medDosages,
-            @RequestParam(value = "medScheduledTimes", required = false) List<String> medScheduledTimes
+            @RequestParam(value = "medScheduledTimes", required = false) List<String> medScheduledTimes,
+            RedirectAttributes redirectAttributes
     ) {
 
         // Xác thực bác sĩ qua Spring Security
@@ -285,9 +524,11 @@ public class DoctorViewController {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh nhân với ID: " + id));
 
-        // Kiểm tra bảo mật (Chống IDOR): Bệnh nhân phải thuộc quyền quản lý của bác sĩ đang đăng nhập
-        if (patient.getDoctor() == null || !patient.getDoctor().getId().equals(doctor.getId())) {
-            throw new RuntimeException("Bạn không có quyền cập nhật hồ sơ của bệnh nhân này!");
+        // Kiểm tra bảo mật: Chỉ Bác sĩ phụ trách chính mới được quyền sửa Phác đồ điều trị dài hạn!
+        boolean isPrimaryDoctor = patient.getDoctor() != null && patient.getDoctor().getId().equals(doctor.getId());
+        if (!isPrimaryDoctor) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không phải Bác sĩ phụ trách chính của Bệnh nhân này nên không có quyền thay đổi Phác đồ điều trị dài hạn!");
+            return "redirect:/doctor/patient-detail/" + id;
         }
 
         // --- Cập nhật phân loại bệnh lý trực tiếp ---
@@ -305,6 +546,8 @@ public class DoctorViewController {
                 baselineFastingGlucose,
                 baselineHba1c,
                 baselineWeightKg,
+                heightCm,
+                bmi,
                 targetSystolicBp,
                 targetDiastolicBp,
                 targetFastingGlucose,
@@ -454,7 +697,7 @@ public class DoctorViewController {
     public String processChangeRequest(
             @PathVariable("id") Integer id,
             @RequestParam("action") String action,
-            @RequestParam("doctorResponse") String doctorResponse,
+            @RequestParam(value = "doctorResponse", required = false) String doctorResponse,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes redirectAttributes) {
 
@@ -469,47 +712,96 @@ public class DoctorViewController {
             return REDIRECT_CHANGE_REQUESTS;
         }
 
+        boolean isTransfer = (request.getPatientReason() != null && request.getPatientReason().startsWith("[BÀN GIAO BÁC SĨ]")) || "TRANSFER".equalsIgnoreCase(request.getRequestType());
+
         if ("APPROVE".equalsIgnoreCase(action)) {
+            // Nếu đây là Yêu cầu bàn giao Bác sĩ (TRANSFER)
+            if (isTransfer) {
+                Patient patient = request.getPatient();
+                Doctor oldDoctor = patient.getDoctor();
+                Doctor newDoctor = doctor; // Bác sĩ B nhận bàn giao
+
+                if (newDoctor.getCurrentPatientCount() >= newDoctor.getCapacityLimit()) {
+                    redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn đã đạt giới hạn sức chứa bệnh nhân, không thể tiếp nhận thêm!");
+                    return REDIRECT_CHANGE_REQUESTS;
+                }
+
+                if (oldDoctor != null && oldDoctor.getCurrentPatientCount() > 0) {
+                    oldDoctor.setCurrentPatientCount(oldDoctor.getCurrentPatientCount() - 1);
+                    doctorRepository.save(oldDoctor);
+                }
+                newDoctor.setCurrentPatientCount(newDoctor.getCurrentPatientCount() + 1);
+                doctorRepository.save(newDoctor);
+
+                patient.setDoctor(newDoctor);
+                patient.setUpdatedAt(LocalDateTime.now());
+                patientRepository.save(patient);
+
+                // Ghi Audit Trail
+                String auditDetail = String.format("Bác sĩ %s đã đồng ý tiếp nhận bàn giao bệnh nhân %s từ Bác sĩ %s.",
+                        newDoctor.getFullName(), patient.getFullName(), oldDoctor != null ? oldDoctor.getFullName() : "N/A");
+                auditTrailService.logAction(
+                        "DOCTOR",
+                        newDoctor.getId(),
+                        "TRANSFER_PATIENT",
+                        "patients",
+                        patient.getId(),
+                        oldDoctor != null ? oldDoctor.getId() : null,
+                        newDoctor.getId(),
+                        auditDetail);
+
+                // Thông báo cho Bác sĩ cũ và Bệnh nhân
+                if (oldDoctor != null) {
+                    Notification oldDocNotif = Notification.builder()
+                            .doctor(oldDoctor)
+                            .patient(patient)
+                            .recipientType("DOCTOR")
+                            .recipientId(oldDoctor.getId())
+                            .title("Duyệt bàn giao bệnh nhân")
+                            .content("Bác sĩ " + newDoctor.getFullName() + " đã đồng ý tiếp nhận bàn giao bệnh nhân " + patient.getFullName() + ".")
+                            .isRead(false)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    notificationRepository.save(oldDocNotif);
+                }
+
+                Notification patNotif = Notification.builder()
+                        .patient(patient)
+                        .recipientType("PATIENT")
+                        .recipientId(patient.getId())
+                        .title("Bác sĩ phụ trách mới")
+                        .content("Bác sĩ " + newDoctor.getFullName() + " đã chính thức tiếp nhận phụ trách điều trị cho bạn.")
+                        .isRead(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                notificationRepository.save(patNotif);
+            }
+
             request.setStatus("APPROVED");
         } else if ("REJECT".equalsIgnoreCase(action)) {
             request.setStatus("REJECTED");
+
+            if (isTransfer) {
+                Doctor oldDoctor = request.getPatient().getDoctor();
+                if (oldDoctor != null) {
+                    Notification oldDocNotif = Notification.builder()
+                            .doctor(oldDoctor)
+                            .patient(request.getPatient())
+                            .recipientType("DOCTOR")
+                            .recipientId(oldDoctor.getId())
+                            .title("Từ chối tiếp nhận bàn giao")
+                            .content("Bác sĩ " + doctor.getFullName() + " đã từ chối tiếp nhận bàn giao bệnh nhân " + request.getPatient().getFullName() + (doctorResponse != null && !doctorResponse.trim().isEmpty() ? ". Lý do: " + doctorResponse : "."))
+                            .isRead(false)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    notificationRepository.save(oldDocNotif);
+                }
+            }
         }
         request.setDoctorResponse(doctorResponse);
         request.setProcessedAt(LocalDateTime.now());
         request.setUpdatedAt(LocalDateTime.now());
         changeRequestRepository.save(request);
-
-        // Optional: send notification back to patient
-        try {
-            String reqTypeStr = request.getRequestType() != null ? request.getRequestType() : "";
-            String title = "Phản hồi yêu cầu " + ("RESCHEDULE".equals(reqTypeStr) ? "đổi lịch" : "đổi phác đồ");
-            String content = "Bác sĩ đã " + ("APPROVED".equals(request.getStatus()) ? "duyệt" : "từ chối") + " yêu cầu của bạn: " + (doctorResponse != null ? doctorResponse : "");
-
-            Notification notif = Notification.builder()
-                    .patient(request.getPatient())
-                    .doctor(request.getDoctor())
-                    .recipientType("PATIENT")
-                    .title(title)
-                    .content(content)
-                    .isRead(false)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            notificationRepository.save(notif);
-        } catch (Exception e) {
-            log.error("Error saving notification: " + e.getMessage());
-        }
-
-        // Ghi Audit Trail
-        auditTrailService.logAction(
-                "DOCTOR",
-                request.getDoctor().getId(),
-                "PROCESS_CHANGE_REQUEST",
-                "change_requests",
-                request.getId(),
-                null,
-                request,
-                "Bác sĩ " + action + " yêu cầu thay đổi với ghi chú: " + doctorResponse
-        );
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã xử lý yêu cầu thành công!");
         return REDIRECT_CHANGE_REQUESTS;
@@ -628,6 +920,88 @@ public class DoctorViewController {
         return REDIRECT_APPOINTMENTS;
     }
 
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    @PostMapping("/appointments/{id}/complete")
+    public String completeAppointment(@PathVariable("id") Integer id,
+                                      @AuthenticationPrincipal CustomUserDetails userDetails,
+                                      @RequestParam(value = "systolicBp", required = false) Integer systolicBp,
+                                      @RequestParam(value = "diastolicBp", required = false) Integer diastolicBp,
+                                      @RequestParam(value = "heartRate", required = false) Integer heartRate,
+                                      @RequestParam(value = "glucoseLevel", required = false) BigDecimal glucoseLevel,
+                                      @RequestParam(value = "doctorNote", required = false) String doctorNote,
+                                      RedirectAttributes redirectAttributes) {
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        Appointment appt = appointmentRepository.findById(id).orElse(null);
+        if (appt == null) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, MSG_APPOINTMENT_NOT_FOUND);
+            return REDIRECT_APPOINTMENTS;
+        }
+
+        if (!appt.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bạn không có quyền hoàn thành lịch hẹn này.");
+            return REDIRECT_APPOINTMENTS;
+        }
+
+        appt.setStatus("COMPLETED");
+        appt.setCompletedAt(LocalDateTime.now());
+        if (doctorNote != null && !doctorNote.trim().isEmpty()) {
+            appt.setDoctorNote(doctorNote.trim());
+        }
+        appt.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appt);
+
+        Patient patient = appt.getPatient();
+
+        // Lưu nhật ký sức khỏe từ kết quả khám lâm sàng trực tiếp của Bác sĩ (nếu có nhập chỉ số)
+        if (patient != null && (systolicBp != null || diastolicBp != null || heartRate != null || glucoseLevel != null)) {
+            DailyHealthLog healthLog = DailyHealthLog.builder()
+                    .patient(patient)
+                    .logDate(LocalDate.now())
+                    .logTime(LocalDateTime.now())
+                    .logType("RANDOM")
+                    .systolicBp(systolicBp)
+                    .diastolicBp(diastolicBp)
+                    .heartRate(heartRate)
+                    .glucoseLevel(glucoseLevel)
+                    .inputMethod("MANUAL")
+                    .patientNotes("Chỉ số đo lâm sàng trực tiếp tại viện bởi Bác sĩ " + doctor.getFullName())
+                    .isAlertProcessed(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            healthLogRepository.save(healthLog);
+            
+            com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest alertReq = new com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest();
+            alertReq.setPatientId(patient.getId());
+            alertReq.setLogType("RANDOM");
+            alertReq.setInputMethod("MANUAL");
+            alertReq.setSystolicBp(systolicBp);
+            alertReq.setDiastolicBp(diastolicBp);
+            alertReq.setHeartRate(heartRate);
+            alertReq.setGlucoseLevel(glucoseLevel);
+            alertReq.setPatientNotes("Chỉ số đo lâm sàng trực tiếp tại viện bởi Bác sĩ " + doctor.getFullName());
+            patientHealthService.evaluateAndGenerateAlerts(alertReq);
+        }
+
+        // Gửi thông báo cho bệnh nhân
+        Notification notif = Notification.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .recipientType("PATIENT")
+                .title("Lịch khám đã hoàn thành")
+                .content("Bác sĩ " + doctor.getFullName() + " đã hoàn thành buổi khám cho bạn.")
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationRepository.save(notif);
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã hoàn thành buổi khám cho bệnh nhân " + (patient != null ? patient.getFullName() : "") + " thành công!");
+        return REDIRECT_APPOINTMENTS;
+    }
+
     // =========================================================
     // ALERT HANDLING
     // =========================================================
@@ -656,6 +1030,24 @@ public class DoctorViewController {
         alert.setResolvedByDoctor(doctor);
         alert.setResolutionNotes(resolutionNotes);
         alertRepository.save(alert);
+
+        // Gửi thông báo trực tiếp cho bệnh nhân
+        if (alert.getPatient() != null) {
+            Notification notif = Notification.builder()
+                    .patient(alert.getPatient())
+                    .doctor(doctor)
+                    .recipientType("PATIENT")
+                    .recipientId(alert.getPatient().getId())
+                    .notificationType("ALERT_RESOLVED")
+                    .channel("IN_APP")
+                    .status("SENT")
+                    .title("Hướng dẫn xử lý cảnh báo y tế từ Bác sĩ " + doctor.getFullName())
+                    .content("Bác sĩ " + doctor.getFullName() + " đã xử lý cảnh báo y tế của bạn với ghi chú hướng dẫn: " + resolutionNotes)
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        }
 
         // Ghi Audit Trail
         auditTrailService.logAction(
@@ -732,6 +1124,10 @@ public class DoctorViewController {
 
         notif.setIsRead(true);
         notificationRepository.save(notif);
+
+        if (notif.getTitle() != null && notif.getTitle().toLowerCase().contains("bàn giao")) {
+            return REDIRECT_CHANGE_REQUESTS;
+        }
 
         if (notif.getPatient() != null) {
             return "redirect:/doctor/patient-detail/" + notif.getPatient().getId();
@@ -1038,7 +1434,8 @@ public class DoctorViewController {
     public String updatePatientThresholds(
             @PathVariable Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @ModelAttribute("threshold") AlertThresholdsDTO dto,
+            @Valid @ModelAttribute("threshold") AlertThresholdsDTO dto,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
         Integer accountId = userDetails.getAccount().getId();
@@ -1054,6 +1451,12 @@ public class DoctorViewController {
         if (doctor.getHospital() == null) {
             redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Bác sĩ chưa được liên kết với bệnh viện nào.");
             return REDIRECT_DASHBOARD;
+        }
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Vui lòng điền đầy đủ và chính xác các chỉ số (không được bỏ trống).");
+            redirectAttributes.addFlashAttribute("threshold", dto);
+            return "redirect:/doctor/patient-detail/" + id + "/thresholds";
         }
 
         // Validate logic khoảng cảnh báo Tâm thu

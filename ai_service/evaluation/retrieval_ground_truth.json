@@ -1,0 +1,14 @@
+{
+    "q1": {
+        "expected_chunk_ids": ["c_insulin_001", "c_insulin_002"],
+        "expected_guideline": "ADA_2024"
+    },
+    "q2": {
+        "expected_chunk_ids": ["c_metformin_contra"],
+        "expected_guideline": "MOH_VN_2020"
+    },
+    "q3": {
+        "expected_chunk_ids": ["c_hba1c_elderly"],
+        "expected_guideline": "ADA_2024"
+    }
+}

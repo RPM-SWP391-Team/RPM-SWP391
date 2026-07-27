@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,10 +14,12 @@
             background-color: #f4f7fb;
             color: #333;
         }
+
         .navbar-custom {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
+
         .btn-back {
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
@@ -26,30 +29,36 @@
             gap: 8px;
             transition: color 0.3s;
         }
+
         .btn-back:hover {
             color: #fff;
         }
+
         .card-custom {
             border: none;
             border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
             background: white;
         }
+
         .table-custom thead {
             background-color: #f8f9fa;
             border-radius: 15px;
         }
+
         .table-custom th {
             font-weight: 600;
             color: #555;
             border: none;
             padding: 15px;
         }
+
         .table-custom td {
             vertical-align: middle;
             padding: 15px;
             border-bottom: 1px solid #eee;
         }
+
         .badge-pending {
             background-color: #ffeeba;
             color: #856404;
@@ -57,6 +66,7 @@
             border-radius: 50px;
             font-weight: 600;
         }
+
         .badge-approved {
             background-color: #d4edda;
             color: #155724;
@@ -64,6 +74,7 @@
             border-radius: 50px;
             font-weight: 600;
         }
+
         .badge-rejected {
             background-color: #f8d7da;
             color: #721c24;
@@ -71,6 +82,7 @@
             border-radius: 50px;
             font-weight: 600;
         }
+
         .btn-action {
             border-radius: 50px;
             padding: 6px 16px;
@@ -79,299 +91,427 @@
         }
     </style>
 </head>
+
 <body>
 
-<nav class="navbar navbar-dark navbar-custom py-3 mb-4">
-    <div class="container">
-        <a href="/doctor/dashboard" class="btn-back">
-            <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
-        </a>
-        <div class="d-flex align-items-center">
-            <!-- Notification Bell -->
-            <a href="/doctor/notifications" class="text-white text-decoration-none position-relative me-4" title="Thông báo">
-                <i class="fa-solid fa-bell fa-xl"></i>
-                <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
-                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                    0
-                </span>
+    <nav class="navbar navbar-dark navbar-custom py-3 mb-4">
+        <div class="container">
+            <a href="/doctor/dashboard" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i>Quay lại Dashboard
             </a>
-
-            <!-- Profile Dropdown -->
-            <div class="dropdown">
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="text-end me-3">
-                        <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
-                        <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa Tim mạch</small>
-                    </div>
-                    <img th:if="${currentAccount != null && currentAccount.avatarUrl != null}" th:src="${currentAccount.avatarUrl}" class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover; border: 2px solid rgba(255,255,255,0.8);">
-                    <i th:if="${currentAccount == null || currentAccount.avatarUrl == null}" class="fa-solid fa-circle-user fa-2x"></i>
+            <div class="d-flex align-items-center">
+                <!-- Notification Bell -->
+                <a href="/doctor/notifications" class="text-white text-decoration-none position-relative me-4"
+                    title="Thông báo">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    <span th:if="${unreadNotificationsCount > 0}" th:text="${unreadNotificationsCount}"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                        style="font-size: 0.65rem;">
+                        0
+                    </span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown" style="border-radius: 12px; min-width: 180px;">
-                    <li>
-                        <span class="dropdown-item-text text-muted small">
-                            <i class="fa-solid fa-id-card me-1"></i> Mã BS: <span th:text="${doctor.doctorCode}">BS-001</span>
-                        </span>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                            <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/doctor/change-requests" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                            <i class="fa-solid fa-envelope-open-text text-warning"></i> Quản lý yêu cầu
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/doctor/appointments" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                            <i class="fa-solid fa-calendar-check text-info"></i> Quản lý Lịch hẹn
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
-                            <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
-                                <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+
+                <!-- Profile Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                        id="doctorDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="text-end me-3">
+                            <div class="fw-bold" th:text="${doctor.fullName}">Bác sĩ Nguyễn Văn An</div>
+                            <small class="text-white-50" th:text="${doctor.specialty}">Chuyên khoa Tim mạch</small>
+                        </div>
+                        <i class="fa-solid fa-circle-user fa-2x"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="doctorDropdown"
+                        style="border-radius: 12px; min-width: 180px;">
+                        <li>
+                            <span class="dropdown-item-text text-muted small">
+                                <i class="fa-solid fa-id-card me-1"></i> Mã BS: <span
+                                    th:text="${doctor.doctorCode}">BS-001</span>
+                            </span>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a href="/doctor/profile" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-user-pen text-primary"></i> Hồ sơ của tôi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/doctor/change-requests"
+                                class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-envelope-open-text text-warning"></i> Quản lý yêu cầu
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/doctor/appointments" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                                <i class="fa-solid fa-calendar-check text-info"></i> Quản lý Lịch hẹn
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form th:action="@{/auth/logout}" method="POST" class="m-0" id="logoutForm">
+                                <button type="submit"
+                                    class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                                    <i class="fa-solid fa-right-from-bracket"></i> <strong>Đăng xuất</strong>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<div class="container pb-5">
-    
-    <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-circle-check me-2"></i><span th:text="${successMsg}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    
-    <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-circle-xmark me-2"></i><span th:text="${errorMsg}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="container pb-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold mb-1 text-dark">Quản lý Lịch hẹn (Appointments)</h3>
-            <p class="text-muted mb-0">Xem và lên lịch hẹn tái khám cho các bệnh nhân.</p>
+        <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i><span th:text="${successMsg}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div>
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#createAppointmentModal">
-                <i class="fa-solid fa-calendar-plus me-2"></i>Tạo Lịch khám mới
-            </button>
+
+        <div th:if="${errorMsg != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-xmark me-2"></i><span th:text="${errorMsg}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <!-- TABS -->
-        <ul class="nav nav-pills gap-2 mb-0">
-            <li class="nav-item">
-                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'upcoming' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/appointments(tab='upcoming', startDate=${startDate}, endDate=${endDate})}">
-                    <i class="fa-solid fa-calendar-day me-2"></i>Sắp tới <span class="badge bg-danger ms-2 rounded-pill" th:if="${upcomingCount > 0}" th:text="${upcomingCount}">1</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link rounded-pill px-4" th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}" th:href="@{/doctor/appointments(tab='history', startDate=${startDate}, endDate=${endDate})}">
-                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử (Đã qua)
-                </a>
-            </li>
-        </ul>
-
-        <!-- Lọc theo ngày -->
-        <form action="/doctor/appointments" method="GET" class="d-flex gap-2 mb-0 align-items-center">
-            <input type="hidden" name="tab" th:value="${activeTab}">
-            <input type="text" name="patientName" class="form-control form-control-sm" placeholder="Tên / Mã BN..." th:value="${patientName}" style="border-radius: 50px; width: 160px;">
-            <span class="text-muted small fw-bold">Từ:</span>
-            <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}" style="border-radius: 50px;">
-            <span class="text-muted small fw-bold">Đến:</span>
-            <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}" style="border-radius: 50px;">
-            <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
-                <i class="fa-solid fa-filter me-1"></i> Lọc
-            </button>
-            <a th:href="@{/doctor/appointments(tab=${activeTab})}" th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '') or (patientName != null and patientName != '')}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="Xóa bộ lọc">
-                <i class="fa-solid fa-xmark"></i>
-            </a>
-        </form>
-    </div>
-
-    <div class="card card-custom p-0 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-custom mb-0">
-                <thead>
-                    <tr>
-                        <th style="width: 15%">Thời gian hẹn</th>
-                        <th style="width: 20%">Bệnh nhân</th>
-                        <th style="width: 15%">Địa điểm</th>
-                        <th style="width: 20%">Ghi chú (Bác sĩ)</th>
-                        <th style="width: 10%">Trạng thái</th>
-                        <th style="width: 10%">Tạo bởi</th>
-                        <th style="width: 10%">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${appointmentPage.isEmpty()}">
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            <i class="fa-regular fa-calendar-xmark fa-3x mb-3 opacity-50"></i>
-                            <h5>Không có lịch hẹn nào</h5>
-                        </td>
-                    </tr>
-                    <tr th:each="appt : ${appointmentPage.content}">
-                        <td>
-                            <div class="fw-bold text-dark" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy')}">12/10/2023</div>
-                            <small class="text-primary fw-bold" th:text="${#temporals.format(appt.appointmentTime, 'HH:mm')}">14:30</small>
-                        </td>
-                        <td>
-                            <div class="fw-bold text-primary" th:text="${appt.patient.fullName}">Nguyễn Văn A</div>
-                            <span class="small text-muted"><i class="fa-solid fa-id-card me-1"></i><span th:text="${appt.patient.patientCode}">BN-001</span></span>
-                        </td>
-                        <td>
-                            <div class="text-dark fw-medium" th:if="${appt.location != null and !appt.location.isEmpty()}">
-                                <i class="fa-solid fa-location-dot me-1 text-danger"></i> <span th:text="${appt.location}">Phòng 101</span>
-                            </div>
-                            <span class="text-muted small" th:if="${appt.location == null or appt.location.isEmpty()}">Trực tuyến</span>
-                        </td>
-                        <td>
-                            <div class="text-wrap" style="max-width: 300px; font-size: 0.9rem;" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có ghi chú'}">Ghi chú</div>
-                        </td>
-                        <td>
-                            <span class="badge bg-warning text-dark" th:if="${appt.status == 'PENDING'}">Chờ xác nhận</span>
-                            <span class="badge bg-success" th:if="${appt.status == 'CONFIRMED' or appt.status == 'APPROVED' or appt.status == 'ACCEPTED'}">Đã chốt</span>
-                            <span class="badge bg-secondary" th:if="${appt.status == 'COMPLETED'}">Đã hoàn thành</span>
-                            <span class="badge bg-danger" th:if="${appt.status == 'CANCELLED' or appt.status == 'REJECTED'}">Đã hủy</span>
-                        </td>
-                        <td>
-                            <span class="badge border text-dark" th:if="${appt.createdBy == 'DOCTOR'}"><i class="fa-solid fa-user-doctor me-1"></i> Bác sĩ</span>
-                            <span class="badge border text-primary" th:if="${appt.createdBy == 'PATIENT'}"><i class="fa-solid fa-user me-1"></i> Bệnh nhân</span>
-                        </td>
-                        <td th:if="${appt.status == 'PENDING'}">
-                            <div class="d-flex gap-1">
-                                <form th:action="@{/doctor/appointments/{id}/accept(id=${appt.id})}" method="POST"
-                                      onsubmit="return confirm('Xác nhận chấp nhận lịch hẹn này?');">
-                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                                        <i class="fa-solid fa-check me-1"></i>Chấp nhận
-                                    </button>
-                                </form>
-                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                        data-bs-toggle="modal" th:data-bs-target="'#rejectModal' + ${appt.id}">
-                                    <i class="fa-solid fa-xmark me-1"></i>Từ chối
-                                </button>
-                            </div>
-
-                            <!-- Modal nhập lý do từ chối -->
-                            <div class="modal fade" th:id="'rejectModal' + ${appt.id}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content" style="border-radius: 16px; border: none;">
-                                        <div class="modal-header border-0 pb-0">
-                                            <h5 class="modal-title fw-bold">Từ chối lịch hẹn</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form th:action="@{/doctor/appointments/{id}/reject(id=${appt.id})}" method="post">
-                                            <div class="modal-body">
-                                                <p class="text-muted mb-2">Bệnh nhân: <strong th:text="${appt.patient.fullName}"></strong></p>
-                                                <label class="form-label fw-bold">Lý do từ chối <span class="text-danger">*</span></label>
-                                                <textarea class="form-control" name="rejectionReason" rows="3" required maxlength="500"
-                                                          placeholder="VD: Trùng lịch với bệnh nhân khác, ngoài giờ làm việc..."></textarea>
-                                            </div>
-                                            <div class="modal-footer border-0">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                                                <button type="submit" class="btn btn-danger px-4">Xác nhận từ chối</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td th:if="${appt.status != 'PENDING'}">
-                            <span class="text-muted small">-</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1 text-dark">Quản lý Lịch hẹn (Appointments)</h3>
+                <p class="text-muted mb-0">Xem và lên lịch hẹn tái khám cho các bệnh nhân.</p>
+            </div>
+            <div>
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal"
+                    data-bs-target="#createAppointmentModal">
+                    <i class="fa-solid fa-calendar-plus me-2"></i>Tạo Lịch khám mới
+                </button>
+            </div>
         </div>
-        
-        <nav aria-label="Page navigation" th:if="${appointmentPage.totalPages > 1}" class="mt-4 pb-3">
-            <ul class="pagination justify-content-center">
-                <li class="page-item" th:classappend="${appointmentPage.first} ? 'disabled'">
-                    <a class="page-link" th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${appointmentPage.number - 1})}">
-                        <i class="fa-solid fa-chevron-left"></i> Trước
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- TABS -->
+            <ul class="nav nav-pills gap-2 mb-0">
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4"
+                        th:classappend="${activeTab == 'upcoming' ? 'active' : 'bg-white border text-dark'}"
+                        th:href="@{/doctor/appointments(tab='upcoming', startDate=${startDate}, endDate=${endDate})}">
+                        <i class="fa-solid fa-calendar-day me-2"></i>Sắp tới <span
+                            class="badge bg-danger ms-2 rounded-pill" th:if="${upcomingCount > 0}"
+                            th:text="${upcomingCount}">1</span>
                     </a>
                 </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(0, appointmentPage.totalPages - 1)}"
-                    th:classappend="${appointmentPage.number == i} ? 'active'">
-                    <a class="page-link" th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${i})}" th:text="${i + 1}">1</a>
-                </li>
-                <li class="page-item" th:classappend="${appointmentPage.last} ? 'disabled'">
-                    <a class="page-link" th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${appointmentPage.number + 1})}">
-                        Sau <i class="fa-solid fa-chevron-right"></i>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-4"
+                        th:classappend="${activeTab == 'history' ? 'active' : 'bg-white border text-dark'}"
+                        th:href="@{/doctor/appointments(tab='history', startDate=${startDate}, endDate=${endDate})}">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử (Đã qua)
                     </a>
                 </li>
             </ul>
-        </nav>
-        
-    </div>
-</div>
 
-<!-- Modal Tạo Lịch Hẹn Mới -->
-<div class="modal fade" id="createAppointmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #2575fc 0%, #1e3c72 100%);">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-calendar-plus me-2"></i>Tạo Lịch Tái Khám</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form th:action="@{/doctor/appointments/create}" method="POST">
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Chọn Bệnh nhân <span class="text-danger">*</span></label>
-                        <select name="patientId" id="patientSelect" class="form-select" required style="width: 100%;">
-                            <option value="">-- Chọn bệnh nhân --</option>
-                            <option th:each="p : ${patients}" th:value="${p.id}" th:text="${p.fullName + ' (' + p.patientCode + ')'}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Thời gian hẹn <span class="text-danger">*</span></label>
-                        <input type="datetime-local" name="appointmentTime" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Địa điểm (Phòng khám) <span class="text-danger">*</span></label>
-                        <input type="text" name="location" class="form-control" placeholder="Ví dụ: Phòng khám 102, Tòa A..." required maxlength="250">
-                        <small class="text-muted mt-1 d-block">Có thể là khám trực tuyến hoặc khám tại cơ sở vật chất.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Ghi chú cho Bệnh nhân</label>
-                        <textarea name="doctorNote" class="form-control" rows="3" placeholder="Ví dụ: Nhịn ăn sáng trước khi xét nghiệm máu..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fa-solid fa-check me-2"></i>Lên Lịch Hẹn
-                    </button>
-                </div>
+            <!-- Lọc theo ngày -->
+            <form action="/doctor/appointments" method="GET" class="d-flex gap-2 mb-0 align-items-center">
+                <input type="hidden" name="tab" th:value="${activeTab}">
+                <input type="text" name="patientName" class="form-control form-control-sm" placeholder="Tên / Mã BN..."
+                    th:value="${patientName}" style="border-radius: 50px; width: 160px;">
+                <span class="text-muted small fw-bold">Từ:</span>
+                <input type="date" name="startDate" class="form-control form-control-sm" th:value="${startDate}"
+                    style="border-radius: 50px;">
+                <span class="text-muted small fw-bold">Đến:</span>
+                <input type="date" name="endDate" class="form-control form-control-sm" th:value="${endDate}"
+                    style="border-radius: 50px;">
+                <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+                    <i class="fa-solid fa-filter me-1"></i> Lọc
+                </button>
+                <a th:href="@{/doctor/appointments(tab=${activeTab})}"
+                    th:if="${(startDate != null and startDate != '') or (endDate != null and endDate != '') or (patientName != null and patientName != '')}"
+                    class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" title="Xóa bộ lọc">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
             </form>
         </div>
+
+        <div class="card card-custom p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Thời gian hẹn</th>
+                            <th style="width: 20%">Bệnh nhân</th>
+                            <th style="width: 15%">Địa điểm</th>
+                            <th style="width: 20%">Ghi chú (Bác sĩ)</th>
+                            <th style="width: 10%">Trạng thái</th>
+                            <th style="width: 10%">Tạo bởi</th>
+                            <th style="width: 10%">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${appointmentPage.isEmpty()}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-regular fa-calendar-xmark fa-3x mb-3 opacity-50"></i>
+                                <h5>Không có lịch hẹn nào</h5>
+                            </td>
+                        </tr>
+                        <tr th:each="appt : ${appointmentPage.content}">
+                            <td>
+                                <div class="fw-bold text-dark"
+                                    th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy')}">12/10/2023</div>
+                                <small class="text-primary fw-bold"
+                                    th:text="${#temporals.format(appt.appointmentTime, 'HH:mm')}">14:30</small>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-primary" th:text="${appt.patient.fullName}">Nguyễn Văn A</div>
+                                <span class="small text-muted"><i class="fa-solid fa-id-card me-1"></i><span
+                                        th:text="${appt.patient.patientCode}">BN-001</span></span>
+                            </td>
+                            <td>
+                                <div class="text-dark fw-medium"
+                                    th:if="${appt.location != null and !appt.location.isEmpty()}">
+                                    <i class="fa-solid fa-location-dot me-1 text-danger"></i> <span
+                                        th:text="${appt.location}">Phòng 101</span>
+                                </div>
+                                <span class="text-muted small"
+                                    th:if="${appt.location == null or appt.location.isEmpty()}">Trực tuyến</span>
+                            </td>
+                            <td>
+                                <div class="text-wrap" style="max-width: 300px; font-size: 0.9rem;"
+                                    th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có ghi chú'}">Ghi chú
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark" th:if="${appt.status == 'PENDING'}">Chờ xác
+                                    nhận</span>
+                                <span class="badge bg-success"
+                                    th:if="${appt.status == 'ACCEPTED'}">Đã chốt</span>
+                                <span class="badge bg-secondary" th:if="${appt.status == 'COMPLETED'}">Đã hoàn
+                                    thành</span>
+                                <span class="badge bg-danger"
+                                    th:if="${appt.status == 'CANCELLED' or appt.status == 'REJECTED'}">Đã hủy</span>
+                            </td>
+                            <td>
+                                <span class="badge border text-dark" th:if="${appt.createdBy == 'DOCTOR'}"><i
+                                        class="fa-solid fa-user-doctor me-1"></i> Bác sĩ</span>
+                                <span class="badge border text-primary" th:if="${appt.createdBy == 'PATIENT'}"><i
+                                        class="fa-solid fa-user me-1"></i> Bệnh nhân</span>
+                            </td>
+                            <td th:if="${appt.status == 'PENDING'}">
+                                <div class="d-flex gap-1">
+                                    <form th:action="@{/doctor/appointments/{id}/accept(id=${appt.id})}" method="POST"
+                                        onsubmit="return confirm('Xác nhận chấp nhận lịch hẹn này?');">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                                            <i class="fa-solid fa-check me-1"></i>Chấp nhận
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                        data-bs-toggle="modal" th:data-bs-target="'#rejectModal' + ${appt.id}">
+                                        <i class="fa-solid fa-xmark me-1"></i>Từ chối
+                                    </button>
+                                </div>
+
+                                <!-- Modal nhập lý do từ chối -->
+                                <div class="modal fade" th:id="'rejectModal' + ${appt.id}" tabindex="-1"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content" style="border-radius: 16px; border: none;">
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold">Từ chối lịch hẹn</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form th:action="@{/doctor/appointments/{id}/reject(id=${appt.id})}"
+                                                method="post">
+                                                <div class="modal-body">
+                                                    <p class="text-muted mb-2">Bệnh nhân: <strong
+                                                            th:text="${appt.patient.fullName}"></strong></p>
+                                                    <label class="form-label fw-bold">Lý do từ chối <span
+                                                            class="text-danger">*</span></label>
+                                                    <textarea class="form-control" name="rejectionReason" rows="3"
+                                                        required maxlength="500"
+                                                        placeholder="VD: Trùng lịch với bệnh nhân khác, ngoài giờ làm việc..."></textarea>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light"
+                                                        data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-danger px-4">Xác nhận từ
+                                                        chối</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td th:if="${appt.status != 'PENDING'}">
+                                <div th:if="${appt.status == 'ACCEPTED'}" class="d-flex gap-1">
+                                    <a th:href="@{/doctor/patient-detail/{id}(id=${appt.patient.id})}" class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-sm" title="Mở trang Hồ sơ chi tiết để nhập đầy đủ HbA1c, BMI, Đơn thuốc, Phác đồ...">
+                                        <i class="fa-solid fa-file-waveform me-1"></i>Hồ sơ phác đồ
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm"
+                                        data-bs-toggle="modal" th:data-bs-target="'#completeModal' + ${appt.id}">
+                                        <i class="fa-solid fa-notes-medical me-1"></i>Khám & Hoàn thành
+                                    </button>
+
+                                    <!-- Modal Hoàn thành Khám -->
+                                    <div class="modal fade" th:id="'completeModal' + ${appt.id}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content" style="border-radius: 16px; border: none;">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title fw-bold text-primary"><i class="fa-solid fa-stethoscope me-2"></i>Kết luận Khám & Hoàn thành</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form th:action="@{/doctor/appointments/{id}/complete(id=${appt.id})}" method="post">
+                                                    <div class="modal-body text-start">
+                                                        <p class="text-muted mb-2">Bệnh nhân: <strong class="text-dark" th:text="${appt.patient.fullName}">Nguyễn Văn A</strong></p>
+                                                        <p class="text-muted mb-2" th:if="${appt.patient.diseaseProfile != null}">
+                                                            Gói bệnh hiện tại: <span class="badge bg-info text-dark" th:text="${appt.patient.diseaseProfile.profileName}">Tiểu đường</span>
+                                                        </p>
+                                                        
+                                                        <div class="mb-3">
+                                                            <a th:href="@{/doctor/patient-detail/{id}(id=${appt.patient.id})}" class="btn btn-sm btn-outline-primary w-100 fw-bold">
+                                                                <i class="fa-solid fa-up-right-from-square me-1"></i> Mở Màn hình Hồ sơ & Phác đồ Chuyên sâu đầy đủ (HbA1c, BMI, Kê đơn thuốc, Dinh dưỡng...)
+                                                            </a>
+                                                        </div>
+
+                                                        <!-- Nhập chỉ số đo tại phòng khám -->
+                                                        <div class="card p-3 mb-3 border-0 bg-light rounded-3">
+                                                            <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-heart-pulse text-danger me-2"></i>Chỉ số sinh hiệu đo trực tiếp tại viện (nếu có)</h6>
+                                                            <div class="row g-2">
+                                                                <div class="col-6">
+                                                                    <label class="form-label small text-muted mb-1">HA Tâm thu (mmHg)</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="systolicBp" placeholder="VD: 120" min="50" max="300">
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label class="form-label small text-muted mb-1">HA Tâm trương (mmHg)</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="diastolicBp" placeholder="VD: 80" min="30" max="200">
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label class="form-label small text-muted mb-1">Nhịp tim (lần/phút)</label>
+                                                                    <input type="number" class="form-control form-control-sm" name="heartRate" placeholder="VD: 75" min="30" max="250">
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label class="form-label small text-muted mb-1">Đường huyết (mmol/L)</label>
+                                                                    <input type="number" step="0.1" class="form-control form-control-sm" name="glucoseLevel" placeholder="VD: 6.5" min="1" max="35">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">Ghi chú kết quả khám / Kê đơn / Dặn dò</label>
+                                                            <textarea class="form-control" name="doctorNote" rows="3" placeholder="Nhập chỉ định, kết quả đo hoặc dặn dò bệnh nhân..." th:text="${appt.doctorNote}"></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-0">
+                                                        <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                                                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
+                                                            <i class="fa-solid fa-check-double me-1"></i>Lưu kết quả & Hoàn thành
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="text-muted small" th:if="${appt.status != 'ACCEPTED' and appt.status != 'APPROVED' and appt.status != 'CONFIRMED'}">-</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav aria-label="Page navigation" th:if="${appointmentPage.totalPages > 1}" class="mt-4 pb-3">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${appointmentPage.first} ? 'disabled'">
+                        <a class="page-link"
+                            th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${appointmentPage.number - 1})}">
+                            <i class="fa-solid fa-chevron-left"></i> Trước
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, appointmentPage.totalPages - 1)}"
+                        th:classappend="${appointmentPage.number == i} ? 'active'">
+                        <a class="page-link"
+                            th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${i})}"
+                            th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${appointmentPage.last} ? 'disabled'">
+                        <a class="page-link"
+                            th:href="@{/doctor/appointments(tab=${activeTab}, startDate=${startDate}, endDate=${endDate}, page=${appointmentPage.number + 1})}">
+                            Sau <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
     </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Modal Tạo Lịch Hẹn Mới -->
+    <div class="modal fade" id="createAppointmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header text-white"
+                    style="background: linear-gradient(135deg, #2575fc 0%, #1e3c72 100%);">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-calendar-plus me-2"></i>Tạo Lịch Tái Khám</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form th:action="@{/doctor/appointments/create}" method="POST">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn Bệnh nhân <span class="text-danger">*</span></label>
+                            <select name="patientId" id="patientSelect" class="form-select" required
+                                style="width: 100%;">
+                                <option value="">-- Chọn bệnh nhân --</option>
+                                <option th:each="p : ${patients}" th:value="${p.id}"
+                                    th:text="${p.fullName + ' (' + p.patientCode + ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Thời gian hẹn <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="appointmentTime" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa điểm (Phòng khám) <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="location" class="form-control"
+                                placeholder="Ví dụ: Phòng khám 102, Tòa A..." required maxlength="250">
+                            <small class="text-muted mt-1 d-block">Có thể là khám trực tuyến hoặc khám tại cơ sở vật
+                                chất.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ghi chú cho Bệnh nhân</label>
+                            <textarea name="doctorNote" class="form-control" rows="3"
+                                placeholder="Ví dụ: Nhịn ăn sáng trước khi xét nghiệm máu..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
+                            <i class="fa-solid fa-check me-2"></i>Lên Lịch Hẹn
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-<script>
-    $(document).ready(function() {
-        $('#patientSelect').select2({
-            placeholder: "-- Chọn bệnh nhân --",
-            allowClear: true,
-            dropdownParent: $('#createAppointmentModal'),
-            width: '100%'
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#patientSelect').select2({
+                placeholder: "-- Chọn bệnh nhân --",
+                allowClear: true,
+                dropdownParent: $('#createAppointmentModal'),
+                width: '100%'
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
+
 </html>

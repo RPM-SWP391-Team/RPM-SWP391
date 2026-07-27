@@ -52,14 +52,32 @@ public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
             "LOWER(d.doctorCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "CAST(d.id AS string) LIKE CONCAT('%', :keyword, '%'))")
     Page<Doctor> searchAndFilterDoctors(@Param("keyword") String keyword, @Param("specialty") String specialty, @Param("status") String status, Pageable pageable);
-    // Tìm kiếm chính xác theo ID (Dùng làm cơ chế dự phòng an toàn)
-    List<Doctor> findById(int id);
 
     // Kiểm tra số điện thoại đã tồn tại ở một bác sĩ khác chưa (loại trừ chính bác sĩ đang sửa)
     @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM Doctor d WHERE d.phone = :phone AND d.id <> :id")
     boolean existsByPhoneAndIdNot(@Param("phone") String phone, @Param("id") Integer id);
 
     List<Doctor> findByHospitalIdAndIsActiveTrue(Integer hospitalId);
-
     Page<Doctor> findByHospitalIdAndIsActiveTrue(Integer hospitalId, Pageable pageable);
+
+    @Query("SELECT d FROM Doctor d WHERE d.hospital.id = :hospitalId " +
+           "AND d.id <> :currentDoctorId " +
+           "AND d.isActive = true " +
+           "AND d.currentPatientCount < d.capacityLimit " +
+           "AND (:specialty IS NULL OR :specialty = '' OR d.specialty = :specialty) " +
+           "AND (:keyword IS NULL OR :keyword = '' OR " +
+           "LOWER(d.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(d.doctorCode) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY (d.capacityLimit - d.currentPatientCount) DESC")
+    Page<Doctor> searchReplacementDoctors(@Param("hospitalId") Integer hospitalId, 
+                                          @Param("currentDoctorId") Integer currentDoctorId,
+                                          @Param("keyword") String keyword, 
+                                          @Param("specialty") String specialty, 
+                                          Pageable pageable);
+
+    @Query("SELECT DISTINCT d.specialty FROM Doctor d WHERE d.hospital.id = :hospitalId AND d.isActive = true AND d.specialty IS NOT NULL")
+    List<String> findDistinctSpecialtiesByHospital(@Param("hospitalId") Integer hospitalId);
+
+    @Query("SELECT d FROM Doctor d WHERE d.isActive = true AND d.currentPatientCount < d.capacityLimit")
+    List<Doctor> findAllAvailableDoctors();
 }

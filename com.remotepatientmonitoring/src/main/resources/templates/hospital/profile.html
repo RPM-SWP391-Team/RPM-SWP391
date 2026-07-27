@@ -8,25 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #1A73E8; --primary-light: #E8F0FE; --bg-light: #F4F7FE; --text-dark: #1E293B; --text-muted: #64748B;
-            --sidebar-width: 260px; --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: #ffffff; border-right: 1px solid #E2E8F0; z-index: 1000; display: flex; flex-direction: column; }
-        .sidebar-brand { padding: 1.5rem; font-size: 1.25rem; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid #F1F5F9; }
-        .sidebar-menu { padding: 1.5rem 1rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-        .menu-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.2s; }
-        .menu-item:hover, .menu-item.active { background-color: var(--primary-light); color: var(--primary-color); }
-        .sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid #F1F5F9; }
-        .main-content { margin-left: var(--sidebar-width); padding: 2rem; }
-        .navbar-top { background-color: #ffffff; border-radius: 16px; padding: 1rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; justify-content: space-between; }
-        .card-custom { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); background: #ffffff; margin-bottom: 30px; }
-        .card-header-custom { background: var(--primary-gradient); color: white; padding: 20px 24px; font-weight: 600; border-bottom: none; border-radius: 16px 16px 0 0;}
-        .form-control { border-radius: 8px; padding: 10px 12px; }
-        .form-control[readonly] { background-color: #f8fafc; color: #94a3b8; }
-    </style>
+    <link th:href="@{/css/hospital.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -35,6 +17,7 @@
     <div class="sidebar-menu">
         <a th:href="@{/hospital/dashboard}" class="menu-item"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
         <a th:href="@{/hospital/doctors}" class="menu-item"><i class="bi bi-person-fill-gear"></i><span>Quản lý Bác sĩ</span></a>
+        <a th:href="@{/hospital/patients}" class="menu-item"><i class="bi bi-people-fill"></i><span>Quản lý Bệnh nhân</span></a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item"><i class="bi bi-sliders"></i><span>Cấu hình Ngưỡng</span></a>
         <a th:href="@{/hospital/config/protocols}" class="menu-item"><i class="bi bi-journal-medical"></i><span>Cẩm nang & Chỉ dẫn</span></a>
         <a th:href="@{/hospital/ratings}" class="menu-item"><i class="bi bi-star"></i><span>Quản lý Đánh giá</span></a>
@@ -83,51 +66,152 @@
                     </div>
                     <div class="card-body p-4 p-md-5">
                         <form th:action="@{/hospital/profile/update}" th:object="${profileDTO}" method="POST">
+                            <!-- Section 1: Thông tin cơ sở bệnh viện -->
+                             <div class="col-12 mb-2">
+                                 <h6 class="fw-bold text-primary mb-0"><i class="bi bi-hospital me-2"></i>Thông tin cơ sở bệnh viện</h6>
+                                 <hr class="text-muted opacity-25 mt-2 mb-3">
+                             </div>
 
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold text-muted">ID Tài khoản (id_account)</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-hash"></i></span>
-                                        <input type="text" class="form-control border-start-0 ps-0 fw-bold text-primary" th:value="${profileDTO.accountId}" readonly>
-                                    </div>
-                                </div>
+                             <div class="row g-4">
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold text-muted">ID Tài khoản (id_account)</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-hash"></i></span>
+                                         <input type="text" class="form-control border-start-0 ps-0 fw-bold text-primary" th:value="${profileDTO.accountId}" readonly>
+                                     </div>
+                                 </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold">Email đăng nhập <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="bi bi-envelope text-primary"></i></span>
-                                        <input type="email" class="form-control" th:field="*{email}" required maxlength="255"
-                                               th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-                                    </div>
-                                </div>
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold text-muted">Mã bệnh viện (Read-only)</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-tag"></i></span>
+                                         <input type="text" class="form-control border-start-0 ps-0 text-muted" th:value="${profileDTO.hospitalCode}" readonly>
+                                     </div>
+                                 </div>
 
-                                <div class="col-12"><hr class="text-muted opacity-25 mt-2 mb-0"></div>
-                                <div class="col-12">
-                                    <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock text-warning me-2"></i>Đổi mật khẩu (Tùy chọn)</h6>
-                                    <p class="text-muted small mb-3">Bỏ trống các ô bên dưới nếu bạn không muốn thay đổi mật khẩu.</p>
-                                </div>
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Tên bệnh viện <span class="text-danger">*</span></label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-hospital text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{fullName}" required maxlength="255"
+                                                th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                                     </div>
+                                 </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
-                                    <input type="password" class="form-control" th:field="*{currentPassword}" placeholder="Nhập mật khẩu cũ">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Mật khẩu mới</label>
-                                    <input type="password" class="form-control" th:field="*{newPassword}" minlength="6" placeholder="Ít nhất 6 ký tự">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
-                                    <input type="password" class="form-control" th:field="*{confirmNewPassword}" minlength="6" placeholder="Nhập lại mật khẩu mới">
-                                </div>
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Số điện thoại đường dây nóng</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-telephone-inbound text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{phone}" maxlength="20"
+                                                th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+                                     </div>
+                                 </div>
 
-                                <div class="col-12 text-end mt-4">
-                                    <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm">
-                                        <i class="bi bi-save me-2"></i>Lưu thay đổi
-                                    </button>
-                                </div>
-                            </div>
+                                 <div class="col-12">
+                                     <label class="form-label fw-semibold">Địa chỉ trụ sở</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-geo-alt text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{address}" maxlength="500"
+                                                th:classappend="${#fields.hasErrors('address')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                                     </div>
+                                 </div>
+                             </div>
+
+                             <!-- Section 2: Thông tin cá nhân người quản trị -->
+                             <div class="col-12 mt-5 mb-2">
+                                 <h6 class="fw-bold text-primary mb-0"><i class="bi bi-person-badge me-2"></i>Thông tin cá nhân quản trị viên</h6>
+                                 <hr class="text-muted opacity-25 mt-2 mb-3">
+                             </div>
+
+                             <div class="row g-4">
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold text-muted">Mã quản trị viên (Read-only)</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person-vcard"></i></span>
+                                         <input type="text" class="form-control border-start-0 ps-0 text-muted" th:value="${profileDTO.adminCode}" readonly>
+                                     </div>
+                                 </div>
+
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Email đăng nhập <span class="text-danger">*</span></label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-envelope text-primary"></i></span>
+                                         <input type="email" class="form-control" th:field="*{email}" required maxlength="255"
+                                                th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                                     </div>
+                                 </div>
+
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Họ tên quản trị viên <span class="text-danger">*</span></label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-person text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{adminFullName}" required maxlength="150"
+                                                th:classappend="${#fields.hasErrors('adminFullName')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('adminFullName')}" th:errors="*{adminFullName}"></div>
+                                     </div>
+                                 </div>
+
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Số điện thoại cá nhân</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-phone text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{adminPhone}" maxlength="20"
+                                                th:classappend="${#fields.hasErrors('adminPhone')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('adminPhone')}" th:errors="*{adminPhone}"></div>
+                                     </div>
+                                 </div>
+
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Phòng ban</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-briefcase text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{adminDepartment}" maxlength="100"
+                                                th:classappend="${#fields.hasErrors('adminDepartment')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('adminDepartment')}" th:errors="*{adminDepartment}"></div>
+                                     </div>
+                                 </div>
+
+                                 <div class="col-md-6">
+                                     <label class="form-label fw-semibold">Chức vụ</label>
+                                     <div class="input-group">
+                                         <span class="input-group-text bg-white"><i class="bi bi-award text-primary"></i></span>
+                                         <input type="text" class="form-control" th:field="*{adminPosition}" maxlength="100"
+                                                th:classappend="${#fields.hasErrors('adminPosition')} ? 'is-invalid' : ''">
+                                         <div class="invalid-feedback" th:if="${#fields.hasErrors('adminPosition')}" th:errors="*{adminPosition}"></div>
+                                     </div>
+                                 </div>
+                             </div>
+
+                             <div class="row g-4 mt-2">
+                                 <div class="col-12 mt-4"><hr class="text-muted opacity-25 mt-2 mb-0"></div>
+                                 <div class="col-12 mt-4">
+                                     <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock text-warning me-2"></i>Đổi mật khẩu (Tùy chọn)</h6>
+                                     <p class="text-muted small mb-3">Bỏ trống các ô bên dưới nếu bạn không muốn thay đổi mật khẩu.</p>
+                                 </div>
+
+                                 <div class="col-md-4">
+                                     <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
+                                     <input type="password" class="form-control" th:field="*{currentPassword}" placeholder="Nhập mật khẩu cũ">
+                                 </div>
+                                 <div class="col-md-4">
+                                     <label class="form-label fw-semibold">Mật khẩu mới</label>
+                                     <input type="password" class="form-control" th:field="*{newPassword}" minlength="6" placeholder="Ít nhất 6 ký tự">
+                                 </div>
+                                 <div class="col-md-4">
+                                     <label class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
+                                     <input type="password" class="form-control" th:field="*{confirmNewPassword}" minlength="6" placeholder="Nhập lại mật khẩu mới">
+                                 </div>
+
+                                 <div class="col-12 text-end mt-4">
+                                     <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm">
+                                         <i class="bi bi-save me-2"></i>Lưu thay đổi
+                                     </button>
+                                 </div>
+                             </div>
                         </form>
                     </div>
                 </div>

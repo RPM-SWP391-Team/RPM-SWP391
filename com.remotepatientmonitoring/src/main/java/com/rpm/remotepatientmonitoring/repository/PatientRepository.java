@@ -30,6 +30,9 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     @Query("SELECT p FROM Patient p WHERE p.status = 'NEW' AND p.doctor IS NULL AND p.hospital.id = :hospitalId AND (p.phone LIKE %:keyword% OR p.fullName LIKE %:keyword%)")
     List<Patient> searchUnassignedPatients(@Param("hospitalId") Integer hospitalId, @Param("keyword") String keyword);
 
+    @Query(value = "EXEC sp_assign_patient_to_doctor @patient_id = :patientId, @doctor_id = :doctorId, @actor_id = :actorId, @actor_type = :actorType", nativeQuery = true)
+    String assignPatientToDoctorSP(@Param("patientId") Integer patientId, @Param("doctorId") Integer doctorId, @Param("actorId") Integer actorId, @Param("actorType") String actorType);
+
     // 1. Sửa thành Page: Tìm bệnh nhân theo bác sĩ (có phân trang) và sắp xếp ưu tiên theo cảnh báo Đỏ -> Cam -> Vàng
     @Query("SELECT p FROM Patient p LEFT JOIN Alert a ON a.patient = p AND a.isResolved = false " +
            "WHERE p.doctor.id = :doctorId AND p.isActive = true " +
@@ -52,4 +55,16 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     List<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status);
 
     Page<Patient> findByHospitalIdAndStatus(Integer hospitalId, String status, Pageable pageable);
+
+    @Query("SELECT p FROM Patient p LEFT JOIN p.diseaseProfile dp WHERE p.hospital.id = :hospitalId AND " +
+           "(:search IS NULL OR :search = '' OR p.fullName LIKE %:search% OR p.patientCode LIKE %:search% OR p.phone LIKE %:search%) AND " +
+           "(:assignStatus = 'ALL' OR " +
+           " (:assignStatus = 'UNASSIGNED' AND p.doctor IS NULL) OR " +
+           " (:assignStatus = 'ASSIGNED' AND p.doctor IS NOT NULL)) AND " +
+           "(:diseaseCode = 'ALL' OR dp.profileCode = :diseaseCode)")
+    Page<Patient> findPatientsWithFilters(@Param("hospitalId") Integer hospitalId,
+                                          @Param("search") String search,
+                                          @Param("assignStatus") String assignStatus,
+                                          @Param("diseaseCode") String diseaseCode,
+                                          Pageable pageable);
 }

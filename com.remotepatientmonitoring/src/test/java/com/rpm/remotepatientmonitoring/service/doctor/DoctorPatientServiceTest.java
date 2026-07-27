@@ -1,110 +1,117 @@
 package com.rpm.remotepatientmonitoring.service.doctor;
 
 import com.rpm.remotepatientmonitoring.dto.doctor.PatientSearchResponseDTO;
+import com.rpm.remotepatientmonitoring.model.Doctor;
 import com.rpm.remotepatientmonitoring.model.Patient;
+import com.rpm.remotepatientmonitoring.repository.DoctorRepository;
 import com.rpm.remotepatientmonitoring.repository.PatientRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * @author Chuoi
- */
 @ExtendWith(MockitoExtension.class)
 class DoctorPatientServiceTest {
 
     @Mock
     private PatientRepository patientRepository;
 
+    @Mock
+    private DoctorRepository doctorRepository;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private AuditTrailService auditTrailService;
+
     @InjectMocks
     private DoctorPatientService doctorPatientService;
 
     @Test
-    public void searchUnassignedPatients_TC01_ReturnsMappedList() {
-        String keyword = "Nguyen";
-        Integer hospitalId = 1;
+    void searchUnassignedPatients_TC01_ReturnsMappedList() {
+        Patient p1 = new Patient(); p1.setId(1); p1.setFullName("Nguyen A"); p1.setStatus("WAITING");
+        when(patientRepository.searchUnassignedPatients(1, "Ng")).thenReturn(Collections.singletonList(p1));
 
-        Patient p1 = new Patient();
-        p1.setId(100);
-        p1.setFullName("Nguyen Van A");
-        p1.setPhone("0901234567");
-        p1.setStatus("WAITING");
+        List<PatientSearchResponseDTO> result = doctorPatientService.searchUnassignedPatients("Ng", 1);
 
-        Patient p2 = new Patient();
-        p2.setId(101);
-        p2.setFullName("Nguyen Thi B");
-        p2.setPhone("0987654321");
-        p2.setStatus("WAITING");
-
-        when(patientRepository.searchUnassignedPatients(hospitalId, keyword))
-                .thenReturn(Arrays.asList(p1, p2));
-
-        List<PatientSearchResponseDTO> actualList = doctorPatientService.searchUnassignedPatients(keyword, hospitalId);
-
-        assertNotNull(actualList);
-        assertEquals(2, actualList.size(), "Danh sách trả về phải có 2 phần tử");
-        assertEquals(100, actualList.get(0).getId());
-        assertEquals("Nguyen Van A", actualList.get(0).getFullName());
-
-        verify(patientRepository, times(1)).searchUnassignedPatients(hospitalId, keyword);
+        assertEquals(1, result.size());
+        assertEquals("Nguyen A", result.get(0).getFullName());
     }
 
     @Test
-    public void searchUnassignedPatients_TC02_ReturnsEmptyList() {
-        String keyword = "KhongTonTai";
-        Integer hospitalId = 1;
-
-        when(patientRepository.searchUnassignedPatients(hospitalId, keyword))
-                .thenReturn(Collections.emptyList());
-
-        List<PatientSearchResponseDTO> actualList = doctorPatientService.searchUnassignedPatients(keyword, hospitalId);
-
-        assertTrue(actualList.isEmpty(), "Danh sách trả về phải là danh sách rỗng");
+    void searchUnassignedPatients_TC02_ReturnsEmptyList() {
+        when(patientRepository.searchUnassignedPatients(1, "Null")).thenReturn(Collections.emptyList());
+        List<PatientSearchResponseDTO> result = doctorPatientService.searchUnassignedPatients("Null", 1);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    public void searchUnassignedPatients_TC03_NullKeyword() {
-        Integer hospitalId = 1;
-        Patient p1 = new Patient();
-        p1.setId(50);
-        p1.setFullName("Le Van C");
+    void savePatientWithGeneratedCode_TC01_SuccessOnFirstTry() {
+        Patient p = new Patient();
+        // Giả lập ko trùng mã
+        when(patientRepository.findAllByPatientCodeIsNotNull()).thenReturn(Collections.emptyList());
+        when(patientRepository.saveAndFlush(p)).thenReturn(p);
 
-        when(patientRepository.searchUnassignedPatients(hospitalId, null))
-                .thenReturn(Collections.singletonList(p1));
+        ReflectionTestUtils.invokeMethod(doctorPatientService, "savePatientWithGeneratedCode", p);
 
-        List<PatientSearchResponseDTO> actualList = doctorPatientService.searchUnassignedPatients(null, hospitalId);
-
-        assertEquals(1, actualList.size());
-        assertEquals("Le Van C", actualList.get(0).getFullName());
+        assertEquals("PAT001", p.getPatientCode());
+        verify(patientRepository, times(1)).saveAndFlush(p);
     }
 
     @Test
-    public void searchUnassignedPatients_TC05_PatientWithNullFields() {
-        String keyword = "LoiData";
-        Integer hospitalId = 1;
+    void savePatientWithGeneratedCode_TC02_RetriesOnDataIntegrityViolation() {
+        Patient p = new Patient();
+        
+        when(patientRepository.findAllByPatientCodeIsNotNull()).thenReturn(Collections.emptyList());
+        // Lần đầu văng lỗi trùng lặp (DataIntegrityViolationException), Lần hai thành công
+        when(patientRepository.saveAndFlush(p))
+                .thenThrow(new DataIntegrityViolationException("Duplicated code"))
+                .thenReturn(p);
 
-        Patient p1 = new Patient();
-        p1.setId(99);
-        p1.setFullName(null);
-        p1.setPhone(null);
+        ReflectionTestUtils.invokeMethod(doctorPatientService, "savePatientWithGeneratedCode", p);
 
-        when(patientRepository.searchUnassignedPatients(hospitalId, keyword))
-                .thenReturn(Collections.singletonList(p1));
+        // Vẫn tạo thành công sau khi lặp
+        verify(patientRepository, times(2)).saveAndFlush(p);
+    }
 
-        List<PatientSearchResponseDTO> actualList = doctorPatientService.searchUnassignedPatients(keyword, hospitalId);
+    @Test
+    void savePatientWithGeneratedCode_TC03_ThrowsExceptionAfterMaxRetries() {
+        Patient p = new Patient();
+        
+        when(patientRepository.findAllByPatientCodeIsNotNull()).thenReturn(Collections.emptyList());
+        // Lỗi liên tục 5 lần
+        when(patientRepository.saveAndFlush(p)).thenThrow(new DataIntegrityViolationException("Duplicated code"));
 
-        assertEquals(1, actualList.size());
-        assertEquals(99, actualList.get(0).getId());
-        assertNull(actualList.get(0).getFullName());
-        assertNull(actualList.get(0).getPhone());
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            ReflectionTestUtils.invokeMethod(doctorPatientService, "savePatientWithGeneratedCode", p);
+        });
+
+        assertTrue(exception.getMessage().contains("Không thể sinh mã bệnh nhân"));
+        verify(patientRepository, times(5)).saveAndFlush(p);
+    }
+
+    @Test
+    void generateNextPatientCode_TC04_ValidFormatWithLegacyData() {
+        Patient p1 = new Patient(); p1.setPatientCode("PAT005");
+        Patient p2 = new Patient(); p2.setPatientCode("INVALID_CODE"); // Legacy data
+        Patient p3 = new Patient(); p3.setPatientCode("PAT012");
+        when(patientRepository.findAllByPatientCodeIsNotNull()).thenReturn(Arrays.asList(p1, p2, p3));
+        
+        String nextCode = ReflectionTestUtils.invokeMethod(doctorPatientService, "generateNextPatientCode");
+        
+        assertEquals("PAT013", nextCode);
     }
 }

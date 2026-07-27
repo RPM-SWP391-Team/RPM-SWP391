@@ -1,5 +1,7 @@
 package com.rpm.remotepatientmonitoring.controller.patient;
 
+import com.rpm.remotepatientmonitoring.model.DailyHealthLog;
+
 import com.rpm.remotepatientmonitoring.dto.patient.DailyHealthLogFormDto;
 import com.rpm.remotepatientmonitoring.model.Patient;
 import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
@@ -37,10 +39,6 @@ public class HealthLogController {
                 }
             }
         }
-        List<Patient> all = patientHealthService.getAllPatients();
-        if (all.size() > 0) {
-            return all.get(0);
-        }
         return null;
     }
 
@@ -58,7 +56,7 @@ public class HealthLogController {
 
         DailyHealthLogFormDto formDto = new DailyHealthLogFormDto();
         if (id != null) {
-            com.rpm.remotepatientmonitoring.model.DailyHealthLog existing = patientHealthService.getDailyHealthLogById(id);
+            DailyHealthLog existing = patientHealthService.getDailyHealthLogById(id);
             if (existing != null && existing.getPatient().getId().equals(patient.getId())) {
                 formDto.setLogType(existing.getLogType());
                 formDto.setInputMethod(existing.getInputMethod());

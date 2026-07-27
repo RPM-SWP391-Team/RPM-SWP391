@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface HealthLogRepository extends JpaRepository<DailyHealthLog, Integer> {
     List<DailyHealthLog> findByPatientIdAndLogDate(Integer patientId, LocalDate logDate);
     List<DailyHealthLog> findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(Integer patientId, LocalDate date);
+    List<DailyHealthLog> findByPatientIdAndLogDateBetweenOrderByLogDateAsc(Integer patientId, LocalDate startDate, LocalDate endDate);
     Optional<DailyHealthLog> findFirstByPatientIdOrderByLogTimeDesc(Integer patientId);
     Optional<DailyHealthLog> findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(Integer patientId);
     Optional<DailyHealthLog> findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(Integer patientId);

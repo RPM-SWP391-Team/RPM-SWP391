@@ -1,0 +1,43 @@
+{
+    "timestamp": "2026-07-22T14:03:02.682485",
+    "total_questions": 66,
+    "average_metrics": {
+        "recall@1": 0.6363636363636364,
+        "recall@3": 0.7727272727272727,
+        "recall@5": 0.8484848484848485,
+        "recall@10": 0.8484848484848485,
+        "hit_rate": 0.8484848484848485,
+        "mrr": 0.7161616161616161,
+        "exact_match": 0.0,
+        "answer_length": 32.0,
+        "rouge_l": 0.0,
+        "bleu": 0.0
+    },
+    "average_latency": 5.117540767698577,
+    "average_retrieval_time": 5.116904132293932,
+    "average_generation_time": 0.0006366354046445904,
+    "top_10_correct": [
+        "Mục tiêu huyết áp khi điều trị (on-treatment) cho hầu hết người cao tuổi mắc đái tháo đường là bao nhiêu khi có thể đạt được an toàn?",
+        "Người có nguy cơ nhiễm toan ceton do đái tháo đường (DKA) nên được tư vấn và trang bị những gì để phòng ngừa?",
+        "Vì sao chỉ dùng insulin điều chỉnh (correctional insulin) đơn độc bị chống chỉ định ở người đái tháo đường type 1 nằm viện?",
+        "Thuật ngữ LADA (latent autoimmune diabetes in adults) được xếp vào nhóm phân loại đái tháo đường nào theo hệ thống phân loại hiện nay?",
+        "Con của các bà mẹ được chẩn đoán đái tháo đường thai kỳ (GDM) bằng phương pháp một bước (one-step method) trong nghiên cứu đoàn hệ HAPO có những kết cục chuyển hóa gì lúc 10-14 tuổi so với con của mẹ không có GDM?",
+        "Người mắc đái tháo đường nên được giới thiệu đến chuyên gia dinh dưỡng (RDN) để nhận liệu pháp dinh dưỡng y khoa (MNT) cá thể hóa khi nào, và đặc biệt trong những trường hợp nào?",
+        "Trong một thử nghiệm ngẫu nhiên ở người thừa cân/béo phì có tiền sử GDM, giảm cân trước khi mang thai lần sau ảnh hưởng thế nào đến nguy cơ tái phát GDM?",
+        "Nên sàng lọc đái tháo đường do glucocorticoid gây ra bằng cách đo chỉ số đường huyết nào, và vì sao không nên chỉ dựa vào glucose lúc đói?",
+        "Đối với người đang điều trị metformin, ngưỡng eGFR nào yêu cầu giảm liều và ngưỡng nào yêu cầu ngừng hẳn metformin?",
+        "Theo báo cáo Khảo sát Người lao động Nông nghiệp Quốc gia năm 2023, tỷ lệ đái tháo đường tự báo cáo (đã hiệu chỉnh theo tuổi) ở người lao động nông nghiệp di cư so với không di cư là bao nhiêu?"
+    ],
+    "top_10_wrong": [
+        "Đối với người đái tháo đường type 2 không có ASCVD, suy tim, hoặc CKD cần khởi trị hoặc tăng cường điều trị hạ đường huyết, thuốc nào thường được dùng là điều trị đầu tay, và vì sao?",
+        "Khi nào cần chuyển sang liệu pháp tiêm kết hợp (combination injectable therapy), và nên ưu tiên thêm loại thuốc nào trước insulin bữa ăn?",
+        "Theo khuyến cáo 5.36, người trưởng thành mắc đái tháo đường type 1 và type 2 nên được tư vấn tham gia hoạt động thể chất aerobic cường độ trung bình đến mạnh bao nhiêu phút mỗi tuần?",
+        "Ngoài các phương pháp cải thiện chất lượng (QI), những chiến lược nào khác giúp cải thiện chất lượng chăm sóc và giảm chi phí trong đái tháo đường?",
+        "Giá thuốc trong Bảng 9.3 và 9.4 được tính dựa trên loại giá nào, và những giá này có phản ánh chi phí thực tế người bệnh phải trả không?",
+        "Trong một phân tích trước đây về độ chính xác máy đo đường huyết, bao nhiêu trong số 18 máy đo đáp ứng yêu cầu độ chính xác tối thiểu?",
+        "Theo báo cáo đồng thuận của ADA về sàng lọc bệnh động mạch vành ở người đái tháo đường không triệu chứng, việc xét nghiệm thường quy có được khuyến cáo không?",
+        "Ngưỡng A1C nào xác định nhóm người có nguy cơ cao mắc đái tháo đường và bệnh tim mạch, và ngưỡng nào được coi là nguy cơ rất cao?",
+        "Theo thang điều chỉnh insulin đơn giản hóa được đề cập, nên cho thêm bao nhiêu đơn vị insulin tác dụng nhanh/ngắn khi đường huyết trước bữa ăn trên 250 mg/dL và trên 350 mg/dL?",
+        "Theo khuyến cáo 7.25a, hệ thống AID (tự động cấp insulin) được ưu tiên sử dụng cho những đối tượng nào?"
+    ]
+}

@@ -1,5 +1,8 @@
 package com.rpm.remotepatientmonitoring.controller.patient;
 
+import com.rpm.remotepatientmonitoring.model.AlertThreshold;
+import com.rpm.remotepatientmonitoring.service.patient.PatientHealthService;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rpm.remotepatientmonitoring.model.*;
@@ -35,6 +38,9 @@ public class PatientController {
     @Autowired
     private ExerciseLogService exerciseLogService;
 
+    @Autowired
+    private PatientHealthService patientHealthService;
+
     private Patient getCurrentPatient() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
@@ -46,10 +52,6 @@ public class PatientController {
                     return opt.get();
                 }
             }
-        }
-        List<Patient> all = patientService.findAllPatients();
-        if (all.size() > 0) {
-            return all.get(0);
         }
         return null;
     }
@@ -222,6 +224,175 @@ public class PatientController {
             exerciseProgress = 100;
         }
 
+        // --- Calculate today's health logs completion status ---
+        Map<String, Object> logStatus = new HashMap<>();
+        boolean reqBp = false;
+        boolean reqGl = false;
+        if (patient.getDiseaseProfile() != null) {
+            reqBp = Boolean.TRUE.equals(patient.getDiseaseProfile().getRequiresBpInput());
+            reqGl = Boolean.TRUE.equals(patient.getDiseaseProfile().getRequiresGlucoseInput());
+        } else {
+            reqBp = true;
+            reqGl = true;
+        }
+
+        List<DailyHealthLog> logsList = new ArrayList<>();
+        if (patient.getId() != null) {
+            logsList = patientHealthService.getHealthLogsByPatientIdAndDate(patient.getId(), selectedDate);
+        }
+        final List<DailyHealthLog> finalLogs = logsList;
+        
+        AlertThreshold threshold = patientHealthService.getAlertThresholdByPatientOrHospital(patient.getId(), patient.getHospital() != null ? patient.getHospital().getId() : null);
+
+        DailyHealthLog morningBpLog = null;
+        DailyHealthLog morningGlLog = null;
+        DailyHealthLog eveningBpLog = null;
+        DailyHealthLog eveningGlLog = null;
+        DailyHealthLog randomBpLog = null;
+        DailyHealthLog randomGlLog = null;
+
+        for (DailyHealthLog log : finalLogs) {
+            if (log == null || log.getLogType() == null) {
+                continue;
+            }
+            String type = log.getLogType().toUpperCase();
+            if (type.equals("MORNING")) {
+                if (log.getSystolicBp() != null) {
+                    if (morningBpLog == null || (log.getLogTime() != null && morningBpLog.getLogTime() != null && log.getLogTime().isAfter(morningBpLog.getLogTime()))) {
+                        morningBpLog = log;
+                    }
+                }
+                if (log.getGlucoseLevel() != null) {
+                    if (morningGlLog == null || (log.getLogTime() != null && morningGlLog.getLogTime() != null && log.getLogTime().isAfter(morningGlLog.getLogTime()))) {
+                        morningGlLog = log;
+                    }
+                }
+            } else if (type.equals("EVENING")) {
+                if (log.getSystolicBp() != null) {
+                    if (eveningBpLog == null || (log.getLogTime() != null && eveningBpLog.getLogTime() != null && log.getLogTime().isAfter(eveningBpLog.getLogTime()))) {
+                        eveningBpLog = log;
+                    }
+                }
+                if (log.getGlucoseLevel() != null) {
+                    if (eveningGlLog == null || (log.getLogTime() != null && eveningGlLog.getLogTime() != null && log.getLogTime().isAfter(eveningGlLog.getLogTime()))) {
+                        eveningGlLog = log;
+                    }
+                }
+            } else if (type.equals("RANDOM")) {
+                if (log.getSystolicBp() != null) {
+                    if (randomBpLog == null || (log.getLogTime() != null && randomBpLog.getLogTime() != null && log.getLogTime().isAfter(randomBpLog.getLogTime()))) {
+                        randomBpLog = log;
+                    }
+                }
+                if (log.getGlucoseLevel() != null) {
+                    if (randomGlLog == null || (log.getLogTime() != null && randomGlLog.getLogTime() != null && log.getLogTime().isAfter(randomGlLog.getLogTime()))) {
+                        randomGlLog = log;
+                    }
+                }
+            }
+        }
+
+        // Morning BP
+        if (reqBp) {
+            if (morningBpLog != null) {
+                String statusText = getBpStatusText(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp(), threshold);
+                logStatus.put("morningBp", "Đã nhập: " + morningBpLog.getSystolicBp() + "/" + morningBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
+                logStatus.put("morningBpClass", getBpClass(morningBpLog.getSystolicBp(), morningBpLog.getDiastolicBp(), threshold));
+                logStatus.put("morningBpDone", true);
+            } else {
+                logStatus.put("morningBp", "Chưa nhập");
+                logStatus.put("morningBpClass", "text-danger fw-bold");
+                logStatus.put("morningBpDone", false);
+            }
+        } else {
+            logStatus.put("morningBp", "Không yêu cầu");
+            logStatus.put("morningBpClass", "text-muted");
+            logStatus.put("morningBpDone", true);
+        }
+
+        // Morning Glucose
+        if (reqGl) {
+            if (morningGlLog != null) {
+                String statusText = getGlucoseStatusText(morningGlLog.getGlucoseLevel(), threshold);
+                logStatus.put("morningGl", "Đã nhập: " + morningGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
+                logStatus.put("morningGlClass", getGlucoseClass(morningGlLog.getGlucoseLevel(), threshold));
+                logStatus.put("morningGlDone", true);
+            } else {
+                logStatus.put("morningGl", "Chưa nhập");
+                logStatus.put("morningGlClass", "text-danger fw-bold");
+                logStatus.put("morningGlDone", false);
+            }
+        } else {
+            logStatus.put("morningGl", "Không yêu cầu");
+            logStatus.put("morningGlClass", "text-muted");
+            logStatus.put("morningGlDone", true);
+        }
+
+        // Evening BP
+        if (reqBp) {
+            if (eveningBpLog != null) {
+                String statusText = getBpStatusText(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp(), threshold);
+                logStatus.put("eveningBp", "Đã nhập: " + eveningBpLog.getSystolicBp() + "/" + eveningBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
+                logStatus.put("eveningBpClass", getBpClass(eveningBpLog.getSystolicBp(), eveningBpLog.getDiastolicBp(), threshold));
+                logStatus.put("eveningBpDone", true);
+            } else {
+                logStatus.put("eveningBp", "Chưa nhập");
+                logStatus.put("eveningBpClass", "text-danger fw-bold");
+                logStatus.put("eveningBpDone", false);
+            }
+        } else {
+            logStatus.put("eveningBp", "Không yêu cầu");
+            logStatus.put("eveningBpClass", "text-muted");
+            logStatus.put("eveningBpDone", true);
+        }
+
+        // Evening Glucose
+        if (reqGl) {
+            if (eveningGlLog != null) {
+                String statusText = getGlucoseStatusText(eveningGlLog.getGlucoseLevel(), threshold);
+                logStatus.put("eveningGl", "Đã nhập: " + eveningGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
+                logStatus.put("eveningGlClass", getGlucoseClass(eveningGlLog.getGlucoseLevel(), threshold));
+                logStatus.put("eveningGlDone", true);
+            } else {
+                logStatus.put("eveningGl", "Chưa nhập");
+                logStatus.put("eveningGlClass", "text-danger fw-bold");
+                logStatus.put("eveningGlDone", false);
+            }
+        } else {
+            logStatus.put("eveningGl", "Không yêu cầu");
+            logStatus.put("eveningGlClass", "text-muted");
+            logStatus.put("eveningGlDone", true);
+        }
+
+        // Random BP & Glucose (Optional)
+        if (randomBpLog != null) {
+            String statusText = getBpStatusText(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp(), threshold);
+            logStatus.put("randomBp", "Đã nhập: " + randomBpLog.getSystolicBp() + "/" + randomBpLog.getDiastolicBp() + " mmHg (" + statusText + ")");
+            logStatus.put("randomBpClass", getBpClass(randomBpLog.getSystolicBp(), randomBpLog.getDiastolicBp(), threshold));
+        } else {
+            logStatus.put("randomBp", "Chưa nhập (Tùy chọn)");
+            logStatus.put("randomBpClass", "text-muted");
+        }
+        if (randomGlLog != null) {
+            String statusText = getGlucoseStatusText(randomGlLog.getGlucoseLevel(), threshold);
+            logStatus.put("randomGl", "Đã nhập: " + randomGlLog.getGlucoseLevel() + " mmol/L (" + statusText + ")");
+            logStatus.put("randomGlClass", getGlucoseClass(randomGlLog.getGlucoseLevel(), threshold));
+        } else {
+            logStatus.put("randomGl", "Chưa nhập (Tùy chọn)");
+            logStatus.put("randomGlClass", "text-muted");
+        }
+
+        // Check if all required logs are completed
+        boolean allRequiredDone = true;
+        if (reqBp && (!Boolean.TRUE.equals(logStatus.get("morningBpDone")) || !Boolean.TRUE.equals(logStatus.get("eveningBpDone")))) {
+            allRequiredDone = false;
+        }
+        if (reqGl && (!Boolean.TRUE.equals(logStatus.get("morningGlDone")) || !Boolean.TRUE.equals(logStatus.get("eveningGlDone")))) {
+            allRequiredDone = false;
+        }
+        logStatus.put("allRequiredDone", allRequiredDone);
+        model.addAttribute("logStatus", logStatus);
+
         // Daily nutritional targets
         model.addAttribute("patient", patient);
         model.addAttribute("treatmentPlan", plan);
@@ -263,11 +434,12 @@ public class PatientController {
 
         return "patient/dashboard";
     }
-
+    
     @GetMapping("/adherence")
     public String getAdherencePage(
             @RequestParam(value = "range", defaultValue = "week") String range,
-            @RequestParam(value = "searchDate", required = false) String searchDateStr,
+            @RequestParam(value = "startDate", required = false) String startDateStr,
+            @RequestParam(value = "endDate", required = false) String endDateStr,
             Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
@@ -325,9 +497,12 @@ public class PatientController {
                     medicationList.add(item);
                 }
 
-                currentWater = patientService.findWaterLog(patient.getId(), today)
-                        .map(WaterLog::getAmountMl)
-                        .orElse(0);
+                Optional<WaterLog> waterOpt = patientService.findWaterLog(patient.getId(), today);
+                if (waterOpt.isPresent() && waterOpt.get().getAmountMl() != null) {
+                    currentWater = waterOpt.get().getAmountMl();
+                } else {
+                    currentWater = 0;
+                }
             }
         } catch (Exception ignored) {
         }
@@ -344,22 +519,25 @@ public class PatientController {
             }
         }
 
-        LocalDate sDate = null;
-        if (searchDateStr != null && !searchDateStr.trim().isEmpty()) {
-            try {
-                sDate = LocalDate.parse(searchDateStr);
-                range = "custom";
-            } catch (Exception ignored) {
-            }
+        LocalDate filterStart = null;
+        LocalDate filterEnd = null;
+        if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+            try { filterStart = LocalDate.parse(startDateStr.trim()); } catch (Exception ignored) {}
+        }
+        if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+            try { filterEnd = LocalDate.parse(endDateStr.trim()); } catch (Exception ignored) {}
         }
 
         List<MedicationLog> historyLogs = new ArrayList<>();
         try {
             if (patient.getId() != null) {
-                if (sDate != null) {
-                    List<MedicationLog> rawLogs = patientService.findMedicationHistory(patient.getId(), sDate);
+                if (filterStart != null || filterEnd != null) {
+                    range = "custom";
+                    List<MedicationLog> rawLogs = patientService.findMedicationHistory(patient.getId(), null);
                     for (MedicationLog logVal : rawLogs) {
-                        if (logVal.getLogDate().equals(sDate)) {
+                        boolean afterStart = (filterStart == null || !logVal.getLogDate().isBefore(filterStart));
+                        boolean beforeEnd = (filterEnd == null || !logVal.getLogDate().isAfter(filterEnd));
+                        if (afterStart && beforeEnd) {
                             historyLogs.add(logVal);
                         }
                     }
@@ -409,8 +587,14 @@ public class PatientController {
         List<WaterLog> historyWaterLogs = new ArrayList<>();
         try {
             if (patient.getId() != null) {
-                if (sDate != null) {
-                    patientService.findWaterLog(patient.getId(), sDate).ifPresent(historyWaterLogs::add);
+                if (filterStart != null || filterEnd != null) {
+                    LocalDate oldestDate = filterStart != null ? filterStart : LocalDate.of(2000, 1, 1);
+                    List<WaterLog> rawWaterLogs = patientService.findWaterHistory(patient.getId(), oldestDate);
+                    for (WaterLog wl : rawWaterLogs) {
+                        if (filterEnd == null || !wl.getLogDate().isAfter(filterEnd)) {
+                            historyWaterLogs.add(wl);
+                        }
+                    }
                 } else {
                     LocalDate oldestDate = LocalDate.now().minusDays(30); // default
                     if (!historyLogs.isEmpty()) {
@@ -534,7 +718,7 @@ public class PatientController {
         List<WaterLog> recentWaterLogs = new ArrayList<>();
         try {
             if (patient.getId() != null) {
-                LocalDate targetDate = (sDate != null) ? sDate : LocalDate.now();
+                LocalDate targetDate = (filterStart != null) ? filterStart : LocalDate.now();
                 recentWaterLogs = patientService.findWaterLogs(patient.getId(), targetDate);
             }
         } catch (Exception ignored) {}
@@ -551,7 +735,8 @@ public class PatientController {
         model.addAttribute("waterLogs", recentWaterLogs);
         model.addAttribute("history", historyGrouped);
         model.addAttribute("chartData", chartData);
-        model.addAttribute("searchDate", searchDateStr);
+        model.addAttribute("startDate", startDateStr != null ? startDateStr : "");
+        model.addAttribute("endDate", endDateStr != null ? endDateStr : "");
         return "patient/adherence";
     }
 
@@ -751,5 +936,60 @@ public class PatientController {
         patientService.updateProfile(patient, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
 
         return "redirect:/patient/progress?updateSuccess=true";
+    }
+
+    private String getBpStatusText(Integer sys, Integer dia, AlertThreshold threshold) {
+        if (sys == null || dia == null) return "Chưa nhập";
+        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
+        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+        int sysDangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
+        int diaDangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
+        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
+        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+
+        if (sys >= sysEmerg || dia >= diaEmerg) return "Nguy hiểm";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "Vượt ngưỡng";
+        if (sys >= sysWarnMin || dia >= diaWarnMin) return "Cần chú ý";
+        return "Đạt mục tiêu";
+    }
+
+    private String getBpClass(Integer sys, Integer dia, AlertThreshold threshold) {
+        if (sys == null || dia == null) return "text-danger fw-bold";
+        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
+        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+        int sysDangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
+        int diaDangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
+        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
+        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+
+        if (sys >= sysEmerg || dia >= diaEmerg) return "text-danger fw-bold";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "text-warning fw-bold"; // Optional: Use text-warning or a custom class if text-orange exists.
+        if (sys >= sysWarnMin || dia >= diaWarnMin) return "text-warning fw-bold";
+        return "text-success fw-bold";
+    }
+
+    private String getGlucoseStatusText(java.math.BigDecimal val, AlertThreshold threshold) {
+        if (val == null) return "Chưa nhập";
+        double glu = val.doubleValue();
+        double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold().doubleValue() : 4.4;
+        double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
+        double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
+
+        if (glu < hypo) return "Nguy hiểm (Hạ)";
+        if (glu > highMax) return "Nguy hiểm (Cao)";
+        if (glu > normMax) return "Vượt ngưỡng";
+        return "Đạt mục tiêu";
+    }
+
+    private String getGlucoseClass(java.math.BigDecimal val, AlertThreshold threshold) {
+        if (val == null) return "text-danger fw-bold";
+        double glu = val.doubleValue();
+        double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold().doubleValue() : 4.4;
+        double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
+        double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
+
+        if (glu < hypo || glu > highMax) return "text-danger fw-bold";
+        if (glu > normMax) return "text-warning fw-bold";
+        return "text-success fw-bold";
     }
 }

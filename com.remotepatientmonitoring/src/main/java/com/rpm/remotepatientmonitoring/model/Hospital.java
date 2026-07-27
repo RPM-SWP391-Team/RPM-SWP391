@@ -18,9 +18,6 @@ public class Hospital {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    @JoinColumn(name = "account_id", nullable = false, unique = true)
-    private Account account;
 
     @Column(name = "hospital_code", nullable = false, unique = true, length = 50)
     private String hospitalCode;
@@ -48,8 +45,7 @@ public class Hospital {
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
-    public Account getAccount() { return account; }
-    public void setAccount(Account account) { this.account = account; }
+
     public String getHospitalCode() { return hospitalCode; }
     public void setHospitalCode(String hospitalCode) { this.hospitalCode = hospitalCode; }
     public String getFullName() { return fullName; }

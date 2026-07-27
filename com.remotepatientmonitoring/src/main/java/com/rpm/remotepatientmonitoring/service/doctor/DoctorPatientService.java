@@ -28,10 +28,10 @@ public class DoctorPatientService {
     private com.rpm.remotepatientmonitoring.repository.DoctorRepository doctorRepository;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private AuditTrailService auditTrailService;
 
     @Autowired
-    private AuditTrailService auditTrailService;
+    private JdbcTemplate jdbcTemplate;
 
     // 1. Tìm kiếm bệnh nhân chờ tiếp nhận (lọc theo bệnh viện của bác sĩ)
     public List<PatientSearchResponseDTO> searchUnassignedPatients(String keyword, Integer hospitalId) {
@@ -52,17 +52,24 @@ public class DoctorPatientService {
     // 2. Tiếp nhận bệnh nhân qua Stored Procedure + sinh mã bệnh nhân nếu chưa có
     @Transactional
     public String assignPatient(Integer patientId, Integer doctorId, Integer diseaseProfileId) {
+        com.rpm.remotepatientmonitoring.model.Doctor docCheck = doctorRepository.findById(doctorId).orElse(null);
+        if (docCheck != null && docCheck.getCurrentPatientCount() >= docCheck.getCapacityLimit()) {
+            throw new IllegalStateException("Bác sĩ đã đạt giới hạn tối đa số lượng bệnh nhân (" + docCheck.getCapacityLimit() + " bệnh nhân). Không thể tiếp nhận thêm!");
+        }
+
+        // Gọi SP với tham số OUTPUT bằng SimpleJdbcCall
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
                 .withProcedureName("sp_assign_patient_to_doctor");
-
-        MapSqlParameterSource inParams = new MapSqlParameterSource();
-        inParams.addValue("patient_id", patientId);
-        inParams.addValue("doctor_id", doctorId);
-        inParams.addValue("actor_id", doctorId);
-        inParams.addValue("actor_type", "DOCTOR");
-
-        Map<String, Object> out = jdbcCall.execute(inParams);
-        String resultMessage = (String) out.get("result_message");
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("patient_id", patientId)
+                .addValue("doctor_id", doctorId)
+                .addValue("actor_id", doctorId)
+                .addValue("actor_type", "DOCTOR");
+        Map<String, Object> spResult = jdbcCall.execute(params);
+        String resultMessage = (String) spResult.get("result_message");
+        if (resultMessage == null) {
+            resultMessage = "Thành công tiếp nhận bệnh nhân";
+        }
 
         if (resultMessage != null && resultMessage.startsWith("Thành công")) {
             Patient patient = patientRepository.findById(patientId)
