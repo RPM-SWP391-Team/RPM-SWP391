@@ -337,6 +337,7 @@ public class DoctorViewController {
 
         // Trả về viện
         patient.setDoctor(null);
+        patient.setStatus("UNASSIGNED");
         patient.setUpdatedAt(LocalDateTime.now());
         patientRepository.save(patient);
 
