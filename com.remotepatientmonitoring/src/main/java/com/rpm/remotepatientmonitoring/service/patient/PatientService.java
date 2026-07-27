@@ -107,11 +107,8 @@ public class PatientService {
     }
 
     public Page<FoodDictionary> findActiveFoods(String search, Pageable pageable) {
-        if (search != null && !search.trim().isEmpty()) {
-            return foodDictionaryRepository.findByIsActiveTrueAndFoodNameContainingIgnoreCaseOrIsActiveTrueAndEnglishNameContainingIgnoreCase(search.trim(), search.trim(), pageable);
-        } else {
-            return foodDictionaryRepository.findByIsActiveTrue(pageable);
-        }
+        String searchPattern = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+        return foodDictionaryRepository.searchFoodsWithStatus(searchPattern, true, pageable);
     }
 
     @Transactional
