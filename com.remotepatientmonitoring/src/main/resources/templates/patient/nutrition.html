@@ -370,7 +370,7 @@
                 <div class="small text-muted">
                     Hiển thị <b th:text="${foodPageObj.number * foodPageObj.size + 1}">1</b> - <b th:text="${(foodPageObj.number + 1) * foodPageObj.size < foodPageObj.totalElements ? (foodPageObj.number + 1) * foodPageObj.size : foodPageObj.totalElements}">5</b> trong tổng số <b th:text="${foodPageObj.totalElements}">0</b> thực phẩm
                 </div>
-                <nav aria-label="Phân trang từ điển thực phẩm" th:if="${foodPageObj.totalPages > 1}">
+                <nav aria-label="Phân trang từ điển thực phẩm" th:if="${foodPageObj.totalPages > 0}">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${foodPageObj.first} ? 'disabled'">
                             <a class="page-link" th:href="@{/patient/nutrition(foodPage=0, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang đầu"><i class="fa-solid fa-angles-left"></i></a>
