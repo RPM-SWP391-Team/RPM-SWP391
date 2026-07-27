@@ -836,18 +836,18 @@
 
                             <div class="mb-3">
                                 <label class="form-label">
-                                    <i class="fa-solid fa-clipboard-list me-1 text-primary"></i>Y lệnh / Hướng dẫn điều trị
+                                    <i class="fa-solid fa-clipboard-list me-1 text-primary"></i>Y lệnh / Hướng dẫn điều trị <span class="text-danger">*</span>
                                 </label>
                                 <textarea name="medicalOrder" class="form-control" maxlength="500" rows="2"
                                           placeholder="Nhập y lệnh chung về dùng thuốc..."
-                                          th:text="${currentPlan?.medicalOrder}"></textarea>
+                                          th:text="${currentPlan?.medicalOrder}" required></textarea>
                             </div>
 
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label mb-0"><i
                                             class="fa-solid fa-list-check me-1 text-success"></i>Danh mục thuốc chi
-                                        tiết</label>
+                                        tiết <span class="text-danger">*</span></label>
                                     <button type="button" class="btn btn-primary btn-sm rounded-pill px-3"
                                             onclick="addMedicationRow()">
                                         <i class="fa-solid fa-plus me-1"></i>Thêm thuốc
@@ -1474,6 +1474,14 @@
             alert('⚠️ Vui lòng chọn một phân loại bệnh lý trước khi lưu.');
             return;
         }
+
+        const medRows = document.querySelectorAll('#medicationTbody tr:not(.empty-med-row)');
+        if (medRows.length === 0) {
+            e.preventDefault();
+            alert('⚠️ Vui lòng kê ít nhất 1 loại thuốc trong Đơn thuốc chi tiết (Bấm "Thêm thuốc" để kê đơn).');
+            return;
+        }
+
         const btn = document.getElementById('saveBtn');
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk fa-spin me-2"></i>Đang lưu...';
         btn.style.pointerEvents = 'none';
