@@ -37,9 +37,8 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold text-dark">Hình thức khám</label>
                             <select name="appointmentType" class="form-select rounded-3 py-2" required>
-                                <option value="CHECKUP" th:selected="${appointment.appointmentType == 'CHECKUP'}">Khám định kỳ (CHECKUP)</option>
-                                <option value="CONSULTATION" th:selected="${appointment.appointmentType == 'CONSULTATION'}">Tư vấn sức khỏe (CONSULTATION)</option>
-                                <option value="EMERGENCY" th:selected="${appointment.appointmentType == 'EMERGENCY'}">Khám cấp cứu (EMERGENCY)</option>
+                                <option value="INITIAL" th:selected="${appointment.appointmentType == 'INITIAL'}">Khám lần đầu (INITIAL)</option>
+                                <option value="CHECKUP" th:selected="${appointment.appointmentType == 'CHECKUP'}">Tái khám định kỳ (CHECKUP)</option>
                             </select>
                         </div>
 
