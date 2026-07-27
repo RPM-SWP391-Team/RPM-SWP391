@@ -15,17 +15,21 @@ import java.security.Principal;
 @RequestMapping("/api/chatbot")
 public class AiChatController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AiChatController.class);
+
     @Autowired
     private AiChatService aiChatService;
 
     @PostMapping("/ask")
     public ResponseEntity<AiChatResponse> askQuestion(@RequestBody AiChatRequest request, Principal principal) {
         String email = principal != null ? principal.getName() : "anonymous";
+        log.info("[CHATBOT] Received ask: email={}, patientId={}, question={}", email, request.getPatientId(), request.getQuestion());
         
         // Lấy thông tin ngữ cảnh thực tế từ Database
         String context = aiChatService.buildContext(email, request.getPatientId());
+        log.info("[CHATBOT] Built context (first 200 chars): {}", context != null && context.length() > 200 ? context.substring(0, 200) : context);
         
-        AiChatResponse response = aiChatService.getChatbotResponse(email, request.getQuestion(), context);
+        AiChatResponse response = aiChatService.getChatbotResponse(email, request.getPatientId(), request.getQuestion(), context);
         return ResponseEntity.ok(response);
     }
 
@@ -36,8 +40,31 @@ public class AiChatController {
     }
 
     @GetMapping("/summary/{patientId}")
-    public ResponseEntity<AiSummaryResponse> getPatientSummary(@PathVariable Integer patientId) {
-        AiSummaryResponse response = aiChatService.analyzePatientCondition(patientId);
+    public ResponseEntity<AiSummaryResponse> getPatientSummary(
+            @PathVariable Integer patientId,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate) {
+        AiSummaryResponse response = aiChatService.analyzePatientCondition(patientId, startDate, endDate);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<java.util.List<com.rpm.remotepatientmonitoring.model.AiChatHistory>> getChatHistory(
+            @RequestParam(required = false) Integer patientId, 
+            Principal principal) {
+        String email = principal != null ? principal.getName() : "anonymous";
+        return ResponseEntity.ok(aiChatService.getChatHistory(email, patientId));
+    }
+
+    @DeleteMapping("/history")
+    public ResponseEntity<java.util.Map<String, Object>> clearChatHistory(
+            @RequestParam(required = false) Integer patientId, 
+            Principal principal) {
+        String email = principal != null ? principal.getName() : "anonymous";
+        aiChatService.clearChatHistory(email, patientId);
+        java.util.Map<String, Object> res = new java.util.HashMap<>();
+        res.put("success", true);
+        res.put("message", "Đã xóa lịch sử chat thành công.");
+        return ResponseEntity.ok(res);
     }
 }

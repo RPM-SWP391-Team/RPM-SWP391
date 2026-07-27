@@ -81,31 +81,4 @@ public class Patient {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Account getAccount() { return account; }
-    public void setAccount(Account account) { this.account = account; }
-    public Hospital getHospital() { return hospital; }
-    public void setHospital(Hospital hospital) { this.hospital = hospital; }
-    public Doctor getDoctor() { return doctor; }
-    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
-    public DiseaseProfile getDiseaseProfile() { return diseaseProfile; }
-    public void setDiseaseProfile(DiseaseProfile diseaseProfile) { this.diseaseProfile = diseaseProfile; }
-    public String getPatientCode() { return patientCode; }
-    public void setPatientCode(String patientCode) { this.patientCode = patientCode; }
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public LocalDate getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
-    public String getGender() { return gender; }
-    public void setGender(String gender) { this.gender = gender; }
-    public String getEmergencyContactName() { return emergencyContactName; }
-    public void setEmergencyContactName(String emergencyContactName) { this.emergencyContactName = emergencyContactName; }
-    public String getEmergencyContactPhone() { return emergencyContactPhone; }
-    public void setEmergencyContactPhone(String emergencyContactPhone) { this.emergencyContactPhone = emergencyContactPhone; }
 }

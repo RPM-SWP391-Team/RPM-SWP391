@@ -116,16 +116,30 @@ public class PatientService {
     @Transactional
     public int addWater(Patient patient, Integer amount) {
         LocalDate today = LocalDate.now();
-        WaterLog log = WaterLog.builder()
-                .patient(patient)
-                .logDate(today)
-                .amountMl(amount)
-                .loggedAt(java.time.LocalDateTime.now())
-                .build();
-        waterLogRepository.save(log);
+        List<WaterLog> existingLogs = waterLogRepository.findAllByPatientIdAndLogDate(patient.getId(), today);
+        if (!existingLogs.isEmpty()) {
+            WaterLog firstLog = existingLogs.get(0);
+            firstLog.setAmountMl(firstLog.getAmountMl() + amount);
+            firstLog.setLoggedAt(java.time.LocalDateTime.now());
+            waterLogRepository.save(firstLog);
+        } else {
+            WaterLog log = WaterLog.builder()
+                    .patient(patient)
+                    .logDate(today)
+                    .amountMl(amount)
+                    .loggedAt(java.time.LocalDateTime.now())
+                    .build();
+            waterLogRepository.save(log);
+        }
         
         List<WaterLog> logs = waterLogRepository.findAllByPatientIdAndLogDate(patient.getId(), today);
-        return logs.stream().mapToInt(WaterLog::getAmountMl).sum();
+        int totalAmount = 0;
+        for (WaterLog log : logs) {
+            if (log != null && log.getAmountMl() != null) {
+                totalAmount += log.getAmountMl();
+            }
+        }
+        return totalAmount;
     }
 
     @Transactional
@@ -212,8 +226,16 @@ public class PatientService {
             if (logOpt.isPresent()) {
                 WaterLog log = logOpt.get();
                 log.setAmountMl(amount);
+                log.setLoggedAt(java.time.LocalDateTime.now());
                 return waterLogRepository.save(log);
             }
+        }
+        List<WaterLog> existingLogs = waterLogRepository.findAllByPatientIdAndLogDate(patient.getId(), date);
+        if (!existingLogs.isEmpty()) {
+            WaterLog log = existingLogs.get(0);
+            log.setAmountMl(amount);
+            log.setLoggedAt(java.time.LocalDateTime.now());
+            return waterLogRepository.save(log);
         }
         WaterLog log = WaterLog.builder()
                 .patient(patient)

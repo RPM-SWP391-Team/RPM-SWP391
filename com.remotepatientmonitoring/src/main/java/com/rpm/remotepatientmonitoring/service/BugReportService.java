@@ -122,7 +122,7 @@ public class BugReportService {
         report.setStatus(newStatus);
         report.setAdminResponse(adminResponse != null && !adminResponse.trim().isEmpty() ? adminResponse.trim() : null);
 
-        if ("RESOLVED".equals(newStatus)) {
+        if ("RESOLVED".equals(newStatus) || "REJECTED".equals(newStatus)) {
             report.setResolvedAt(LocalDateTime.now());
             report.setResolvedBy(adminAccount);
         } else {

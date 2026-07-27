@@ -1,7 +1,10 @@
 import json
+import logging
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 import time
+
+logger = logging.getLogger(__name__)
 
 from .pipeline import RAGPipeline, PipelineResult
 from .prompt_builder import PromptBuilder, PromptResult
@@ -9,6 +12,7 @@ from .llm_client import GeminiLLMClient, GroqLLMClient
 from .retriever import BM25RetrieverImpl, FAISSVectorIndex, HybridRetriever
 from .embedder import ModelLoader
 from .reranker import CrossEncoderReranker
+from .patient_formatter import PatientContextFormatter
 from .context_builder import ContextBuilder
 from .patient_context import PatientContextInjector
 from .tokenizer import WhitespaceTokenizer
@@ -117,6 +121,8 @@ class MedicalRAGPipeline:
             expanded_context=pipeline_result.expanded_context,
             patient_data=patient_context or {}
         )
+        
+        logger.info(f"Generated Prompt:\n{prompt_result.prompt_text[:500]}...\n[Prompt Patient Block]: {PatientContextFormatter.format(patient_context or {})}")
         
         # 3. LLM Generation Phase
         answer = self.llm_client.generate(prompt_result.prompt_text, api_key=api_key)

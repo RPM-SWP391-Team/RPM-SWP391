@@ -111,7 +111,7 @@ class ContextBuilder:
     def _estimate_tokens(self, text: str) -> int:
         return len(self.tokenizer.tokenize(text))
 
-    def _create_context_chunk(self, node: ChunkNode) -> ContextChunk:
+    def _create_context_chunk(self, node: ChunkNode, score: float = 0.0) -> ContextChunk:
         source_name = node.source_file or node.document_name or node.source_document or "Unknown"
         return ContextChunk(
             node_id=node.node_id,
@@ -124,7 +124,8 @@ class ContextBuilder:
                 "previous_sibling_node": node.previous_sibling_node,
                 "next_sibling_node": node.next_sibling_node,
                 "source_file": source_name,
-                "document_name": source_name
+                "document_name": source_name,
+                "score": score
             }
         )
 
@@ -151,7 +152,7 @@ class ContextBuilder:
         current_tokens = 0
         
         # Hàm add_node tiện ích để DRY (Don't repeat yourself)
-        def try_add_node(n_id: str) -> bool:
+        def try_add_node(n_id: str, candidate_score: float = 0.0) -> bool:
             """Cố gắng thêm node_id vào kết quả. Trả về True nếu thêm thành công, False nếu fail/budget out"""
             nonlocal current_tokens
             if not n_id or n_id in seen_node_ids:
@@ -167,7 +168,7 @@ class ContextBuilder:
                 return False
                 
             seen_node_ids.add(n_id)
-            final_chunks.append(self._create_context_chunk(node))
+            final_chunks.append(self._create_context_chunk(node, score=candidate_score))
             current_tokens += node_tokens
             return True
 
@@ -178,9 +179,9 @@ class ContextBuilder:
                 break
                 
             c_node_id = candidate.chunk.node_id
-            
+            c_score = getattr(candidate, "rerank_score", getattr(getattr(candidate, "chunk", None), "score", 0.0))
             # 1. Thêm Retrieved
-            added = try_add_node(c_node_id)
+            added = try_add_node(c_node_id, candidate_score=c_score)
             if not added:
                 continue # Nếu ngay cả node gốc cũng k add được do budget, skip hẳn
                 

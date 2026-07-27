@@ -8,70 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #1A73E8; --primary-light: #E8F0FE; --bg-light: #F4F7FE; --text-dark: #1E293B; --text-muted: #64748B;
-            --sidebar-width: 260px; --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: #ffffff; border-right: 1px solid #E2E8F0; z-index: 1000; display: flex; flex-direction: column; }
-        .sidebar-brand { padding: 1.5rem; font-size: 1.25rem; font-weight: 700; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid #F1F5F9; }
-        .sidebar-menu { padding: 1.5rem 1rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-        .menu-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 10px; font-weight: 500; transition: all 0.2s ease-in-out; }
-        .menu-item:hover, .menu-item.active { background-color: var(--primary-light); color: var(--primary-color); transform: translateX(3px); }
-        .sidebar-footer { padding: 1.5rem 1rem; border-top: 1px solid #F1F5F9; }
-        .main-content { margin-left: var(--sidebar-width); padding: 2rem; }
-        .navbar-top { background-color: #ffffff; border-radius: 16px; padding: 1rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; justify-content: space-between; }
-
-        /* Hiệu ứng mượt cho Card */
-        .card-custom { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); background: #ffffff; margin-bottom: 30px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .card-custom:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
-        .card-header-custom { background: var(--primary-gradient); color: white; padding: 20px 24px; font-weight: 600; border-bottom: none; border-radius: 16px 16px 0 0;}
-
-        /* Ô nhập phản hồi mượt */
-        .form-control, .form-select { border-radius: 8px; padding: 10px 12px; transition: all 0.2s ease-in-out; border: 1px solid #cbd5e1; }
-        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15); }
-        .badge-level { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
-
-        .bg-level-green { background-color: #d1e7dd; color: #0f5132; }
-        .bg-level-yellow { background-color: #fff3cd; color: #664d03; }
-        .bg-level-orange { background-color: #ffe8cc; color: #d9480f; }
-        .bg-level-red { background-color: #f8d7da; color: #842029; }
-
-        /* Smooth cuộn dải danh sách */
-        .scrollable-list { max-height: 500px; overflow-y: auto; padding-right: 10px; scroll-behavior: smooth; }
-        .scrollable-list::-webkit-scrollbar { width: 6px; }
-        .scrollable-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-
-        /* BỔ SUNG CSS CHO BỘ LỌC VÀ ACCORDION */
-        .badge-filter { cursor: pointer; border: 1px solid #dee2e6; background-color: #ffffff; color: var(--text-muted); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); padding: 6px 14px; font-weight: 500; }
-        .badge-filter:hover { background-color: #f8f9fa; color: var(--text-dark); border-color: #ced4da; transform: translateY(-1px); }
-        .badge-filter.active-blue { background-color: var(--primary-color) !important; color: white !important; border-color: var(--primary-color) !important; box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3); }
-        .badge-filter.active-green { background-color: #198754 !important; color: white !important; border-color: #198754 !important; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3); }
-
-        /* Mượt hóa các Accordion */
-        .accordion-item { border: 1px solid #e2e8f0; border-radius: 10px !important; margin-bottom: 10px; overflow: hidden; background: #fff; transition: all 0.25s ease; }
-        .accordion-item:hover { border-color: #cbd5e1; }
-        .accordion-button { background-color: #ffffff; color: var(--text-dark); box-shadow: none !important; padding: 1rem; font-weight: 600; transition: all 0.2s ease; }
-        .accordion-button:not(.collapsed) { background-color: var(--primary-light); color: var(--primary-color); }
-        .accordion-body { background-color: #f8fafc; border-top: 1px solid #e2e8f0; }
-
-        /* Hiệu ứng chuyển động mượt cho bộ lọc */
-        .guide-record, .protocol-record, .guideline-list-record {
-            transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease, margin 0.3s ease;
-            transform-origin: top center;
-        }
-
-        /* Nút tương tác nẩy nhẹ */
-        .btn { transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .btn:hover { transform: translateY(-1px); }
-        .btn:active { transform: translateY(1px); }
-
-        /* Chế độ View/Edit mượt */
-        .toggle-view-block {
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-    </style>
+    <link th:href="@{/css/hospital.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -1079,6 +1016,41 @@
         nextLi.className = `page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}`;
         nextLi.innerHTML = `<a class="page-link" href="#" onclick="event.preventDefault(); loadFoodPage(${currentPage + 1})">Sau</a>`;
         container.appendChild(nextLi);
+
+        // Page jump input
+        const jumpLi = document.createElement('li');
+        jumpLi.className = 'page-item align-self-center ms-3';
+        jumpLi.innerHTML = `
+            <div class="d-flex align-items-center gap-1">
+                <span class="text-muted small">Đi tới:</span>
+                <input type="number" class="form-control form-control-sm text-center px-1" 
+                       id="foodJumpPageInput" min="1" max="${totalPages}" placeholder="..." 
+                       style="width: 50px; height: 28px;">
+                <button class="btn btn-sm btn-outline-primary px-2" type="button" 
+                        id="btnFoodJumpPage" style="height: 28px; line-height: 1;">Đi</button>
+            </div>
+        `;
+        container.appendChild(jumpLi);
+
+        // Bind events
+        const jumpBtn = container.querySelector('#btnFoodJumpPage');
+        const jumpInput = container.querySelector('#foodJumpPageInput');
+        
+        const executeJump = () => {
+            const val = parseInt(jumpInput.value);
+            if (isNaN(val) || val < 1 || val > totalPages) {
+                alert('Vui lòng nhập số trang hợp lệ từ 1 đến ' + totalPages);
+                return;
+            }
+            loadFoodPage(val - 1);
+        };
+        
+        jumpBtn.addEventListener('click', executeJump);
+        jumpInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                executeJump();
+            }
+        });
     }
 
     function editFood(id, code, name, engName, water, energy, protein, lipid, glucid, celluloza, ash) {

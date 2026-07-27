@@ -117,9 +117,44 @@ public class DoctorViewController {
         Map<Integer, String> patientHighestAlerts = new HashMap<>();
         
         for (Patient p : patientPage.getContent()) {
-            healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(p.getId())
-                    .ifPresent(log -> latestLogs.put(p.getId(), log));
+            DailyHealthLog mergedLog = new DailyHealthLog();
             
+            // Get latest BP
+            healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(p.getId())
+                    .ifPresent(bpLog -> {
+                        mergedLog.setSystolicBp(bpLog.getSystolicBp());
+                        mergedLog.setDiastolicBp(bpLog.getDiastolicBp());
+                        mergedLog.setHeartRate(bpLog.getHeartRate());
+                        mergedLog.setLogDate(bpLog.getLogDate());
+                        mergedLog.setLogTime(bpLog.getLogTime());
+                        mergedLog.setLogType(bpLog.getLogType());
+                    });
+            
+            // Get latest Glucose
+            healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(p.getId())
+                    .ifPresent(glLog -> {
+                        mergedLog.setGlucoseLevel(glLog.getGlucoseLevel());
+                        if (mergedLog.getLogTime() == null || glLog.getLogTime().isAfter(mergedLog.getLogTime())) {
+                            mergedLog.setLogDate(glLog.getLogDate());
+                            mergedLog.setLogTime(glLog.getLogTime());
+                            mergedLog.setLogType(glLog.getLogType());
+                        }
+                    });
+            
+            // Get latest log overall to inherit other properties if needed
+            healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(p.getId())
+                    .ifPresent(log -> {
+                        mergedLog.setId(log.getId());
+                        mergedLog.setPatient(log.getPatient());
+                        mergedLog.setInputMethod(log.getInputMethod());
+                        mergedLog.setPatientNotes(log.getPatientNotes());
+                        mergedLog.setAlertLevel(log.getAlertLevel());
+                    });
+            
+            if (mergedLog.getPatient() != null) {
+                latestLogs.put(p.getId(), mergedLog);
+            }
+
             List<Alert> alerts = alertRepository.findByPatientIdAndIsResolvedFalse(p.getId());
             patientHighestAlerts.put(p.getId(), calculateHighestAlertColor(alerts));
         }
@@ -996,6 +1031,24 @@ public class DoctorViewController {
         alert.setResolvedByDoctor(doctor);
         alert.setResolutionNotes(resolutionNotes);
         alertRepository.save(alert);
+
+        // Gửi thông báo trực tiếp cho bệnh nhân
+        if (alert.getPatient() != null) {
+            Notification notif = Notification.builder()
+                    .patient(alert.getPatient())
+                    .doctor(doctor)
+                    .recipientType("PATIENT")
+                    .recipientId(alert.getPatient().getId())
+                    .notificationType("ALERT_RESOLVED")
+                    .channel("IN_APP")
+                    .status("SENT")
+                    .title("Hướng dẫn xử lý cảnh báo y tế từ Bác sĩ " + doctor.getFullName())
+                    .content("Bác sĩ " + doctor.getFullName() + " đã xử lý cảnh báo y tế của bạn với ghi chú hướng dẫn: " + resolutionNotes)
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        }
 
         // Ghi Audit Trail
         auditTrailService.logAction(

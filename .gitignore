@@ -1,0 +1,9 @@
+.env
+*.env
+ai_service/.env
+ai_service/__pycache__/
+__pycache__/
+*.pyc
+target/
+.idea/
+.vscode/

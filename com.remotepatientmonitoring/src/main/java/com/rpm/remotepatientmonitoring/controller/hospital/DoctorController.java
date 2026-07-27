@@ -239,7 +239,9 @@ public class DoctorController {
 
         if (bindingResult.hasErrors()) {
             StringBuilder sb = new StringBuilder("Cập nhật thất bại: ");
-            bindingResult.getFieldErrors().forEach(error -> sb.append(error.getDefaultMessage()).append(" "));
+            for (org.springframework.validation.FieldError error : bindingResult.getFieldErrors()) {
+                sb.append(error.getDefaultMessage()).append(" ");
+            }
             redirectAttributes.addFlashAttribute("errorMessage", sb.toString());
             redirectAttributes.addFlashAttribute("doctorEditDto", doctorEditDto);
             return "redirect:/hospital/doctors";

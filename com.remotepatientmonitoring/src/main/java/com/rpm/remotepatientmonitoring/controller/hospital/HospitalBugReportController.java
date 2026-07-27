@@ -57,7 +57,7 @@ public class HospitalBugReportController {
         
         if (userDetails == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn phải đăng nhập để thực hiện hành động này.");
-            return "redirect:/login";
+            return "redirect:/auth/login";
         }
 
         try {

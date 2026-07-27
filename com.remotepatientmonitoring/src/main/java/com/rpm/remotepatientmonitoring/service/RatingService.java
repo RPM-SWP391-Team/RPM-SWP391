@@ -179,4 +179,12 @@ public class RatingService {
         rating.setIsHidden(!rating.getIsHidden());
         appRatingRepository.save(rating);
     }
+
+    public java.util.Set<Integer> getEvaluatedAppointmentIdsByPatientId(Integer patientId) {
+        List<DoctorRating> patientRatings = doctorRatingRepository.findByPatientId(patientId);
+        return patientRatings.stream()
+                .map(r -> r.getAppointment().getId())
+                .collect(java.util.stream.Collectors.toSet());
+    }
 }
+
