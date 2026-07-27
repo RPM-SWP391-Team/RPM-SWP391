@@ -115,12 +115,16 @@
                                 <tr class="custom-style-69">
                                     <td class="py-2.5 fw-semibold"><i class="fa-solid fa-sun text-warning me-1"></i>Sáng (Morning)</td>
                                     <td class="py-2.5" th:classappend="${logStatus.morningBpClass}">
-                                        <i th:if="${logStatus.morningBpDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${logStatus.morningBpDone and #strings.contains(logStatus.morningBpClass, 'text-danger')}" class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+                                        <i th:if="${logStatus.morningBpDone and (#strings.contains(logStatus.morningBpClass, 'text-orange') or #strings.contains(logStatus.morningBpClass, 'text-yellow'))}" class="fa-solid fa-circle-exclamation text-warning me-1"></i>
+                                        <i th:if="${logStatus.morningBpDone and #strings.contains(logStatus.morningBpClass, 'text-success')}" class="fa-solid fa-check-circle text-success me-1"></i>
                                         <i th:if="${!logStatus.morningBpDone && logStatus.morningBp != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
                                         <span th:text="${logStatus.morningBp}"></span>
                                     </td>
                                     <td class="py-2.5" th:classappend="${logStatus.morningGlClass}">
-                                        <i th:if="${logStatus.morningGlDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${logStatus.morningGlDone and #strings.contains(logStatus.morningGlClass, 'text-danger')}" class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+                                        <i th:if="${logStatus.morningGlDone and (#strings.contains(logStatus.morningGlClass, 'text-orange') or #strings.contains(logStatus.morningGlClass, 'text-yellow'))}" class="fa-solid fa-circle-exclamation text-warning me-1"></i>
+                                        <i th:if="${logStatus.morningGlDone and #strings.contains(logStatus.morningGlClass, 'text-success')}" class="fa-solid fa-check-circle text-success me-1"></i>
                                         <i th:if="${!logStatus.morningGlDone && logStatus.morningGl != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
                                         <span th:text="${logStatus.morningGl}"></span>
                                     </td>
@@ -128,12 +132,16 @@
                                 <tr class="custom-style-69">
                                     <td class="py-2.5 fw-semibold"><i class="fa-solid fa-moon text-primary me-1"></i>Tối (Evening)</td>
                                     <td class="py-2.5" th:classappend="${logStatus.eveningBpClass}">
-                                        <i th:if="${logStatus.eveningBpDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${logStatus.eveningBpDone and #strings.contains(logStatus.eveningBpClass, 'text-danger')}" class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+                                        <i th:if="${logStatus.eveningBpDone and (#strings.contains(logStatus.eveningBpClass, 'text-orange') or #strings.contains(logStatus.eveningBpClass, 'text-yellow'))}" class="fa-solid fa-circle-exclamation text-warning me-1"></i>
+                                        <i th:if="${logStatus.eveningBpDone and #strings.contains(logStatus.eveningBpClass, 'text-success')}" class="fa-solid fa-check-circle text-success me-1"></i>
                                         <i th:if="${!logStatus.eveningBpDone && logStatus.eveningBp != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
                                         <span th:text="${logStatus.eveningBp}"></span>
                                     </td>
                                     <td class="py-2.5" th:classappend="${logStatus.eveningGlClass}">
-                                        <i th:if="${logStatus.eveningGlDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${logStatus.eveningGlDone and #strings.contains(logStatus.eveningGlClass, 'text-danger')}" class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+                                        <i th:if="${logStatus.eveningGlDone and (#strings.contains(logStatus.eveningGlClass, 'text-orange') or #strings.contains(logStatus.eveningGlClass, 'text-yellow'))}" class="fa-solid fa-circle-exclamation text-warning me-1"></i>
+                                        <i th:if="${logStatus.eveningGlDone and #strings.contains(logStatus.eveningGlClass, 'text-success')}" class="fa-solid fa-check-circle text-success me-1"></i>
                                         <i th:if="${!logStatus.eveningGlDone && logStatus.eveningGl != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
                                         <span th:text="${logStatus.eveningGl}"></span>
                                     </td>

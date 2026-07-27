@@ -512,7 +512,7 @@
                                     </thead>
                                     <tbody>
                                         <!-- Only show logs where systolic/diastolic are not null -->
-                                        <tr th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-row" th:with="bpLevel=${(log.systolicBp >= 180 or log.diastolicBp >= 110) ? 'RED' : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
+                                        <tr th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-row" th:with="bpLevel=${(log.systolicBp != null and log.systolicBp >= 160) or (log.diastolicBp != null and log.diastolicBp >= 100) ? 'RED' : ((log.systolicBp != null and log.systolicBp >= 140) or (log.diastolicBp != null and log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp != null and log.systolicBp >= 120) or (log.diastolicBp != null and log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
                                             <td class="fw-bold text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</td>
                                             <td>
                                                 <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Buổi sáng</span>
@@ -548,7 +548,7 @@
                             
                             <!-- Mobile BP View -->
                             <div class="d-md-none">
-                                <div th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="bpLevel=${(log.systolicBp >= 180 or log.diastolicBp >= 110) ? 'RED' : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
+                                <div th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="bpLevel=${(log.systolicBp != null and log.systolicBp >= 180) or (log.diastolicBp != null and log.diastolicBp >= 110) or log.alertLevel == 'RED' ? 'RED' : (log.alertLevel != null ? log.alertLevel : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN')))}">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Buổi sáng</span>
                                         <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Buổi tối</span>
@@ -656,7 +656,7 @@
 
                             <!-- Mobile Glucose View -->
                             <div class="d-md-none">
-                                <div th:each="log : ${glucoseLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="glucose-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="glLevel=${(log.glucoseLevel < 4.4 or log.glucoseLevel > 16.0) ? 'RED' : (log.glucoseLevel > 10.0 ? 'ORANGE' : 'GREEN')}">
+                                <div th:each="log : ${glucoseLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="glucose-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="glLevel=${log.glucoseLevel != null and (log.glucoseLevel < 4.4 or log.glucoseLevel >= 16.0) ? 'RED' : (log.glucoseLevel != null and log.glucoseLevel > 10.0 ? 'ORANGE' : 'GREEN')}">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Trước ăn sáng</span>
                                         <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Sau ăn tối 2h</span>
