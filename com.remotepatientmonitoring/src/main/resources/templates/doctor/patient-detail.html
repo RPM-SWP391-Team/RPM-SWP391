@@ -736,34 +736,34 @@
                                             (Baseline)</h6>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Huyết áp khám (mmHg)</label>
+                                        <label class="form-label">Huyết áp khám (mmHg) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="50" max="300" name="baselineSystolicBp" class="form-control"
-                                                   th:value="${currentPlan?.baselineSystolicBp}" placeholder="Tâm thu">
+                                                   th:value="${currentPlan?.baselineSystolicBp}" placeholder="Tâm thu" required>
                                             <span class="input-group-text">/</span>
                                             <input type="number" min="30" max="200" name="baselineDiastolicBp" class="form-control"
-                                                   th:value="${currentPlan?.baselineDiastolicBp}" placeholder="Tâm trương">
+                                                   th:value="${currentPlan?.baselineDiastolicBp}" placeholder="Tâm trương" required>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Đường huyết đói</label>
+                                        <label class="form-label">Đường huyết đói <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="baselineFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.baselineFastingGlucose}"
-                                                   placeholder="mmol/L">
+                                                   placeholder="mmol/L" required>
                                             <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Chỉ số HbA1c (%)</label>
+                                        <label class="form-label">Chỉ số HbA1c (%) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="0.1" max="30" step="any" name="baselineHba1c" class="form-control"
-                                                   th:value="${currentPlan?.baselineHba1c}" placeholder="VD: 7.2">
+                                                   th:value="${currentPlan?.baselineHba1c}" placeholder="VD: 7.2" required>
                                             <span class="input-group-text">%</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Cân nặng ban đầu (kg)</label>
+                                        <label class="form-label">Cân nặng ban đầu (kg) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="10" max="500" step="any" name="baselineWeightKg" class="form-control"
                                                    th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5" required>
@@ -771,7 +771,7 @@
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Chiều cao (cm)</label>
+                                        <label class="form-label">Chiều cao (cm) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="30" max="300" step="any" name="heightCm" class="form-control" placeholder="VD: 170.0" required>
                                             <span class="input-group-text">cm</span>
@@ -784,37 +784,37 @@
                                             (Target)</h6>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Huyết áp mục tiêu (mmHg)</label>
+                                        <label class="form-label">Huyết áp mục tiêu (mmHg) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="50" max="300" name="targetSystolicBp" class="form-control"
-                                                   th:value="${currentPlan?.targetSystolicBp}" placeholder="Tâm thu">
+                                                   th:value="${currentPlan?.targetSystolicBp}" placeholder="Tâm thu" required>
                                             <span class="input-group-text">/</span>
                                             <input type="number" min="30" max="200" name="targetDiastolicBp" class="form-control"
-                                                   th:value="${currentPlan?.targetDiastolicBp}" placeholder="Tâm trương">
+                                                   th:value="${currentPlan?.targetDiastolicBp}" placeholder="Tâm trương" required>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Đường huyết mục tiêu</label>
+                                        <label class="form-label">Đường huyết mục tiêu <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="targetFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.targetFastingGlucose}"
-                                                   placeholder="mmol/L">
+                                                   placeholder="mmol/L" required>
                                             <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">HbA1c mục tiêu (%)</label>
+                                        <label class="form-label">HbA1c mục tiêu (%) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="0.1" max="30" step="any" name="targetHba1c" class="form-control"
-                                                   th:value="${currentPlan?.targetHba1c}" placeholder="VD: 6.5">
+                                                   th:value="${currentPlan?.targetHba1c}" placeholder="VD: 6.5" required>
                                             <span class="input-group-text">%</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label">Cân nặng mục tiêu (kg)</label>
+                                        <label class="form-label">Cân nặng mục tiêu (kg) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="number" min="10" max="500" step="any" name="targetWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.targetWeightKg}" placeholder="VD: 62">
+                                                   th:value="${currentPlan?.targetWeightKg}" placeholder="VD: 62" required>
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
