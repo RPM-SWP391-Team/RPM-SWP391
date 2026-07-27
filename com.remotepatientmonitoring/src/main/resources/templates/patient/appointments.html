@@ -165,7 +165,12 @@
                                                 </button>
                                             </form>
                                         </div>
-                                        <span th:if="${appt.status != 'PENDING'}" class="text-muted small">-</span>
+                                        <button th:if="${appt.status == 'COMPLETED'}" class="btn btn-sm btn-outline-warning text-dark fw-bold btn-open-doctor-rating"
+                                                th:data-appointment-id="${appt.id}"
+                                                th:data-doctor-name="${appt.doctor != null ? appt.doctor.fullName : 'Bác sĩ'}">
+                                            <i class="fa-solid fa-star text-warning me-1"></i>Đánh giá
+                                        </button>
+                                        <span th:if="${appt.status != 'PENDING' and appt.status != 'COMPLETED'}" class="text-muted small">-</span>
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(appointments)}">
@@ -300,6 +305,7 @@
                                      <th>Lý do khám / Triệu chứng</th>
                                      <th class="custom-style-34">Kết luận của bác sĩ / Chỉ dẫn</th>
                                      <th class="custom-style-32">Địa điểm</th>
+                                     <th>Hành động</th>
                                  </tr>
                              </thead>
                              <tbody>
@@ -321,10 +327,17 @@
                                              </div>
                                          </td>
                                          <td th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</td>
+                                         <td>
+                                             <button class="btn btn-sm btn-outline-warning text-dark fw-bold btn-open-doctor-rating"
+                                                     th:data-appointment-id="${appt.id}"
+                                                     th:data-doctor-name="${appt.doctor != null ? appt.doctor.fullName : 'Bác sĩ'}">
+                                                 <i class="fa-solid fa-star text-warning me-1"></i>Đánh giá Bác sĩ
+                                             </button>
+                                         </td>
                                      </tr>
                                  </th:block>
                                  <tr th:if="${#lists.isEmpty(appointments.?[status == 'COMPLETED'])}">
-                                     <td colspan="6" class="text-center text-muted py-4">Chưa có lịch sử khám bệnh nào hoàn thành</td>
+                                     <td colspan="7" class="text-center text-muted py-4">Chưa có lịch sử khám bệnh nào hoàn thành</td>
                                  </tr>
                              </tbody>
                          </table>
@@ -345,7 +358,12 @@
                                      <strong class="text-success small d-block mb-1"><i class="fa-solid fa-notes-medical me-1"></i>Kết luận của bác sĩ:</strong>
                                      <p class="mb-0 small text-dark custom-style-37" th:text="${appt.doctorNote != null ? appt.doctorNote : 'Bác sĩ chưa ghi chú kết luận.'}"></p>
                                  </div>
-                                 <p class="mb-0 text-muted small"><i class="fa-solid fa-location-dot me-1"></i><span th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</span></p>
+                                 <p class="mb-2 text-muted small"><i class="fa-solid fa-location-dot me-1"></i><span th:text="${appt.location != null ? appt.location : 'Phòng khám đa khoa'}">Phòng khám</span></p>
+                                 <button class="btn btn-sm btn-outline-warning text-dark fw-bold w-100 btn-open-doctor-rating"
+                                         th:data-appointment-id="${appt.id}"
+                                         th:data-doctor-name="${appt.doctor != null ? appt.doctor.fullName : 'Bác sĩ'}">
+                                     <i class="fa-solid fa-star text-warning me-1"></i>Đánh giá Bác sĩ
+                                 </button>
                              </div>
                          </th:block>
                          <div th:if="${#lists.isEmpty(appointments.?[status == 'COMPLETED'])}" class="text-center text-muted py-4">Chưa có lịch sử khám bệnh nào hoàn thành</div>
@@ -936,21 +954,133 @@
         }
     </script>
 
-    <!-- Health Log History Filtering Logic -->
+    <!-- Modal Đánh giá Bác sĩ -->
+    <div class="modal fade" id="doctorRatingModal" tabindex="-1" aria-labelledby="doctorRatingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary" id="doctorRatingModalLabel">
+                        <i class="fa-solid fa-star text-warning me-2"></i>Đánh giá Bác sĩ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="doctorRatingForm">
+                        <input type="hidden" id="ratingAppointmentId" name="appointmentId">
+                        <div class="text-center mb-3">
+                            <p class="text-muted mb-1 small">Bác sĩ phụ trách:</p>
+                            <h6 class="fw-bold text-dark fs-5" id="ratingDoctorName">BS. Nguyễn Văn A</h6>
+                        </div>
+                        <div class="mb-3 text-center">
+                            <label class="form-label fw-semibold small d-block mb-2">Chọn mức độ hài lòng:</label>
+                            <div class="d-inline-flex gap-2 fs-3 text-warning" id="ratingStarContainer" style="cursor: pointer;">
+                                <i class="fa-solid fa-star rating-star" data-value="1"></i>
+                                <i class="fa-solid fa-star rating-star" data-value="2"></i>
+                                <i class="fa-solid fa-star rating-star" data-value="3"></i>
+                                <i class="fa-solid fa-star rating-star" data-value="4"></i>
+                                <i class="fa-solid fa-star rating-star" data-value="5"></i>
+                            </div>
+                            <input type="hidden" id="ratingValue" name="ratingValue" value="5">
+                        </div>
+                        <div class="mb-3">
+                            <label for="ratingComment" class="form-label fw-semibold small">Nhận xét của bạn (Không bắt buộc):</label>
+                            <textarea id="ratingComment" name="comment" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm khám bệnh của bạn với bác sĩ..." maxlength="1000"></textarea>
+                        </div>
+                        <div id="ratingAlertMessage" class="alert alert-danger d-none py-2 small mb-3"></div>
+                        <button type="submit" id="btnSubmitDoctorRating" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3">
+                            <i class="fa-solid fa-paper-plane me-1"></i>Gửi đánh giá
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script xử lý Đánh giá Bác sĩ -->
     <script>
-        function deleteHealthLog(id) {
-            if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đo sức khỏe này?')) return;
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/patient/log/delete';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'id';
-            input.value = id;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+        let selectedDoctorRating = 5;
+
+        function openDoctorRatingModal(appointmentId, doctorName) {
+            document.getElementById('ratingAppointmentId').value = appointmentId;
+            document.getElementById('ratingDoctorName').innerText = doctorName;
+            document.getElementById('ratingComment').value = '';
+            document.getElementById('ratingAlertMessage').classList.add('d-none');
+            setStarRating(5);
+            const modalEl = document.getElementById('doctorRatingModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
         }
+
+        function setStarRating(val) {
+            selectedDoctorRating = val;
+            document.getElementById('ratingValue').value = val;
+            const stars = document.querySelectorAll('#ratingStarContainer .rating-star');
+            stars.forEach((star, idx) => {
+                if (idx < val) {
+                    star.classList.remove('fa-regular');
+                    star.classList.add('fa-solid');
+                } else {
+                    star.classList.remove('fa-solid');
+                    star.classList.add('fa-regular');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.btn-open-doctor-rating');
+                if (btn) {
+                    const appointmentId = btn.getAttribute('data-appointment-id');
+                    const doctorName = btn.getAttribute('data-doctor-name');
+                    openDoctorRatingModal(appointmentId, doctorName);
+                }
+            });
+
+            const stars = document.querySelectorAll('#ratingStarContainer .rating-star');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const val = parseInt(this.getAttribute('data-value'));
+                    setStarRating(val);
+                });
+            });
+
+            const ratingForm = document.getElementById('doctorRatingForm');
+            if (ratingForm) {
+                ratingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const appointmentId = parseInt(document.getElementById('ratingAppointmentId').value);
+                    const ratingValue = parseInt(document.getElementById('ratingValue').value);
+                    const comment = document.getElementById('ratingComment').value;
+                    const alertEl = document.getElementById('ratingAlertMessage');
+                    const submitBtn = document.getElementById('btnSubmitDoctorRating');
+
+                    submitBtn.disabled = true;
+                    alertEl.classList.add('d-none');
+
+                    fetch('/api/ratings/doctor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ appointmentId, ratingValue, comment })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        if (data.success) {
+                            alert('Đánh giá bác sĩ thành công!');
+                            location.reload();
+                        } else {
+                            alertEl.innerText = data.message || 'Đã có lỗi xảy ra.';
+                            alertEl.classList.remove('d-none');
+                        }
+                    })
+                    .catch(err => {
+                        submitBtn.disabled = false;
+                        alertEl.innerText = 'Lỗi kết nối tới máy chủ.';
+                        alertEl.classList.remove('d-none');
+                    });
+                });
+            }
+        });
     </script>
     <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
 </body>
