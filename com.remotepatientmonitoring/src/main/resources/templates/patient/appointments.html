@@ -37,49 +37,49 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         
-        <div th:if="${param.bookError != null and param.bookError[0] == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được để trống!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được vượt quá 500 ký tự!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Ngày giờ đặt lịch không hợp lệ!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Thời gian khám mong muốn phải lớn hơn ngày hiện tại!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-clock me-2"></i>Thời gian đặt lịch phải nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6)!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
         <!-- Update Errors -->
-        <div th:if="${param.updateError != null and param.updateError[0] == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do cập nhật không được để trống!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do cập nhật không được vượt quá 500 ký tự!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Ngày giờ cập nhật không hợp lệ!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Thời gian khám được cập nhật phải lớn hơn ngày hiện tại!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-clock me-2"></i>Thời gian đặt lịch phải nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6)!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'notPending'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'notPending'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Chỉ có thể chỉnh sửa các lịch hẹn đang ở trạng thái chờ duyệt (PENDING)!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
