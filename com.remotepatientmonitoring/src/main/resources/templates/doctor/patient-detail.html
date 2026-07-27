@@ -463,6 +463,11 @@
 
 <div class="container pb-2">
 
+    <div th:if="${isPrimaryDoctor != null and !isPrimaryDoctor}" class="alert alert-warning alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: 12px; border-left: 5px solid #ffc107;">
+        <i class="fa-solid fa-shield-halved me-2 fa-lg text-warning"></i>
+        <strong>Chế độ Xem Hồ sơ (Bác sĩ khám lượt hẹn):</strong> Bạn đang xem hồ sơ theo lịch hẹn khám. Chỉ Bác sĩ Phụ trách chính mới được quyền lưu/chỉnh sửa Phác đồ điều trị & Đơn thuốc dài hạn.
+    </div>
+
     <div th:if="${successMsg != null}" class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert" style="border-radius: 12px; border-left: 5px solid #198754;">
         <i class="fa-solid fa-circle-check me-2 fa-lg"></i>
         <strong th:text="${successMsg}"></strong>
@@ -513,13 +518,21 @@
                         <span class="text-primary fw-semibold" th:text="${patient.diseaseProfile.profileName}">Tên bệnh</span>
                     </span>
                 </div>
-                <!-- Nút cấu hình ngưỡng cảnh báo -->
-                <div class="mt-3">
+                <!-- Nút cấu hình ngưỡng cảnh báo & AI & Thao tác bác sĩ -->
+                <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
                     <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/thresholds'}" class="btn btn-sm btn-outline-light rounded-pill px-3 text-decoration-none">
                         <i class="fa-solid fa-sliders me-1"></i> Ngưỡng cảnh báo:
                         <span th:if="${hasCustomThreshold}" class="badge bg-warning text-dark ms-1">Cá nhân</span>
                         <span th:unless="${hasCustomThreshold}" class="badge bg-secondary ms-1">Mặc định BV</span>
                     </a>
+                    <th:block th:if="${isPrimaryDoctor}">
+                        <a th:href="@{'/doctor/patient-detail/' + ${patient.id} + '/transfer'}" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold text-decoration-none">
+                            <i class="fa-solid fa-share-from-square me-1"></i> Chuyển Bác Sĩ
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold text-decoration-none" data-bs-toggle="modal" data-bs-target="#returnHospitalModal">
+                            <i class="fa-solid fa-hospital me-1"></i> Trả về Viện
+                        </button>
+                    </th:block>
                 </div>
             </div>
         </div>
@@ -595,6 +608,32 @@
         </div>
     </div>
 
+    <!-- MODAL AI PHÂN TÍCH LÂM SÀNG ADA/AHA -->
+    <div class="modal fade" id="aiSummaryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fa-solid fa-brain me-2 text-warning"></i> Báo cáo Đánh giá Lâm sàng bằng AI
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="aiSummaryLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="fw-semibold text-muted">Đang tính toán số liệu ADA/AHA và truy xuất AI RAG...</p>
+                    </div>
+                    <div id="aiSummaryContent" style="display: none; line-height: 1.7; font-size: 0.95rem;">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-between">
+                    <small class="text-muted"><i class="fa-solid fa-shield-halved me-1 text-success"></i> Dữ liệu phân tích chuẩn ADA (Đường huyết) & AHA (Huyết áp) dành riêng cho Bác sĩ</small>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <ul class="nav nav-pills mb-4" id="patientDetailTab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-bold px-4 rounded-pill" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">
@@ -609,6 +648,11 @@
         <li class="nav-item ms-2" role="presentation">
             <button class="nav-link fw-bold px-4 rounded-pill" id="daily-tracking-tab" data-bs-toggle="tab" data-bs-target="#daily-tracking" type="button" role="tab" aria-controls="daily-tracking" aria-selected="false">
                 <i class="fa-solid fa-calendar-day me-2"></i>Tra cứu ngày
+            </button>
+        </li>
+        <li class="nav-item ms-2" role="presentation">
+            <button class="nav-link fw-bold px-4 rounded-pill" id="history-plan-tab" data-bs-toggle="tab" data-bs-target="#history-plan" type="button" role="tab" aria-controls="history-plan" aria-selected="false">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Lịch sử Phác đồ
             </button>
         </li>
     </ul>
@@ -706,8 +750,8 @@
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="baselineFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.baselineFastingGlucose}"
-                                                   placeholder="mg/dL">
-                                            <span class="input-group-text">mg/dL</span>
+                                                   placeholder="mmol/L">
+                                            <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
@@ -722,10 +766,18 @@
                                         <label class="form-label">Cân nặng ban đầu (kg)</label>
                                         <div class="input-group">
                                             <input type="number" min="10" max="500" step="any" name="baselineWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5">
+                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5" required>
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
+                                    <div class="col-sm-6">
+                                        <label class="form-label">Chiều cao (cm)</label>
+                                        <div class="input-group">
+                                            <input type="number" min="30" max="300" step="any" name="heightCm" class="form-control" placeholder="VD: 170.0" required>
+                                            <span class="input-group-text">cm</span>
+                                        </div>
+                                    </div>
+
 
                                     <div class="col-12 mt-3">
                                         <h6 class="fw-bold text-success border-bottom pb-2 mb-2">2. Chỉ số Mục tiêu theo dõi
@@ -746,8 +798,8 @@
                                         <div class="input-group">
                                             <input type="number" min="1.0" max="33.3" step="any" name="targetFastingGlucose"
                                                    class="form-control" th:value="${currentPlan?.targetFastingGlucose}"
-                                                   placeholder="mg/dL">
-                                            <span class="input-group-text">mg/dL</span>
+                                                   placeholder="mmol/L">
+                                            <span class="input-group-text">mmol/L</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
@@ -940,7 +992,7 @@
                                         <div class="input-group">
                                             <input type="number" id="maxFatG" name="maxFatG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
-                                                   th:value="${currentRule?.maxFatG}" min="0" max="500" step="any" required
+                                                   th:value="${currentRule != null} ? ${currentRule.maxFatG} : ''" min="0" max="500" step="any" required
                                                    placeholder="Tùy chọn">
                                             <span class="input-group-text">g</span>
                                         </div>
@@ -953,7 +1005,7 @@
                                         <div class="input-group">
                                             <input type="number" id="minProteinG" name="minProteinG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
-                                                   th:value="${currentRule?.minProteinG}" min="0" max="500" step="any" required
+                                                   th:value="${currentRule != null} ? ${currentRule.minProteinG} : ''" min="0" max="500" step="any" required
                                                    placeholder="Tùy chọn">
                                             <span class="input-group-text">g</span>
                                         </div>
@@ -980,7 +1032,7 @@
                                                   th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
                                                   rows="3"
                                                   placeholder="VD: Tránh thức ăn chiên, hạn chế đường tinh, ưu tiên rau xanh..."
-                                                  th:text="${currentRule?.additionalNotes}"></textarea>
+                                                  th:text="${currentRule != null} ? ${currentRule.additionalNotes} : ''"></textarea>
                                     </div>
                                 </div>
                             </div><!-- /flex-grow-1 -->
@@ -992,8 +1044,8 @@
                             <a href="/doctor/dashboard" class="btn btn-outline-secondary rounded-pill px-4">
                                 <i class="fa-solid fa-xmark me-1"></i>Hủy
                             </a>
-                            <button type="submit" id="saveBtn" class="btn-save">
-                                <i class="fa-solid fa-floppy-disk me-2"></i>Hoàn tất Phác đồ
+                            <button type="submit" id="saveBtn" class="btn-save" th:disabled="${isPrimaryDoctor != null and !isPrimaryDoctor}">
+                                <i class="fa-solid fa-floppy-disk me-2"></i><span th:text="${isPrimaryDoctor != null and !isPrimaryDoctor ? 'Chế độ Xem (Chỉ đọc)' : 'Hoàn tất Phác đồ'}">Hoàn tất Phác đồ</span>
                             </button>
                         </div>
                     </div>
@@ -1229,8 +1281,174 @@
                 </div>
             </div>
 
+            <!-- KHUNG BÁO CÁO PHÂN TÍCH AI SUMMARY NGAY DƯỚI MỤC TRA CỨU NGÀY -->
+            <div class="card card-custom p-4 mt-4" id="dailyTrackingSummaryCard" style="border: 2px solid #cbd5e1; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="section-icon icon-purple" style="width: 44px; height: 44px; font-size: 1.1rem;"><i class="fa-solid fa-brain"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-primary">Báo cáo Phân tích Lâm sàng AI (ADA / ESC / AHA)</h5>
+                            <small class="text-muted" id="dailySummaryPeriodText">Phân tích chuyên sâu dữ liệu chỉ số y tế & hướng dẫn điều trị</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BẢNG BẮT ĐẦU VÀ KẾT THÚC KÈM 2 NÚT SUMMARY AI -->
+                <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3 col-6">
+                            <label class="form-label form-label-sm fw-bold text-secondary mb-1" style="font-size: 0.8rem;">
+                                <i class="fa-solid fa-calendar-minus me-1 text-primary"></i> Từ ngày bắt đầu:
+                            </label>
+                            <input type="date" id="dailySummaryStartDate" class="form-control form-control-sm rounded-pill px-3 fw-semibold" th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label form-label-sm fw-bold text-secondary mb-1" style="font-size: 0.8rem;">
+                                <i class="fa-solid fa-calendar-plus me-1 text-primary"></i> Đến ngày kết thúc:
+                            </label>
+                            <input type="date" id="dailySummaryEndDate" class="form-control form-control-sm rounded-pill px-3 fw-semibold" th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-6 col-12 d-flex gap-2 justify-content-md-end flex-wrap">
+                            <!-- Nút 1: Phân tích theo khoảng ngày chọn -->
+                            <button type="button" id="btnRunCustomRangeSummary" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-bold" title="Phân tích dữ liệu theo khoảng Từ ngày đến Đến ngày đã chọn">
+                                <i class="fa-solid fa-calendar-week me-1"></i> Phân tích Theo Khoảng Ngày Chọn
+                            </button>
+                            <!-- Nút 2: Phân tích 14 ngày gần nhất từ hôm nay đổ về trước -->
+                            <button type="button" id="btnRun14DaysSummary" class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm" title="Phân tích 14 ngày gần nhất tính từ Hôm nay trở về trước">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Phân tích 14 Ngày Gần Nhất (Hôm nay đổ về trước)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dailySummaryLoading" style="display: none;" class="text-center py-4">
+                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                    <p class="small text-muted fw-semibold mb-0">Đang tính toán số liệu ADA/AHA và truy xuất khuyến cáo y khoa từ RAG Pipeline...</p>
+                </div>
+                <div id="dailySummaryContent" style="line-height: 1.7; font-size: 0.95rem;">
+                    <div class="text-center text-muted py-4">
+                        <i class="fa-solid fa-chart-pie fs-1 text-secondary mb-3 d-block opacity-25"></i>
+                        <span>Vui lòng chọn ngày hoặc bấm <strong>"Phân tích 14 Ngày Gần Nhất"</strong> ở trên để tạo Báo cáo Phân tích Lâm sàng chuẩn ADA / ESC cho bệnh nhân này.</span>
+                    </div>
+                </div>
+            </div>
+
         </div><!-- /row g-4 mt-1 -->
     </div><!-- End Tab 3: Daily Tracking -->
+
+    <!-- Tab 4: Lịch sử Phác đồ cũ -->
+    <div class="tab-pane fade" id="history-plan" role="tabpanel" aria-labelledby="history-plan-tab">
+        <div class="card card-custom p-4 mt-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                <div class="section-header mb-0 border-0 pb-0">
+                    <div class="section-icon icon-blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Lịch sử Các Phiên bản Phác đồ Điều trị</h5>
+                        <small class="text-muted">Danh sách tất cả phác đồ điều trị và chỉ số mục tiêu đã từng được kê trong quá khứ</small>
+                    </div>
+                </div>
+
+                <!-- Form Tìm kiếm Phác đồ -->
+                <form th:action="@{'/doctor/patient-detail/' + ${patient.id}}" method="get" class="d-flex flex-wrap gap-2 align-items-end">
+                    <div>
+                        <label class="form-label form-label-sm text-muted mb-1" style="font-size:0.78rem;">Tên bác sĩ / ghi chú</label>
+                        <input type="text" class="form-control form-control-sm rounded-pill px-3" name="planKeyword" th:value="${planKeyword}" placeholder="Tìm theo tên bác sĩ, ghi chú..." style="width: 220px;">
+                    </div>
+                    <div>
+                        <label class="form-label form-label-sm text-muted mb-1" style="font-size:0.78rem;">Từ ngày</label>
+                        <input type="date" class="form-control form-control-sm rounded-pill px-3" name="planStartDate" th:value="${planStartDate}" style="width: 155px;">
+                    </div>
+                    <div>
+                        <label class="form-label form-label-sm text-muted mb-1" style="font-size:0.78rem;">Đến ngày</label>
+                        <input type="date" class="form-control form-control-sm rounded-pill px-3" name="planEndDate" th:value="${planEndDate}" style="width: 155px;">
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
+                    </button>
+                    <a th:href="@{'/doctor/patient-detail/' + ${patient.id}}" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                       th:if="${(planKeyword != null and !planKeyword.isEmpty()) or (planStartDate != null and !planStartDate.isEmpty()) or (planEndDate != null and !planEndDate.isEmpty())}">
+                        <i class="fa-solid fa-xmark me-1"></i>Xóa lọc
+                    </a>
+                </form>
+            </div>
+            
+            <div class="table-responsive" th:if="${planHistoryPage != null and not #lists.isEmpty(planHistoryPage.content)}">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Phiên bản</th>
+                            <th>Bác sĩ kê phác đồ</th>
+                            <th>Ngày áp dụng</th>
+                            <th>Mục tiêu HA (mmHg)</th>
+                            <th>Mục tiêu Đường huyết</th>
+                            <th>Mục tiêu HbA1c</th>
+                            <th>Quy tắc Dinh dưỡng</th>
+                            <th>Ghi chú chỉ định</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="plan, iterStat : ${planHistoryPage.content}">
+                            <td class="fw-bold" th:text="'Phác đồ #' + ${planHistoryPage.totalElements - (planPage * 5 + iterStat.index)}">#1</td>
+                            <td>
+                                <i class="fa-solid fa-user-doctor text-primary me-1"></i>
+                                <span th:text="${plan.doctor != null ? plan.doctor.fullName : 'Hệ thống'}">Bác sĩ</span>
+                            </td>
+                            <td th:text="${plan.effectiveFrom != null ? #temporals.format(plan.effectiveFrom, 'dd/MM/yyyy') : #temporals.format(plan.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
+                            <td>
+                                <span th:text="${plan.targetSystolicBp != null ? plan.targetSystolicBp + '/' + plan.targetDiastolicBp : '-'}">120/80</span>
+                            </td>
+                            <td>
+                                <span th:text="${plan.targetFastingGlucose != null ? plan.targetFastingGlucose + ' mmol/L' : '-'}">6.0</span>
+                            </td>
+                            <td>
+                                <span th:text="${plan.targetHba1c != null ? plan.targetHba1c + ' %' : '-'}">6.5</span>
+                            </td>
+                            <td>
+                                <div th:if="${plan.nutritionRule != null}" style="font-size:0.85rem;" class="lh-sm">
+                                    <div><i class="fa-solid fa-fire text-warning me-1"></i>Calo: <strong th:text="${plan.nutritionRule.maxCaloriesPerDay + ' kcal'}">2000 kcal</strong></div>
+                                    <div><i class="fa-solid fa-wheat-awn text-warning me-1"></i>Carbs: <span th:text="${plan.nutritionRule.maxCarbsG + 'g'}">200g</span> | Muối: <span th:text="${plan.nutritionRule.maxSaltG + 'g'}">5g</span></div>
+                                    <div><i class="fa-solid fa-glass-water text-info me-1"></i>Nước: <span th:text="${plan.nutritionRule.dailyWaterMl + ' ml'}">2000 ml</span></div>
+                                </div>
+                                <span th:if="${plan.nutritionRule == null}" class="text-muted">-</span>
+                            </td>
+                            <td th:text="${plan.medicalOrder != null and !plan.medicalOrder.isEmpty() ? plan.medicalOrder : (plan.additionalNotes != null ? plan.additionalNotes : 'Không có ghi chú')}">Ghi chú</td>
+                            <td>
+                                <span class="badge bg-success" th:if="${plan.isCurrent}">Đang áp dụng</span>
+                                <span class="badge bg-secondary" th:unless="${plan.isCurrent}">Lịch sử (Cũ)</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Phân trang -->
+                <nav th:if="${planHistoryPage.totalPages > 1}" class="mt-4">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${planHistoryPage.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage - 1}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}">
+                                <i class="fa-solid fa-chevron-left"></i> Trước
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, planHistoryPage.totalPages - 1)}"
+                            th:classappend="${i == planPage} ? 'active'">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${i}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${planHistoryPage.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{'/doctor/patient-detail/' + ${patient.id}(planPage=${planPage + 1}, planKeyword=${planKeyword}, planStartDate=${planStartDate}, planEndDate=${planEndDate})}">
+                                Sau <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div th:if="${planHistoryPage == null or #lists.isEmpty(planHistoryPage.content)}" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary"></i>
+                <p class="mb-0">Không tìm thấy bản ghi phác đồ điều trị nào phù hợp.</p>
+            </div>
+        </div>
+    </div>
 
 </div><!-- /tab-content -->
 </div><!-- /container -->
@@ -1258,7 +1476,8 @@
         }
         const btn = document.getElementById('saveBtn');
         btn.innerHTML = '<i class="fa-solid fa-floppy-disk fa-spin me-2"></i>Đang lưu...';
-        btn.disabled = true;
+        btn.style.pointerEvents = 'none';
+        btn.classList.add('opacity-75');
     });
 
     // ===== Dynamic Medication List Operations =====
@@ -1503,6 +1722,16 @@
 
                 dayDiv.addEventListener('click', () => {
                     selectedDate = new Date(year, month, i);
+                    activeSelectedDateStr = dateStr;
+                    
+                    const startInput = document.getElementById('dailySummaryStartDate');
+                    const endInput = document.getElementById('dailySummaryEndDate');
+                    if (startInput) startInput.value = dateStr;
+                    
+                    const endDateObj = new Date(year, month, i + 14);
+                    const endDateStr = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+                    if (endInput) endInput.value = endDateStr;
+
                     renderCalendar(); 
                     fetchDayDetails(dateStr);
                 });
@@ -1578,16 +1807,498 @@
             } else { medDiv.innerHTML = '<span class="text-muted">Không có dữ liệu thuốc</span>'; }
         }
 
+        let activeSelectedDateStr = null;
+
         // Initialize
         renderCalendar();
         
         const initDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
         fetchDayDetails(initDateStr);
+
+        function executeAiSummary(startDate, endDate) {
+            const loadingEl = document.getElementById('dailySummaryLoading');
+            const contentEl = document.getElementById('dailySummaryContent');
+            const labelEl = document.getElementById('dailySummaryPeriodText');
+            
+            loadingEl.style.display = 'block';
+            contentEl.style.display = 'none';
+
+            let url = '/api/chatbot/summary/' + patientId;
+            let params = [];
+            if (startDate) params.push('startDate=' + startDate);
+            if (endDate) params.push('endDate=' + endDate);
+            if (params.length > 0) url += '?' + params.join('&');
+
+            if (labelEl) {
+                if (startDate && endDate) {
+                    labelEl.innerText = `Giai đoạn phân tích: Từ ${startDate} đến ${endDate}`;
+                } else if (startDate) {
+                    labelEl.innerText = `Giai đoạn phân tích: 14 ngày kể từ ${startDate}`;
+                } else {
+                    labelEl.innerText = `Giai đoạn phân tích: 14 ngày gần nhất tính từ Hôm nay trở về trước`;
+                }
+            }
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+                    if (data && data.clinicalSummary) {
+                        let formattedText = data.clinicalSummary
+                            .replace(/^### (.*$)/gim, '<h5 class="fw-bold text-primary mt-3 mb-2"><i class="fa-solid fa-file-medical me-2"></i>$1</h5>')
+                            .replace(/^## (.*$)/gim, '<h4 class="fw-bold text-dark mt-3 mb-2">$1</h4>')
+                            .replace(/^\- (.*$)/gim, '<li class="ms-3 mb-1">$1</li>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br/>');
+                        contentEl.innerHTML = '<div class="p-4 rounded-3" style="background:#ffffff; border:1px solid #cbd5e1; color:#1e293b; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">' + formattedText + '</div>';
+                    } else {
+                        contentEl.innerHTML = '<div class="alert alert-warning">Không nhận được báo cáo phân tích từ AI.</div>';
+                    }
+                })
+                .catch(err => {
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+                    contentEl.innerHTML = '<div class="alert alert-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Không thể kết nối đến máy chủ AI. Vui lòng kiểm tra lại dịch vụ AI Service trên Port 8000.</div>';
+                });
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        const sInput = document.getElementById('dailySummaryStartDate');
+        const eInput = document.getElementById('dailySummaryEndDate');
+        if (sInput) sInput.max = todayStr;
+        if (eInput) eInput.max = todayStr;
+
+        // Nút 1: Phân tích theo khoảng ngày chọn
+        const btnCustomRange = document.getElementById('btnRunCustomRangeSummary');
+        if (btnCustomRange) {
+            btnCustomRange.addEventListener('click', function() {
+                const s = sInput ? sInput.value : '';
+                const e = eInput ? eInput.value : '';
+
+                if (s && s > todayStr) {
+                    alert('Ngày bắt đầu không được lớn hơn ngày hôm nay!');
+                    sInput.value = todayStr;
+                    return;
+                }
+                if (e && e > todayStr) {
+                    alert('Ngày kết thúc không được lớn hơn ngày hôm nay!');
+                    eInput.value = todayStr;
+                    return;
+                }
+                if (s && e && s > e) {
+                    alert('Ngày bắt đầu không được lớn hơn ngày kết thúc!');
+                    return;
+                }
+                executeAiSummary(s, e);
+            });
+        }
+
+        // Nút 2: Phân tích 14 ngày gần nhất từ hôm nay đổ về trước (Auto điền ô Từ ngày & Đến ngày)
+        const btn14Days = document.getElementById('btnRun14DaysSummary');
+        if (btn14Days) {
+            btn14Days.addEventListener('click', function() {
+                const now = new Date();
+                const endStr = now.toISOString().split('T')[0];
+                
+                const fourteenDaysAgo = new Date();
+                fourteenDaysAgo.setDate(now.getDate() - 14);
+                const startStr = fourteenDaysAgo.toISOString().split('T')[0];
+
+                if (sInput) sInput.value = startStr;
+                if (eInput) eInput.value = endStr;
+
+                executeAiSummary(startStr, endStr);
+            });
+        }
     });
     /*]]>*/
 </script>
 
 
+<!-- CHATBOT WIDGET START -->
+    <style>
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 80px; 
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 9999;
+            transition: transform 0.3s;
+        }
+        .ai-chat-btn:hover {
+            transform: scale(1.1);
+        }
+        .ai-chat-window {
+            position: fixed;
+            bottom: 150px;
+            right: 20px;
+            width: 450px;
+            max-width: calc(100vw - 40px);
+            height: 550px;
+            max-height: calc(100vh - 180px);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 9998;
+            overflow: hidden;
+            font-family: inherit;
+        }
+        .ai-chat-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ai-chat-close {
+            cursor: pointer;
+        }
+        .ai-chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        .ai-msg {
+            margin-bottom: 15px;
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .ai-msg-bot {
+            background: white;
+            color: #333;
+            border: 1px solid #eee;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .ai-msg-user {
+            background: #eef2ff;
+            color: #0d6efd;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .ai-chat-footer {
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background: white;
+            display: flex;
+            gap: 10px;
+        }
+        .ai-chat-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+        }
+        .ai-chat-send {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .ai-msg-bot strong { font-weight: bold; color: #0d6efd; }
+    </style>
 
+    <div class="ai-chat-btn" id="aiChatBtn">
+        <i class="fa-solid fa-brain"></i>
+    </div>
+
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-chat-header d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-brain me-2"></i> Trợ lý Trí tuệ Nhân tạo (Hồ sơ: <span th:text="${patient.fullName}">Bệnh nhân</span>)</span>
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-trash-can me-3 cursor-pointer" id="aiChatClear" style="cursor: pointer;" title="Xóa toàn bộ lịch sử hội thoại"></i>
+                <i class="fa-solid fa-xmark ai-chat-close" id="aiChatClose"></i>
+            </div>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg ai-msg-bot">
+                Xin chào Bác sĩ! Tôi là Trợ lý AI y khoa RAG. Tôi đã sẵn sàng hỗ trợ Bác sĩ tra cứu thông tin và phác đồ điều trị cho bệnh nhân <strong th:text="${patient.fullName}">Bệnh nhân</strong>. Bác sĩ cần tôi hỗ trợ gì ạ?
+            </div>
+        </div>
+        <div class="ai-chat-footer">
+            <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Nhập câu hỏi chuyên môn...">
+            <button class="ai-chat-send" id="aiChatSend"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('aiChatBtn');
+            const windowEl = document.getElementById('aiChatWindow');
+            const closeBtn = document.getElementById('aiChatClose');
+            const clearBtn = document.getElementById('aiChatClear');
+            const sendBtn = document.getElementById('aiChatSend');
+            const inputEl = document.getElementById('aiChatInput');
+            const bodyEl = document.getElementById('aiChatBody');
+
+            let isHistoryLoaded = false;
+            function loadChatHistory() {
+                if (isHistoryLoaded) return;
+                let currentPatientId = /*[[${patient.id}]]*/ null;
+                if (!currentPatientId) {
+                    let urlMatch = window.location.pathname.match(/\/patient-detail\/(\d+)/);
+                    if (urlMatch && urlMatch[1]) {
+                        currentPatientId = parseInt(urlMatch[1]);
+                    }
+                }
+                let url = '/api/chatbot/history' + (currentPatientId ? '?patientId=' + currentPatientId : '');
+                fetch(url)
+                    .then(res => res.json())
+                    .then(list => {
+                        if (list && list.length > 0) {
+                            list.reverse().forEach(item => {
+                                addMessage(item.question, true);
+                                addMessage(item.answer, false);
+                            });
+                            isHistoryLoaded = true;
+                        }
+                    })
+                    .catch(err => {});
+            }
+
+            btn.addEventListener('click', () => {
+                const isOpening = windowEl.style.display !== 'flex';
+                windowEl.style.display = isOpening ? 'flex' : 'none';
+                if (isOpening) loadChatHistory();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                windowEl.style.display = 'none';
+            });
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện AI này không?')) {
+                        let currentPatientId = /*[[${patient.id}]]*/ null;
+                        if (!currentPatientId) {
+                            let urlMatch = window.location.pathname.match(/\/patient-detail\/(\d+)/);
+                            if (urlMatch && urlMatch[1]) {
+                                currentPatientId = parseInt(urlMatch[1]);
+                            }
+                        }
+                        let url = '/api/chatbot/history' + (currentPatientId ? '?patientId=' + currentPatientId : '');
+                        fetch(url, { method: 'DELETE' })
+                            .then(res => res.json())
+                            .then(data => {
+                                bodyEl.innerHTML = '<div class="ai-msg ai-msg-bot"><i class="fa-solid fa-check-circle text-success me-1"></i> Đã làm mới hội thoại. Bác sĩ cần tôi hỗ trợ tư vấn y khoa gì thêm ạ?</div>';
+                                isHistoryLoaded = true;
+                            });
+                    }
+                });
+            }
+
+            function addMessage(text, isUser) {
+                const div = document.createElement('div');
+                div.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
+                if (!isUser) {
+                    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    text = text.replace(/\[Source\s*(\d+)\]/gi, '<span class="badge bg-primary ms-1 me-1" title="Trích dẫn tài liệu y khoa"><i class="fa-solid fa-book-medical"></i> Nguồn $1</span>');
+                    text = text.replace(/\[(\d+)\]/g, '<span class="badge bg-primary ms-1 me-1" title="Trích dẫn tài liệu y khoa"><i class="fa-solid fa-book-medical"></i> Nguồn $1</span>');
+                    text = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-primary fw-bold text-decoration-underline ms-1 me-1" title="Click để mở toàn văn PDF gốc"><i class="fa-solid fa-file-pdf text-danger"></i> $1 <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i></a>');
+                    text = text.replace(/\n/g, '<br>');
+                }
+                div.innerHTML = text;
+                bodyEl.appendChild(div);
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+            }
+
+            function sendMessage() {
+                const text = inputEl.value.trim();
+                if (!text) return;
+
+                addMessage(text, true);
+                inputEl.value = '';
+
+                const loadingId = 'loading-' + Date.now();
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = loadingId;
+                loadingDiv.className = 'ai-msg ai-msg-bot';
+                loadingDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang truy xuất tài liệu Y khoa...';
+                bodyEl.appendChild(loadingDiv);
+                bodyEl.scrollTop = bodyEl.scrollHeight;
+
+                let currentPatientId = /*[[${patient.id}]]*/ null;
+                if (!currentPatientId) {
+                    let urlMatch = window.location.pathname.match(/\/patient-detail\/(\d+)/);
+                    if (urlMatch && urlMatch[1]) {
+                        currentPatientId = parseInt(urlMatch[1]);
+                    }
+                }
+
+                fetch('/api/chatbot/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        question: text,
+                        patientId: currentPatientId
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById(loadingId).remove();
+                    let replyHtml = data.answer;
+                    const qCheck = text.trim().toLowerCase();
+                    const greetingsList = ["chào", "chào bạn", "chào buổi sáng", "chào bác sĩ", "chào em", "chào ad", "hi", "hello", "xin chào", "good morning", "good afternoon", "good evening", "alo"];
+                    const isGreeting = greetingsList.includes(qCheck) || ["chào ", "xin chào ", "hello ", "hi "].some(prefix => qCheck.startsWith(prefix));
+                    if (!isGreeting && data.citations && data.citations.length > 0) {
+                        replyHtml += '<hr style="margin: 10px 0; border-color: rgba(255,255,255,0.2);"><strong><i class="fa-solid fa-book-medical"></i> Nguồn tham khảo:</strong><ul style="margin: 5px 0; padding-left: 20px; font-size: 0.9em; opacity: 0.9;">';
+                        
+                        const pdfTitleMap = {
+                            "dc26s001.pdf": "ADA 2026: Cải thiện Chăm sóc & Sức khỏe Cộng đồng (Sec. 1)",
+                            "dc26s002.pdf": "ADA 2026: Chẩn đoán & Phân loại Đái tháo đường (Sec. 2)",
+                            "dc26s003.pdf": "ADA 2026: Dự phòng & Trì hoãn Đái tháo đường Týp 2 (Sec. 3)",
+                            "dc24s004.pdf": "ADA 2024: Đánh giá Y khoa Toàn diện & Bệnh kèm theo (Sec. 4)",
+                            "dc26s005.pdf": "ADA 2026: Hành vi Sức khỏe, Dinh dưỡng & Tập luyện (Sec. 5)",
+                            "dc26s006.pdf": "ADA 2026: Mục tiêu Kiểm soát Đường huyết & Hạ đường huyết (Sec. 6)",
+                            "dc26s007.pdf": "ADA 2026: Công nghệ Y tế & Đo đường huyết liên tục CGM (Sec. 7)",
+                            "dc26s008.pdf": "ADA 2026: Quản lý Béo phì & Cân nặng bệnh nhân T2D (Sec. 8)",
+                            "dc26s009.pdf": "ADA 2026: Phác đồ Thuốc hạ Đường huyết Metformin & Insulin (Sec. 9)",
+                            "dc26s010.pdf": "ADA 2026: Bệnh Tim mạch & Quản lý Nguy cơ Tim mạch (Sec. 10)",
+                            "dc26s011.pdf": "ADA 2026: Bệnh Thận Mạn tính ở Bệnh nhân Đái tháo đường (Sec. 11)",
+                            "dc26s012.pdf": "ADA 2026: Biến chứng Vọng mạc, Thần kinh & Bàn chân (Sec. 12)",
+                            "dc26s013.pdf": "ADA 2026: Quản lý Đái tháo đường ở Người cao tuổi (Sec. 13)",
+                            "dc26s014.pdf": "ADA 2026: Đái tháo đường ở Trẻ em & Thanh thiếu niên (Sec. 14)",
+                            "dc26s015.pdf": "ADA 2026: Quản lý Đái tháo đường ở Phụ nữ Mang thai (Sec. 15)",
+                            "dc26s016.pdf": "ADA 2026: Chăm sóc Đái tháo đường Nội trú tại Bệnh viện (Sec. 16)",
+                            "dc26s017.pdf": "ADA 2026: Tiêu chuẩn Chăm sóc & Quyền lợi Bệnh nhân (Sec. 17)",
+                            "dc26sint.pdf": "ADA 2026: Giới thiệu & Tổng quan Hướng dẫn Lâm sàng",
+                            "dc26srev.pdf": "ADA 2026: Tóm tắt Các Điểm Cập nhật Mới",
+                            "ehae178.pdf": "ESC 2023: Hướng dẫn Quản lý Bệnh Tim mạch ở Bệnh nhân Đái tháo đường"
+                        };
+                        const uniqueFiles = new Map();
+                        data.citations.forEach(c => {
+                            let fileName = c.file || c.source_file || c.source || '';
+                            if (fileName && !fileName.toLowerCase().includes('unknown')) {
+                                let pdfName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+                                if (!uniqueFiles.has(pdfName)) {
+                                    let docTitle = pdfTitleMap[pdfName] || `Tài liệu Y khoa (${pdfName})`;
+                                    uniqueFiles.set(pdfName, { title: docTitle, text: c.text || '' });
+                                }
+                            }
+                        });
+                        
+                        uniqueFiles.forEach((info, file) => {
+                            replyHtml += `<li><a href="/docs/${file}" target="_blank" style="color: #0d6efd; font-weight: 600; text-decoration: underline;" title="${info.text.substring(0, 100)}..."><i class="fa-solid fa-file-pdf text-danger me-1"></i> ${info.title}</a></li>`;
+                        });
+                        replyHtml += '</ul>';
+                    }
+                    addMessage(replyHtml, false);
+                })
+                .catch(err => {
+                    document.getElementById(loadingId).remove();
+                    addMessage('Xin lỗi, đã có lỗi kết nối đến máy chủ AI.', false);
+                });
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            inputEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+        });
+        /*]]>*/
+    </script>
+    <!-- CHATBOT WIDGET END -->
+
+    <!-- AI SUMMARY MODAL JS -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiModalEl = document.getElementById('aiSummaryModal');
+            if (aiModalEl) {
+                aiModalEl.addEventListener('show.bs.modal', function() {
+                    const loadingEl = document.getElementById('aiSummaryLoading');
+                    const contentEl = document.getElementById('aiSummaryContent');
+                    const patientId = /*[[${patient.id}]]*/ 0;
+                    const dateInput = document.getElementById('aiSummaryStartDate');
+                    const startDateVal = dateInput ? dateInput.value : '';
+
+                    loadingEl.style.display = 'block';
+                    contentEl.style.display = 'none';
+                    contentEl.innerHTML = '';
+
+                    let url = '/api/chatbot/summary/' + patientId;
+                    if (startDateVal) {
+                        url += '?startDate=' + startDateVal;
+                    }
+
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            loadingEl.style.display = 'none';
+                            contentEl.style.display = 'block';
+                            if (data && data.clinicalSummary) {
+                                let formattedText = data.clinicalSummary
+                                    .replace(/^### (.*$)/gim, '<h5 class="fw-bold text-primary mt-3 mb-2"><i class="fa-solid fa-file-medical me-2"></i>$1</h5>')
+                                    .replace(/^## (.*$)/gim, '<h4 class="fw-bold text-dark mt-3 mb-2">$1</h4>')
+                                    .replace(/^\- (.*$)/gim, '<li class="ms-3 mb-1">$1</li>')
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\n/g, '<br/>');
+                                contentEl.innerHTML = '<div class="p-4 rounded-3" style="background:#f8fafe; border:1px solid #cbd5e1; color:#1e293b;">' + formattedText + '</div>';
+                            } else {
+                                contentEl.innerHTML = '<div class="alert alert-warning">Không nhận được báo cáo phân tích từ AI.</div>';
+                            }
+                        })
+                        .catch(err => {
+                            loadingEl.style.display = 'none';
+                            contentEl.style.display = 'block';
+                            contentEl.innerHTML = '<div class="alert alert-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Không thể kết nối đến máy chủ AI. Vui lòng kiểm tra lại dịch vụ AI Service trên Port 8000.</div>';
+                        });
+                });
+            }
+        });
+        /*]]>*/
+    </script>
+<!-- Return to Hospital Modal -->
+<div class="modal fade" id="returnHospitalModal" tabindex="-1" aria-labelledby="returnHospitalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header bg-danger text-white" style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                <h5 class="modal-title fw-bold" id="returnHospitalModalLabel"><i class="fa-solid fa-hospital me-2"></i> Trả bệnh nhân về Viện</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{'/doctor/patient-detail/' + ${patient.id} + '/return-to-hospital'}" method="post">
+                <div class="modal-body p-4">
+                    <p class="mb-4">Bạn đang thao tác trả bệnh nhân <strong class="text-danger" th:text="${patient.fullName}"></strong> về danh sách chờ của Bệnh viện. Bệnh nhân này sẽ không còn nằm trong danh sách quản lý của bạn nữa.</p>
+                    <div class="mb-3">
+                        <label for="returnReason" class="form-label fw-bold">Lý do từ chối/trả về <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="returnReason" name="returnReason" rows="3" required placeholder="Nhập lý do chi tiết (VD: Quá tải, không đúng chuyên môn...)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #f0f2f5;">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Xác nhận trả về</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 </body>
 </html>

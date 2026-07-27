@@ -41,6 +41,9 @@ public class Doctor {
     @Column(length = 10)
     private String gender;
 
+    @Column(name = "date_of_birth")
+    private java.time.LocalDate dateOfBirth;
+
     @Column(name = "capacity_limit", nullable = false)
     @Builder.Default
     private Integer capacityLimit = 50;
@@ -106,6 +109,8 @@ public class Doctor {
     public void setCurrentPatientCount(Integer currentPatientCount) { this.currentPatientCount = currentPatientCount; }
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public java.time.LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(java.time.LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

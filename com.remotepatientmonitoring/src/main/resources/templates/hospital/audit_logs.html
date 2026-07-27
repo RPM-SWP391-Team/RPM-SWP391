@@ -7,194 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #1A73E8;
-            --primary-hover: #155cb4;
-            --primary-light: #E8F0FE;
-            --bg-light: #F4F7FE;
-            --text-dark: #1E293B;
-            --text-muted: #64748B;
-            --sidebar-width: 260px;
-        }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-dark);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            border-right: 1px solid #E2E8F0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-brand {
-            padding: 1.5rem;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            border-bottom: 1px solid #F1F5F9;
-        }
-        .sidebar-menu {
-            padding: 1.5rem 1rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .menu-item:hover, .menu-item.active {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-        }
-        .sidebar-footer {
-            padding: 1.5rem 1rem;
-            border-top: 1px solid #F1F5F9;
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            transition: all 0.3s ease;
-            padding: 1.25rem 1.5rem;
-            max-width: calc(100vw - var(--sidebar-width));
-            box-sizing: border-box;
-            overflow-x: hidden;
-        }
-        .navbar-top {
-            background-color: #ffffff;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-custom {
-            background-color: #ffffff;
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-            margin-bottom: 1.5rem;
-            max-width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-        .table-responsive {
-            width: 100%;
-            max-width: 100%;
-            overflow-x: auto;
-            box-sizing: border-box;
-        }
-        .card-custom-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #F1F5F9;
-            font-weight: 600;
-            font-size: 1.1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .card-custom-body {
-            padding: 1.5rem;
-        }
-
-        .nav-tabs-custom {
-            border-bottom: 2px solid #E2E8F0;
-            gap: 1rem;
-        }
-        .nav-tabs-custom .nav-link {
-            border: none;
-            color: var(--text-muted);
-            font-weight: 600;
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px 10px 0 0;
-            transition: all 0.2s ease;
-        }
-        .nav-tabs-custom .nav-link.active {
-            color: var(--primary-color);
-            background-color: #ffffff;
-            border-bottom: 3px solid var(--primary-color);
-        }
-
-        .sidebar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            cursor: pointer;
-        }
-
-        @media (max-width: 991.98px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.show { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 1.5rem; }
-            .sidebar-toggle { display: block; }
-        }
-
-        .table-responsive { border-radius: 12px; overflow: hidden; }
-        .table thead th {
-            background-color: #F8FAFC;
-            color: #475569;
-            font-weight: 600;
-            border-bottom: 1px solid #E2E8F0;
-            padding: 1rem;
-        }
-        .table tbody td {
-            padding: 1rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #F1F5F9;
-        }
-
-        .badge-assign { background-color: #E6F4EA; color: #137333; }
-        .badge-unassign { background-color: #FEF7E0; color: #B06000; }
-        .badge-threshold { background-color: #E8F0FE; color: #1A73E8; }
-        .badge-protocol { background-color: #F3E8FF; color: #7E22CE; }
-        .badge-create { background-color: #E0F2FE; color: #0284C7; }
-        .badge-update { background-color: #FEF3C7; color: #D97706; }
-        .badge-activate { background-color: #D1FAE5; color: #059669; }
-        .badge-default { background-color: #F1F5F9; color: #475569; }
-        
-        .badge-level-info { background-color: #E0F2FE; color: #0369A1; }
-        .badge-level-warning { background-color: #FEF3C7; color: #B45309; }
-        .badge-level-error { background-color: #FEE2E2; color: #B91C1C; }
-        .badge-level-critical { background-color: #991B1B; color: #FFFFFF; }
-        
-        .masked-indicator {
-            background-color: #FEF3C7;
-            color: #92400E;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-    </style>
+    <link th:href="@{/css/hospital.css}" rel="stylesheet">
 </head>
 <body>
 
@@ -211,6 +24,10 @@
         <a th:href="@{/hospital/doctors}" class="menu-item">
             <i class="bi bi-person-fill-gear"></i>
             <span>Quản lý Bác sĩ</span>
+        </a>
+        <a th:href="@{/hospital/patients}" class="menu-item">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý Bệnh nhân</span>
         </a>
         <a th:href="@{/hospital/config/thresholds}" class="menu-item">
             <i class="bi bi-sliders"></i>
@@ -334,24 +151,24 @@
         </div>
         <div class="card-custom-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+                <table class="table table-hover table-sm align-middle mb-0" style="min-width: 900px; font-size: 0.85rem;">
                     <thead>
                     <tr>
-                        <th style="width: 13%;">Thời gian</th>
-                        <th style="width: 13%;">Người thực hiện</th>
-                        <th style="width: 15%;">Hành động</th>
-                        <th style="width: 13%;">Mục tiêu</th>
-                        <th style="width: 15%;">IP / Thiết bị</th>
-                        <th style="width: 21%;">Giải trình / Ghi chú</th>
-                        <th style="width: 10%;" class="text-center">Thao tác</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Thời gian</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Người thực hiện</th>
+                        <th style="width: 15%; padding: 0.75rem 0.5rem;">Hành động</th>
+                        <th style="width: 13%; padding: 0.75rem 0.5rem;">Mục tiêu</th>
+                        <th style="width: 15%; padding: 0.75rem 0.5rem;">IP / Thiết bị</th>
+                        <th style="width: 21%; padding: 0.75rem 0.5rem;">Giải trình / Ghi chú</th>
+                        <th style="width: 10%; padding: 0.75rem 0.5rem;" class="text-center">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="log : ${logs.content}">
                         <td class="text-nowrap" th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm:ss')}">01/01/2026 00:00:00</td>
                         <td>
-                            <div class="fw-semibold" th:text="${log.actorType}">ADMIN</div>
-                            <small class="text-muted" th:text="'ID: ' + ${log.actorId}">ID: 1</small>
+                            <div class="fw-semibold" th:text="${log.actorName != null ? log.actorName : log.actorType}">ADMIN</div>
+                            <small class="text-muted" th:text="${log.actorType} + ' - ID: ' + ${log.actorId}">HOSPITAL_ADMIN - ID: 1</small>
                         </td>
                         <td>
                                 <span class="badge rounded-pill px-3 py-2 fw-semibold"
@@ -369,12 +186,12 @@
                             <div class="fw-semibold text-capitalize" th:text="${log.targetTable}">patients</div>
                             <small class="text-muted" th:text="'Record ID: ' + ${log.targetRecordId}">ID: 1</small>
                         </td>
-                        <td>
+                        <td style="padding: 0.5rem;">
                             <div th:text="${log.ipAddress != null ? log.ipAddress : '-'}">127.0.0.1</div>
-                            <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 120px;" th:text="${log.deviceInfo != null ? log.deviceInfo : '-'}" th:title="${log.deviceInfo}">Browser</small>
                         </td>
-                        <td>
-                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 250px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
+                        <td style="padding: 0.5rem;">
+                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 180px;" th:text="${log.notes != null ? log.notes : '-'}">Ghi chú</span>
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-primary btn-sm px-3 rounded-pill btn-detail"
@@ -384,6 +201,7 @@
                                     th:data-target-id="${log.targetRecordId}"
                                     th:data-actor-type="${log.actorType}"
                                     th:data-actor-id="${log.actorId}"
+                                    th:data-actor-name="${log.actorName != null ? log.actorName : ''}"
                                     th:data-notes="${log.notes}"
                                     th:data-old="${log.oldValue}"
                                     th:data-new="${log.newValue}">
@@ -408,13 +226,23 @@
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage - 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&laquo;</a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage == 0 ? 0 : currentPage - 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&laquo;</a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, logs.totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                        <li class="page-item" th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, currentPage - 2), T(java.lang.Math).min(logs.totalPages - 1, currentPage + 2))}" th:classappend="${i == currentPage} ? 'active'">
                             <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${i}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage + 1 == logs.totalPages} ? 'disabled'">
-                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage + 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&raquo;</a>
+                            <a class="page-link" th:href="@{/hospital/audit-logs(tab='audit', page=${currentPage + 1 == logs.totalPages ? currentPage : currentPage + 1}, size=${size}, actorType=${actorType}, action=${action}, keyword=${keyword}, fromDate=${fromDate}, toDate=${toDate})}">&raquo;</a>
+                        </li>
+                        <li class="page-item align-self-center ms-3">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-muted small">Đi tới:</span>
+                                <input type="number" class="form-control form-control-sm text-center px-1" 
+                                       id="jumpPageInput" min="1" th:max="${logs.totalPages}" placeholder="..." 
+                                       style="width: 50px; height: 28px;">
+                                <button class="btn btn-sm btn-outline-primary px-2" type="button" 
+                                        id="btnJumpPage" style="height: 28px; line-height: 1;">Đi</button>
+                            </div>
                         </li>
                     </ul>
                 </nav>
@@ -448,7 +276,7 @@
                         <span class="fw-bold" id="modalActorInfo">ADMIN (ID: 1)</span>
                     </div>
                     <div class="col-md-6">
-                        <label class="small text-muted d-block">Ghi chú / Giải trình</label>
+                        <label class="small text-muted d-block">Ghi chú</label>
                         <span class="fw-bold text-secondary" id="modalNotes">-</span>
                     </div>
                 </div>
@@ -625,6 +453,11 @@
             return escapeHtml(JSON.stringify(val));
         }
         const str = val.toString();
+        const upperStr = str.toUpperCase();
+        if (upperStr === 'MALE') return 'Nam';
+        if (upperStr === 'FEMALE') return 'Nữ';
+        if (upperStr === 'OTHER') return 'Khác';
+
         if (str === '***MASKED***' || str === '***PROTECTED***') {
             return '<span class="badge bg-warning-subtle text-dark border border-warning px-2 py-1"><i class="bi bi-shield-lock me-1 text-warning"></i>***MASKED***</span>';
         }
@@ -647,6 +480,7 @@
             const targetId = this.getAttribute('data-target-id') || '';
             const actorType = this.getAttribute('data-actor-type') || '';
             const actorId = this.getAttribute('data-actor-id') || '';
+            const actorName = this.getAttribute('data-actor-name') || '';
             const notes = this.getAttribute('data-notes') || '-';
             const oldValue = this.getAttribute('data-old') || '';
             const newValue = this.getAttribute('data-new') || '';
@@ -654,7 +488,12 @@
             const displayAction = (action === 'UPDATE_HOSPITAL_PROFILE') ? 'UPDATE_ADMIN_PROFILE' : action;
             document.getElementById('modalActionBadge').textContent = displayAction;
             document.getElementById('modalTargetInfo').textContent = `Bảng: ${targetTable} (ID: ${targetId})`;
-            document.getElementById('modalActorInfo').textContent = `${actorType} (ID: ${actorId})`;
+            
+            let actorDisplay = `${actorType} (ID: ${actorId})`;
+            if (actorName) {
+                actorDisplay = `${actorName} (${actorType} - ID: ${actorId})`;
+            }
+            document.getElementById('modalActorInfo').textContent = actorDisplay;
             document.getElementById('modalNotes').textContent = notes;
 
             const container = document.getElementById('changeDetailContainer');
@@ -796,6 +635,35 @@
             }
         });
     });
+
+    // Javascript xử lý chuyển trang nhanh
+    const btnJump = document.getElementById('btnJumpPage');
+    const inputJump = document.getElementById('jumpPageInput');
+    if (btnJump && inputJump) {
+        const executeJump = () => {
+            const pageNum = parseInt(inputJump.value);
+            const maxPage = parseInt(inputJump.getAttribute('max'));
+            
+            if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPage) {
+                alert('Vui lòng nhập số trang hợp lệ từ 1 đến ' + maxPage);
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('page', pageNum - 1);
+            if (!urlParams.has('tab')) {
+                urlParams.set('tab', 'audit');
+            }
+            window.location.href = window.location.pathname + '?' + urlParams.toString();
+        };
+        
+        btnJump.addEventListener('click', executeJump);
+        inputJump.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeJump();
+            }
+        });
+    }
 </script>
 </body>
 </html>

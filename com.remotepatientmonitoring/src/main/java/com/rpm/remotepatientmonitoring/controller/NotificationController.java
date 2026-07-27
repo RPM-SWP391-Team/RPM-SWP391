@@ -25,21 +25,30 @@ public class NotificationController {
 
     private Patient getPatient(CustomUserDetails userDetails) {
         if (userDetails != null && userDetails.getAccount() != null) {
-            return patientRepository.findByAccountId(userDetails.getAccount().getId())
-                    .orElseGet(() -> patientRepository.findAll().stream().findFirst().orElse(null));
+            return patientRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
         }
-        return patientRepository.findAll().stream().findFirst().orElse(null);
+        return null;
     }
 
     // 1. GET: Lấy danh sách thông báo của bệnh nhân
     @GetMapping
-    public ResponseEntity<List<Notification>> getNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<java.util.Map<String, Object>>> getNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Patient patient = getPatient(userDetails);
         if (patient == null) {
             return ResponseEntity.ok(Collections.emptyList());
         }
         List<Notification> list = notificationRepository.findByPatientIdOrderByCreatedAtDesc(patient.getId());
-        return ResponseEntity.ok(list);
+        List<java.util.Map<String, Object>> responseList = list.stream().map(notif -> {
+            java.util.Map<String, Object> dto = new java.util.HashMap<>();
+            dto.put("id", notif.getId());
+            dto.put("title", notif.getTitle());
+            dto.put("content", notif.getContent());
+            dto.put("isRead", notif.getIsRead());
+            dto.put("createdAt", notif.getCreatedAt());
+            dto.put("notificationType", notif.getNotificationType());
+            return dto;
+        }).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(responseList);
     }
 
     // 2. GET: Lấy số lượng thông báo chưa đọc

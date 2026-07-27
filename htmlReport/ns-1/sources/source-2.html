@@ -1,0 +1,235 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PatientHealthService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.rpm.remotepatientmonitoring.service.patient</a>
+</div>
+
+<h1>Coverage Summary for Class: PatientHealthService (com.rpm.remotepatientmonitoring.service.patient)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PatientHealthService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (2/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    89.5%
+  </span>
+  <span class="absValue">
+    (34/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    77.1%
+  </span>
+  <span class="absValue">
+    (54/70)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.rpm.remotepatientmonitoring.service.patient;
+&nbsp;
+&nbsp;import com.rpm.remotepatientmonitoring.dto.patient.HealthLogRequest;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.jdbc.core.JdbcTemplate;
+&nbsp;import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+&nbsp;import org.springframework.jdbc.core.simple.SimpleJdbcCall;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import java.util.Map;
+&nbsp;@Service
+<b class="fc">&nbsp;public class PatientHealthService {</b>
+&nbsp;    @Autowired
+&nbsp;    private JdbcTemplate jdbcTemplate;
+&nbsp;    @Autowired
+&nbsp;    private com.rpm.remotepatientmonitoring.repository.PatientRepository patientRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private com.rpm.remotepatientmonitoring.repository.AlertRepository alertRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private com.rpm.remotepatientmonitoring.repository.NotificationRepository notificationRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private com.rpm.remotepatientmonitoring.repository.HealthLogRepository healthLogRepository;
+&nbsp;
+&nbsp;    public Map&lt;String, Object&gt; submitDailyHealthLog(HealthLogRequest req) {
+<b class="nc">&nbsp;        SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName(&quot;sp_record_daily_health_log&quot;);</b>
+<b class="nc">&nbsp;        MapSqlParameterSource inParams = new MapSqlParameterSource();</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;patient_id&quot;, req.getPatientId());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;log_type&quot;, req.getLogType());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;input_method&quot;, req.getInputMethod());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;systolic_bp&quot;, req.getSystolicBp());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;diastolic_bp&quot;, req.getDiastolicBp());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;heart_rate&quot;, req.getHeartRate());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;glucose_level&quot;, req.getGlucoseLevel());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;image_url&quot;, req.getImageUrl());</b>
+<b class="nc">&nbsp;        inParams.addValue(&quot;patient_notes&quot;, req.getPatientNotes());</b>
+&nbsp;        
+<b class="nc">&nbsp;        Map&lt;String, Object&gt; result = jdbcCall.execute(inParams);</b>
+&nbsp;        
+<b class="nc">&nbsp;        String message = (String) result.get(&quot;result_message&quot;);</b>
+<b class="nc">&nbsp;        if (message != null &amp;&amp; !message.startsWith(&quot;Lỗi&quot;)) {</b>
+<b class="nc">&nbsp;            evaluateAndGenerateAlerts(req);</b>
+&nbsp;        }
+&nbsp;        
+<b class="nc">&nbsp;        return result;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void evaluateAndGenerateAlerts(HealthLogRequest req) {
+<b class="fc">&nbsp;        com.rpm.remotepatientmonitoring.model.Patient patient = patientRepository.findById(req.getPatientId()).orElse(null);</b>
+<b class="fc">&nbsp;        if (patient == null || patient.getDoctor() == null) return;</b>
+&nbsp;        
+<b class="fc">&nbsp;        com.rpm.remotepatientmonitoring.model.Doctor doctor = patient.getDoctor();</b>
+<b class="fc">&nbsp;        com.rpm.remotepatientmonitoring.model.DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(req.getPatientId()).orElse(null);</b>
+&nbsp;        
+<b class="fc">&nbsp;        int systolicLevel = 1;</b>
+<b class="fc">&nbsp;        int diastolicLevel = 1;</b>
+<b class="fc">&nbsp;        int glucoseLevel = 1;</b>
+&nbsp;        
+<b class="fc">&nbsp;        String alertMessage = &quot;&quot;;</b>
+<b class="fc">&nbsp;        String metricType = &quot;&quot;;</b>
+<b class="fc">&nbsp;        String metricValue = &quot;&quot;;</b>
+<b class="fc">&nbsp;        String thresholdViolated = &quot;&quot;;</b>
+&nbsp;        
+<b class="fc">&nbsp;        if (req.getSystolicBp() != null) {</b>
+<b class="fc">&nbsp;            int sys = req.getSystolicBp();</b>
+<b class="fc">&nbsp;            if (sys &gt;= 180) { systolicLevel = 3; alertMessage += &quot;Huyết áp tâm thu quá cao (&quot; + sys + &quot;). &quot;; metricType = &quot;BLOOD_PRESSURE&quot;; metricValue = sys + &quot;/&quot; + (req.getDiastolicBp() != null ? req.getDiastolicBp() : &quot;?&quot;); thresholdViolated = &quot;&gt;=180&quot;; }</b>
+<b class="fc">&nbsp;            else if (sys &gt;= 140) { systolicLevel = 2; alertMessage += &quot;Huyết áp tâm thu cao (&quot; + sys + &quot;). &quot;; metricType = &quot;BLOOD_PRESSURE&quot;; metricValue = sys + &quot;/&quot; + (req.getDiastolicBp() != null ? req.getDiastolicBp() : &quot;?&quot;); thresholdViolated = &quot;&gt;=140&quot;; }</b>
+&nbsp;        }
+&nbsp;        
+<b class="fc">&nbsp;        if (req.getDiastolicBp() != null) {</b>
+<b class="fc">&nbsp;            int dia = req.getDiastolicBp();</b>
+<b class="fc">&nbsp;            if (dia &gt;= 120) { diastolicLevel = 3; alertMessage += &quot;Huyết áp tâm trương quá cao (&quot; + dia + &quot;). &quot;; metricType = &quot;BLOOD_PRESSURE&quot;; thresholdViolated = &quot;&gt;=120&quot;; }</b>
+<b class="fc">&nbsp;            else if (dia &gt;= 90) { diastolicLevel = 2; alertMessage += &quot;Huyết áp tâm trương cao (&quot; + dia + &quot;). &quot;; metricType = &quot;BLOOD_PRESSURE&quot;; thresholdViolated = &quot;&gt;=90&quot;; }</b>
+&nbsp;        }
+&nbsp;        
+<b class="fc">&nbsp;        if (req.getGlucoseLevel() != null) {</b>
+<b class="fc">&nbsp;            double glu = req.getGlucoseLevel().doubleValue();</b>
+<b class="fc">&nbsp;            if (glu &lt; 4.4) { glucoseLevel = 3; alertMessage += &quot;Hạ đường huyết (&quot; + glu + &quot;). &quot;; metricType = &quot;GLUCOSE&quot;; metricValue = String.valueOf(glu); thresholdViolated = &quot;&lt;4.4&quot;; }</b>
+<b class="fc">&nbsp;            else if (glu &gt; 16.0) { glucoseLevel = 3; alertMessage += &quot;Đường huyết quá cao (&quot; + glu + &quot;). &quot;; metricType = &quot;GLUCOSE&quot;; metricValue = String.valueOf(glu); thresholdViolated = &quot;&gt;16.0&quot;; }</b>
+<b class="fc">&nbsp;            else if (glu &gt; 10.0) { glucoseLevel = 2; alertMessage += &quot;Đường huyết cao (&quot; + glu + &quot;). &quot;; metricType = &quot;GLUCOSE&quot;; metricValue = String.valueOf(glu); thresholdViolated = &quot;&gt;10.0&quot;; }</b>
+&nbsp;        }
+&nbsp;        
+<b class="fc">&nbsp;        int finalLevel = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));</b>
+&nbsp;        
+<b class="fc">&nbsp;        if (finalLevel &gt;= 2) {</b>
+<b class="fc">&nbsp;            com.rpm.remotepatientmonitoring.model.Alert alert = new com.rpm.remotepatientmonitoring.model.Alert();</b>
+<b class="fc">&nbsp;            alert.setPatient(patient);</b>
+<b class="fc">&nbsp;            alert.setDoctor(doctor);</b>
+<b class="fc">&nbsp;            alert.setHealthLog(latestLog);</b>
+<b class="fc">&nbsp;            alert.setAlertLevel(finalLevel);</b>
+<b class="fc">&nbsp;            alert.setAlertColor(finalLevel == 3 ? &quot;RED&quot; : &quot;ORANGE&quot;);</b>
+<b class="fc">&nbsp;            alert.setMetricType(metricType);</b>
+<b class="fc">&nbsp;            alert.setThresholdViolated(thresholdViolated);</b>
+<b class="fc">&nbsp;            alert.setMetricValue(metricValue.isEmpty() ? &quot;N/A&quot; : metricValue);</b>
+<b class="fc">&nbsp;            alert.setAlertMessage(alertMessage.trim());</b>
+<b class="fc">&nbsp;            alert.setIsResolved(false);</b>
+<b class="fc">&nbsp;            alert.setTriggeredAt(java.time.LocalDateTime.now());</b>
+<b class="fc">&nbsp;            alert.setCreatedAt(java.time.LocalDateTime.now());</b>
+&nbsp;            
+<b class="fc">&nbsp;            alertRepository.save(alert);</b>
+&nbsp;            
+<b class="fc">&nbsp;            com.rpm.remotepatientmonitoring.model.Notification notif = new com.rpm.remotepatientmonitoring.model.Notification();</b>
+<b class="fc">&nbsp;            notif.setPatient(patient);</b>
+<b class="fc">&nbsp;            notif.setDoctor(doctor);</b>
+<b class="fc">&nbsp;            notif.setRecipientType(&quot;DOCTOR&quot;);</b>
+<b class="fc">&nbsp;            notif.setRecipientId(doctor.getId());</b>
+<b class="fc">&nbsp;            notif.setNotificationType(&quot;ALERT&quot;);</b>
+<b class="fc">&nbsp;            notif.setChannel(&quot;IN_APP&quot;);</b>
+<b class="fc">&nbsp;            notif.setStatus(&quot;SENT&quot;);</b>
+<b class="fc">&nbsp;            notif.setTitle(&quot;Cảnh báo Y tế từ bệnh nhân &quot; + patient.getFullName());</b>
+<b class="fc">&nbsp;            notif.setContent(&quot;Phát hiện chỉ số bất thường mức &quot; + alert.getAlertColor() + &quot;. Vui lòng kiểm tra ngay!&quot;);</b>
+<b class="fc">&nbsp;            notif.setIsRead(false);</b>
+<b class="fc">&nbsp;            notif.setCreatedAt(java.time.LocalDateTime.now());</b>
+&nbsp;            
+<b class="fc">&nbsp;            notificationRepository.save(notif);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-07-18 14:54</div>
+</div>
+</body>
+</html>

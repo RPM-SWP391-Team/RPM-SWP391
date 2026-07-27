@@ -1,0 +1,160 @@
+ 
+-- ------------------------------------------------------------
+-- SP 4: sp_record_daily_health_log
+-- [S?A] Vi?t l?i toàn b? logic tính c?nh báo theo:
+--   - Ðu?ng huy?t mmol/L: <4.4 RED(h?) | 4.4-10 GREEN | 10-16 ORANGE | >16 RED(tang)
+--   - Huy?t áp: <120/<80 GREEN | 130-139 ho?c 85-89 YELLOW |
+--               140-179 ho?c 90-109 ORANGE | >=180 ho?c >=110 RED
+--   - B? hoàn toàn m?c CRITICAL — m?c cao nh?t là RED.
+--   - L?y m?c c?nh báo CAO NH?T gi?a huy?t áp và du?ng huy?t làm k?t qu? cu?i.
+-- ------------------------------------------------------------
+CREATE   PROCEDURE [dbo].[sp_record_daily_health_log]
+    @patient_id         INT,
+    @log_type           VARCHAR(10),
+    @input_method       VARCHAR(10),
+    @systolic_bp        INT             = NULL,
+    @diastolic_bp       INT             = NULL,
+    @heart_rate         INT             = NULL,
+    @glucose_level       DECIMAL(4,2)    = NULL,     -- mmol/L
+    @image_url          VARCHAR(500)    = NULL,
+    @patient_notes       NVARCHAR(500)   = NULL,
+    @new_log_id          INT             OUTPUT,
+    @alert_level_result   VARCHAR(10)     OUTPUT,
+    @result_message     NVARCHAR(500)   OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    DECLARE @bp_alert               VARCHAR(10) = 'GREEN';
+    DECLARE @glucose_alert          VARCHAR(10) = 'GREEN';
+    DECLARE @calculated_alert_level VARCHAR(10) = 'GREEN';
+    DECLARE @hospital_id            INT;
+    DECLARE @is_ocr_validated       BIT;
+ 
+    SET @is_ocr_validated = CASE WHEN @input_method = 'OCR' THEN 0 ELSE 1 END;
+ 
+    SELECT @hospital_id = hospital_id
+    FROM patients
+    WHERE id = @patient_id AND is_active = 1;
+ 
+    IF @hospital_id IS NULL
+    BEGIN
+        SET @result_message = N'L?i: B?nh nhân không t?n t?i ho?c dã b? vô hi?u hóa.';
+        RETURN -1;
+    END
+ 
+    -- ---- Tính m?c c?nh báo huy?t áp ----
+    IF @systolic_bp IS NOT NULL OR @diastolic_bp IS NOT NULL
+    BEGIN
+        IF (@systolic_bp >= 180 OR @diastolic_bp >= 110)
+            SET @bp_alert = 'RED';
+        ELSE IF (@systolic_bp BETWEEN 140 AND 179) OR (@diastolic_bp BETWEEN 90 AND 109)
+            SET @bp_alert = 'ORANGE';
+        ELSE IF (@systolic_bp BETWEEN 130 AND 139) OR (@diastolic_bp BETWEEN 85 AND 89)
+            SET @bp_alert = 'YELLOW';
+        ELSE IF (ISNULL(@systolic_bp, 0) < 120) AND (ISNULL(@diastolic_bp, 0) < 80)
+            SET @bp_alert = 'GREEN';
+        ELSE
+            -- Vùng trung gian chua quy d?nh rõ (VD: systolic 120-129 / diastolic 80-84)
+            -- t?m x?p m?c YELLOW d? b?nh nhân luu ý theo dõi thêm.
+            SET @bp_alert = 'YELLOW';
+    END
+ 
+    -- ---- Tính m?c c?nh báo du?ng huy?t (mmol/L) ----
+    IF @glucose_level IS NOT NULL
+    BEGIN
+        IF @glucose_level < 4.4
+            SET @glucose_alert = 'RED';        -- H? du?ng huy?t d?t ng?t
+        ELSE IF @glucose_level > 16
+            SET @glucose_alert = 'RED';        -- Tang du?ng huy?t kh?n c?p
+        ELSE IF @glucose_level > 10
+            SET @glucose_alert = 'ORANGE';     -- Cao
+        ELSE
+            SET @glucose_alert = 'GREEN';      -- Bình thu?ng (4.4 - 10)
+    END
+ 
+    -- ---- L?y m?c cao nh?t gi?a hai ch? s? ----
+    SET @calculated_alert_level = CASE
+        WHEN 'RED'    IN (@bp_alert, @glucose_alert) THEN 'RED'
+        WHEN 'ORANGE' IN (@bp_alert, @glucose_alert) THEN 'ORANGE'
+        WHEN 'YELLOW' IN (@bp_alert, @glucose_alert) THEN 'YELLOW'
+        ELSE 'GREEN'
+    END;
+ 
+    INSERT INTO daily_health_logs (
+        patient_id, log_date, log_time, log_type,
+        systolic_bp, diastolic_bp, heart_rate, glucose_level,
+        input_method, image_url, is_ocr_validated,
+        alert_level, patient_notes
+    )
+    VALUES (
+        @patient_id,
+        CAST(SYSDATETIME() AS DATE),
+        SYSDATETIME(),
+        @log_type,
+        @systolic_bp, @diastolic_bp, @heart_rate, @glucose_level,
+        @input_method, @image_url,
+        @is_ocr_validated,
+        @calculated_alert_level,
+        @patient_notes
+    );
+ 
+    SET @new_log_id = SCOPE_IDENTITY();
+ 
+    -- Theo nghi?p v? 2.3: ch? t?o b?n ghi alerts (và báo bác si) khi m?c ORANGE ho?c RED
+    IF @calculated_alert_level IN ('ORANGE', 'RED')
+    BEGIN
+        DECLARE @doctor_id       INT;
+        DECLARE @alert_level_num INT;
+ 
+        SELECT @doctor_id = doctor_id FROM patients WHERE id = @patient_id;
+ 
+        SET @alert_level_num = CASE @calculated_alert_level
+            WHEN 'ORANGE' THEN 3
+            WHEN 'RED'    THEN 4
+        END;
+ 
+        IF @doctor_id IS NOT NULL
+        BEGIN
+            INSERT INTO alerts (
+                patient_id, doctor_id, health_log_id, alert_level, alert_color,
+                metric_type, metric_value, threshold_violated, alert_message
+            )
+            VALUES (
+                @patient_id,
+                @doctor_id,
+                @new_log_id,
+                @alert_level_num,
+                @calculated_alert_level,
+                CASE
+                    WHEN @systolic_bp IS NOT NULL AND @glucose_level IS NOT NULL THEN 'BOTH'
+                    WHEN @systolic_bp IS NOT NULL THEN 'BLOOD_PRESSURE'
+                    ELSE 'GLUCOSE'
+                END,
+                N'HA: ' + ISNULL(CAST(@systolic_bp AS VARCHAR), 'N/A') + '/' + ISNULL(CAST(@diastolic_bp AS VARCHAR), 'N/A')
+                + N' mmHg | Glucose: ' + ISNULL(CAST(@glucose_level AS VARCHAR), 'N/A') + N' mmol/L',
+                N'Vu?t ngu?ng c?nh báo m?c ' + @calculated_alert_level,
+                N'B?nh nhân ID ' + CAST(@patient_id AS VARCHAR)
+                + N' có ch? s? vu?t ngu?ng: M?c ' + @calculated_alert_level
+                + N'. C?n ki?m tra ngay.'
+            );
+ 
+            -- Ð?ng th?i ghi vào notifications d? g?i thông báo t?i bác si
+            INSERT INTO notifications (recipient_type, recipient_id, notification_type, title, content, related_entity_type, related_entity_id)
+            VALUES (
+                'DOCTOR', @doctor_id, 'ALERT',
+                N'C?nh báo s?c kh?e m?c ' + @calculated_alert_level,
+                N'B?nh nhân ID ' + CAST(@patient_id AS VARCHAR) + N' có ch? s? vu?t ngu?ng m?c ' + @calculated_alert_level + N'.',
+                'DAILY_HEALTH_LOG', @new_log_id
+            );
+        END
+    END
+ 
+    SET @alert_level_result = @calculated_alert_level;
+    SET @result_message = N'Thành công: Ðã ghi nh?n nh?t ký s?c kh?e. M?c c?nh báo: ' + @calculated_alert_level;
+    RETURN 0;
+ 
+END;
+
+
+(1 rows affected)

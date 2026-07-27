@@ -6,7 +6,7 @@
 
     <div class="container my-4">
         <!-- Success Alert for Saving Health Logs -->
-        <div id="successAlert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-none" role="alert" style="border-radius: var(--radius-md); background-color: #ecfdf5; border-left: 4px solid #10b981 !important;">
+        <div th:if="${param.saveSuccess}" id="successAlert" role="alert" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 custom-style-52">
             <div class="d-flex align-items-center text-dark">
                 <i class="fa-solid fa-circle-check text-success fa-xl me-2"></i>
                 <div>
@@ -20,9 +20,9 @@
         <div class="greeting-card mb-4">
             <div class="row align-items-center g-3">
                 <div class="col-md-7">
-                    <p class="mb-1 opacity-75" style="font-size:.9rem;" id="greetingTime">Chào buổi sáng! 👋</p>
+                    <p class="mb-1 opacity-75 custom-style-53" id="greetingTime">Chào buổi sáng! 👋</p>
                     <h3 class="fw-bold mb-1" th:text="'Xin chào, ' + ${patient.fullName}">Xin chào, Bệnh nhân</h3>
-                    <p class="mb-0 opacity-75 d-flex align-items-center gap-2 flex-wrap" style="font-size:.88rem;">
+                    <p class="mb-0 opacity-75 d-flex align-items-center gap-2 flex-wrap custom-style-54">
                         <span><i class="fa-solid fa-calendar-days me-1"></i><span id="todayDate" th:text="${selectedDate}">Hôm nay</span></span>
                         <span th:if="${!isToday}" class="badge bg-warning text-dark font-weight-bold">
                             <i class="fa-solid fa-clock-rotate-left me-1"></i>Dữ liệu ngày cũ
@@ -34,15 +34,15 @@
                     </p>
                 </div>
                 <div class="col-md-5">
-                    <form th:action="@{/patient/dashboard}" method="GET" class="d-flex align-items-center justify-content-md-end gap-2" style="position: relative; z-index: 10000;">
+                    <form th:action="@{/patient/dashboard}" method="GET" class="d-flex align-items-center justify-content-md-end gap-2 custom-style-38">
                         <div class="bg-white bg-opacity-25 p-2 rounded-3 border border-white border-opacity-25 d-flex align-items-center gap-2">
                             <i class="fa-solid fa-calendar-check text-white ms-1"></i>
-                            <input type="date" name="date" th:value="${selectedDate}" class="form-control form-control-sm border-0 bg-transparent text-white fw-bold" style="max-width: 140px; cursor: pointer; color-scheme: dark;">
-                            <button type="submit" class="btn btn-light btn-sm fw-bold px-3 text-primary shadow-sm rounded-pill" style="position: relative; z-index: 10001;">
+                            <input type="date" name="date" th:value="${selectedDate}" class="form-control form-control-sm border-0 bg-transparent text-white fw-bold custom-style-55">
+                            <button type="submit" class="btn btn-light btn-sm fw-bold px-3 text-primary shadow-sm rounded-pill custom-style-56">
                                 <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
                             </button>
                         </div>
-                        <a th:if="${!isToday}" href="/patient/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-2" title="Quay về Hôm nay" style="position: relative; z-index: 10001;">
+                        <a th:if="${!isToday}" href="/patient/dashboard" title="Quay về Hôm nay" class="btn btn-outline-light btn-sm rounded-pill px-2 custom-style-56">
                             <i class="fa-solid fa-rotate-right"></i>
                         </a>
                     </form>
@@ -60,26 +60,26 @@
         <!-- Quick Stats Row -->
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-3">
-                <div class="card card-custom p-3 text-center h-100" style="border-top:4px solid #667eea;">
-                    <div class="fw-bold" style="font-size:1.8rem;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${medProgress + '%'}">0%</div>
+                <div class="card card-custom p-3 text-center h-100 custom-style-57">
+                    <div class="fw-bold custom-style-58" th:text="${medProgress + '%'}">0%</div>
                     <div class="text-muted small mt-1"><i class="fa-solid fa-pills me-1"></i>Uống thuốc</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="card card-custom p-3 text-center h-100" style="border-top:4px solid #4facfe;">
-                    <div class="fw-bold" style="font-size:1.8rem;background:var(--gradient-blue);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${waterProgress + '%'}">0%</div>
+                <div class="card card-custom p-3 text-center h-100 custom-style-59">
+                    <div class="fw-bold custom-style-60" th:text="${waterProgress + '%'}">0%</div>
                     <div class="text-muted small mt-1"><i class="fa-solid fa-glass-water me-1"></i>Uống nước</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="card card-custom p-3 text-center h-100" style="border-top:4px solid #38ef7d;">
-                    <div class="fw-bold" style="font-size:1.8rem;background:var(--gradient-teal);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${exerciseProgress + '%'}">0%</div>
+                <div class="card card-custom p-3 text-center h-100 custom-style-61">
+                    <div class="fw-bold custom-style-62" th:text="${exerciseProgress + '%'}">0%</div>
                     <div class="text-muted small mt-1"><i class="fa-solid fa-person-running me-1"></i>Tập luyện</div>
                 </div>
             </div>
             <div class="col-6 col-md-3">
-                <div class="card card-custom p-3 text-center h-100" style="border-top:4px solid #f7971e;">
-                    <div class="fw-bold" style="font-size:1.8rem;background:var(--gradient-amber);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" th:text="${caloriesPercent + '%'}">0%</div>
+                <div class="card card-custom p-3 text-center h-100 custom-style-63">
+                    <div class="fw-bold custom-style-64" th:text="${caloriesPercent + '%'}">0%</div>
                     <div class="text-muted small mt-1"><i class="fa-solid fa-utensils me-1"></i>Calo</div>
                 </div>
             </div>
@@ -88,6 +88,71 @@
         <div class="row g-4">
             
             <div class="col-lg-5">
+                <!-- Today's Health Log Status Card -->
+                <div class="card card-custom p-4 mb-4 border-0 bg-white custom-style-65">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold text-primary mb-0 custom-style-66">
+                            <i class="fa-solid fa-clipboard-check me-2"></i>Nhập Liệu Hôm Nay
+                        </h4>
+                        <span th:if="${logStatus.allRequiredDone}" class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-bold custom-style-67">
+                            <i class="fa-solid fa-circle-check me-1"></i>Đã đủ chỉ số
+                        </span>
+                        <span th:if="${!logStatus.allRequiredDone}" class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2 fw-bold custom-style-67">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>Chưa đủ chỉ số
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless align-middle mb-0 fs-085">
+                            <thead>
+                                <tr class="text-muted border-bottom custom-style-68">
+                                    <th class="pb-2">Thời điểm</th>
+                                    <th class="pb-2">Huyết áp (HA)</th>
+                                    <th class="pb-2">Đường huyết (ĐH)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="custom-style-69">
+                                    <td class="py-2.5 fw-semibold"><i class="fa-solid fa-sun text-warning me-1"></i>Sáng (Morning)</td>
+                                    <td class="py-2.5" th:classappend="${logStatus.morningBpClass}">
+                                        <i th:if="${logStatus.morningBpDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${!logStatus.morningBpDone && logStatus.morningBp != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.morningBp}"></span>
+                                    </td>
+                                    <td class="py-2.5" th:classappend="${logStatus.morningGlClass}">
+                                        <i th:if="${logStatus.morningGlDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${!logStatus.morningGlDone && logStatus.morningGl != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.morningGl}"></span>
+                                    </td>
+                                </tr>
+                                <tr class="custom-style-69">
+                                    <td class="py-2.5 fw-semibold"><i class="fa-solid fa-moon text-primary me-1"></i>Tối (Evening)</td>
+                                    <td class="py-2.5" th:classappend="${logStatus.eveningBpClass}">
+                                        <i th:if="${logStatus.eveningBpDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${!logStatus.eveningBpDone && logStatus.eveningBp != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.eveningBp}"></span>
+                                    </td>
+                                    <td class="py-2.5" th:classappend="${logStatus.eveningGlClass}">
+                                        <i th:if="${logStatus.eveningGlDone}" class="fa-solid fa-check-circle me-1"></i>
+                                        <i th:if="${!logStatus.eveningGlDone && logStatus.eveningGl != 'Không yêu cầu'}" class="fa-solid fa-circle-xmark text-danger me-1"></i>
+                                        <span th:text="${logStatus.eveningGl}"></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 fw-semibold"><i class="fa-solid fa-circle-info text-secondary me-1"></i>Tự chọn (Random)</td>
+                                    <td class="py-2.5" th:classappend="${logStatus.randomBpClass}" th:text="${logStatus.randomBp}"></td>
+                                    <td class="py-2.5" th:classappend="${logStatus.randomGlClass}" th:text="${logStatus.randomGl}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 pt-3 border-top text-center" th:if="${!logStatus.allRequiredDone}">
+                        <a href="/patient/log" class="btn btn-sm btn-outline-primary rounded-pill px-4 custom-style-70">
+                            <i class="fa-solid fa-plus-circle me-1"></i>Bổ sung chỉ số còn thiếu
+                        </a>
+                    </div>
+                </div>
+
                 <div class="card card-custom treatment-card p-4 mb-4">
                     <h4 class="fw-bold text-primary mb-3">
                         <i class="fa-solid fa-file-medical me-2"></i>Phác Đồ Điều Trị
@@ -96,7 +161,7 @@
                         <h6 class="fw-semibold text-secondary">
                             <i class="fa-solid fa-pills me-2 text-danger"></i>Chỉ định của bác sĩ
                         </h6>
-                        <p class="text-muted small" style="white-space: pre-line;" th:text="${treatmentPlan.medicalOrder}">
+                        <p class="text-muted small custom-style-71" th:text="${treatmentPlan.medicalOrder}">
                             Thông tin thuốc uống chỉ định
                         </p>
                     </div>
@@ -126,7 +191,7 @@
                             <span class="small text-muted">Hôm nay đã uống: <strong class="text-success" th:text="${takenMeds} + '/' + ${totalMeds}">0/0</strong> loại thuốc</span>
                             <span class="badge bg-success-subtle text-success" th:text="${medProgress} + '%'">0%</span>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress h-12px">
                             <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
                                  th:style="'width: ' + ${medProgress} + '%'" 
                                  th:aria-valuenow="${medProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -147,7 +212,7 @@
                             <span class="small text-muted">Hôm nay đã uống: <strong class="text-primary" th:text="${currentWater} + '/' + ${targetWater} + ' ml'">0/2000 ml</strong></span>
                             <span class="badge bg-primary-subtle text-primary" th:text="${waterProgress} + '%'">0%</span>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress h-12px">
                             <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" 
                                  th:style="'width: ' + ${waterProgress} + '%'" 
                                  th:aria-valuenow="${waterProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -168,7 +233,7 @@
                             <span class="small text-muted">Hôm nay đã tập: <strong class="text-success" th:text="${totalExerciseMinutes} + '/' + ${targetExerciseMinutes} + ' phút'">0/30 phút</strong></span>
                             <span class="badge bg-success-subtle text-success" th:text="${exerciseProgress} + '%'">0%</span>
                         </div>
-                        <div class="progress" style="height: 12px; border-radius: 6px;">
+                        <div class="progress h-12px">
                             <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
                                  th:style="'width: ' + ${exerciseProgress} + '%'" 
                                  th:aria-valuenow="${exerciseProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -219,15 +284,15 @@
                                             <span class="fw-bold" th:text="${meal.calories != null ? meal.calories + ' kcal' : 'null'}">0 kcal</span>
                                         </div>
                                         <div class="d-flex justify-content-between nutrient-badge">
-                                            <span><i class="fa-solid fa-drumstick-bite me-1" style="color:#d97706;"></i>Protein:</span>
+                                            <span><i class="fa-solid fa-drumstick-bite me-1 custom-style-72"></i>Protein:</span>
                                             <span class="fw-bold" th:text="${meal.protein != null ? meal.protein + ' g' : 'null'}">0 g</span>
                                         </div>
                                         <div class="d-flex justify-content-between nutrient-badge">
-                                            <span><i class="fa-solid fa-bacon me-1" style="color:#b91c1c;"></i>Fat (Lipid):</span>
+                                            <span><i class="fa-solid fa-bacon me-1 custom-style-73"></i>Fat (Lipid):</span>
                                             <span class="fw-bold" th:text="${meal.lipid != null ? meal.lipid + ' g' : 'null'}">0 g</span>
                                         </div>
                                         <div class="d-flex justify-content-between nutrient-badge">
-                                            <span><i class="fa-solid fa-bread-slice me-1" style="color:#d97706;"></i>Carbs:</span>
+                                            <span><i class="fa-solid fa-bread-slice me-1 custom-style-72"></i>Carbs:</span>
                                             <span class="fw-bold" th:text="${meal.glucid != null ? meal.glucid + ' g' : 'null'}">0 g</span>
                                         </div>
                                         <div class="d-flex justify-content-between nutrient-badge">
@@ -266,7 +331,7 @@
                                     <small class="text-muted fw-semibold">Lượng Calo</small>
                                     <span class="badge bg-danger-subtle text-danger" th:text="(${totalCalories != null} ? ${totalCalories} : 'null') + '/' + (${targetCalories != null} ? ${targetCalories} + ' kcal' : 'null')">0/null kcal</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-danger" role="progressbar" 
                                          th:style="'width: ' + ${caloriesPercent} + '%'" 
                                          th:aria-valuenow="${caloriesPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -280,7 +345,7 @@
                                     <small class="text-muted fw-semibold">Glucid (Carbs)</small>
                                     <span class="badge bg-warning-subtle text-warning" th:text="(${totalCarbs != null} ? ${totalCarbs} : 'null') + '/' + (${targetCarbs != null} ? ${targetCarbs} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-warning" role="progressbar" 
                                          th:style="'width: ' + ${carbsPercent} + '%'" 
                                          th:aria-valuenow="${carbsPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -294,7 +359,7 @@
                                     <small class="text-muted fw-semibold">Lipid (Chất béo)</small>
                                     <span class="badge bg-info-subtle text-info" th:text="(${totalFat != null} ? ${totalFat} : 'null') + '/' + (${targetFat != null} ? ${targetFat} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-info" role="progressbar" 
                                          th:style="'width: ' + ${fatPercent} + '%'" 
                                          th:aria-valuenow="${fatPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -308,7 +373,7 @@
                                     <small class="text-muted fw-semibold">Protein (Đạm)</small>
                                     <span class="badge bg-secondary-subtle text-secondary" th:text="(${totalProtein != null} ? ${totalProtein} : 'null') + '/' + (${targetProtein != null} ? ${targetProtein} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-secondary" role="progressbar" 
                                          th:style="'width: ' + ${proteinPercent} + '%'" 
                                          th:aria-valuenow="${proteinPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -322,7 +387,7 @@
                                     <small class="text-muted fw-semibold">Lượng Muối</small>
                                     <span class="badge bg-primary-subtle text-primary" th:text="(${totalSalt != null} ? ${totalSalt} : 'null') + '/' + (${targetSalt != null} ? ${targetSalt} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-primary" role="progressbar" 
                                          th:style="'width: ' + ${saltPercent} + '%'" 
                                          th:aria-valuenow="${saltPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -336,7 +401,7 @@
                                     <small class="text-muted fw-semibold">Chất Xơ</small>
                                     <span class="badge bg-success-subtle text-success" th:text="(${totalFiber != null} ? ${totalFiber} : 'null') + '/' + (${targetFiber != null} ? ${targetFiber} + ' g' : 'null')">0/null g</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-success" role="progressbar" 
                                          th:style="'width: ' + ${fiberPercent} + '%'" 
                                          th:aria-valuenow="${fiberPercent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -350,7 +415,7 @@
                                     <small class="text-muted fw-semibold">Lượng Nước</small>
                                     <span class="badge bg-primary-subtle text-primary" th:text="(${currentWater != null} ? ${currentWater} : 'null') + '/' + (${targetWater != null} ? ${targetWater} + ' ml' : 'null')">0/null ml</span>
                                 </div>
-                                <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress h-8px">
                                     <div class="progress-bar bg-info" role="progressbar" 
                                          th:style="'width: ' + ${waterProgress} + '%'" 
                                          th:aria-valuenow="${waterProgress}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -384,6 +449,7 @@
             }
         });
     </script>
+    
     <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
 </body>
 </html>

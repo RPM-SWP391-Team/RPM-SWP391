@@ -1,0 +1,1586 @@
+[
+    {
+        "question": "Mục tiêu huyết áp khi điều trị (on-treatment) cho hầu hết người cao tuổi mắc đái tháo đường là bao nhiêu khi có thể đạt được an toàn?",
+        "reference": "Dưới 130/80 mmHg khi có thể đạt được an toàn; mục tiêu huyết áp nới lỏng hơn (ví dụ dưới 140/90 mmHg) có thể áp dụng cho người có sức khỏe kém, tuổi thọ kỳ vọng hạn chế, hoặc nguy cơ cao gặp tác dụng phụ của liệu pháp hạ huyết áp.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0008711814880371094,
+        "retrieval_time": 10.187588214874268,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "efe533e5-4a6a-46e0-871f-036b5f3b9a7b",
+            "b45618ba-982d-434e-a57f-f745476024ac",
+            "ac8adbec-20ea-4376-aebb-4bc1fe265464",
+            "f5181e6b-8612-4f25-86cb-3187498d102e",
+            "7fc75827-56aa-4b2e-a3a2-afe262b8a294"
+        ],
+        "citation_ids": [
+            "efe533e5-4a6a-46e0-871f-036b5f3b9a7b",
+            "b45618ba-982d-434e-a57f-f745476024ac",
+            "ac8adbec-20ea-4376-aebb-4bc1fe265464",
+            "f5181e6b-8612-4f25-86cb-3187498d102e",
+            "7fc75827-56aa-4b2e-a3a2-afe262b8a294"
+        ]
+    },
+    {
+        "question": "Người có nguy cơ nhiễm toan ceton do đái tháo đường (DKA) nên được tư vấn và trang bị những gì để phòng ngừa?",
+        "reference": "Cần được tư vấn về dấu hiệu và triệu chứng sớm của DKA, được cung cấp công cụ đo ceton (nước tiểu và/hoặc máu), được giáo dục về tự quản lý tăng đường huyết và tăng ceton máu kịp thời (lời khuyên ngày ốm); không được ngừng insulin nền dù không ăn; và nên đo ceton khi glucose vượt 200 mg/dL (11.1 mmol/L) hoặc khi có yếu tố khởi phát như bệnh tật, bỏ liều insulin, rối loạn ăn uống.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005655288696289062,
+        "retrieval_time": 3.8447492122650146,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "1536ae95-28ea-433b-8aba-18a8ec797271",
+            "93d1c995-e64d-44ca-b4c3-08430325af57",
+            "ac2922ec-7521-4b12-951c-acf7cf22e56a",
+            "68e4e6d2-fe8c-4131-ab18-3911548a3081",
+            "bd3107ba-d53d-48a2-ba1e-5a26dd14b63b"
+        ],
+        "citation_ids": [
+            "1536ae95-28ea-433b-8aba-18a8ec797271",
+            "93d1c995-e64d-44ca-b4c3-08430325af57",
+            "ac2922ec-7521-4b12-951c-acf7cf22e56a",
+            "68e4e6d2-fe8c-4131-ab18-3911548a3081",
+            "bd3107ba-d53d-48a2-ba1e-5a26dd14b63b"
+        ]
+    },
+    {
+        "question": "Vì sao chỉ dùng insulin điều chỉnh (correctional insulin) đơn độc bị chống chỉ định ở người đái tháo đường type 1 nằm viện?",
+        "reference": "Vì liều insulin chỉ dựa trên glucose trước ăn không tính đến nhu cầu insulin nền hay lượng calo nạp vào, làm tăng nguy cơ cả hạ đường huyết và tăng đường huyết; cần có phác đồ insulin gồm cả thành phần nền và điều chỉnh cho mọi người đái tháo đường type 1 nhập viện, kể cả khi nhịn ăn hoàn toàn.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006985664367675781,
+        "retrieval_time": 5.24802303314209,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "3bba2ac3-1e66-4b51-b780-03882eb81253",
+            "2c639379-42d0-4721-ba31-ef31dadc53db",
+            "0cb450ec-0fbf-4a25-b085-0bfc3fc3ae0a",
+            "608730ff-55b0-4233-896d-e1fdaf3ba200",
+            "2aeabf54-8d7b-4e08-8eb9-12cf7b914249"
+        ],
+        "citation_ids": [
+            "3bba2ac3-1e66-4b51-b780-03882eb81253",
+            "2c639379-42d0-4721-ba31-ef31dadc53db",
+            "0cb450ec-0fbf-4a25-b085-0bfc3fc3ae0a",
+            "608730ff-55b0-4233-896d-e1fdaf3ba200",
+            "2aeabf54-8d7b-4e08-8eb9-12cf7b914249"
+        ]
+    },
+    {
+        "question": "Thuật ngữ LADA (latent autoimmune diabetes in adults) được xếp vào nhóm phân loại đái tháo đường nào theo hệ thống phân loại hiện nay?",
+        "reference": "Mọi dạng đái tháo đường qua trung gian tự miễn phá hủy tế bào beta, không phụ thuộc tuổi khởi phát, đều được xếp vào nhóm đái tháo đường type 1; thuật ngữ LADA phổ biến trong thực hành lâm sàng và có tác dụng nâng cao nhận thức rằng quá trình phá hủy tế bào beta tự miễn chậm có thể xảy ra ở người lớn.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005254745483398438,
+        "retrieval_time": 5.497344732284546,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "6b5e088c-2ccb-4227-935d-f52b1f800721",
+            "4ececf21-242e-4bb2-80de-15e97d41ccb0",
+            "017c7ae4-461d-44a1-89dc-391d63008666",
+            "f42535a9-8e4b-4af2-9aaf-8ff4b4ceb57f",
+            "8766c8ef-4974-41ff-ad7a-30f3d75a4d33"
+        ],
+        "citation_ids": [
+            "6b5e088c-2ccb-4227-935d-f52b1f800721",
+            "4ececf21-242e-4bb2-80de-15e97d41ccb0",
+            "017c7ae4-461d-44a1-89dc-391d63008666",
+            "f42535a9-8e4b-4af2-9aaf-8ff4b4ceb57f",
+            "8766c8ef-4974-41ff-ad7a-30f3d75a4d33"
+        ]
+    },
+    {
+        "question": "Con của các bà mẹ được chẩn đoán đái tháo đường thai kỳ (GDM) bằng phương pháp một bước (one-step method) trong nghiên cứu đoàn hệ HAPO có những kết cục chuyển hóa gì lúc 10-14 tuổi so với con của mẹ không có GDM?",
+        "reference": "Có tỷ lệ rối loạn dung nạp glucose (IGT) cao hơn; mức glucose tại 30 phút, 1 giờ và 2 giờ trong nghiệm pháp OGTT cao hơn; và giảm độ nhạy insulin cũng như chỉ số disposition đường uống, so với con của các bà mẹ không có GDM.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.000583648681640625,
+        "retrieval_time": 4.627151250839233,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "c79d8502-9895-4450-b633-08927edcb304",
+            "51d3e914-6465-49ba-8553-dc33f9cf940f",
+            "c180cc32-594b-498b-bfb4-8c16886364b2",
+            "490acfb3-7595-4ee1-a9c5-2e81d9408c70",
+            "c7fecbae-63f1-4f99-b54b-250bbc3694aa"
+        ],
+        "citation_ids": [
+            "c79d8502-9895-4450-b633-08927edcb304",
+            "51d3e914-6465-49ba-8553-dc33f9cf940f",
+            "c180cc32-594b-498b-bfb4-8c16886364b2",
+            "490acfb3-7595-4ee1-a9c5-2e81d9408c70",
+            "c7fecbae-63f1-4f99-b54b-250bbc3694aa"
+        ]
+    },
+    {
+        "question": "Người mắc đái tháo đường nên được giới thiệu đến chuyên gia dinh dưỡng (RDN) để nhận liệu pháp dinh dưỡng y khoa (MNT) cá thể hóa khi nào, và đặc biệt trong những trường hợp nào?",
+        "reference": "Nên được giới thiệu ngay tại thời điểm chẩn đoán và khi cần trong suốt cuộc đời, tương tự như DSMES; đặc biệt cần thiết khi người bệnh có thêm các tình trạng như tăng huyết áp, rối loạn lipid máu, suy tim, rối loạn tiêu hóa, bệnh thận mạn (CKD), các vấn đề dinh dưỡng liên quan thai kỳ, vấn đề tăng trưởng ở trẻ em, hoặc béo phì.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006539821624755859,
+        "retrieval_time": 5.043092966079712,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "cc28c82f-980b-447d-8473-b9923db73a6d",
+            "28b0624a-97d5-4b0a-aab0-1e21982f5ce6",
+            "c55105eb-f155-4a8c-860a-93f4acd4f0b9",
+            "ae5e7831-cd0f-4111-aa03-780b22fd61e0",
+            "55c5bd93-e601-4c08-8e28-5e6a7d56e1dc"
+        ],
+        "citation_ids": [
+            "cc28c82f-980b-447d-8473-b9923db73a6d",
+            "28b0624a-97d5-4b0a-aab0-1e21982f5ce6",
+            "c55105eb-f155-4a8c-860a-93f4acd4f0b9",
+            "ae5e7831-cd0f-4111-aa03-780b22fd61e0",
+            "55c5bd93-e601-4c08-8e28-5e6a7d56e1dc"
+        ]
+    },
+    {
+        "question": "Trong một thử nghiệm ngẫu nhiên ở người thừa cân/béo phì có tiền sử GDM, giảm cân trước khi mang thai lần sau ảnh hưởng thế nào đến nguy cơ tái phát GDM?",
+        "reference": "Giảm cân trước khi mang thai lần sau có liên quan đến nguy cơ tái phát GDM thấp hơn, đặc biệt khi mức giảm cân đạt từ 5% trở lên (OR 0.18, 95% CI 0.04-0.88).",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005955696105957031,
+        "retrieval_time": 5.040912866592407,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "4f8dcb37-335c-4544-8621-5d555e65f77e",
+            "b32a3cf2-bba4-471b-9b62-dbf1f0e2a90f",
+            "496301d2-2d03-4015-8863-8b7c4b1e41c2",
+            "84d481b6-5ca1-4423-a69d-6a98fae66f4d",
+            "7c7115fb-9f81-4d18-8856-1d673fa0d8c2"
+        ],
+        "citation_ids": [
+            "4f8dcb37-335c-4544-8621-5d555e65f77e",
+            "b32a3cf2-bba4-471b-9b62-dbf1f0e2a90f",
+            "496301d2-2d03-4015-8863-8b7c4b1e41c2",
+            "84d481b6-5ca1-4423-a69d-6a98fae66f4d",
+            "7c7115fb-9f81-4d18-8856-1d673fa0d8c2"
+        ]
+    },
+    {
+        "question": "Nên sàng lọc đái tháo đường do glucocorticoid gây ra bằng cách đo chỉ số đường huyết nào, và vì sao không nên chỉ dựa vào glucose lúc đói?",
+        "reference": "Nên sàng lọc bằng cách đo glucose huyết tương sau ăn (khoảng 1-2 giờ sau bữa) hoặc glucose ngẫu nhiên, thay vì lúc đói, vì tăng đường huyết do glucocorticoid thường xuất phát từ đề kháng insulin; dựa vào glucose lúc đói có thể dẫn đến chẩn đoán thiếu và điều trị chậm trễ.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006077289581298828,
+        "retrieval_time": 5.695613384246826,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "e684d3a1-66a3-41e7-a63f-a7206cc69190",
+            "536fd3c5-8a0a-45d0-85e4-ef9de9f8e849",
+            "4169592e-c48a-47c5-a679-5d86d3bcd0ac",
+            "a36ddff5-aaa4-40d5-80fc-3f4b2abc902f",
+            "3618e778-ed35-4283-8aa5-edab9e65b367"
+        ],
+        "citation_ids": [
+            "e684d3a1-66a3-41e7-a63f-a7206cc69190",
+            "536fd3c5-8a0a-45d0-85e4-ef9de9f8e849",
+            "4169592e-c48a-47c5-a679-5d86d3bcd0ac",
+            "a36ddff5-aaa4-40d5-80fc-3f4b2abc902f",
+            "3618e778-ed35-4283-8aa5-edab9e65b367"
+        ]
+    },
+    {
+        "question": "Đối với người đang điều trị metformin, ngưỡng eGFR nào yêu cầu giảm liều và ngưỡng nào yêu cầu ngừng hẳn metformin?",
+        "reference": "Nên giảm liều metformin khi eGFR dưới 45 mL/phút/1.73 m2, và nên ngừng hẳn khi eGFR dưới 30 mL/phút/1.73 m2; ngoài ra, không nên bắt đầu metformin ở người có eGFR dưới 45 mL/phút/1.73 m2.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006368160247802734,
+        "retrieval_time": 4.9754228591918945,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "539e14fa-cd2a-43d7-b987-8334de162ede",
+            "c3a34385-d29d-422a-b7d1-3ceb974a8afc",
+            "758e39a3-894e-4881-be59-1e300fe061f3",
+            "574250f6-6cd2-4958-8566-c7ecbbb84f16",
+            "7601fd01-37fd-4312-aa25-13236cf2a0dc"
+        ],
+        "citation_ids": [
+            "539e14fa-cd2a-43d7-b987-8334de162ede",
+            "c3a34385-d29d-422a-b7d1-3ceb974a8afc",
+            "758e39a3-894e-4881-be59-1e300fe061f3",
+            "574250f6-6cd2-4958-8566-c7ecbbb84f16",
+            "7601fd01-37fd-4312-aa25-13236cf2a0dc"
+        ]
+    },
+    {
+        "question": "Theo báo cáo Khảo sát Người lao động Nông nghiệp Quốc gia năm 2023, tỷ lệ đái tháo đường tự báo cáo (đã hiệu chỉnh theo tuổi) ở người lao động nông nghiệp di cư so với không di cư là bao nhiêu?",
+        "reference": "13.51% (95% CI 10.0-17.1) ở người lao động nông nghiệp di cư, so với 10.8% (95% CI 9.0-12.6) ở người lao động không di cư.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005674362182617188,
+        "retrieval_time": 5.062417030334473,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "9a8ed57f-ef66-46c2-996b-3029091accc9",
+            "1038f8d2-54f4-4577-bd67-f3b4d9888250",
+            "3772efe7-8b45-440b-ae6c-d33858970b09",
+            "e0a74190-9108-4aaa-af07-a25213c12b75",
+            "8e2a10f1-5dca-4767-92b2-901cdbfddacb"
+        ],
+        "citation_ids": [
+            "9a8ed57f-ef66-46c2-996b-3029091accc9",
+            "1038f8d2-54f4-4577-bd67-f3b4d9888250",
+            "3772efe7-8b45-440b-ae6c-d33858970b09",
+            "e0a74190-9108-4aaa-af07-a25213c12b75",
+            "8e2a10f1-5dca-4767-92b2-901cdbfddacb"
+        ]
+    },
+    {
+        "question": "Trong nghiên cứu DPP, việc sử dụng statin có liên quan đến nguy cơ đái tháo đường như thế nào, và có nên ngừng statin vì lo ngại này không?",
+        "reference": "Sử dụng statin trong DPP có liên quan đến nguy cơ đái tháo đường mắc mới cao hơn (hazard ratio gộp 1.36, 95% CI 1.17-1.58) bất kể nhóm điều trị; tuy nhiên vì lợi ích tim mạch và giảm tử vong của statin vượt trội nguy cơ đái tháo đường, không khuyến cáo ngừng statin chỉ vì lo ngại nguy cơ này.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005321502685546875,
+        "retrieval_time": 5.329637765884399,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "7d438a36-ab6b-4202-bf00-bfb2a0040b44",
+            "12fb898b-99d1-4d79-962b-62302960507a",
+            "0fa4ae0c-25c7-43e1-a0fd-e65a0920c158",
+            "306f1d01-d284-40db-8faa-e5ffa76d23de",
+            "074d02ed-f6f2-4ad4-b0a5-5cb50ab8bd71"
+        ],
+        "citation_ids": [
+            "7d438a36-ab6b-4202-bf00-bfb2a0040b44",
+            "12fb898b-99d1-4d79-962b-62302960507a",
+            "0fa4ae0c-25c7-43e1-a0fd-e65a0920c158",
+            "306f1d01-d284-40db-8faa-e5ffa76d23de",
+            "074d02ed-f6f2-4ad4-b0a5-5cb50ab8bd71"
+        ]
+    },
+    {
+        "question": "Theo đoạn văn, tỷ lệ thiết bị đo huyết áp dao động (oscillometric) hiện có trên thị trường đã được kiểm định đầy đủ về độ chính xác là bao nhiêu?",
+        "reference": "Chỉ khoảng 6% các thiết bị đo huyết áp dao động hiện có trên thị trường đã được kiểm định đầy đủ.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006403923034667969,
+        "retrieval_time": 5.135007381439209,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "f534f89c-ecb8-4396-8a7e-b287062c9312",
+            "92550ff2-98b2-4eda-9e43-4a0f46c7a331",
+            "b3c41a09-5cf6-42c1-9af1-fd017e27cafb",
+            "d1f5da2e-4c46-4aa5-b5ce-0e27b1f6e49d",
+            "e8915561-784c-4672-a325-9a532cf609ef"
+        ],
+        "citation_ids": [
+            "f534f89c-ecb8-4396-8a7e-b287062c9312",
+            "92550ff2-98b2-4eda-9e43-4a0f46c7a331",
+            "b3c41a09-5cf6-42c1-9af1-fd017e27cafb",
+            "d1f5da2e-4c46-4aa5-b5ce-0e27b1f6e49d",
+            "e8915561-784c-4672-a325-9a532cf609ef"
+        ]
+    },
+    {
+        "question": "Khuyến cáo 1.1 trong bản cập nhật đã được chỉnh sửa để nhấn mạnh điều gì?",
+        "reference": "Nhấn mạnh tầm quan trọng của việc ra quyết định chung (shared decision-making) dựa trên giá trị, sở thích cá nhân, tiên lượng, bệnh đồng mắc, và các cân nhắc tài chính đã được thông tin đầy đủ của người bệnh.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005550384521484375,
+        "retrieval_time": 4.969950914382935,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "f42f68da-4259-43dd-98d6-624acc73629b",
+            "5fd95a15-e9b0-4987-b06d-03810d263f9e",
+            "f633443e-cba7-48c5-b373-25e1448664e6",
+            "4017f608-9910-406c-a214-c943101744b8",
+            "fdd01f8b-e2cb-4780-b088-ed060f318e6a"
+        ],
+        "citation_ids": [
+            "f42f68da-4259-43dd-98d6-624acc73629b",
+            "5fd95a15-e9b0-4987-b06d-03810d263f9e",
+            "f633443e-cba7-48c5-b373-25e1448664e6",
+            "4017f608-9910-406c-a214-c943101744b8",
+            "fdd01f8b-e2cb-4780-b088-ed060f318e6a"
+        ]
+    },
+    {
+        "question": "Ngưỡng glucose lúc đói và A1C nào được dùng để xác định bất thường chuyển hóa glucose sớm có thể làm tăng nguy cơ kết cục thai kỳ và sơ sinh bất lợi?",
+        "reference": "Ngưỡng glucose lúc đói 110 mg/dL (6.1 mmol/L) hoặc A1C 5.9% (41 mmol/mol); một số nghiên cứu (không phải tất cả) cũng cho thấy ngưỡng A1C 5.7% (39 mmol/L) có liên quan đến kết cục chu sinh bất lợi.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005583763122558594,
+        "retrieval_time": 5.009593963623047,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "5fe1be0c-39c0-4389-8c9e-7f7c7c6173e8",
+            "2b437b95-d071-4694-acb8-d37f02cb37d0",
+            "76da6312-55be-4e19-a324-c8339c685eff",
+            "ec262157-6b69-45dc-8e49-904efcb14cb7",
+            "61b75443-3aa6-4375-ac42-5f73caff96c1"
+        ],
+        "citation_ids": [
+            "5fe1be0c-39c0-4389-8c9e-7f7c7c6173e8",
+            "2b437b95-d071-4694-acb8-d37f02cb37d0",
+            "76da6312-55be-4e19-a324-c8339c685eff",
+            "ec262157-6b69-45dc-8e49-904efcb14cb7",
+            "61b75443-3aa6-4375-ac42-5f73caff96c1"
+        ]
+    },
+    {
+        "question": "Ở người đái tháo đường type 2 có tăng huyết áp kháng trị, nhóm thuốc nào được thêm vào phác đồ hiện có để kiểm soát huyết áp, và cần lưu ý nguy cơ gì khi phối hợp?",
+        "reference": "Thuốc đối kháng thụ thể mineralocorticoid (MRA) như spironolactone và eplerenone có hiệu quả khi thêm vào phác đồ hiện có; tuy nhiên việc thêm MRA vào phác đồ có ACE inhibitor hoặc ARB có thể làm tăng nguy cơ tăng kali máu, nên cần theo dõi định kỳ creatinine và kali huyết thanh.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005476474761962891,
+        "retrieval_time": 4.969869375228882,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "8d4203db-2265-4948-8084-e6ebe3193916",
+            "46d8d99d-2f5d-4031-8145-b29eccb99016",
+            "2c0f2002-6830-4995-8f19-df83129487b7",
+            "6fa14ded-da42-45bc-85e2-693f504dde68",
+            "bcd352c1-37b3-4988-82ab-734d2d39ff04"
+        ],
+        "citation_ids": [
+            "8d4203db-2265-4948-8084-e6ebe3193916",
+            "46d8d99d-2f5d-4031-8145-b29eccb99016",
+            "2c0f2002-6830-4995-8f19-df83129487b7",
+            "6fa14ded-da42-45bc-85e2-693f504dde68",
+            "bcd352c1-37b3-4988-82ab-734d2d39ff04"
+        ]
+    },
+    {
+        "question": "Theo khuyến cáo 5.6, DSMES nên được cung cấp qua những hình thức nào để đáp ứng sở thích cá nhân và giảm rào cản tiếp cận?",
+        "reference": "DSMES nên được cung cấp qua telehealth và/hoặc các can thiệp kỹ thuật số để đáp ứng sở thích cá nhân, giảm rào cản tiếp cận, và cải thiện sự hài lòng.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006551742553710938,
+        "retrieval_time": 4.978923082351685,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "38653578-f0f9-4cf2-a18d-5e593ccd991f",
+            "78a04bb3-c662-460d-80b8-81c9a7c13676",
+            "7ee996bb-e5ba-4d4d-87df-546d7711b68e",
+            "f256445a-b1e3-4696-bc5b-efc0eda3c7a3",
+            "307f819b-7a7d-42f1-b23e-d83d59f6fc3d"
+        ],
+        "citation_ids": [
+            "38653578-f0f9-4cf2-a18d-5e593ccd991f",
+            "78a04bb3-c662-460d-80b8-81c9a7c13676",
+            "7ee996bb-e5ba-4d4d-87df-546d7711b68e",
+            "f256445a-b1e3-4696-bc5b-efc0eda3c7a3",
+            "307f819b-7a7d-42f1-b23e-d83d59f6fc3d"
+        ]
+    },
+    {
+        "question": "Theo bản cập nhật khuyến cáo 13.11a về người cao tuổi, lượng protein tối thiểu được khuyến nghị là bao nhiêu?",
+        "reference": "Ít nhất 0.8 g/kg cân nặng cơ thể mỗi ngày.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006527900695800781,
+        "retrieval_time": 5.008144378662109,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "24f68145-14dc-442c-af1c-78167698856c",
+            "01f1d3f0-e091-46b3-8483-06bce7e8754a",
+            "8f03c2d7-06a7-4599-b074-5f514bc29d1c",
+            "2d538c64-4a99-43fd-b1f8-56c07a1339ad",
+            "e0c44493-97a9-4368-a33e-2394cc175b1e"
+        ],
+        "citation_ids": [
+            "24f68145-14dc-442c-af1c-78167698856c",
+            "01f1d3f0-e091-46b3-8483-06bce7e8754a",
+            "8f03c2d7-06a7-4599-b074-5f514bc29d1c",
+            "2d538c64-4a99-43fd-b1f8-56c07a1339ad",
+            "e0c44493-97a9-4368-a33e-2394cc175b1e"
+        ]
+    },
+    {
+        "question": "Vì sao khoảng cách 3 năm được chọn làm tần suất sàng lọc, và sàng lọc cộng đồng ngoài cơ sở y tế có được khuyến cáo không?",
+        "reference": "Khoảng cách 3 năm giúp giảm số xét nghiệm dương tính giả cần xác nhận lại, đồng thời đảm bảo người có kết quả âm tính giả được xét nghiệm lại trước khi biến chứng phát triển đáng kể; sàng lọc cộng đồng ngoài cơ sở y tế nói chung không được khuyến cáo vì người có kết quả dương tính có thể không tiếp cận được xét nghiệm xác nhận và chăm sóc theo dõi phù hợp.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006647109985351562,
+        "retrieval_time": 5.000367641448975,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "0f6f688f-9366-4b42-9575-2d6a55c41f13",
+            "b2eb1622-0242-4e42-a6da-9c14bfb6296a",
+            "8ee36e5d-b8be-4913-bd6a-5c64669f9fa4",
+            "b8caa745-210d-4117-80ed-8211298b73db",
+            "a509cdf7-8b65-4cb4-88f3-2e21c670c850"
+        ],
+        "citation_ids": [
+            "0f6f688f-9366-4b42-9575-2d6a55c41f13",
+            "b2eb1622-0242-4e42-a6da-9c14bfb6296a",
+            "8ee36e5d-b8be-4913-bd6a-5c64669f9fa4",
+            "b8caa745-210d-4117-80ed-8211298b73db",
+            "a509cdf7-8b65-4cb4-88f3-2e21c670c850"
+        ]
+    },
+    {
+        "question": "Liệu pháp incretin, cụ thể là chất chủ vận thụ thể GLP-1 (GLP-1 RA), có liên quan gì đến điều trị rối loạn ăn uống ở người đái tháo đường?",
+        "reference": "GLP-1 RA (và tiềm năng là chất chủ vận kép GIP/GLP-1) tác động lên mạch cảm giác thèm ăn và hệ thống khen thưởng, giúp giảm cảm giác đói không kiểm soát và ăn quá mức; một tổng quan hệ thống cho thấy bằng chứng sớm về hiệu quả giảm hành vi ăn uống vô độ, và một phân tích gộp cho thấy GLP-1 RA liên quan đến giảm ăn uống theo cảm xúc.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005021095275878906,
+        "retrieval_time": 4.94380784034729,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "ccde0e90-5d94-462d-93f0-473feea4f94f",
+            "3d2cc2fc-d52e-4887-8f2c-9fa0cf86f009",
+            "120c0eb2-9013-45d7-826f-ce5ca2c4c0f4",
+            "0baabe8c-64e9-4c3c-a25a-03ab1f8e739b"
+        ],
+        "citation_ids": [
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "ccde0e90-5d94-462d-93f0-473feea4f94f",
+            "3d2cc2fc-d52e-4887-8f2c-9fa0cf86f009",
+            "120c0eb2-9013-45d7-826f-ce5ca2c4c0f4",
+            "0baabe8c-64e9-4c3c-a25a-03ab1f8e739b"
+        ]
+    },
+    {
+        "question": "Tư vấn trước khi mang thai cho người đái tháo đường có khả năng sinh sản nên bao gồm những nội dung gì?",
+        "reference": "Nên bao gồm lợi ích và nguy cơ đã biết của thuốc hạ đường huyết cũng như các thuốc khác (như hạ lipid máu, hạ huyết áp) trong thai kỳ, và khuyến cáo về thời điểm cần thay đổi thuốc trước khi mang thai; người có kế hoạch mang thai nên được tư vấn rằng cần một khoảng thời gian vài tháng để điều chỉnh liệu pháp phù hợp cho thai kỳ nhằm đạt mục tiêu đường huyết trước khi mang thai.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.000507354736328125,
+        "retrieval_time": 5.071469068527222,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "92569cb7-36d9-402e-a358-bc324d903367",
+            "10b782cf-ff2f-48eb-9769-d715fce8566f",
+            "29bb6232-4432-4899-b862-bf065d57300b",
+            "5c98c286-ff4d-4e22-b5ce-a986f364b1bb",
+            "06c08be1-ccad-4d80-9f6f-23d67dc31270"
+        ],
+        "citation_ids": [
+            "92569cb7-36d9-402e-a358-bc324d903367",
+            "10b782cf-ff2f-48eb-9769-d715fce8566f",
+            "29bb6232-4432-4899-b862-bf065d57300b",
+            "5c98c286-ff4d-4e22-b5ce-a986f364b1bb",
+            "06c08be1-ccad-4d80-9f6f-23d67dc31270"
+        ]
+    },
+    {
+        "question": "Bệnh võng mạc đái tháo đường (diabetic retinopathy) tiến triển qua các giai đoạn nào, từ sớm đến biến chứng nặng?",
+        "reference": "Bắt đầu bằng vi phình mạch (microaneurysms) ở giai đoạn sớm nhất, sau đó là xuất huyết và thiếu máu cục bộ võng mạc; đáp ứng với thiếu máu cục bộ có thể xảy ra tân mạch hóa, gọi là bệnh võng mạc đái tháo đường tăng sinh (PDR); tại bất kỳ điểm nào trong quá trình này, mạch máu võng mạc có thể rò rỉ dịch dẫn đến phù hoàng điểm do đái tháo đường (DME); các biến chứng nhãn khoa khác gồm xuất huyết dịch kính và bong võng mạc do co kéo.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005035400390625,
+        "retrieval_time": 4.912633895874023,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "89eeeb01-9db1-441a-a0ec-c1a2484e88b6",
+            "1f2e64fb-7183-4c78-9870-56f5b8dec134",
+            "2a6a8333-5de4-429f-9d75-b400be4d2a6f",
+            "77ceb90f-295d-4bec-aebd-5a1a504cc249",
+            "35e90671-6ac8-4c90-be13-7a28a8e02579"
+        ],
+        "citation_ids": [
+            "89eeeb01-9db1-441a-a0ec-c1a2484e88b6",
+            "1f2e64fb-7183-4c78-9870-56f5b8dec134",
+            "2a6a8333-5de4-429f-9d75-b400be4d2a6f",
+            "77ceb90f-295d-4bec-aebd-5a1a504cc249",
+            "35e90671-6ac8-4c90-be13-7a28a8e02579"
+        ]
+    },
+    {
+        "question": "Tăng huyết áp áo choàng trắng (white-coat hypertension) và tăng huyết áp ẩn giấu (masked hypertension) được phân biệt như thế nào dựa trên huyết áp đo tại phòng khám so với tại nhà?",
+        "reference": "Tăng huyết áp áo choàng trắng là huyết áp vượt ngưỡng chẩn đoán tại phòng khám (ví dụ từ 140/90 mmHg trở lên) nhưng dưới ngưỡng khi đo tại nhà/lưu động (ví dụ dưới 135/85 mmHg ban ngày, hoặc huyết áp 24 giờ dưới 130/80 mmHg); ngược lại, tăng huyết áp ẩn giấu là huyết áp dưới ngưỡng chẩn đoán tại phòng khám nhưng trên ngưỡng khi đo tại nhà/lưu động (dưới 140/90 mmHg tại phòng khám nhưng từ 135/85 mmHg trở lên tại nhà, hoặc huyết áp 24 giờ từ 130/80 mmHg trở lên).",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0007171630859375,
+        "retrieval_time": 5.0169453620910645,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "bcfe7de5-abd5-48ef-b224-0f80cbf51ead",
+            "a5968e01-8fba-446d-b6a5-7780cd34d603",
+            "cff68472-11aa-4b4e-8cbe-1dde1a96edc8",
+            "934a97e7-41e2-4c34-bcc4-1ef55220ba01",
+            "a24f54b4-067c-4edb-92ba-5df8b035a6cd"
+        ],
+        "citation_ids": [
+            "bcfe7de5-abd5-48ef-b224-0f80cbf51ead",
+            "a5968e01-8fba-446d-b6a5-7780cd34d603",
+            "cff68472-11aa-4b4e-8cbe-1dde1a96edc8",
+            "934a97e7-41e2-4c34-bcc4-1ef55220ba01",
+            "a24f54b4-067c-4edb-92ba-5df8b035a6cd"
+        ]
+    },
+    {
+        "question": "Việc bổ sung vitamin D thường quy cho người đái tháo đường type 1 hoặc type 2 không có thiếu hụt có được khuyến cáo hay không, và metformin liên quan gì đến vitamin B12?",
+        "reference": "Bổ sung vitamin D thường quy cho người không có thiếu hụt hiện chưa được khuyến cáo, dù một số phân tích post hoc gợi ý lợi ích tiềm năng ở một số nhóm cụ thể, các nghiên cứu khác lại không thấy lợi ích hoặc kết quả trái chiều. Metformin có liên quan đến thiếu hụt vitamin B12, nên cần cân nhắc xét nghiệm định kỳ vitamin B12 ở người dùng metformin, đặc biệt người có thiếu máu hoặc bệnh thần kinh ngoại biên.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005571842193603516,
+        "retrieval_time": 5.0141706466674805,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "56d5536b-ec49-4417-9bc3-e6363bcccb52",
+            "30a1dc70-a79d-45f3-a7aa-29a8257d93a7",
+            "62194b6f-33cc-4463-a0ad-03c3b87bf468",
+            "8694b1a0-a796-4880-b867-b5ec08cb2f94",
+            "c09f5f2c-a4d9-479c-be3b-a5e22da68e5d"
+        ],
+        "citation_ids": [
+            "56d5536b-ec49-4417-9bc3-e6363bcccb52",
+            "30a1dc70-a79d-45f3-a7aa-29a8257d93a7",
+            "62194b6f-33cc-4463-a0ad-03c3b87bf468",
+            "8694b1a0-a796-4880-b867-b5ec08cb2f94",
+            "c09f5f2c-a4d9-479c-be3b-a5e22da68e5d"
+        ]
+    },
+    {
+        "question": "Theo Guidelines 2024, mục tiêu huyết áp điều trị (BP target) được khuyến cáo là bao nhiêu, khác gì với ngưỡng khởi trị (BP threshold)?",
+        "reference": "Mục tiêu huyết áp điều trị theo Guidelines 2024 luôn là 120-129/70-79 mmHg (nếu dung nạp được điều trị, có một số ngoại lệ với mục tiêu nới lỏng hơn); ngưỡng khởi trị có thể khác nhau tùy nguy cơ tim mạch, ví dụ người có huyết áp tâm thu 130-139 mmHg và/hoặc tâm trương 80-89 mmHg cũng có thể được khuyến cáo điều trị nếu nguy cơ tim mạch đủ cao, dù không đạt ngưỡng 140/90 mmHg.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0007314682006835938,
+        "retrieval_time": 5.128752946853638,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "7a57673d-dacf-40a2-a332-12026a02356a",
+            "464a0674-bab6-42d7-838d-6467414f9b91",
+            "22bd2b53-5ca9-4e61-9710-ff3d311c3ea7",
+            "e7db247c-0953-4325-888c-015ecbf1b35b",
+            "2258542a-51c5-4d53-adce-9749e1a5228b"
+        ],
+        "citation_ids": [
+            "7a57673d-dacf-40a2-a332-12026a02356a",
+            "464a0674-bab6-42d7-838d-6467414f9b91",
+            "22bd2b53-5ca9-4e61-9710-ff3d311c3ea7",
+            "e7db247c-0953-4325-888c-015ecbf1b35b",
+            "2258542a-51c5-4d53-adce-9749e1a5228b"
+        ]
+    },
+    {
+        "question": "Tăng huyết áp cấp cứu tương đối (hypertension urgency) được định nghĩa như thế nào, và những bệnh nhân này có cần nhập viện không?",
+        "reference": "Là thuật ngữ mô tả tăng huyết áp nặng ở bệnh nhân không có bằng chứng lâm sàng về tổn thương cơ quan cấp tính; những bệnh nhân này cần được hạ huyết áp nhưng thường không cần nhập viện, việc hạ áp tốt nhất thực hiện bằng thuốc uống theo phác đồ điều trị; tuy nhiên có thể cần tái khám ngoại trú khẩn hơn để đảm bảo huyết áp được kiểm soát.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0007147789001464844,
+        "retrieval_time": 4.964369773864746,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "2e6f9ceb-9a30-47c3-b504-fdccf27382fe",
+            "a7fbb529-b88e-4adb-8a0d-6859cb62e79e",
+            "04054555-6492-44ed-b47c-668bf6cfa09e",
+            "f910405d-aa96-449b-b0ce-afd82996e48e",
+            "75961b10-55ea-4e6d-9aac-a7690e225630"
+        ],
+        "citation_ids": [
+            "2e6f9ceb-9a30-47c3-b504-fdccf27382fe",
+            "a7fbb529-b88e-4adb-8a0d-6859cb62e79e",
+            "04054555-6492-44ed-b47c-668bf6cfa09e",
+            "f910405d-aa96-449b-b0ce-afd82996e48e",
+            "75961b10-55ea-4e6d-9aac-a7690e225630"
+        ]
+    },
+    {
+        "question": "So với người không mắc đái tháo đường, tỷ lệ nhập viện do tổn thương thận cấp (AKI) cần lọc máu ở người đái tháo đường cao hơn bao nhiêu lần?",
+        "reference": "Cao hơn 5 lần (risk ratio 5.0, 95% CI 4.8-5.1).",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005736351013183594,
+        "retrieval_time": 4.504801273345947,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "8f2c3a08-3565-46ba-98a9-12c5e81c7681",
+            "dfb2d2d0-4314-4bf0-9802-c3a32e7e79e5",
+            "adb50cca-daa3-4ba7-a730-55ccba77e289",
+            "6d85bb86-07bb-4ae3-bc98-3ebe0575839d",
+            "5120ccdb-5288-4183-a935-027a4ad592f2"
+        ],
+        "citation_ids": [
+            "8f2c3a08-3565-46ba-98a9-12c5e81c7681",
+            "dfb2d2d0-4314-4bf0-9802-c3a32e7e79e5",
+            "adb50cca-daa3-4ba7-a730-55ccba77e289",
+            "6d85bb86-07bb-4ae3-bc98-3ebe0575839d",
+            "5120ccdb-5288-4183-a935-027a4ad592f2"
+        ]
+    },
+    {
+        "question": "Ngưỡng ACR (tỷ lệ albumin/creatinine) nào được dùng để loại trừ protein niệu ở phụ nữ mang thai, và tỷ lệ phụ nữ mang thai có tăng huyết áp mạn tính có tăng huyết áp thứ phát là bao nhiêu?",
+        "reference": "ACR dưới 30 mg/mmol (dưới 0.3 mg/mg) có thể loại trừ protein niệu. Trong một nghiên cứu, 10% phụ nữ mang thai có tăng huyết áp mạn tính có tăng huyết áp thứ phát (ước tính ảnh hưởng 0.24% tổng số thai kỳ); nguyên nhân phổ biến nhất của tăng huyết áp thứ phát trong thai kỳ là bệnh thận mạn (CKD).",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006504058837890625,
+        "retrieval_time": 4.958101272583008,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "535f94e4-6984-4e36-bd47-277f2f9484bd",
+            "e3c22cbc-387d-4aed-b253-a9545eb4336e",
+            "574250f6-6cd2-4958-8566-c7ecbbb84f16",
+            "b3396650-f241-412d-9f24-104cc3921138",
+            "fbbaced4-808b-4e2b-bb03-8f9f78c34e86"
+        ],
+        "citation_ids": [
+            "535f94e4-6984-4e36-bd47-277f2f9484bd",
+            "e3c22cbc-387d-4aed-b253-a9545eb4336e",
+            "574250f6-6cd2-4958-8566-c7ecbbb84f16",
+            "b3396650-f241-412d-9f24-104cc3921138",
+            "fbbaced4-808b-4e2b-bb03-8f9f78c34e86"
+        ]
+    },
+    {
+        "question": "FDA đã phê duyệt thuốc điều trị béo phì cho những đối tượng nào dựa trên ngưỡng BMI?",
+        "reference": "Cho người có BMI từ 30 kg/m2 trở lên hoặc từ 27 kg/m2 trở lên kèm theo một hoặc nhiều bệnh đồng mắc liên quan béo phì (ví dụ đái tháo đường type 2, tăng huyết áp, và/hoặc rối loạn lipid máu), dùng như liệu pháp bổ trợ cho chế độ ăn giảm calo và tăng hoạt động thể chất.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006117820739746094,
+        "retrieval_time": 4.8742547035217285,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "f8af7ebe-bcc1-445d-9f3b-499df0f42805",
+            "d2b60808-d539-4867-a4d6-acae5c0791f5",
+            "3291095c-cd68-4410-a202-f53b19b42711",
+            "0dae7941-ee10-426d-8e41-e0721c71c69d",
+            "26f12ef4-bbc5-47e0-99a1-b66c280ff4fd"
+        ],
+        "citation_ids": [
+            "f8af7ebe-bcc1-445d-9f3b-499df0f42805",
+            "d2b60808-d539-4867-a4d6-acae5c0791f5",
+            "3291095c-cd68-4410-a202-f53b19b42711",
+            "0dae7941-ee10-426d-8e41-e0721c71c69d",
+            "26f12ef4-bbc5-47e0-99a1-b66c280ff4fd"
+        ]
+    },
+    {
+        "question": "Tăng huyết áp kháng trị được định nghĩa như thế nào, và nhóm thuốc nào nên được cân nhắc cho người không đạt mục tiêu huyết áp dù đã dùng 3 nhóm thuốc hạ áp?",
+        "reference": "Tăng huyết áp kháng trị được định nghĩa là huyết áp từ 130/80 mmHg trở lên dù đã áp dụng chiến lược điều trị bao gồm thay đổi lối sống phù hợp cộng với lợi tiểu và hai thuốc hạ áp khác có cơ chế bổ sung ở liều dung nạp tối đa; nên cân nhắc điều trị bằng thuốc đối kháng thụ thể mineralocorticoid (MRA) cho người không đạt mục tiêu huyết áp với ba nhóm thuốc.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006737709045410156,
+        "retrieval_time": 4.999112606048584,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "e6047220-a0d8-40bf-b375-b6f57b6c1cf9",
+            "6c25c2bc-889f-43f6-811d-6329585a869b",
+            "6d712c00-a2c6-42c2-b06b-7e6d0bc90b3f",
+            "13ea3ef8-4e78-4003-8c67-dc28706e3fec",
+            "fe70bd71-43a1-496a-9580-63a5fbb28334"
+        ],
+        "citation_ids": [
+            "e6047220-a0d8-40bf-b375-b6f57b6c1cf9",
+            "6c25c2bc-889f-43f6-811d-6329585a869b",
+            "6d712c00-a2c6-42c2-b06b-7e6d0bc90b3f",
+            "13ea3ef8-4e78-4003-8c67-dc28706e3fec",
+            "fe70bd71-43a1-496a-9580-63a5fbb28334"
+        ]
+    },
+    {
+        "question": "Theo số liệu năm 2021, có bao nhiêu người ở Mỹ mắc đái tháo đường và bao nhiêu người mắc tiền đái tháo đường?",
+        "reference": "Ước tính 38.4 triệu người mắc đái tháo đường (11.6% dân số Mỹ), trong đó 38.1 triệu là người trưởng thành từ 18 tuổi trở lên (14.7% người trưởng thành Mỹ), với 8.7 triệu người không biết mình mắc bệnh; thêm 97.6 triệu người trưởng thành (38.0% dân số) mắc tiền đái tháo đường.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.00074005126953125,
+        "retrieval_time": 6.53594446182251,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "8e2a10f1-5dca-4767-92b2-901cdbfddacb",
+            "6711c453-35c0-45fb-9609-c33bdd66cfb1",
+            "ba79a057-38f8-49c9-b95c-e5ced7d7ca90",
+            "7b311e41-c5f6-4d41-b615-ee4c07bf7176",
+            "eab8eece-33dc-4baf-a973-aee18562f7a9"
+        ],
+        "citation_ids": [
+            "8e2a10f1-5dca-4767-92b2-901cdbfddacb",
+            "6711c453-35c0-45fb-9609-c33bdd66cfb1",
+            "ba79a057-38f8-49c9-b95c-e5ced7d7ca90",
+            "7b311e41-c5f6-4d41-b615-ee4c07bf7176",
+            "eab8eece-33dc-4baf-a973-aee18562f7a9"
+        ]
+    },
+    {
+        "question": "Theo khuyến cáo 10.42, người đái tháo đường type 2 có bệnh thận mạn (CKD) kèm albumin niệu, đã dùng liều tối đa ACE inhibitor hoặc ARB, nên được điều trị bổ sung bằng thuốc gì?",
+        "reference": "Nên điều trị bổ sung bằng thuốc đối kháng thụ thể mineralocorticoid non-steroid (nonsteroidal MRA) đã được chứng minh lợi ích, để cải thiện kết cục tim mạch và giảm nguy cơ tiến triển bệnh thận mạn.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006263256072998047,
+        "retrieval_time": 4.744185447692871,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "83216ad5-d1b2-4e77-8e26-2e43f370c793",
+            "2d723c34-6b70-4bf1-b3c8-76a4a5f3089c",
+            "f757b772-f315-48bb-a84b-e283c56caed1",
+            "791ee34f-44ce-486d-b431-fd4bd874b50e",
+            "0475fe24-6b92-4fd0-aeaa-047454dd96c6"
+        ],
+        "citation_ids": [
+            "83216ad5-d1b2-4e77-8e26-2e43f370c793",
+            "2d723c34-6b70-4bf1-b3c8-76a4a5f3089c",
+            "f757b772-f315-48bb-a84b-e283c56caed1",
+            "791ee34f-44ce-486d-b431-fd4bd874b50e",
+            "0475fe24-6b92-4fd0-aeaa-047454dd96c6"
+        ]
+    },
+    {
+        "question": "Tập luyện ngắt quãng cường độ cao (HIIT) được định nghĩa với cường độ và thời gian như thế nào?",
+        "reference": "HIIT gồm các đợt tập luyện aerobic ngắn thực hiện ở mức 65-90% VO2peak (khả năng hiếu khí tối đa) hoặc 75-95% nhịp tim tối đa, kéo dài 10 giây đến 4 phút, xen kẽ với 12 giây đến 5 phút hồi phục chủ động hoặc thụ động.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006749629974365234,
+        "retrieval_time": 5.062761306762695,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "284f79c6-a5dc-4df7-b493-5df6a7f3e5ba",
+            "f9e1913d-6c11-46f8-bb8e-66ae52432302",
+            "3c4f25ac-75a5-4497-af88-fa965955859d",
+            "5846aed2-3348-4cd9-a0b5-6af98c1caadd",
+            "9f9e87f5-0d34-4fd6-88b1-c3e734b423da"
+        ],
+        "citation_ids": [
+            "284f79c6-a5dc-4df7-b493-5df6a7f3e5ba",
+            "f9e1913d-6c11-46f8-bb8e-66ae52432302",
+            "3c4f25ac-75a5-4497-af88-fa965955859d",
+            "5846aed2-3348-4cd9-a0b5-6af98c1caadd",
+            "9f9e87f5-0d34-4fd6-88b1-c3e734b423da"
+        ]
+    },
+    {
+        "question": "Theo hướng dẫn cập nhật của Học viện Thần kinh học Hoa Kỳ (AAN), nhóm thuốc nào có thể được cân nhắc trong điều trị đau do bệnh thần kinh ngoại biên đái tháo đường (DPN)?",
+        "reference": "Gabapentinoid, thuốc ức chế tái hấp thu serotonin-norepinephrine (SNRI), thuốc chẹn kênh natri, và thuốc chống trầm cảm ba vòng (TCA) đều có thể được cân nhắc trong điều trị đau ở DPN; điều trị ban đầu cũng nên tập trung đồng thời vào rối loạn giấc ngủ và tâm trạng do tần suất cao các vấn đề này ở người có DPN.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006079673767089844,
+        "retrieval_time": 5.257511615753174,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "0b4a68dc-d203-404e-87b8-12eabfe21baf",
+            "ed4c2d39-1838-4b42-81a1-bda1d0c5ee6a",
+            "93d9307c-f402-4219-a17e-a898513649b7",
+            "995d1264-bae9-4908-bff7-974f0bbc231c",
+            "c93fd0e9-8c03-423a-920a-28bb2efba742"
+        ],
+        "citation_ids": [
+            "0b4a68dc-d203-404e-87b8-12eabfe21baf",
+            "ed4c2d39-1838-4b42-81a1-bda1d0c5ee6a",
+            "93d9307c-f402-4219-a17e-a898513649b7",
+            "995d1264-bae9-4908-bff7-974f0bbc231c",
+            "c93fd0e9-8c03-423a-920a-28bb2efba742"
+        ]
+    },
+    {
+        "question": "Những chiến lược hành vi dựa trên bằng chứng nào giúp người đái tháo đường và người chăm sóc xây dựng thói quen hành vi sức khỏe và vượt qua rào cản tự quản lý?",
+        "reference": "Bao gồm phỏng vấn tạo động lực, kích hoạt (activation), đặt mục tiêu và lập kế hoạch hành động, giải quyết vấn đề, theo dõi/tự giám sát hành vi sức khỏe, và tạo cơ hội hỗ trợ xã hội; các can thiệp đa thành phần hiệu quả nhất trong cải thiện hành vi và kết cục đường huyết, đặc biệt ở trẻ em và thanh thiếu niên khi triển khai theo mô hình gia đình hoặc đa hệ thống.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006625652313232422,
+        "retrieval_time": 5.18668007850647,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "6883a38e-4f48-4928-b5a7-a59268f2baa1",
+            "7ee996bb-e5ba-4d4d-87df-546d7711b68e",
+            "9cb76886-226c-4a11-bc26-b0504138012d",
+            "96b4df2a-c364-4d61-a558-6502977f3eb5",
+            "14a3c210-5415-4ecf-8987-7c867cb7a192"
+        ],
+        "citation_ids": [
+            "6883a38e-4f48-4928-b5a7-a59268f2baa1",
+            "7ee996bb-e5ba-4d4d-87df-546d7711b68e",
+            "9cb76886-226c-4a11-bc26-b0504138012d",
+            "96b4df2a-c364-4d61-a558-6502977f3eb5",
+            "14a3c210-5415-4ecf-8987-7c867cb7a192"
+        ]
+    },
+    {
+        "question": "Những thuốc SGLT2 inhibitor nào đã được phê duyệt cho trẻ em và thanh thiếu niên 10-17 tuổi mắc đái tháo đường type 2?",
+        "reference": "Empagliflozin, dapagliflozin, và canagliflozin đã được phê duyệt cho trẻ em và thanh thiếu niên 10-17 tuổi mắc đái tháo đường type 2, dựa trên các thử nghiệm lâm sàng cho thấy giảm A1C có ý nghĩa lâm sàng.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005719661712646484,
+        "retrieval_time": 5.051607370376587,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "0cc2e1d3-f8d2-44be-84a8-417e31af4a83",
+            "14912e1f-31dc-4fb2-88e8-74fbcdfe8fa7",
+            "120c0eb2-9013-45d7-826f-ce5ca2c4c0f4",
+            "0f00fb6a-7941-4eb7-805d-94bb0af164b5"
+        ],
+        "citation_ids": [
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "0cc2e1d3-f8d2-44be-84a8-417e31af4a83",
+            "14912e1f-31dc-4fb2-88e8-74fbcdfe8fa7",
+            "120c0eb2-9013-45d7-826f-ce5ca2c4c0f4",
+            "0f00fb6a-7941-4eb7-805d-94bb0af164b5"
+        ]
+    },
+    {
+        "question": "Tỷ lệ sử dụng liệu pháp glucocorticoid thường xuyên ở người nhập viện là bao nhiêu, và các thuốc này gây tăng đường huyết ở bao nhiêu phần trăm người bệnh?",
+        "reference": "Tỷ lệ sử dụng glucocorticoid thường xuyên ở người nhập viện có thể lên đến 10-15%, và các thuốc này có thể gây tăng đường huyết ở 56-86% người bệnh (có và không có đái tháo đường từ trước).",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005381107330322266,
+        "retrieval_time": 4.938302278518677,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "bda75719-1750-4b6a-b742-1ea9fb55abc1",
+            "e684d3a1-66a3-41e7-a63f-a7206cc69190",
+            "eabd5d4e-3f22-4aa1-acdb-a19c2c6664c3",
+            "4169592e-c48a-47c5-a679-5d86d3bcd0ac",
+            "795e8eff-2bc7-4d01-b416-0e410b75be82"
+        ],
+        "citation_ids": [
+            "bda75719-1750-4b6a-b742-1ea9fb55abc1",
+            "e684d3a1-66a3-41e7-a63f-a7206cc69190",
+            "eabd5d4e-3f22-4aa1-acdb-a19c2c6664c3",
+            "4169592e-c48a-47c5-a679-5d86d3bcd0ac",
+            "795e8eff-2bc7-4d01-b416-0e410b75be82"
+        ]
+    },
+    {
+        "question": "Người đái tháo đường nên được tư vấn giảm thời gian ít vận động (sedentary time) như thế nào?",
+        "reference": "Nên được tư vấn giảm thời gian ít vận động và ngắt quãng các hoạt động ít vận động ít nhất mỗi 30 phút bằng cách đứng dậy, đi bộ, hoặc thực hiện các hoạt động thể chất nhẹ khác, để hỗ trợ lợi ích về đường huyết và các lợi ích tim mạch chuyển hóa khác như chức năng mạch máu.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005726814270019531,
+        "retrieval_time": 4.975459337234497,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "c902a4d1-b7d8-4947-a4e7-4c953a995cd7",
+            "b815587f-7aca-477a-ba10-e1d569dfe3f9",
+            "2319e75b-4715-4bd4-bf41-8a25a83ceceb",
+            "30394b98-e520-41c5-9d27-9ec0bb1e8ab0",
+            "b8893978-62f3-43fd-9d3d-14aa956ac398"
+        ],
+        "citation_ids": [
+            "c902a4d1-b7d8-4947-a4e7-4c953a995cd7",
+            "b815587f-7aca-477a-ba10-e1d569dfe3f9",
+            "2319e75b-4715-4bd4-bf41-8a25a83ceceb",
+            "30394b98-e520-41c5-9d27-9ec0bb1e8ab0",
+            "b8893978-62f3-43fd-9d3d-14aa956ac398"
+        ]
+    },
+    {
+        "question": "Hệ thống AID (tự động cấp insulin) gồm những thành phần chính nào, và thuật toán điều chỉnh insulin có thể được đặt ở đâu?",
+        "reference": "Gồm ba thành phần chính: bơm insulin, hệ thống CGM (theo dõi glucose liên tục), và thuật toán xác định lượng insulin cấp; thuật toán có thể được đặt trong thân bơm, trong pod insulin, hoặc trên ứng dụng điện thoại.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005974769592285156,
+        "retrieval_time": 4.958149194717407,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "5fb0384f-fc1a-4c49-9d69-26b9548cb9a9",
+            "7911723d-4ccc-460e-8076-92af67f9d55d",
+            "a3446cff-151c-4c5e-b880-19569a3a4ed5",
+            "de9d0d5f-8e8f-4d41-bcbe-c959e2667439",
+            "720f3e51-11bf-4e7c-9212-a5e13f1cbed7"
+        ],
+        "citation_ids": [
+            "5fb0384f-fc1a-4c49-9d69-26b9548cb9a9",
+            "7911723d-4ccc-460e-8076-92af67f9d55d",
+            "a3446cff-151c-4c5e-b880-19569a3a4ed5",
+            "de9d0d5f-8e8f-4d41-bcbe-c959e2667439",
+            "720f3e51-11bf-4e7c-9212-a5e13f1cbed7"
+        ]
+    },
+    {
+        "question": "Trong giai đoạn phẫu thuật, việc tiếp tục sử dụng ACE inhibitor có liên quan đến nguy cơ gì, và thử nghiệm PREOP-ACEI cho thấy điều gì khi ngừng thuốc tạm thời trước phẫu thuật?",
+        "reference": "Việc tiếp tục dùng ACE inhibitor quanh phẫu thuật có liên quan đến nguy cơ hạ huyết áp chu phẫu cao hơn và tổn thương cơ quan đích sau đó bao gồm tổn thương thận, nhồi máu cơ tim, và đột quỵ. Thử nghiệm PREOP-ACEI cho thấy việc ngừng tạm thời ACE inhibitor trước phẫu thuật có liên quan đến giảm nguy cơ hạ huyết áp trong mổ.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006809234619140625,
+        "retrieval_time": 5.073442220687866,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "fcddcca7-e59f-44f9-9386-debc68959427",
+            "43c9eaef-12ae-4284-846f-0a170dec3846",
+            "d1964549-b42a-470c-8287-54b1d2ca96bd",
+            "e015947b-2bcd-459a-a29d-d27bd011b909",
+            "50e778a6-20b1-4cbe-813c-cd3aa48ab624"
+        ],
+        "citation_ids": [
+            "fcddcca7-e59f-44f9-9386-debc68959427",
+            "43c9eaef-12ae-4284-846f-0a170dec3846",
+            "d1964549-b42a-470c-8287-54b1d2ca96bd",
+            "e015947b-2bcd-459a-a29d-d27bd011b909",
+            "50e778a6-20b1-4cbe-813c-cd3aa48ab624"
+        ]
+    },
+    {
+        "question": "Thuốc điều trị đầu tay cho tăng đường huyết thứ phát do thuốc ức chế mTOR kinase (như everolimus) là gì, và vì sao?",
+        "reference": "Metformin là điều trị đầu tay cho tăng đường huyết thứ phát do thuốc ức chế mTOR vì hiệu quả và độ an toàn; pioglitazone có thể được cân nhắc là điều trị hàng hai nhờ khả năng giảm đề kháng insulin, tùy nguy cơ tác dụng phụ; insulin thường dành cho các trường hợp tăng đường huyết kháng trị sau khi đã dùng thuốc không phải insulin.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005109310150146484,
+        "retrieval_time": 4.856342077255249,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "76c5b556-11fc-4e49-b5d8-0ad9f634c1ba",
+            "320cc809-28fb-449f-a4bc-830222be0df7",
+            "f15771dd-07a2-4ae3-b0a8-7f240ad4ecf5",
+            "a4dfec99-fbfa-4eb7-b296-6f7e6d6c3f18",
+            "5e199dda-22c9-496a-ad5e-d6120272ce12"
+        ],
+        "citation_ids": [
+            "76c5b556-11fc-4e49-b5d8-0ad9f634c1ba",
+            "320cc809-28fb-449f-a4bc-830222be0df7",
+            "f15771dd-07a2-4ae3-b0a8-7f240ad4ecf5",
+            "a4dfec99-fbfa-4eb7-b296-6f7e6d6c3f18",
+            "5e199dda-22c9-496a-ad5e-d6120272ce12"
+        ]
+    },
+    {
+        "question": "Ngoài các yếu tố xã hội quyết định sức khỏe (SDOH), những yếu tố nào khác góp phần gây bất bình đẳng trong chăm sóc đái tháo đường?",
+        "reference": "Bao gồm thiên kiến ngầm và công khai, các chính sách và quy trình phân biệt đối xử, thực hành mang tính thể chế, và các yếu tố cấu trúc hiện tại lẫn lịch sử ảnh hưởng đến sức khỏe và phúc lợi của cá nhân và cộng đồng.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006327629089355469,
+        "retrieval_time": 4.965800523757935,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "b9f27e3a-785b-460d-9cc2-e1ee7bc9ec08",
+            "c71a1a21-6210-4b9a-8a90-4eb77e35ef49",
+            "3bf218a0-7191-411a-bf0e-874881258691",
+            "8ee36e5d-b8be-4913-bd6a-5c64669f9fa4",
+            "fb5c9eda-e4f9-449d-ab1b-ba23b56367b4"
+        ],
+        "citation_ids": [
+            "b9f27e3a-785b-460d-9cc2-e1ee7bc9ec08",
+            "c71a1a21-6210-4b9a-8a90-4eb77e35ef49",
+            "3bf218a0-7191-411a-bf0e-874881258691",
+            "8ee36e5d-b8be-4913-bd6a-5c64669f9fa4",
+            "fb5c9eda-e4f9-449d-ab1b-ba23b56367b4"
+        ]
+    },
+    {
+        "question": "Nghiên cứu ADAG (dùng để xây dựng Bảng 6.1 tương quan A1C và glucose trung bình) có những hạn chế gì khi diễn giải?",
+        "reference": "Dữ liệu chỉ đến từ một nghiên cứu duy nhất công bố năm 2008; glucose trung bình được tính từ kết hợp đo lường bằng hệ thống CGM đời đầu và glucose mao mạch trong 3 tháng, hệ thống CGM cũ này cần hiệu chỉnh nhiều lần mỗi ngày; chưa rõ các ước tính này có áp dụng được cho các hệ thống CGM hiện đại và chính xác hơn hay không.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005545616149902344,
+        "retrieval_time": 4.980603456497192,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "b6c1c703-590c-4507-a1f1-7d1c962ca758",
+            "cc2951c8-55b6-482f-8c58-daef3db42606",
+            "17c5e337-28ef-4e2a-88d5-63f0901bcbae",
+            "be42c9d0-807f-491b-965f-efbc9ca741fd",
+            "bcdb69e7-f540-4017-b1cc-32a27a3aa6c2"
+        ],
+        "citation_ids": [
+            "b6c1c703-590c-4507-a1f1-7d1c962ca758",
+            "cc2951c8-55b6-482f-8c58-daef3db42606",
+            "17c5e337-28ef-4e2a-88d5-63f0901bcbae",
+            "be42c9d0-807f-491b-965f-efbc9ca741fd",
+            "bcdb69e7-f540-4017-b1cc-32a27a3aa6c2"
+        ]
+    },
+    {
+        "question": "Người đái tháo đường được khuyến cáo giới hạn lượng natri tiêu thụ ở mức nào mỗi ngày, và thử nghiệm DASH4D cho thấy chế độ ăn ít natri cải thiện huyết áp như thế nào?",
+        "reference": "Được khuyến cáo giới hạn natri dưới 2.300 mg/ngày. Thử nghiệm DASH4D cho thấy chế độ ăn DASH4D ít natri (1.500 mg/ngày ở mức 2.000 kcal) cải thiện huyết áp tâm thu 4.6 mmHg và tâm trương 2.3 mmHg so với chế độ ăn nhiều natri hơn; mức giảm huyết áp lớn nhất xảy ra trong 3 tuần đầu mỗi giai đoạn điều trị.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006084442138671875,
+        "retrieval_time": 5.054258346557617,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "bdbb732f-41b1-4fc9-8d51-5c4752309367",
+            "25a26e97-8ddf-45e0-8281-4eb80b371275",
+            "79ecd1c6-1037-4502-bdb6-7dd27aa2fd2a",
+            "d2e816f2-14c9-480c-a081-ca88dbaab2a4",
+            "b4b6034e-eb79-4721-8169-b8b53e3c2c09"
+        ],
+        "citation_ids": [
+            "bdbb732f-41b1-4fc9-8d51-5c4752309367",
+            "25a26e97-8ddf-45e0-8281-4eb80b371275",
+            "79ecd1c6-1037-4502-bdb6-7dd27aa2fd2a",
+            "d2e816f2-14c9-480c-a081-ca88dbaab2a4",
+            "b4b6034e-eb79-4721-8169-b8b53e3c2c09"
+        ]
+    },
+    {
+        "question": "Ở người có tiền sử đái tháo đường thai kỳ (GDM), metformin và thay đổi lối sống tích cực có hiệu quả giảm nguy cơ đái tháo đường như thế nào, và duy trì được bao lâu?",
+        "reference": "Cả hai can thiệp đều dẫn đến giảm 50% nguy cơ đái tháo đường tương đương nhau ở người có tiền sử GDM, và hiệu quả này vẫn duy trì sau 10 năm theo dõi; liệu pháp lối sống có chi phí-hiệu quả cao (12.878 USD/QALY) còn metformin tiết kiệm chi phí nhẹ so với giả dược.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005731582641601562,
+        "retrieval_time": 5.214693307876587,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "609fd298-b7a4-47c7-80b8-5a77f6b24d07",
+            "bb76074b-5c85-4f0a-b395-04f346aa9de9",
+            "ef61f326-5e70-4708-9da1-8840b7bde79c",
+            "b0ba24a2-edc9-4f0a-8b9f-f7f45d3d4925",
+            "4b78d9cd-9711-4b38-a410-5dae365efb4c"
+        ],
+        "citation_ids": [
+            "609fd298-b7a4-47c7-80b8-5a77f6b24d07",
+            "bb76074b-5c85-4f0a-b395-04f346aa9de9",
+            "ef61f326-5e70-4708-9da1-8840b7bde79c",
+            "b0ba24a2-edc9-4f0a-8b9f-f7f45d3d4925",
+            "4b78d9cd-9711-4b38-a410-5dae365efb4c"
+        ]
+    },
+    {
+        "question": "Có sự khác biệt gì về mức A1C giữa người da đen và người da trắng không gốc Hispanic hoặc người gốc Hispanic, và điều này có nên được diễn giải là do chủng tộc không?",
+        "reference": "Nghiên cứu cho thấy người da đen có mức A1C cao hơn khoảng 0.3% so với người da trắng không gốc Hispanic hoặc người gốc Hispanic; tuy nhiên không nên dùng chủng tộc hay nguồn gốc tổ tiên làm đại diện cho những khác biệt di truyền chưa được hiểu rõ, và mối liên hệ giữa A1C với nguy cơ biến chứng có vẻ tương tự giữa các nhóm dân số da đen và da trắng không gốc Hispanic.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.00044035911560058594,
+        "retrieval_time": 5.124094486236572,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "ad05891d-bc41-498b-87f9-8659ae131a1e",
+            "75c6a489-0d9f-41c2-b3d6-17c60f44c73e",
+            "940ea717-e13b-4599-918b-d7c4f0933612",
+            "be42c9d0-807f-491b-965f-efbc9ca741fd",
+            "b6c1c703-590c-4507-a1f1-7d1c962ca758"
+        ],
+        "citation_ids": [
+            "ad05891d-bc41-498b-87f9-8659ae131a1e",
+            "75c6a489-0d9f-41c2-b3d6-17c60f44c73e",
+            "940ea717-e13b-4599-918b-d7c4f0933612",
+            "be42c9d0-807f-491b-965f-efbc9ca741fd",
+            "b6c1c703-590c-4507-a1f1-7d1c962ca758"
+        ]
+    },
+    {
+        "question": "Người mắc đái tháo đường thể MODY do đột biến HNF1A có thể được điều trị bằng gì, và có thể kết hợp thêm thuốc gì để cải thiện kiểm soát đường huyết?",
+        "reference": "Có thể được điều trị bằng sulfonylurea liều thấp nhưng cuối cùng có thể cần đến insulin; đối với người có đột biến HNF1A, việc thêm thuốc ức chế DPP-4 vào sulfonylurea có thể giúp cải thiện độ biến thiên đường huyết và đạt mục tiêu đường huyết.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005490779876708984,
+        "retrieval_time": 5.005376100540161,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "f432aa89-f903-4d1c-859f-72d1e51376f3",
+            "bf0d25d7-f909-4ded-a824-d194f8061657",
+            "fb24f91a-5ceb-47d2-9840-d4efdd00df1b",
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "364059aa-9664-4583-8fa9-0cfafddbb376"
+        ],
+        "citation_ids": [
+            "f432aa89-f903-4d1c-859f-72d1e51376f3",
+            "bf0d25d7-f909-4ded-a824-d194f8061657",
+            "fb24f91a-5ceb-47d2-9840-d4efdd00df1b",
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "364059aa-9664-4583-8fa9-0cfafddbb376"
+        ]
+    },
+    {
+        "question": "Theo khuyến cáo 16.10, việc chỉ dùng insulin điều chỉnh/bổ sung đơn độc (không có insulin nền) trong bệnh viện có được khuyến cáo không?",
+        "reference": "Không, theo khuyến cáo 16.10, đối với hầu hết người bệnh, việc chỉ dùng insulin điều chỉnh hoặc bổ sung đơn độc mà không có insulin nền (trước đây gọi là sliding scale) trong môi trường nội trú không được khuyến khích.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0008704662322998047,
+        "retrieval_time": 4.492438077926636,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "3be6b5e5-4160-473c-893d-d040f7d04c4c",
+            "608730ff-55b0-4233-896d-e1fdaf3ba200",
+            "f4084121-cdfc-4868-8a41-3e62d702a06d",
+            "31118cf7-696b-4f33-b60e-c4cab175b09c",
+            "0cf1d6ae-c06b-4504-8f78-d50a486c3274"
+        ],
+        "citation_ids": [
+            "3be6b5e5-4160-473c-893d-d040f7d04c4c",
+            "608730ff-55b0-4233-896d-e1fdaf3ba200",
+            "f4084121-cdfc-4868-8a41-3e62d702a06d",
+            "31118cf7-696b-4f33-b60e-c4cab175b09c",
+            "0cf1d6ae-c06b-4504-8f78-d50a486c3274"
+        ]
+    },
+    {
+        "question": "Bệnh thận mạn (CKD) giai đoạn G1 và G2 được định nghĩa dựa trên ngưỡng eGFR nào?",
+        "reference": "Giai đoạn G1 được định nghĩa bởi bằng chứng albumin niệu cao với eGFR từ 90 mL/phút/1.73m2 trở lên, còn giai đoạn G2 với eGFR từ 60 đến dưới 90 mL/phút/1.73m2; các giai đoạn G3-G5 được định nghĩa bởi các mức eGFR thấp dần, với G5 là suy thận.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006003379821777344,
+        "retrieval_time": 5.193907976150513,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "93fa31d9-bb71-4d3c-942d-ad39874d1a1e",
+            "574250f6-6cd2-4958-8566-c7ecbbb84f16",
+            "83216ad5-d1b2-4e77-8e26-2e43f370c793",
+            "5120ccdb-5288-4183-a935-027a4ad592f2",
+            "0fb03c85-0cc7-40c7-a13c-81d30ff86492"
+        ],
+        "citation_ids": [
+            "93fa31d9-bb71-4d3c-942d-ad39874d1a1e",
+            "574250f6-6cd2-4958-8566-c7ecbbb84f16",
+            "83216ad5-d1b2-4e77-8e26-2e43f370c793",
+            "5120ccdb-5288-4183-a935-027a4ad592f2",
+            "0fb03c85-0cc7-40c7-a13c-81d30ff86492"
+        ]
+    },
+    {
+        "question": "Những thiết bị y tế nào đã được FDA phê duyệt cho giảm cân ngắn hạn, và vì sao một số thiết bị này đã bị rút khỏi thị trường Mỹ?",
+        "reference": "Bao gồm bóng hơi dạ dày cấy ghép, thiết bị kích thích dây thần kinh phế vị, và liệu pháp hút dịch dạ dày; một số thiết bị đã bị rút tự nguyện khỏi thị trường Mỹ do chi phí cao, bảo hiểm chi trả hạn chế, và dữ liệu hạn chế về hiệu quả ở người đái tháo đường.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005481243133544922,
+        "retrieval_time": 5.295174598693848,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "fa1a490d-7a1d-40f8-9f25-6a1aca3294c4",
+            "b2675799-c1ad-4d16-8db3-1743188def3a",
+            "c78c496a-0c70-4846-b459-20a9f2f11c4b",
+            "f8af7ebe-bcc1-445d-9f3b-499df0f42805",
+            "e7181ab0-30ef-41e3-aac1-aa723dbe7f7d"
+        ],
+        "citation_ids": [
+            "fa1a490d-7a1d-40f8-9f25-6a1aca3294c4",
+            "b2675799-c1ad-4d16-8db3-1743188def3a",
+            "c78c496a-0c70-4846-b459-20a9f2f11c4b",
+            "f8af7ebe-bcc1-445d-9f3b-499df0f42805",
+            "e7181ab0-30ef-41e3-aac1-aa723dbe7f7d"
+        ]
+    },
+    {
+        "question": "Thử nghiệm REDUCE-IT cho thấy bổ sung acid eicosapentaenoic tinh khiết liều 4g/ngày có lợi ích gì với biến cố tim mạch ở người có nguy cơ cao?",
+        "reference": "Giảm 5% nguy cơ tuyệt đối biến cố tim mạch bất lợi ở người đã có bệnh tim mạch xơ vữa (ASCVD) đang điều trị statin và có tăng triglyceride máu tồn dư (135-499 mg/dL); nghiên cứu này bao gồm 8.179 người tham gia, hơn 50% mắc đái tháo đường.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006012916564941406,
+        "retrieval_time": 4.966742277145386,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "4ae3fbfe-73fd-4ee2-b346-fbbf52b567fe",
+            "5caad7c5-ab53-4346-996a-e8b9cdcc53ee",
+            "d2e816f2-14c9-480c-a081-ca88dbaab2a4",
+            "0742714b-630d-4a40-8c9b-9d71480b677d",
+            "0d516c45-c874-4b9a-a836-6bc7032a4e64"
+        ],
+        "citation_ids": [
+            "4ae3fbfe-73fd-4ee2-b346-fbbf52b567fe",
+            "5caad7c5-ab53-4346-996a-e8b9cdcc53ee",
+            "d2e816f2-14c9-480c-a081-ca88dbaab2a4",
+            "0742714b-630d-4a40-8c9b-9d71480b677d",
+            "0d516c45-c874-4b9a-a836-6bc7032a4e64"
+        ]
+    },
+    {
+        "question": "Theo phân tích gộp bao gồm hơn 18.000 người đái tháo đường từ 14 thử nghiệm ngẫu nhiên, mỗi 1 mmol/L giảm LDL cholesterol nhờ statin làm giảm bao nhiêu phần trăm tử vong chung và tử vong do mạch máu?",
+        "reference": "Giảm 9% tử vong do mọi nguyên nhân và giảm 13% tử vong do mạch máu cho mỗi 1 mmol/L (39 mg/dL) giảm LDL cholesterol; lợi ích tim mạch này không phụ thuộc vào mức LDL cholesterol nền và có mối liên hệ tuyến tính với mức giảm LDL, không có ngưỡng thấp nào mà dưới đó không còn lợi ích.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0007441043853759766,
+        "retrieval_time": 4.673626184463501,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "ad81ae7f-941e-4912-b936-bd4274f810aa",
+            "ba9a8d14-f2c9-4e09-84ff-977f45976133",
+            "a7a320e2-74a0-41b2-9d45-2cdc10460043",
+            "12fb898b-99d1-4d79-962b-62302960507a",
+            "1984d2c1-fade-4670-8e97-126ca63663f2"
+        ],
+        "citation_ids": [
+            "ad81ae7f-941e-4912-b936-bd4274f810aa",
+            "ba9a8d14-f2c9-4e09-84ff-977f45976133",
+            "a7a320e2-74a0-41b2-9d45-2cdc10460043",
+            "12fb898b-99d1-4d79-962b-62302960507a",
+            "1984d2c1-fade-4670-8e97-126ca63663f2"
+        ]
+    },
+    {
+        "question": "Thuốc ức chế SGLT2 nên được tạm ngừng bao lâu trước phẫu thuật tự chọn, và tỷ lệ DKA ở người dùng SGLT2 inhibitor cần phẫu thuật cấp cứu là bao nhiêu so với người không dùng?",
+        "reference": "Nên được tạm ngừng 3-4 ngày trước phẫu thuật tự chọn. Trong một nghiên cứu hồi cứu, tỷ lệ DKA ở người dùng SGLT2 inhibitor cần phẫu thuật cấp cứu là 4.9%, so với 3.5% ở người không dùng; sau khi hiệu chỉnh các yếu tố gây nhiễu, sự khác biệt này không có ý nghĩa thống kê.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005393028259277344,
+        "retrieval_time": 5.005133152008057,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "d1964549-b42a-470c-8287-54b1d2ca96bd",
+            "bd3107ba-d53d-48a2-ba1e-5a26dd14b63b",
+            "d0ea9ea5-6c93-4207-8f21-66f3a9a8eb6d",
+            "14912e1f-31dc-4fb2-88e8-74fbcdfe8fa7",
+            "6cabcc81-2553-464b-8330-a52a55c338ea"
+        ],
+        "citation_ids": [
+            "d1964549-b42a-470c-8287-54b1d2ca96bd",
+            "bd3107ba-d53d-48a2-ba1e-5a26dd14b63b",
+            "d0ea9ea5-6c93-4207-8f21-66f3a9a8eb6d",
+            "14912e1f-31dc-4fb2-88e8-74fbcdfe8fa7",
+            "6cabcc81-2553-464b-8330-a52a55c338ea"
+        ]
+    },
+    {
+        "question": "Việc áp dụng công nghệ bơm insulin và AID ở Mỹ có sự khác biệt gì theo địa lý và tình trạng kinh tế xã hội?",
+        "reference": "Có sự khác biệt về địa lý (có thể liên quan đến sở thích của chuyên gia y tế hoặc đặc điểm trung tâm điều trị) và theo tình trạng kinh tế xã hội, vì liệu pháp bơm phổ biến hơn ở người có tình trạng kinh tế xã hội cao hơn, thể hiện qua bảo hiểm y tế tư nhân, thu nhập gia đình, và trình độ học vấn.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006453990936279297,
+        "retrieval_time": 4.858401775360107,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "9e1df9a4-d969-43df-969d-b042a58343b1",
+            "de9d0d5f-8e8f-4d41-bcbe-c959e2667439",
+            "d7912b1e-e316-472e-975d-6d038631cb53",
+            "39878d3a-6aaf-4e3a-8f03-48603ca53df9",
+            "0e182f6e-0e06-4870-9763-608d3584a350"
+        ],
+        "citation_ids": [
+            "9e1df9a4-d969-43df-969d-b042a58343b1",
+            "de9d0d5f-8e8f-4d41-bcbe-c959e2667439",
+            "d7912b1e-e316-472e-975d-6d038631cb53",
+            "39878d3a-6aaf-4e3a-8f03-48603ca53df9",
+            "0e182f6e-0e06-4870-9763-608d3584a350"
+        ]
+    },
+    {
+        "question": "Theo khuyến cáo 5.53, cần theo dõi những chỉ số gì và với tần suất nào ở người được kê đơn thuốc chống loạn thần thế hệ hai?",
+        "reference": "Cần theo dõi thay đổi cân nặng, đường huyết, và lipid ở thanh thiếu niên và người trưởng thành mắc đái tháo đường được kê thuốc chống loạn thần thế hệ hai; nên theo dõi đường huyết, cân nặng, và lipid mỗi 12-16 tuần, trừ khi có chỉ định lâm sàng cần theo dõi sớm hơn.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006806850433349609,
+        "retrieval_time": 4.921657562255859,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "f633443e-cba7-48c5-b373-25e1448664e6",
+            "1d042c9f-2193-421e-bd96-465f660eaadc",
+            "ab3282a8-e200-4d76-892d-da8ac877f3ca",
+            "a3b43256-9bb0-4f6e-9ddd-252edfefea32",
+            "3f67d6cd-444f-41ae-b3fd-da08b9709600"
+        ],
+        "citation_ids": [
+            "f633443e-cba7-48c5-b373-25e1448664e6",
+            "1d042c9f-2193-421e-bd96-465f660eaadc",
+            "ab3282a8-e200-4d76-892d-da8ac877f3ca",
+            "a3b43256-9bb0-4f6e-9ddd-252edfefea32",
+            "3f67d6cd-444f-41ae-b3fd-da08b9709600"
+        ]
+    },
+    {
+        "question": "Nghiên cứu thực nghiệm về phân loại người cao tuổi mắc đái tháo đường dựa trên bệnh đồng mắc đã gợi ý ba nhóm lớn nào, và nhóm nào có nguy cơ suy yếu và tử vong cao nhất?",
+        "reference": "Ba nhóm được gợi ý là nhóm khỏe mạnh, nhóm lão khoa, và nhóm tim mạch; nhóm tim mạch có nguy cơ suy yếu và tử vong cao nhất so với nhóm khỏe mạnh, trong khi nhóm lão khoa có tỷ lệ béo phì, tăng huyết áp, viêm khớp, và tiểu không tự chủ cao nhất.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006053447723388672,
+        "retrieval_time": 5.069246292114258,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "0111b05d-31ae-4319-aa13-5c591a984c6e",
+            "4e5c88d0-59d0-4a9b-866c-218fd9cc1f71",
+            "11bd57a7-3535-41d9-a07a-9f079ec2c377",
+            "b3575b14-8cb5-4d94-a155-df133a53e2f0",
+            "efe382bd-469c-414e-8b8b-2d326e48f0f9"
+        ],
+        "citation_ids": [
+            "0111b05d-31ae-4319-aa13-5c591a984c6e",
+            "4e5c88d0-59d0-4a9b-866c-218fd9cc1f71",
+            "11bd57a7-3535-41d9-a07a-9f079ec2c377",
+            "b3575b14-8cb5-4d94-a155-df133a53e2f0",
+            "efe382bd-469c-414e-8b8b-2d326e48f0f9"
+        ]
+    },
+    {
+        "question": "DKA thể đường huyết bình thường (euglycemic DKA) được định nghĩa như thế nào?",
+        "reference": "Được định nghĩa là mức glucose huyết tương dưới 200 mg/dL (dưới 11.1 mmol/L) trong khi vẫn có tình trạng ketosis và toan chuyển hóa.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005288124084472656,
+        "retrieval_time": 4.921945810317993,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "a5d5314c-5ef3-4202-8db0-a96c98116d01",
+            "1536ae95-28ea-433b-8aba-18a8ec797271",
+            "1bef44f9-29fd-4d66-b450-54270ebd0482",
+            "93d1c995-e64d-44ca-b4c3-08430325af57",
+            "a1cab8ae-7980-42d1-ae55-48d7f9004b92"
+        ],
+        "citation_ids": [
+            "a5d5314c-5ef3-4202-8db0-a96c98116d01",
+            "1536ae95-28ea-433b-8aba-18a8ec797271",
+            "1bef44f9-29fd-4d66-b450-54270ebd0482",
+            "93d1c995-e64d-44ca-b4c3-08430325af57",
+            "a1cab8ae-7980-42d1-ae55-48d7f9004b92"
+        ]
+    },
+    {
+        "question": "Đối với người đái tháo đường type 2 không có ASCVD, suy tim, hoặc CKD cần khởi trị hoặc tăng cường điều trị hạ đường huyết, thuốc nào thường được dùng là điều trị đầu tay, và vì sao?",
+        "reference": "Metformin thường được dùng là điều trị đầu tay vì hiệu quả, an toàn, chi phí thấp, sẵn có rộng rãi, và giảm nguy cơ biến chứng vi mạch, biến cố tim mạch, và tử vong; so với sulfonylurea, metformin có tác động có lợi lên A1C, trung tính về cân nặng, không gây hạ đường huyết, và giảm tử vong tim mạch.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006206035614013672,
+        "retrieval_time": 4.984872341156006,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "19e474e6-cd3a-42c3-b6f0-bb2ca2cd6ebf",
+            "4664e456-b372-44e6-8df9-40d35d673cce",
+            "88147fa3-f5cd-4fb6-ae61-6e2b1042cb20",
+            "e015947b-2bcd-459a-a29d-d27bd011b909",
+            "520a9600-682b-4104-951b-bfcb7c47b373"
+        ],
+        "citation_ids": [
+            "19e474e6-cd3a-42c3-b6f0-bb2ca2cd6ebf",
+            "4664e456-b372-44e6-8df9-40d35d673cce",
+            "88147fa3-f5cd-4fb6-ae61-6e2b1042cb20",
+            "e015947b-2bcd-459a-a29d-d27bd011b909",
+            "520a9600-682b-4104-951b-bfcb7c47b373"
+        ]
+    },
+    {
+        "question": "Khi nào cần chuyển sang liệu pháp tiêm kết hợp (combination injectable therapy), và nên ưu tiên thêm loại thuốc nào trước insulin bữa ăn?",
+        "reference": "Cần chuyển sang liệu pháp tiêm kết hợp khi insulin nền đã được chỉnh liều đạt đường huyết đói chấp nhận được nhưng A1C vẫn trên mục tiêu, có bằng chứng tăng đường huyết sau ăn đáng kể, hoặc có dấu hiệu quá liều insulin nền; nên cân nhắc thêm GLP-1 RA hoặc chất chủ vận kép GIP/GLP-1 trước khi bắt đầu insulin bữa ăn, để giảm nguy cơ hạ đường huyết và tăng cân liên quan đến insulin.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005671977996826172,
+        "retrieval_time": 4.667724370956421,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "4ef18bae-f253-4c0d-a396-716c3f371bfb",
+            "2f2191cb-a792-4d6d-9fa0-714a060ce501",
+            "fd71ecf9-a2cc-479e-839e-780e2a498f2e",
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "045af559-56a2-41bb-b8c4-bcafabb6fbe7"
+        ],
+        "citation_ids": [
+            "4ef18bae-f253-4c0d-a396-716c3f371bfb",
+            "2f2191cb-a792-4d6d-9fa0-714a060ce501",
+            "fd71ecf9-a2cc-479e-839e-780e2a498f2e",
+            "1b6a52b9-6c73-4088-81c0-f4cd4d07833a",
+            "045af559-56a2-41bb-b8c4-bcafabb6fbe7"
+        ]
+    },
+    {
+        "question": "Theo khuyến cáo 5.36, người trưởng thành mắc đái tháo đường type 1 và type 2 nên được tư vấn tham gia hoạt động thể chất aerobic cường độ trung bình đến mạnh bao nhiêu phút mỗi tuần?",
+        "reference": "150 phút trở lên mỗi tuần, chia đều trên ít nhất 3 ngày/tuần, không quá 2 ngày liên tiếp không hoạt động; thời gian ngắn hơn (tối thiểu 75 phút/tuần) cường độ mạnh hoặc tập ngắt quãng có thể đủ cho người có thể lực tốt hơn.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006375312805175781,
+        "retrieval_time": 4.9140753746032715,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "c902a4d1-b7d8-4947-a4e7-4c953a995cd7",
+            "cd19428b-2ef5-4b61-a876-a3b3a391df6f",
+            "591b3db4-5404-4999-9ce7-7570b538093a",
+            "80599acf-0b9f-4a45-8dcf-732d15848af2",
+            "d377efe0-9ce0-4d6c-97f1-a9534b7b1b88"
+        ],
+        "citation_ids": [
+            "c902a4d1-b7d8-4947-a4e7-4c953a995cd7",
+            "cd19428b-2ef5-4b61-a876-a3b3a391df6f",
+            "591b3db4-5404-4999-9ce7-7570b538093a",
+            "80599acf-0b9f-4a45-8dcf-732d15848af2",
+            "d377efe0-9ce0-4d6c-97f1-a9534b7b1b88"
+        ]
+    },
+    {
+        "question": "Ngoài các phương pháp cải thiện chất lượng (QI), những chiến lược nào khác giúp cải thiện chất lượng chăm sóc và giảm chi phí trong đái tháo đường?",
+        "reference": "Bao gồm các cấu trúc chi trả thay thế mô hình tính phí theo lượt khám, thưởng cho việc cung cấp chăm sóc chất lượng cao đạt mục tiêu chuyển hóa, thanh toán dựa trên giá trị, và các ưu đãi phù hợp với mục tiêu chăm sóc cá thể hóa.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0004978179931640625,
+        "retrieval_time": 4.922593593597412,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "7aa54018-e52c-40f2-af2c-3e8ff1757dd8",
+            "663e5949-1e57-4d02-8dd9-65eb44791c85",
+            "de8200e3-c9dd-4040-a0a5-88ca21f292a7",
+            "7704c014-5bd2-4c50-8f85-295ba8deee96",
+            "f256445a-b1e3-4696-bc5b-efc0eda3c7a3"
+        ],
+        "citation_ids": [
+            "7aa54018-e52c-40f2-af2c-3e8ff1757dd8",
+            "663e5949-1e57-4d02-8dd9-65eb44791c85",
+            "de8200e3-c9dd-4040-a0a5-88ca21f292a7",
+            "7704c014-5bd2-4c50-8f85-295ba8deee96",
+            "f256445a-b1e3-4696-bc5b-efc0eda3c7a3"
+        ]
+    },
+    {
+        "question": "Giá thuốc trong Bảng 9.3 và 9.4 được tính dựa trên loại giá nào, và những giá này có phản ánh chi phí thực tế người bệnh phải trả không?",
+        "reference": "Giá được liệt kê là giá bán buôn trung bình (AWP) và Chi phí Mua Thuốc Trung bình Quốc gia (NADAC); các ước tính này cho phép so sánh giá thuốc nhưng không đại diện cho chi phí thực tế mà người bệnh phải trả.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005600452423095703,
+        "retrieval_time": 5.068588495254517,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "41f6d2b2-1816-4b26-b4cd-270d462d4734",
+            "14b4bdf5-4c4f-4f40-b5cc-ba77f4535237",
+            "0f5fc1c1-dd1e-4d66-9314-c20c85b3b8d8",
+            "318b128c-daff-4709-8f4b-afbd4f01372a",
+            "9fd9e367-9d36-46bd-939d-3c2a5fef805d"
+        ],
+        "citation_ids": [
+            "41f6d2b2-1816-4b26-b4cd-270d462d4734",
+            "14b4bdf5-4c4f-4f40-b5cc-ba77f4535237",
+            "0f5fc1c1-dd1e-4d66-9314-c20c85b3b8d8",
+            "318b128c-daff-4709-8f4b-afbd4f01372a",
+            "9fd9e367-9d36-46bd-939d-3c2a5fef805d"
+        ]
+    },
+    {
+        "question": "Trong một phân tích trước đây về độ chính xác máy đo đường huyết, bao nhiêu trong số 18 máy đo đáp ứng yêu cầu độ chính xác tối thiểu?",
+        "reference": "14 trong số 18 máy đo glucose đáp ứng yêu cầu độ chính xác tối thiểu.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0005507469177246094,
+        "retrieval_time": 4.904219388961792,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "5842ede3-19cd-4354-8c68-2d9e5626d740",
+            "76613839-ebc7-4fbe-9ecc-d569f0d80b33",
+            "1e3fcd63-b296-4379-9fe2-d01069bb0f87",
+            "324b80f5-713c-4498-b389-2374803f2730",
+            "7ba223bd-373b-45dd-ac91-50c644e7f61a"
+        ],
+        "citation_ids": [
+            "5842ede3-19cd-4354-8c68-2d9e5626d740",
+            "76613839-ebc7-4fbe-9ecc-d569f0d80b33",
+            "1e3fcd63-b296-4379-9fe2-d01069bb0f87",
+            "324b80f5-713c-4498-b389-2374803f2730",
+            "7ba223bd-373b-45dd-ac91-50c644e7f61a"
+        ]
+    },
+    {
+        "question": "Theo báo cáo đồng thuận của ADA về sàng lọc bệnh động mạch vành ở người đái tháo đường không triệu chứng, việc xét nghiệm thường quy có được khuyến cáo không?",
+        "reference": "Không, báo cáo đồng thuận kết luận rằng xét nghiệm sàng lọc thường quy không được khuyến cáo; tuy nhiên, chuyên gia y tế nên khai thác tiền sử cẩn thận trước khi bắt đầu tập luyện, đánh giá yếu tố nguy cơ tim mạch, và nhận biết biểu hiện không điển hình của bệnh động mạch vành như giảm khả năng gắng sức gần đây.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0019459724426269531,
+        "retrieval_time": 4.899897813796997,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "3cb3a33f-db85-4027-ab7a-bcdb77d49bd3",
+            "c66a47e9-404e-4f53-b7a8-7a5f28a69a4a",
+            "d3b1de60-e3f2-436c-97c0-2e0424028b95",
+            "6d4ee1c3-b001-4d8b-b18a-c55ba62290e2",
+            "c9e62420-45bc-4716-9578-6003a4140a65"
+        ],
+        "citation_ids": [
+            "3cb3a33f-db85-4027-ab7a-bcdb77d49bd3",
+            "c66a47e9-404e-4f53-b7a8-7a5f28a69a4a",
+            "d3b1de60-e3f2-436c-97c0-2e0424028b95",
+            "6d4ee1c3-b001-4d8b-b18a-c55ba62290e2",
+            "c9e62420-45bc-4716-9578-6003a4140a65"
+        ]
+    },
+    {
+        "question": "Ngưỡng A1C nào xác định nhóm người có nguy cơ cao mắc đái tháo đường và bệnh tim mạch, và ngưỡng nào được coi là nguy cơ rất cao?",
+        "reference": "Ngưỡng A1C 5.7-6.4% (39-47 mmol/mol) xác định nhóm nguy cơ cao mắc đái tháo đường và bệnh tim mạch; những người có A1C trên 6.0% (trên 42 mmol/mol) và những người có cả IFG và IGT được coi là nguy cơ rất cao, cần can thiệp tích cực và theo dõi sát.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0006341934204101562,
+        "retrieval_time": 5.037877559661865,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "c9e62420-45bc-4716-9578-6003a4140a65",
+            "6ed9db19-3977-40dd-985c-96a00c9fcf8d",
+            "119c84e3-3c00-42a6-b958-d14a38ae6cb6",
+            "c505d075-2219-4f43-bbf6-bcd6c2ebcdf4",
+            "0399fdb0-6498-4fb6-833f-67d03111bfba"
+        ],
+        "citation_ids": [
+            "c9e62420-45bc-4716-9578-6003a4140a65",
+            "6ed9db19-3977-40dd-985c-96a00c9fcf8d",
+            "119c84e3-3c00-42a6-b958-d14a38ae6cb6",
+            "c505d075-2219-4f43-bbf6-bcd6c2ebcdf4",
+            "0399fdb0-6498-4fb6-833f-67d03111bfba"
+        ]
+    },
+    {
+        "question": "Theo thang điều chỉnh insulin đơn giản hóa được đề cập, nên cho thêm bao nhiêu đơn vị insulin tác dụng nhanh/ngắn khi đường huyết trước bữa ăn trên 250 mg/dL và trên 350 mg/dL?",
+        "reference": "Cho thêm 2 đơn vị insulin tác dụng ngắn hoặc nhanh khi đường huyết trước bữa ăn trên 250 mg/dL (trên 13.9 mmol/L), và 4 đơn vị khi trên 350 mg/dL (trên 19.4 mmol/L); không dùng insulin tác dụng nhanh/ngắn vào giờ đi ngủ.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0007715225219726562,
+        "retrieval_time": 6.372063398361206,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "95d09e0a-e4e4-46f8-b3d7-cea1ee480363",
+            "df7c5eaa-3c2d-4114-97a7-da28b73ff83b",
+            "55a85230-92c9-4956-ba5a-9c2a13c7b82e",
+            "c04ce85e-96d2-49e6-abfe-351f5d47bd20",
+            "2236f53d-eacc-4d4d-8050-537f0e733cfa"
+        ],
+        "citation_ids": [
+            "95d09e0a-e4e4-46f8-b3d7-cea1ee480363",
+            "df7c5eaa-3c2d-4114-97a7-da28b73ff83b",
+            "55a85230-92c9-4956-ba5a-9c2a13c7b82e",
+            "c04ce85e-96d2-49e6-abfe-351f5d47bd20",
+            "2236f53d-eacc-4d4d-8050-537f0e733cfa"
+        ]
+    },
+    {
+        "question": "Theo khuyến cáo 7.25a, hệ thống AID (tự động cấp insulin) được ưu tiên sử dụng cho những đối tượng nào?",
+        "reference": "Được ưu tiên cho người đái tháo đường type 1, và người trưởng thành cũng như trẻ em mắc đái tháo đường type 2 đang dùng tiêm nhiều mũi mỗi ngày, bơm insulin (CSII), hoặc bơm tích hợp cảm biến, cũng như các dạng đái tháo đường thiếu insulin khác.",
+        "prediction": "Mock LLM Response for Benchmark.",
+        "bleu": 0.0,
+        "rouge": 0.0,
+        "generation_time": 0.0008707046508789062,
+        "retrieval_time": 5.548045635223389,
+        "status": "Wrong",
+        "retrieved_chunks": [
+            "6a06261b-3721-43a4-8a10-2ec7645af400",
+            "de9d0d5f-8e8f-4d41-bcbe-c959e2667439",
+            "28025cf8-677f-4f70-ab6e-e24ee774117a",
+            "ac2865bf-713a-4bf7-95c2-af0f4572f8e6",
+            "d18ce8df-0517-46de-b561-7bcfe6a34610"
+        ],
+        "citation_ids": [
+            "6a06261b-3721-43a4-8a10-2ec7645af400",
+            "de9d0d5f-8e8f-4d41-bcbe-c959e2667439",
+            "28025cf8-677f-4f70-ab6e-e24ee774117a",
+            "ac2865bf-713a-4bf7-95c2-af0f4572f8e6",
+            "d18ce8df-0517-46de-b561-7bcfe6a34610"
+        ]
+    }
+]

@@ -43,6 +43,17 @@ public class PatientInteractionService {
         return healthLogRepository.findByPatientIdAndLogDateGreaterThanEqualOrderByLogDateAsc(patientId, chartStartDate);
     }
 
+    public Page<DailyHealthLog> getBpLogsPageWithRange(Integer patientId, String filterRange, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        if (startDate != null && endDate != null) {
+            return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, endDate, pageable);
+        } else if (startDate != null) {
+            return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, LocalDate.now(), pageable);
+        } else if (endDate != null) {
+            return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, LocalDate.of(1970, 1, 1), endDate, pageable);
+        }
+        return getBpLogsPage(patientId, filterRange, null, pageable);
+    }
+
     public Page<DailyHealthLog> getBpLogsPage(Integer patientId, String filterRange, LocalDate filterDate, Pageable pageable) {
         LocalDate rangeStart = null;
         LocalDate rangeEnd = null;
@@ -64,6 +75,17 @@ public class PatientInteractionService {
         } else {
             return healthLogRepository.findByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patientId, pageable);
         }
+    }
+
+    public Page<DailyHealthLog> getGlucoseLogsPageWithRange(Integer patientId, String filterRange, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        if (startDate != null && endDate != null) {
+            return healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, endDate, pageable);
+        } else if (startDate != null) {
+            return healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, startDate, LocalDate.now(), pageable);
+        } else if (endDate != null) {
+            return healthLogRepository.findByPatientIdAndGlucoseLevelIsNotNullAndLogDateBetweenOrderByLogTimeDesc(patientId, LocalDate.of(1970, 1, 1), endDate, pageable);
+        }
+        return getGlucoseLogsPage(patientId, filterRange, null, pageable);
     }
 
     public Page<DailyHealthLog> getGlucoseLogsPage(Integer patientId, String filterRange, LocalDate filterDate, Pageable pageable) {
@@ -94,19 +116,24 @@ public class PatientInteractionService {
     }
 
     public List<Doctor> getAllDoctors() {
-        return doctorRepository.findAll();
+        return doctorRepository.findAllAvailableDoctors();
     }
 
     @Transactional
     public void createChangeRequest(ChangeRequest changeRequest, Patient patient) {
         Doctor doctor = patient.getDoctor();
         if (doctor == null) {
-            List<Doctor> all = doctorRepository.findAll();
-            if (all.size() > 0) {
-                doctor = all.get(0);
-            } else {
-                throw new IllegalStateException("No doctor found in database to receive requests.");
-            }
+            throw new IllegalStateException("Bạn chưa được phân công bác sĩ phụ trách, không thể gửi yêu cầu thay đổi phác đồ/lịch khám.");
+        }
+
+        if (changeRequest.getPatientReason() == null || changeRequest.getPatientReason().trim().isEmpty()) {
+            throw new IllegalArgumentException("Lý do yêu cầu không được để trống.");
+        }
+        if (changeRequest.getPatientReason().length() > 500) {
+            throw new IllegalArgumentException("Lý do yêu cầu không được vượt quá 500 ký tự.");
+        }
+        if (changeRequest.getRequestType() == null || changeRequest.getRequestType().trim().isEmpty()) {
+            throw new IllegalArgumentException("Loại yêu cầu không được để trống.");
         }
 
         changeRequest.setPatient(patient);
@@ -138,6 +165,13 @@ public class PatientInteractionService {
             throw new IllegalArgumentException("Invalid doctor Id: " + doctorId);
         }
         Doctor doctor = doctorOpt.get();
+        if (doctor.getCurrentPatientCount() != null && doctor.getCapacityLimit() != null 
+                && doctor.getCurrentPatientCount() >= doctor.getCapacityLimit()) {
+            throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " hiện đã đạt giới hạn tiếp nhận bệnh nhân (" + doctor.getCapacityLimit() + " bệnh nhân), không thể nhận thêm đơn hẹn mới.");
+        }
+        if (patientRequestReason != null && patientRequestReason.length() > 500) {
+            throw new IllegalArgumentException("Lý do yêu cầu không được vượt quá 500 ký tự.");
+        }
 
         Appointment appt = Appointment.builder()
                 .patient(patient)
@@ -269,4 +303,9 @@ public class PatientInteractionService {
             notificationRepository.save(notif);
         }
     }
+
+    public Optional<ChangeRequest> findChangeRequestById(Integer id) {
+        return changeRequestRepository.findById(id);
+    }
 }
+
