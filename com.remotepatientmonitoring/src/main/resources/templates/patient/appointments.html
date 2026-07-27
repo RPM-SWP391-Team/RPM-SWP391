@@ -134,6 +134,8 @@
                                     <th>Bác sĩ</th>
                                     <th>Loại lịch hẹn</th>
                                     <th>Lý do của bạn</th>
+                                    <th>Địa điểm</th>
+                                    <th>Chỉ dẫn của bác sĩ</th>
                                     <th>Trạng thái</th>
                                     <th>Hành động</th>
                                 </tr>
@@ -146,6 +148,8 @@
                                         <span class="badge bg-secondary" th:text="${appt.appointmentType}">CHECKUP</span>
                                     </td>
                                     <td th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do khám</td>
+                                    <td th:text="${appt.location != null ? appt.location : 'Chưa thiết lập'}">Địa điểm</td>
+                                    <td th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có'}">Ghi chú</td>
                                     <td>
                                         <span class="badge badge-status" 
                                               th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
@@ -174,7 +178,7 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(appointments)}">
-                                    <td colspan="6" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
+                                    <td colspan="8" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -195,6 +199,11 @@
                             <h6 class="fw-bold mb-1" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                             <p class="mb-1 text-muted small">Bác sĩ phụ trách: <span th:text="${appt.doctor.fullName}">Bác sĩ B</span></p>
                             <p class="mb-1 text-muted small" th:text="'Lý do: ' + ${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}"></p>
+                            <p class="mb-1 text-muted small"><i class="fa-solid fa-location-dot me-1 text-primary"></i>Địa điểm: <span th:text="${appt.location != null ? appt.location : 'Chưa thiết lập'}">Phòng khám</span></p>
+                            <div th:if="${appt.doctorNote != null and !appt.doctorNote.isEmpty()}" class="bg-light p-2 rounded mb-2 mt-2">
+                                <strong class="text-primary small d-block mb-1"><i class="fa-solid fa-notes-medical me-1"></i>Chỉ dẫn của bác sĩ:</strong>
+                                <p class="mb-0 small text-dark" th:text="${appt.doctorNote}"></p>
+                            </div>
 
                             <div th:if="${appt.status == 'PENDING'}" class="mt-2 d-flex gap-2 justify-content-end">
                                 <a th:href="'#editAppointmentCssModal-' + ${appt.id}" class="btn btn-sm btn-outline-primary flex-fill text-center">
