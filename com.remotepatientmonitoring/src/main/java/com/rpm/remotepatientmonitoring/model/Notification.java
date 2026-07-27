@@ -59,4 +59,29 @@ public class Notification {
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public Patient getPatient() { return patient; }
+    public void setPatient(Patient patient) { this.patient = patient; }
+    public Doctor getDoctor() { return doctor; }
+    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
+    public String getRecipientType() { return recipientType; }
+    public void setRecipientType(String recipientType) { this.recipientType = recipientType; }
+    public Integer getRecipientId() { return recipientId; }
+    public void setRecipientId(Integer recipientId) { this.recipientId = recipientId; }
+    public String getNotificationType() { return notificationType; }
+    public void setNotificationType(String notificationType) { this.notificationType = notificationType; }
+    public String getChannel() { return channel; }
+    public void setChannel(String channel) { this.channel = channel; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+    public Boolean getIsRead() { return isRead; }
+    public void setIsRead(Boolean isRead) { this.isRead = isRead; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

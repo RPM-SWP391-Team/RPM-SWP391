@@ -52,10 +52,6 @@
         </a>
     </div>
     <div class="sidebar-footer">
-        <a th:href="@{/hospital/profile}" class="menu-item mb-1">
-            <i class="bi bi-person-circle"></i>
-            <span>Hồ sơ cá nhân</span>
-        </a>
         <a th:href="@{/auth/logout}" class="menu-item text-danger w-100">
             <i class="bi bi-box-arrow-left"></i>
             <span>Đăng xuất</span>
@@ -145,87 +141,19 @@
                             <span th:if="${b.status == 'REJECTED'}" class="badge badge-rejected rounded-pill px-3 py-1.5 font-semibold">Từ chối</span>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"
-                                    data-bs-toggle="modal"
-                                    th:data-bs-target="'#bugModal-' + ${b.id}">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"
+                                    onclick="openBugModal(this)"
+                                    th:data-id="${b.id}"
+                                    th:data-email="${b.account.email}"
+                                    th:data-date="${#temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm')}"
+                                    th:data-pageurl="${b.pageUrl}"
+                                    th:data-title="${b.title}"
+                                    th:data-description="${b.description}"
+                                    th:data-status="${b.status}"
+                                    th:data-adminresponse="${b.adminResponse}"
+                                    th:data-resolvedby="${b.resolvedBy != null ? (b.resolvedBy.email + ' lúc ' + #temporals.format(b.resolvedAt, 'dd/MM/yyyy HH:mm')) : ''}">
                                 Xem chi tiết
                             </button>
-
-                            <!-- Modal Chi tiết Báo lỗi -->
-                            <div class="modal fade" th:id="'bugModal-' + ${b.id}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered modal-lg">
-                                    <div class="modal-content" style="border-radius: 16px;">
-                                        <div class="modal-header border-0 pb-0">
-                                            <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-circle-info text-primary me-2"></i>Chi tiết báo cáo lỗi</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        
-                                        <form th:action="@{'/hospital/bug-reports/update/' + ${b.id}}" method="POST" onsubmit="return validateAdminForm(this);">
-                                            <input type="hidden" name="page" th:value="${currentPage}">
-                                            <input type="hidden" name="statusFilter" th:value="${statusFilter}">
-                                            
-                                            <div class="modal-body text-start">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-semibold text-muted mb-1">Người gửi</label>
-                                                        <input type="text" class="form-control bg-light border-0" th:value="${b.account.email}" readonly style="border-radius: 8px;">
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-semibold text-muted mb-1">Ngày gửi</label>
-                                                        <input type="text" class="form-control bg-light border-0" th:value="${#temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm')}" readonly style="border-radius: 8px;">
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label small fw-semibold text-muted mb-1">Trang gặp lỗi (URL)</label>
-                                                        <div class="input-group">
-                                                            <input type="text" class="form-control bg-light border-0" th:value="${b.pageUrl}" readonly style="border-radius: 8px 0 0 8px;">
-                                                            <a th:if="${b.pageUrl != null && !b.pageUrl.isEmpty()}" th:href="${b.pageUrl}" target="_blank" class="btn btn-outline-secondary border-0 bg-light" style="border-radius: 0 8px 8px 0;"><i class="bi bi-box-arrow-up-right"></i> Mở link</a>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label small fw-semibold text-muted mb-1">Tiêu đề lỗi</label>
-                                                        <input type="text" class="form-control bg-light border-0 fw-semibold" th:value="${b.title}" readonly style="border-radius: 8px;">
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label small fw-semibold text-muted mb-1">Mô tả chi tiết</label>
-                                                        <textarea class="form-control bg-light border-0" rows="4" th:text="${b.description}" readonly style="border-radius: 8px; resize: none;"></textarea>
-                                                    </div>
-                                                    
-                                                    <hr class="my-3 opacity-25">
-                                                    
-                                                    <div class="col-12">
-                                                        <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-user-gear me-2"></i>Xử lý & Cập nhật phản hồi</h6>
-                                                    </div>
-
-                                                    <div class="col-md-6">
-                                                        <label for="status" class="form-label small fw-semibold text-muted mb-1">Trạng thái xử lý <span class="text-danger">*</span></label>
-                                                        <select name="status" class="form-select" style="border-radius: 8px;" required>
-                                                            <option value="NEW" th:selected="${b.status == 'NEW'}">Mới (NEW)</option>
-                                                            <option value="IN_PROGRESS" th:selected="${b.status == 'IN_PROGRESS'}">Đang xử lý (IN_PROGRESS)</option>
-                                                            <option value="RESOLVED" th:selected="${b.status == 'RESOLVED'}">Đã giải quyết (RESOLVED)</option>
-                                                            <option value="REJECTED" th:selected="${b.status == 'REJECTED'}">Từ chối (REJECTED)</option>
-                                                        </select>
-                                                    </div>
-                                                    
-                                                    <div class="col-md-6" th:if="${b.resolvedBy != null}">
-                                                        <label class="form-label small fw-semibold text-muted mb-1">Người giải quyết</label>
-                                                        <input type="text" class="form-control bg-light border-0" th:value="${b.resolvedBy.email + ' lúc ' + #temporals.format(b.resolvedAt, 'dd/MM/yyyy HH:mm')}" readonly style="border-radius: 8px;">
-                                                    </div>
-
-                                                    <div class="col-12">
-                                                        <label for="adminResponse" class="form-label small fw-semibold text-muted mb-1">Ghi chú phản hồi của Admin</label>
-                                                        <textarea name="adminResponse" class="form-control" rows="3" placeholder="Nhập hướng xử lý, ví dụ: Đã khắc phục trong bản cập nhật ngày..." style="border-radius: 8px;" th:text="${b.adminResponse}"></textarea>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="modal-footer border-0 pt-0">
-                                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                                                <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu thay đổi</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -250,11 +178,136 @@
     </div>
 </div>
 
+<!-- SINGLE MODAL CHI TIẾT BÁO LỖI (ĐẶT NGOÀI MAIN-CONTENT ĐỂ TRÁNH FLICKER) -->
+<div class="modal fade" id="bugDetailModal" tabindex="-1" aria-labelledby="bugDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="bugDetailModalLabel"><i class="fa-solid fa-circle-info text-primary me-2"></i>Chi tiết báo cáo lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form id="bugUpdateForm" method="POST" action="" onsubmit="return validateAdminForm(this);">
+                <input type="hidden" name="page" th:value="${currentPage}">
+                <input type="hidden" name="statusFilter" th:value="${statusFilter}">
+                
+                <div class="modal-body text-start">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted mb-1">Người gửi</label>
+                            <input type="text" id="modalSender" class="form-control bg-light border-0" readonly style="border-radius: 8px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted mb-1">Ngày gửi</label>
+                            <input type="text" id="modalDate" class="form-control bg-light border-0" readonly style="border-radius: 8px;">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted mb-1">Trang gặp lỗi (URL)</label>
+                            <div class="input-group">
+                                <input type="text" id="modalPageUrl" class="form-control bg-light border-0" readonly style="border-radius: 8px 0 0 8px;">
+                                <a id="modalOpenLink" href="#" target="_blank" class="btn btn-outline-secondary border-0 bg-light d-none" style="border-radius: 0 8px 8px 0;"><i class="bi bi-box-arrow-up-right"></i> Mở link</a>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted mb-1">Tiêu đề lỗi</label>
+                            <input type="text" id="modalTitle" class="form-control bg-light border-0 fw-semibold" readonly style="border-radius: 8px;">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted mb-1">Mô tả chi tiết</label>
+                            <textarea id="modalDescription" class="form-control bg-light border-0" rows="4" readonly style="border-radius: 8px; resize: none;"></textarea>
+                        </div>
+                        
+                        <hr class="my-3 opacity-25">
+                        
+                        <div class="col-12">
+                            <h6 class="fw-bold mb-3 text-secondary"><i class="fa-solid fa-user-gear me-2"></i>Xử lý & Cập nhật phản hồi</h6>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="status" class="form-label small fw-semibold text-muted mb-1">Trạng thái xử lý <span class="text-danger">*</span></label>
+                            <select name="status" id="modalStatus" class="form-select" style="border-radius: 8px;" required>
+                                <option value="NEW">Mới (NEW)</option>
+                                <option value="IN_PROGRESS">Đang xử lý (IN_PROGRESS)</option>
+                                <option value="RESOLVED">Đã giải quyết (RESOLVED)</option>
+                                <option value="REJECTED">Từ chối (REJECTED)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 d-none" id="modalResolvedByWrapper">
+                            <label class="form-label small fw-semibold text-muted mb-1">Người giải quyết</label>
+                            <input type="text" id="modalResolvedBy" class="form-control bg-light border-0" readonly style="border-radius: 8px;">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="adminResponse" class="form-label small fw-semibold text-muted mb-1">Ghi chú phản hồi của Admin</label>
+                            <textarea name="adminResponse" id="modalAdminResponse" class="form-control" rows="3" placeholder="Nhập hướng xử lý, ví dụ: Đã khắc phục trong bản cập nhật ngày..." style="border-radius: 8px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
     const bannedWords = /*[[${bannedWords}]]*/ [];
     /*]]>*/
+
+    function openBugModal(btn) {
+        const id = btn.getAttribute('data-id');
+        const email = btn.getAttribute('data-email') || '';
+        const date = btn.getAttribute('data-date') || '';
+        const pageUrl = btn.getAttribute('data-pageurl') || '';
+        const title = btn.getAttribute('data-title') || '';
+        const description = btn.getAttribute('data-description') || '';
+        const status = btn.getAttribute('data-status') || 'NEW';
+        const adminResponse = btn.getAttribute('data-adminresponse') || '';
+        const resolvedBy = btn.getAttribute('data-resolvedby') || '';
+
+        // Update form action
+        document.getElementById('bugUpdateForm').action = '/hospital/bug-reports/update/' + id;
+
+        // Fill modal fields
+        document.getElementById('modalSender').value = email;
+        document.getElementById('modalDate').value = date;
+        document.getElementById('modalTitle').value = title;
+        document.getElementById('modalDescription').value = description;
+        document.getElementById('modalStatus').value = status;
+        document.getElementById('modalAdminResponse').value = adminResponse;
+
+        // Page URL link
+        const urlInput = document.getElementById('modalPageUrl');
+        const urlLink = document.getElementById('modalOpenLink');
+        urlInput.value = pageUrl ? pageUrl : '(Không xác định)';
+        if (pageUrl) {
+            urlLink.href = pageUrl;
+            urlLink.classList.remove('d-none');
+        } else {
+            urlLink.classList.add('d-none');
+        }
+
+        // Resolved by wrapper
+        const resolvedWrapper = document.getElementById('modalResolvedByWrapper');
+        const resolvedInput = document.getElementById('modalResolvedBy');
+        if (resolvedBy) {
+            resolvedInput.value = resolvedBy;
+            resolvedWrapper.classList.remove('d-none');
+        } else {
+            resolvedWrapper.classList.add('d-none');
+        }
+
+        // Show modal via Bootstrap JS API
+        const modalEl = document.getElementById('bugDetailModal');
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    }
 
     function validateAdminForm(form) {
         const statusSelect = form.querySelector('select[name="status"]');

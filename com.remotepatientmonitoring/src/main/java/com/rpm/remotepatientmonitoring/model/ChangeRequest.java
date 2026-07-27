@@ -49,4 +49,25 @@ public class ChangeRequest {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public Patient getPatient() { return patient; }
+    public void setPatient(Patient patient) { this.patient = patient; }
+    public Doctor getDoctor() { return doctor; }
+    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
+    public String getRequestType() { return requestType; }
+    public void setRequestType(String requestType) { this.requestType = requestType; }
+    public String getPatientReason() { return patientReason; }
+    public void setPatientReason(String patientReason) { this.patientReason = patientReason; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getDoctorResponse() { return doctorResponse; }
+    public void setDoctorResponse(String doctorResponse) { this.doctorResponse = doctorResponse; }
+    public LocalDateTime getProcessedAt() { return processedAt; }
+    public void setProcessedAt(LocalDateTime processedAt) { this.processedAt = processedAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

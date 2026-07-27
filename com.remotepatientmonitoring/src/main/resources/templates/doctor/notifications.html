@@ -7,7 +7,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/doctor.css}">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f4f7fb; color: #333; }
+        .navbar-custom { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-back { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: color 0.3s; }
+        .btn-back:hover { color: #fff; }
+        .card-custom { border: none; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); background: white; }
+        .notif-item { border-bottom: 1px solid #eee; padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; text-decoration: none; color: inherit; transition: background 0.2s; }
+        .notif-item:hover { background-color: #f8f9fa; }
+        .notif-item.unread { background-color: #eef3ff; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-title { font-weight: 700; color: #1e3c72; font-size: 0.95rem; }
+        .notif-content { color: #555; font-size: 0.88rem; margin-top: 4px; }
+        .notif-time { color: #999; font-size: 0.78rem; white-space: nowrap; }
+        .badge-unread-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff416c; display: inline-block; margin-right: 8px; flex-shrink: 0; margin-top: 6px; }
+    </style>
 </head>
 <body>
 

@@ -8,7 +8,393 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/doctor.css}">
+    <style>
+        /* Ép các tab đang ẩn không được chiếm bất kỳ không gian ngầm nào */
+        .tab-content > .tab-pane:not(.active) {
+            display: none !important;
+        }
+        /* ===== Base ===== */
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar-custom {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+
+        .dropdown-item {
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #ffeef0;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.28);
+            color: white;
+            transform: translateX(-3px);
+        }
+
+        /* ===== Cards ===== */
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            background: white;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card-custom:hover {
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== Section Header ===== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .section-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .icon-blue {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+
+        .icon-indigo {
+            background: linear-gradient(135deg, #4776c7, #6a11cb);
+        }
+
+        .icon-teal {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .icon-purple {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+        }
+
+        /* ===== Read-only Info ===== */
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #8a9bb0;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        /* ===== Status Badges ===== */
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .badge-new {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+        }
+
+        .badge-treating {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        .badge-stable {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .badge-urgent {
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+            color: white;
+        }
+
+        /* ===== Patient Hero ===== */
+        .patient-hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 60%, #4776c7 100%);
+            border-radius: 20px;
+            padding: 28px 35px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(30, 60, 114, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .patient-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .avatar-circle {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.9rem;
+            flex-shrink: 0;
+        }
+
+        /* ===== Disease Profile Radio Cards ===== */
+        .profile-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-card {
+            border: 2px solid #e8ecf0;
+            border-radius: 14px;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .profile-card:hover {
+            border-color: #2a5298;
+            background-color: #f8fafe;
+        }
+
+        .profile-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .profile-card.selected {
+            border-color: #2a5298;
+            background: linear-gradient(135deg, #eef3ff, #f0f5ff);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.15);
+        }
+
+        .profile-card .profile-name {
+            font-weight: 700;
+            color: #1e3c72;
+            font-size: 0.95rem;
+        }
+
+        .profile-card .profile-desc {
+            font-size: 0.82rem;
+            color: #7f8c9b;
+            margin-top: 2px;
+        }
+
+        .check-mark {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #c0cfe0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            color: transparent;
+            font-size: 0.72rem;
+        }
+
+        .profile-card.selected .check-mark {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-color: #2a5298;
+            color: white;
+        }
+
+        /* ===== Form Controls ===== */
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.88rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 12px;
+            border: 2px solid #e8ecf0;
+            padding: 10px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.12);
+        }
+
+        .form-control.is-prefilled {
+            background-color: #f8fafe;
+            border-color: #b8cef0;
+        }
+
+        .input-group-text {
+            border-radius: 0 12px 12px 0;
+            border: 2px solid #e8ecf0;
+            border-left: none;
+            background: #f8fafe;
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .input-group .form-control {
+            border-radius: 12px 0 0 12px;
+            border-right: none;
+        }
+
+        /* ===== Save Button ===== */
+        .btn-save {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 36px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.4);
+            color: white;
+        }
+
+        .btn-save:disabled {
+            opacity: 0.7;
+        }
+
+        /* ===== AI Placeholder ===== */
+        .ai-placeholder {
+            border: 2px dashed #b8c6e0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f8faff, #eef3ff);
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .ai-placeholder:hover {
+            border-color: #2a5298;
+            background: linear-gradient(135deg, #f0f5ff, #e4ecff);
+        }
+
+        .ai-icon-ring {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(106, 17, 203, 0.1), rgba(37, 117, 252, 0.1));
+            border: 2px solid rgba(37, 117, 252, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.3rem;
+            color: #2575fc;
+            margin-bottom: 1rem;
+            animation: pulse-ring 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-ring {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 117, 252, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 0 12px rgba(37, 117, 252, 0);
+            }
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            padding: 4px 14px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        /* ===== Success Alert ===== */
+        .alert-success-custom {
+            background: linear-gradient(135deg, #e8f8f0, #d4f5e4);
+            border: 1px solid #6fcf97;
+            border-left: 5px solid #27ae60;
+            border-radius: 14px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+
+
+    </style>
 </head>
 
 <body>
@@ -222,7 +608,31 @@
         </div>
     </div>
 
-
+    <!-- MODAL AI PHÂN TÍCH LÂM SÀNG ADA/AHA -->
+    <div class="modal fade" id="aiSummaryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fa-solid fa-brain me-2 text-warning"></i> Báo cáo Đánh giá Lâm sàng bằng AI
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="aiSummaryLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="fw-semibold text-muted">Đang tính toán số liệu ADA/AHA và truy xuất AI RAG...</p>
+                    </div>
+                    <div id="aiSummaryContent" style="display: none; line-height: 1.7; font-size: 0.95rem;">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4 justify-content-between">
+                    <small class="text-muted"><i class="fa-solid fa-shield-halved me-1 text-success"></i> Dữ liệu phân tích chuẩn ADA (Đường huyết) & AHA (Huyết áp) dành riêng cho Bác sĩ</small>
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <ul class="nav nav-pills mb-4" id="patientDetailTab" role="tablist">
         <li class="nav-item" role="presentation">
@@ -356,14 +766,14 @@
                                         <label class="form-label">Cân nặng ban đầu (kg)</label>
                                         <div class="input-group">
                                             <input type="number" min="10" max="500" step="any" name="baselineWeightKg" class="form-control"
-                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5">
+                                                   th:value="${currentPlan?.baselineWeightKg}" placeholder="VD: 68.5" required>
                                             <span class="input-group-text">kg</span>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <label class="form-label">Chiều cao (cm)</label>
                                         <div class="input-group">
-                                            <input type="number" min="30" max="300" step="any" name="heightCm" class="form-control" placeholder="VD: 170.0">
+                                            <input type="number" min="30" max="300" step="any" name="heightCm" class="form-control" placeholder="VD: 170.0" required>
                                             <span class="input-group-text">cm</span>
                                         </div>
                                     </div>
@@ -570,7 +980,7 @@
                                             <input type="number" id="minFiberG" name="minFiberG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
                                                    th:value="${currentRule != null} ? ${currentRule.minFiberG} : 25" min="0"
-                                                   max="100" step="any" placeholder="VD: 25">
+                                                   max="100" step="any" required placeholder="VD: 25">
                                             <span class="input-group-text">g</span>
                                         </div>
                                     </div>
@@ -582,7 +992,7 @@
                                         <div class="input-group">
                                             <input type="number" id="maxFatG" name="maxFatG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
-                                                   th:value="${currentRule != null} ? ${currentRule.maxFatG} : ''" min="0" max="500" step="any"
+                                                   th:value="${currentRule != null} ? ${currentRule.maxFatG} : ''" min="0" max="500" step="any" required
                                                    placeholder="Tùy chọn">
                                             <span class="input-group-text">g</span>
                                         </div>
@@ -595,7 +1005,7 @@
                                         <div class="input-group">
                                             <input type="number" id="minProteinG" name="minProteinG"
                                                    th:class="${currentRule != null} ? 'form-control is-prefilled' : 'form-control'"
-                                                   th:value="${currentRule != null} ? ${currentRule.minProteinG} : ''" min="0" max="500" step="any"
+                                                   th:value="${currentRule != null} ? ${currentRule.minProteinG} : ''" min="0" max="500" step="any" required
                                                    placeholder="Tùy chọn">
                                             <span class="input-group-text">g</span>
                                         </div>
@@ -1209,7 +1619,39 @@
     /*]]>*/
 </script>
 
-
+<style>
+    /* Custom Calendar CSS */
+    .calendar-day {
+        width: 14.28%;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    .calendar-day:hover {
+        background-color: #f0f5ff;
+    }
+    .calendar-day.empty {
+        cursor: default;
+    }
+    .calendar-day.empty:hover {
+        background-color: transparent;
+    }
+    .calendar-day.has-data {
+        background-color: #eef3ff;
+        color: #2a5298;
+        font-weight: 600;
+    }
+    .calendar-day.selected {
+        background-color: #2a5298;
+        color: white;
+        box-shadow: 0 4px 10px rgba(42,82,152,0.3);
+    }
+</style>
 
 <script th:inline="javascript">
     /*<![CDATA[*/
@@ -1475,7 +1917,113 @@
 
 
 <!-- CHATBOT WIDGET START -->
-
+    <style>
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 80px; 
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 9999;
+            transition: transform 0.3s;
+        }
+        .ai-chat-btn:hover {
+            transform: scale(1.1);
+        }
+        .ai-chat-window {
+            position: fixed;
+            bottom: 150px;
+            right: 20px;
+            width: 450px;
+            max-width: calc(100vw - 40px);
+            height: 550px;
+            max-height: calc(100vh - 180px);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 9998;
+            overflow: hidden;
+            font-family: inherit;
+        }
+        .ai-chat-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ai-chat-close {
+            cursor: pointer;
+        }
+        .ai-chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        .ai-msg {
+            margin-bottom: 15px;
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .ai-msg-bot {
+            background: white;
+            color: #333;
+            border: 1px solid #eee;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .ai-msg-user {
+            background: #eef2ff;
+            color: #0d6efd;
+            align-self: flex-end;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .ai-chat-footer {
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background: white;
+            display: flex;
+            gap: 10px;
+        }
+        .ai-chat-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+        }
+        .ai-chat-send {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .ai-msg-bot strong { font-weight: bold; color: #0d6efd; }
+    </style>
 
     <div class="ai-chat-btn" id="aiChatBtn">
         <i class="fa-solid fa-brain"></i>
@@ -1679,7 +2227,55 @@
     </script>
     <!-- CHATBOT WIDGET END -->
 
+    <!-- AI SUMMARY MODAL JS -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiModalEl = document.getElementById('aiSummaryModal');
+            if (aiModalEl) {
+                aiModalEl.addEventListener('show.bs.modal', function() {
+                    const loadingEl = document.getElementById('aiSummaryLoading');
+                    const contentEl = document.getElementById('aiSummaryContent');
+                    const patientId = /*[[${patient.id}]]*/ 0;
+                    const dateInput = document.getElementById('aiSummaryStartDate');
+                    const startDateVal = dateInput ? dateInput.value : '';
 
+                    loadingEl.style.display = 'block';
+                    contentEl.style.display = 'none';
+                    contentEl.innerHTML = '';
+
+                    let url = '/api/chatbot/summary/' + patientId;
+                    if (startDateVal) {
+                        url += '?startDate=' + startDateVal;
+                    }
+
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            loadingEl.style.display = 'none';
+                            contentEl.style.display = 'block';
+                            if (data && data.clinicalSummary) {
+                                let formattedText = data.clinicalSummary
+                                    .replace(/^### (.*$)/gim, '<h5 class="fw-bold text-primary mt-3 mb-2"><i class="fa-solid fa-file-medical me-2"></i>$1</h5>')
+                                    .replace(/^## (.*$)/gim, '<h4 class="fw-bold text-dark mt-3 mb-2">$1</h4>')
+                                    .replace(/^\- (.*$)/gim, '<li class="ms-3 mb-1">$1</li>')
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\n/g, '<br/>');
+                                contentEl.innerHTML = '<div class="p-4 rounded-3" style="background:#f8fafe; border:1px solid #cbd5e1; color:#1e293b;">' + formattedText + '</div>';
+                            } else {
+                                contentEl.innerHTML = '<div class="alert alert-warning">Không nhận được báo cáo phân tích từ AI.</div>';
+                            }
+                        })
+                        .catch(err => {
+                            loadingEl.style.display = 'none';
+                            contentEl.style.display = 'block';
+                            contentEl.innerHTML = '<div class="alert alert-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Không thể kết nối đến máy chủ AI. Vui lòng kiểm tra lại dịch vụ AI Service trên Port 8000.</div>';
+                        });
+                });
+            }
+        });
+        /*]]>*/
+    </script>
 <!-- Return to Hospital Modal -->
 <div class="modal fade" id="returnHospitalModal" tabindex="-1" aria-labelledby="returnHospitalModalLabel" aria-hidden="true">
     <div class="modal-dialog">
