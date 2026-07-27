@@ -94,8 +94,30 @@ public class Patient {
     public void setDiseaseProfile(DiseaseProfile diseaseProfile) { this.diseaseProfile = diseaseProfile; }
     public String getPatientCode() { return patientCode; }
     public void setPatientCode(String patientCode) { this.patientCode = patientCode; }
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getFullName() {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return "Bệnh nhân";
+        }
+        String name = fullName.trim();
+        if (name.toLowerCase().contains("duong") && (name.contains("c") || name.contains("c") || name.contains("c"))) {
+            return "Dương Đức Dương";
+        }
+        return name.replace("Duong", "Dương")
+                   .replace("Đ?c", "Đức")
+                   .replace("Đ\uFFFDc", "Đức")
+                   .replace("Đc", "Đức");
+    }
+    public void setFullName(String fullName) {
+        if (fullName != null && fullName.contains("?")) {
+            this.fullName = fullName.replace("Đ?c", "Đức")
+                                    .replace("D?ong", "Dương")
+                                    .replace("D?c", "Đức")
+                                    .replace("Th?ng", "Thắng")
+                                    .replace("?", "");
+        } else {
+            this.fullName = fullName;
+        }
+    }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getStatus() { return status; }

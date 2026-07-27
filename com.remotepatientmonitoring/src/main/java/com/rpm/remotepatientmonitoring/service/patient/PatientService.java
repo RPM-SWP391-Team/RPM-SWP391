@@ -202,6 +202,14 @@ public class PatientService {
 
     @Transactional
     public void updateProfile(Patient patient, String phone, String address, String emergencyContactName, String emergencyContactPhone, String password) {
+        updateProfile(patient, null, phone, address, emergencyContactName, emergencyContactPhone, password);
+    }
+
+    @Transactional
+    public void updateProfile(Patient patient, String fullName, String phone, String address, String emergencyContactName, String emergencyContactPhone, String password) {
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            patient.setFullName(fullName.trim());
+        }
         patient.setPhone(phone.trim());
         patient.setAddress(address != null ? address.trim() : "");
         patient.setEmergencyContactName(emergencyContactName != null && !emergencyContactName.trim().isEmpty() ? emergencyContactName.trim() : null);
