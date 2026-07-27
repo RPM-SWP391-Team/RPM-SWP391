@@ -599,14 +599,37 @@
             }
             paginationUl.style.display = 'flex';
 
+            // First Page Button
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item' + (currentFoodPage === 1 ? ' disabled' : '');
+            firstLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(1)" title="Trang đầu"><i class="fa-solid fa-angles-left"></i></a>`;
+            paginationUl.appendChild(firstLi);
+
             // Previous Button
             const prevLi = document.createElement('li');
             prevLi.className = 'page-item' + (currentFoodPage === 1 ? ' disabled' : '');
-            prevLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${currentFoodPage - 1})"><i class="fa-solid fa-chevron-left"></i></a>`;
+            prevLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${currentFoodPage - 1})" title="Trang trước"><i class="fa-solid fa-chevron-left"></i></a>`;
             paginationUl.appendChild(prevLi);
 
+            // Calculate sliding page window (max 5 visible pages)
+            let startPage = Math.max(1, currentFoodPage - 2);
+            let endPage = Math.min(pageCount, currentFoodPage + 2);
+
+            if (currentFoodPage <= 3) {
+                endPage = Math.min(pageCount, 5);
+            } else if (currentFoodPage >= pageCount - 2) {
+                startPage = Math.max(1, pageCount - 4);
+            }
+
+            if (startPage > 1) {
+                const dotsLi = document.createElement('li');
+                dotsLi.className = 'page-item disabled';
+                dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                paginationUl.appendChild(dotsLi);
+            }
+
             // Page Numbers
-            for (let i = 1; i <= pageCount; i++) {
+            for (let i = startPage; i <= endPage; i++) {
                 const li = document.createElement('li');
                 li.className = 'page-item page-num-item' + (currentFoodPage === i ? ' active' : '');
                 li.setAttribute('data-page', i);
@@ -614,11 +637,24 @@
                 paginationUl.appendChild(li);
             }
 
+            if (endPage < pageCount) {
+                const dotsLi = document.createElement('li');
+                dotsLi.className = 'page-item disabled';
+                dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                paginationUl.appendChild(dotsLi);
+            }
+
             // Next Button
             const nextLi = document.createElement('li');
             nextLi.className = 'page-item' + (currentFoodPage === pageCount ? ' disabled' : '');
-            nextLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${currentFoodPage + 1})"><i class="fa-solid fa-chevron-right"></i></a>`;
+            nextLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${currentFoodPage + 1})" title="Trang sau"><i class="fa-solid fa-chevron-right"></i></a>`;
             paginationUl.appendChild(nextLi);
+
+            // Last Page Button
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item' + (currentFoodPage === pageCount ? ' disabled' : '');
+            lastLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${pageCount})" title="Trang cuối"><i class="fa-solid fa-angles-right"></i></a>`;
+            paginationUl.appendChild(lastLi);
         }
 
         function changeFoodPage(page) {

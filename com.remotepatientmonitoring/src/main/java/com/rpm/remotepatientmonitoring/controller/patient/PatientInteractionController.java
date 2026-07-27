@@ -86,14 +86,14 @@ public class PatientInteractionController {
         List<Appointment> appointments = patientInteractionService.getAppointments(patient.getId());
         List<ChangeRequest> changeRequests = patientInteractionService.getChangeRequests(patient.getId());
 
-        // Fetch logs for the last 7 days for the chart
-        LocalDate chartStartDate = LocalDate.now().minusDays(7);
+        // lay nhat ky hoat dong 7 ngay gan day cho bieu do
+        LocalDate chartStartDate = LocalDate.now().minusDays(7);//ngay hien tai - 7ngay
         List<DailyHealthLog> chartLogs = patientInteractionService.getLatestLogsForChart(patient.getId(), chartStartDate);
 
-        // Group and keep only the latest log per day and milestone for the chart, merging indices
+        // Nhom lai va chi giu lai nhat ky moi nhat moi ngay va moc thoi gian cho bieu do, hop nhat cac chi so.
         Map<String, DailyHealthLog> latestLogsMap = new LinkedHashMap<>();
         for (DailyHealthLog log : chartLogs) {
-            String key = log.getLogDate().toString() + "_" + log.getLogType();
+            String key = log.getLogDate().toString() + "_" + log.getLogType();//"2026-07-27_EVENING"
             DailyHealthLog existing = latestLogsMap.get(key);
             if (existing == null) {
                 DailyHealthLog merged = new DailyHealthLog();
@@ -130,9 +130,10 @@ public class PatientInteractionController {
         List<Double> glucoseList = new ArrayList<>();
 
         for (DailyHealthLog log : latestLogsMap.values()) {
-            dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
+            dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");//2026-07-23 (MORNING)
             systolicList.add(log.getSystolicBp());
             diastolicList.add(log.getDiastolicBp());
+            //                                           chuyen BigDecimal -> double
             glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : null);
         }
 
