@@ -55,29 +55,4 @@ public class HospitalAdmin {
     @Column(name = "updated_at", nullable = false)
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Hospital getHospital() { return hospital; }
-    public void setHospital(Hospital hospital) { this.hospital = hospital; }
-    public Account getAccount() { return account; }
-    public void setAccount(Account account) { this.account = account; }
-    public String getAdminCode() { return adminCode; }
-    public void setAdminCode(String adminCode) { this.adminCode = adminCode; }
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
-    public String getPosition() { return position; }
-    public void setPosition(String position) { this.position = position; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getAdminRoleType() { return adminRoleType; }
-    public void setAdminRoleType(String adminRoleType) { this.adminRoleType = adminRoleType; }
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

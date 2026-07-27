@@ -46,25 +46,4 @@ public class NutritionRule {
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
-    public Doctor getDoctor() { return doctor; }
-    public void setDoctor(Doctor doctor) { this.doctor = doctor; }
-    public Integer getMaxCaloriesPerDay() { return maxCaloriesPerDay; }
-    public void setMaxCaloriesPerDay(Integer maxCaloriesPerDay) { this.maxCaloriesPerDay = maxCaloriesPerDay; }
-    public Integer getDailyWaterMl() { return dailyWaterMl; }
-    public void setDailyWaterMl(Integer dailyWaterMl) { this.dailyWaterMl = dailyWaterMl; }
-    public BigDecimal getMaxCarbsG() { return maxCarbsG; }
-    public void setMaxCarbsG(BigDecimal maxCarbsG) { this.maxCarbsG = maxCarbsG; }
-    public BigDecimal getMaxSaltG() { return maxSaltG; }
-    public void setMaxSaltG(BigDecimal maxSaltG) { this.maxSaltG = maxSaltG; }
-    public BigDecimal getMinFiberG() { return minFiberG; }
-    public void setMinFiberG(BigDecimal minFiberG) { this.minFiberG = minFiberG; }
-    public BigDecimal getMaxFatG() { return maxFatG; }
-    public void setMaxFatG(BigDecimal maxFatG) { this.maxFatG = maxFatG; }
-    public BigDecimal getMinProteinG() { return minProteinG; }
-    public void setMinProteinG(BigDecimal minProteinG) { this.minProteinG = minProteinG; }
 }
