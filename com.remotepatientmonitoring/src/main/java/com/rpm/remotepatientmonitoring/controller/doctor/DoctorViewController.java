@@ -885,6 +885,12 @@ public class DoctorViewController {
                 return REDIRECT_APPOINTMENTS;
             }
 
+            int hour = apptTime.getHour();
+            if (hour < 8 || hour >= 17) {
+                redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Giờ hẹn phải nằm trong giờ làm việc (Từ 08:00 sáng đến 17:00 chiều).");
+                return REDIRECT_APPOINTMENTS;
+            }
+
             com.rpm.remotepatientmonitoring.model.Appointment appt = com.rpm.remotepatientmonitoring.model.Appointment.builder()
                     .patient(patient)
                     .doctor(doctor)
