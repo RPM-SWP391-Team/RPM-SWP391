@@ -202,6 +202,14 @@ public class PatientInteractionService {
         notificationRepository.save(notif);
     }
 
+    public Appointment getAppointmentById(Integer id) {
+        Optional<Appointment> apptOpt = appointmentRepository.findById(id);
+        if (apptOpt.isPresent()) {
+            return apptOpt.get();
+        }
+        return null;
+    }
+
     @Transactional
     public void updateAppointment(Integer id, Integer patientId, Integer doctorId, String appointmentType, String patientRequestReason, LocalDateTime apptTime) {
         Optional<Appointment> apptOpt = appointmentRepository.findById(id);
