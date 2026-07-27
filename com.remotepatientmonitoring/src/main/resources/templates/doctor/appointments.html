@@ -343,7 +343,7 @@
                                 </div>
                             </td>
                             <td th:if="${appt.status != 'PENDING'}">
-                                <div th:if="${appt.status == 'ACCEPTED'}" class="d-flex gap-1">
+                                <div th:if="${appt.status == 'ACCEPTED' or appt.status == 'APPROVED' or appt.status == 'CONFIRMED'}" class="d-flex gap-1">
                                     <a th:href="@{/doctor/patient-detail/{id}(id=${appt.patient.id})}" class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-sm" title="Mở trang Hồ sơ chi tiết để nhập đầy đủ HbA1c, BMI, Đơn thuốc, Phác đồ...">
                                         <i class="fa-solid fa-file-waveform me-1"></i>Hồ sơ phác đồ
                                     </a>
@@ -351,6 +351,39 @@
                                         data-bs-toggle="modal" th:data-bs-target="'#completeModal' + ${appt.id}">
                                         <i class="fa-solid fa-notes-medical me-1"></i>Khám & Hoàn thành
                                     </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm"
+                                        data-bs-toggle="modal" th:data-bs-target="'#cancelModal' + ${appt.id}">
+                                        <i class="fa-solid fa-calendar-xmark me-1"></i>Hủy lịch
+                                    </button>
+
+                                    <!-- Modal Hủy Lịch Hẹn -->
+                                    <div class="modal fade" th:id="'cancelModal' + ${appt.id}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content" style="border-radius: 16px; border: none;">
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title fw-bold text-danger"><i class="fa-solid fa-calendar-xmark me-2"></i>Xác nhận Hủy Lịch Hẹn</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form th:action="@{/doctor/appointments/{id}/cancel(id=${appt.id})}" method="post">
+                                                    <div class="modal-body text-start">
+                                                        <p class="text-muted mb-2">Bệnh nhân: <strong class="text-dark" th:text="${appt.patient.fullName}">Nguyễn Văn A</strong></p>
+                                                        <p class="text-muted mb-3">Thời gian hẹn: <strong class="text-primary" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong></p>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-bold">Lý do hủy lịch (Tùy chọn)</label>
+                                                            <textarea class="form-control" name="cancelReason" rows="3" placeholder="VD: Bác sĩ có lịch bận đột xuất, chuyển sang ngày khác..."></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-0">
+                                                        <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
+                                                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                                                            <i class="fa-solid fa-xmark me-1"></i>Xác nhận Hủy Lịch
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- Modal Hoàn thành Khám -->
                                     <div class="modal fade" th:id="'completeModal' + ${appt.id}" tabindex="-1" aria-hidden="true">
