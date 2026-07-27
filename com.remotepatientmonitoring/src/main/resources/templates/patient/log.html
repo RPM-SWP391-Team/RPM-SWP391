@@ -48,12 +48,12 @@
                             <span th:errors="${healthLog}">Lỗi toàn cục</span>
                         </div>
                     </div>
-                    <input type="hidden" name="id" th:value="${logId}" id="healthLogId">
+                    <input type="hidden" th:field="*{id}" id="healthLogId">
                     <input type="hidden" th:field="*{inputMethod}" id="inputMethodField" value="MANUAL">
                     <input type="hidden" th:field="*{logType}" id="logTypeField">
 
                     <!-- ========== PANEL 0: Chọn loại chỉ số (cho Đồng mắc) ========== -->
-                    <div class="wizard-panel active" id="panel0">
+                    <div class="wizard-panel" th:classappend="${healthLog.id == null} ? 'active' : ''" id="panel0">
                         <p class="text-center text-muted small mb-3">Bạn muốn nhập chỉ số gì?</p>
                         <div class="row g-3" id="categoryRow">
                             <div id="cat-bp-col" class="col-6 custom-style-104">
@@ -193,7 +193,7 @@
                     </div>
 
                     <!-- ========== PANEL 2A: Nhập huyết áp ========== -->
-                    <div class="wizard-panel" id="panelBpInput">
+                    <div class="wizard-panel" th:classappend="${healthLog.id != null and (healthLog.glucoseLevel == null or healthLog.systolicBp != null)} ? 'active' : ''" id="panelBpInput">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <button type="button" class="btn-back" onclick="goToBpMilestones()">
                                 <i class="fa-solid fa-chevron-left me-1"></i> Đổi mốc
@@ -240,7 +240,7 @@
                     </div>
 
                     <!-- ========== PANEL 2B: Nhập đường huyết ========== -->
-                    <div class="wizard-panel" id="panelGlInput">
+                    <div class="wizard-panel" th:classappend="${healthLog.id != null and healthLog.glucoseLevel != null and healthLog.systolicBp == null} ? 'active' : ''" id="panelGlInput">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <button type="button" class="btn-back" onclick="goToGlucoseMilestones()">
                                 <i class="fa-solid fa-chevron-left me-1"></i> Đổi mốc
@@ -398,20 +398,27 @@
         document.addEventListener("DOMContentLoaded", function () {
             const healthLogIdEl = document.getElementById('healthLogId');
             const healthLogId = healthLogIdEl ? healthLogIdEl.value : null;
-            if (healthLogId) {
+            if (healthLogId && healthLogId !== '') {
                 const sysEl = document.getElementById('systolicBp');
                 const glEl = document.getElementById('glucoseLevel');
-                const sysVal = sysEl ? sysEl.value : null;
-                const glVal = glEl ? glEl.value : null;
+                const sysVal = (sysEl && sysEl.value && sysEl.value.trim() !== '') ? sysEl.value.trim() : null;
+                const glVal = (glEl && glEl.value && glEl.value.trim() !== '') ? glEl.value.trim() : null;
                 
                 switchInputMethod('MANUAL');
                 
-                if (sysVal) {
+                if (sysVal !== null) {
                     showPanel('panelBpInput');
+                    document.getElementById('labelBp').textContent = bpLabels[document.getElementById('logTypeField').value] || '';
                     if (isBothGroups) setBars('done', 'done', 'active');
                     else setBars('done', 'active', null);
-                } else if (glVal) {
+                } else if (glVal !== null) {
                     showPanel('panelGlInput');
+                    document.getElementById('labelGl').textContent = glLabels[document.getElementById('logTypeField').value] || '';
+                    if (isBothGroups) setBars('done', 'done', 'active');
+                    else setBars('done', 'active', null);
+                } else {
+                    showPanel('panelBpInput');
+                    document.getElementById('labelBp').textContent = bpLabels[document.getElementById('logTypeField').value] || '';
                     if (isBothGroups) setBars('done', 'done', 'active');
                     else setBars('done', 'active', null);
                 }
