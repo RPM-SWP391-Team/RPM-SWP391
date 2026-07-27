@@ -28,6 +28,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     // Bổ sung hàm này để phục vụ luồng vô hiệu hóa bác sĩ
     List<Appointment> findByPatientIdAndDoctorIdAndStatusIn(Integer patientId, Integer doctorId, List<String> statuses);
 
+    // Kiểm tra trùng slot khám của bác sĩ
+    boolean existsByDoctorIdAndAppointmentTimeAndStatusIn(Integer doctorId, java.time.LocalDateTime appointmentTime, List<String> statuses);
+
+    boolean existsByDoctorIdAndAppointmentTimeAndStatusInAndIdNot(Integer doctorId, java.time.LocalDateTime appointmentTime, List<String> statuses, Integer id);
+
     boolean existsByPatientIdAndDoctorId(Integer patientId, Integer doctorId);
 
     List<Appointment> findByStatusAndReminderSent2daysFalseAndAppointmentTimeBetween(

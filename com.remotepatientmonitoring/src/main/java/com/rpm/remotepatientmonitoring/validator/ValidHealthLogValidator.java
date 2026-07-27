@@ -41,6 +41,15 @@ public class ValidHealthLogValidator implements ConstraintValidator<ValidHealthL
                        .addConstraintViolation();
                 isValid = false;
             }
+            if (dto.getSystolicBp() != null && dto.getDiastolicBp() != null) {
+                if (dto.getSystolicBp() <= dto.getDiastolicBp()) {
+                    context.disableDefaultConstraintViolation();
+                    context.buildConstraintViolationWithTemplate("Huyết áp tâm thu phải lớn hơn tâm trương.")
+                           .addPropertyNode("systolicBp")
+                           .addConstraintViolation();
+                    isValid = false;
+                }
+            }
         }
 
         if (hasGl) {

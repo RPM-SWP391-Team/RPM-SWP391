@@ -60,6 +60,12 @@ public class PatientHealthService {
     private AuditTrailService auditTrailService;
 
     public Map<String, Object> submitDailyHealthLog(HealthLogRequest req) {
+        if (req.getSystolicBp() != null && req.getDiastolicBp() != null) {
+            if (req.getSystolicBp() <= req.getDiastolicBp()) {
+                throw new IllegalArgumentException("Huyết áp tâm thu phải lớn hơn tâm trương!");
+            }
+        }
+
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName("sp_record_daily_health_log");
         MapSqlParameterSource inParams = new MapSqlParameterSource();
         inParams.addValue("patient_id", req.getPatientId());

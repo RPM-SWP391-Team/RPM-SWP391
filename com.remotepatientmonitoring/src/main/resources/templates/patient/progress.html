@@ -141,12 +141,6 @@
                     </h4>
 
                     <div class="mb-3">
-                        <label for="fullName" class="form-label form-label-custom">Họ và tên bệnh nhân</label>
-                        <input type="text" class="form-control form-control-custom" id="fullName" name="fullName" 
-                               th:value="${patient.fullName}" required minlength="2" maxlength="100" placeholder="Nhập họ và tên đầy đủ">
-                    </div>
-
-                    <div class="mb-3">
                         <label for="email" class="form-label form-label-custom">Địa chỉ Email</label>
                         <input type="email" class="form-control form-control-custom bg-light text-muted" id="email" name="email" 
                                th:value="${patient.account?.email}" readonly disabled>
