@@ -707,86 +707,6 @@
 
     
     <!-- Request Change Modal (Pure CSS - Zero JS) -->
-    <div id="requestChangeCssModal" class="css-modal-overlay">
-        <div class="css-modal-dialog card card-custom p-0">
-            <div class="d-flex justify-content-between align-items-center border-0 pb-0 pt-3 px-4">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-paper-plane text-warning me-2"></i>Gửi Yêu Cầu Thay Đổi
-                </h5>
-                <a href="#!" class="btn-close text-decoration-none" aria-label="Close"></a>
-            </div>
-            <form th:action="@{/patient/request-change}" method="POST">
-                <div class="py-3 px-4">
-                    <div class="mb-3">
-                        <label for="requestType" class="form-label small fw-semibold text-muted">Loại yêu cầu thay đổi <span class="text-danger">*</span></label>
-                        <select id="requestType" name="requestType" required class="form-select custom-style-43">
-                            <option value="TREATMENT_PLAN">Thay đổi phác đồ điều trị (Treatment Plan)</option>
-                            <option value="SCHEDULE">Thay đổi lịch sinh hoạt (Schedule)</option>
-                            <option value="DIET">Thay đổi quy tắc dinh dưỡng (Diet)</option>
-                            <option value="APPOINTMENT">Thay đổi lịch hẹn khám (Appointment)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="patientReason" class="form-label small fw-semibold text-muted">Mô tả lý do thay đổi <span class="text-danger">*</span></label>
-                        <textarea id="patientReason" name="patientReason" rows="5" 
-                                  placeholder="Mô tả cụ thể lý do tại sao bạn muốn thay đổi (Ví dụ: thuốc gây mệt mỏi, muốn dời giờ đi bộ, thức ăn không phù hợp...)" required maxlength="1000" class="form-control custom-style-44"></textarea>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
-                    <a href="#!" class="btn btn-secondary small custom-style-43">Hủy</a>
-                    <button type="submit" class="btn btn-primary small custom-style-43">Gửi yêu cầu</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Edit Appointment Modals (Pure CSS - Zero JS) -->
-    <div th:each="appt : ${appointments}" th:if="${appt.status == 'PENDING'}" th:id="'editAppointmentCssModal-' + ${appt.id}" class="css-modal-overlay">
-        <div class="css-modal-dialog card card-custom p-0">
-            <div class="d-flex justify-content-between align-items-center border-0 pb-0 pt-3 px-4">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Chỉnh Sửa Lịch Hẹn Khám
-                </h5>
-                <a href="#!" class="btn-close text-decoration-none" aria-label="Close"></a>
-            </div>
-            <form th:action="@{/patient/appointments/update/{id}(id=${appt.id})}" method="POST">
-                <div class="py-3 px-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                        <input type="datetime-local" name="appointmentTime" 
-                               th:value="${#temporals.format(appt.appointmentTime, 'yyyy-MM-dd''T''HH:mm')}"
-                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required class="form-control custom-style-43">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Loại lịch hẹn <span class="text-danger">*</span></label>
-                        <select name="appointmentType" required class="form-select custom-style-43">
-                            <option value="INITIAL" th:selected="${appt.appointmentType == 'INITIAL'}">Khám lần đầu (INITIAL)</option>
-                            <option value="CHECKUP" th:selected="${appt.appointmentType == 'CHECKUP'}">Tái khám định kỳ (CHECKUP)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Bác sĩ khám <span class="text-danger">*</span></label>
-                        <select name="doctorId" required class="form-select custom-style-43">
-                            <option th:each="doc : ${doctors}" th:value="${doc.id}" 
-                                    th:selected="${appt.doctor.id == doc.id}"
-                                    th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
-                        <textarea name="patientRequestReason" rows="3" 
-                                  placeholder="Nhập lý do của bạn..." required maxlength="500" th:text="${appt.patientRequestReason}" class="form-control custom-style-44"></textarea>
-                        <small class="text-muted">Tối đa 500 ký tự.</small>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
-                    <a href="#!" class="btn btn-secondary small custom-style-43">Hủy</a>
-                    <button type="submit" class="btn btn-primary small custom-style-43">Cập nhật</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
     <!-- Bottom Navigation Bar -->
     <div th:replace="~{patient/fragments :: bottom-nav}"></div>
 
@@ -1004,8 +924,25 @@
         </div>
     </div>
 
-    <!-- Script xử lý Đánh giá Bác sĩ -->
+    <!-- Script xử lý Đánh giá Bác sĩ & Xóa nhật ký sức khỏe -->
     <script>
+        function deleteHealthLog(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đo sức khỏe này?')) return;
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/patient/log/delete';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id';
+            input.value = id;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         let selectedDoctorRating = 5;
 
         function openDoctorRatingModal(appointmentId, doctorName) {
