@@ -156,7 +156,9 @@ public class PatientInteractionController {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        List<Doctor> doctors = patientInteractionService.getAvailableDoctors(patient.getHospital().getId());
+        List<Doctor> doctors = (patient.getHospital() != null) 
+                ? patientInteractionService.getAvailableDoctors(patient.getHospital().getId()) 
+                : new ArrayList<>();
         ratingService.populateDoctorRatings(doctors);
 
         // Fetch evaluated appointment IDs

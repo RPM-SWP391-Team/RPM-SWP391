@@ -40,6 +40,9 @@ public class PatientGlobalService {
 
     @Transactional
     public void checkAndGenerateReminders(Patient patient) {
+        if (patient == null || "NEW".equalsIgnoreCase(patient.getStatus()) || "PENDING".equalsIgnoreCase(patient.getStatus()) || patient.getHospital() == null) {
+            return;
+        }
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
         

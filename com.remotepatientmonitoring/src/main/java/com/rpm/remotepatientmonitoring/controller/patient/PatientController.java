@@ -888,6 +888,7 @@ public class PatientController {
 
     @PostMapping("/progress/update")
     public String updateProfile(
+            @RequestParam(value = "fullName", required = false) String fullName,
             @RequestParam("phone") String phone,
             @RequestParam("address") String address,
             @RequestParam(value = "currentPassword", required = false) String currentPassword,
@@ -933,7 +934,7 @@ public class PatientController {
             }
         }
 
-        patientService.updateProfile(patient, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
+        patientService.updateProfile(patient, fullName, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
 
         return "redirect:/patient/progress?updateSuccess=true";
     }
