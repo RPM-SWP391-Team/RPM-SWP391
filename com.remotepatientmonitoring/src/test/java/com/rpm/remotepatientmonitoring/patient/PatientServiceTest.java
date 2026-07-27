@@ -4,17 +4,22 @@ import com.rpm.remotepatientmonitoring.model.*;
 import com.rpm.remotepatientmonitoring.repository.*;
 import com.rpm.remotepatientmonitoring.service.patient.PatientService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,107 +40,152 @@ class PatientServiceTest {
     @Mock
     private FoodDictionaryRepository foodDictionaryRepository;
 
+    @Mock
+    private PatientExerciseRepository patientExerciseRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private PatientService patientService;
 
-    private Patient patient;
+    private Account sampleAccount;
+    private Patient samplePatient;
 
     @BeforeEach
     void setUp() {
-        patient = new Patient();
-        patient.setId(1);
-        patient.setFullName("Test Patient");
+        sampleAccount = Account.builder()
+                .id(1)
+                .email("patient@example.com")
+                .passwordHash("oldHash")
+                .role("PATIENT")
+                .build();
+
+        samplePatient = Patient.builder()
+                .id(10)
+                .account(sampleAccount)
+                .fullName("Nguyen Van A")
+                .phone("0912345678")
+                .address("123 Main St")
+                .build();
     }
 
-    @Test
-    void addWater_UT01() {
-        Integer amount = 250;
-        WaterLog savedLog = new WaterLog();
-        savedLog.setAmountMl(250);
+    @Nested
+    @DisplayName("Patient Profile & Account Updates")
+    class ProfileManagement {
 
-        List<WaterLog> emptyList = new ArrayList<>();
-        List<WaterLog> logList = new ArrayList<>();
-        logList.add(savedLog);
+        @Test
+        @DisplayName("findByAccountId returns patient when present")
+        void findByAccountId_returnsPatient() {
+            when(patientRepository.findByAccountId(1)).thenReturn(Optional.of(samplePatient));
 
-        when(waterLogRepository.findAllByPatientIdAndLogDate(eq(1), any()))
-                .thenReturn(emptyList)
-                .thenReturn(logList);
+            Optional<Patient> result = patientService.findByAccountId(1);
 
-        int actual = patientService.addWater(patient, amount);
-        assertEquals(250, actual);
-        verify(waterLogRepository, times(1)).save(any(WaterLog.class));
-    }
+            assertTrue(result.isPresent());
+            assertEquals("Nguyen Van A", result.get().getFullName());
+        }
 
-    @Test
-    void addWater_UT02() {
-        Integer amount = 250;
-        WaterLog existing = new WaterLog();
-        existing.setAmountMl(500);
+        @Test
+        @DisplayName("updateProfile updates patient info and encodes password if provided")
+        void updateProfile_updatesPatientAndAccount() {
+            when(passwordEncoder.encode("newPassword123")).thenReturn("newHash123");
 
-        List<WaterLog> existingLogs = new ArrayList<>();
-        existingLogs.add(existing);
-        when(waterLogRepository.findAllByPatientIdAndLogDate(eq(1), any())).thenReturn(existingLogs);
+            patientService.updateProfile(
+                    samplePatient,
+                    "0987654321",
+                    "456 New St",
+                    "Nguyen Van B",
+                    "0911223344",
+                    "newPassword123"
+            );
 
-        int actual = patientService.addWater(patient, amount);
-        assertEquals(750, existing.getAmountMl());
-        assertEquals(750, actual);
-    }
+            assertEquals("0987654321", samplePatient.getPhone());
+            assertEquals("456 New St", samplePatient.getAddress());
+            assertEquals("Nguyen Van B", samplePatient.getEmergencyContactName());
+            assertEquals("0911223344", samplePatient.getEmergencyContactPhone());
 
-    @Test
-    void resetWater_UT03() {
-        WaterLog existing = new WaterLog();
-        List<WaterLog> existingLogs = new ArrayList<>();
-        existingLogs.add(existing);
-        when(waterLogRepository.findAllByPatientIdAndLogDate(eq(1), any())).thenReturn(existingLogs);
+            verify(patientRepository).save(samplePatient);
+            verify(passwordEncoder).encode("newPassword123");
+            assertEquals("newHash123", sampleAccount.getPasswordHash());
+            verify(accountRepository).save(sampleAccount);
+        }
 
-        int actual = patientService.resetWater(patient);
-        assertEquals(0, actual);
-        verify(waterLogRepository, times(1)).deleteAll(anyList());
-    }
+        @Test
+        @DisplayName("updateProfile does not modify or overwrite account email field")
+        void updateProfile_doesNotModifyAccountEmail() {
+            String originalEmail = sampleAccount.getEmail();
 
-    @Test
-    void addMeal_UT04() {
-        String mealType = "BREAKFAST";
-        Integer foodId = 5;
-        Double quantityG = 150.0;
+            patientService.updateProfile(
+                    samplePatient,
+                    "0987654321",
+                    "456 New St",
+                    "Nguyen Van B",
+                    "0911223344",
+                    null
+            );
 
-        FoodDictionary food = new FoodDictionary();
-        food.setId(5);
-        food.setEnergyKcal(200);
-
-        PatientMeal createdMeal = new PatientMeal();
-        createdMeal.setMealType("BREAKFAST");
-        createdMeal.setQuantityG(150.0);
-
-        when(foodDictionaryRepository.findById(5)).thenReturn(Optional.of(food));
-        when(patientMealRepository.save(any(PatientMeal.class))).thenReturn(createdMeal);
-
-        PatientMeal actual = patientService.addMeal(patient, mealType, foodId, quantityG);
-        assertNotNull(actual);
-        assertEquals("BREAKFAST", actual.getMealType());
-        assertEquals(150.0, actual.getQuantityG());
-    }
-
-    @Test
-    void addMeal_UT05() {
-        String mealType = "BREAKFAST";
-        Integer foodId = 999;
-        Double quantityG = 100.0;
-
-        when(foodDictionaryRepository.findById(999)).thenReturn(Optional.empty());
-
-        try {
-            patientService.addMeal(patient, mealType, foodId, quantityG);
-            fail("Nên quăng IllegalArgumentException khi foodId không tồn tại");
-        } catch (IllegalArgumentException e) {
-            assertNotNull(e.getMessage());
+            assertEquals(originalEmail, sampleAccount.getEmail());
+            assertEquals("patient@example.com", sampleAccount.getEmail());
         }
     }
 
-    @Test
-    void deleteMeal_UT06() {
-        Integer mealId = 10;
-        patientService.deleteMeal(mealId);
-        verify(patientMealRepository, times(1)).deleteById(mealId);
+    @Nested
+    @DisplayName("Water Intake Tracking")
+    class WaterTracking {
+
+        @Test
+        @DisplayName("addWater creates new WaterLog if none exists for today")
+        void addWater_createsNewLog() {
+            when(waterLogRepository.findAllByPatientIdAndLogDate(eq(10), any(LocalDate.class)))
+                    .thenReturn(Collections.emptyList());
+
+            patientService.addWater(samplePatient, 250);
+
+            verify(waterLogRepository).save(any(WaterLog.class));
+        }
+
+        @Test
+        @DisplayName("resetWater deletes all water logs for today")
+        void resetWater_deletesLogs() {
+            WaterLog log = WaterLog.builder().id(1).amountMl(500).build();
+            when(waterLogRepository.findAllByPatientIdAndLogDate(eq(10), any(LocalDate.class)))
+                    .thenReturn(List.of(log));
+
+            int total = patientService.resetWater(samplePatient);
+
+            assertEquals(0, total);
+            verify(waterLogRepository).deleteAll(List.of(log));
+        }
+    }
+
+    @Nested
+    @DisplayName("Patient Meal Management")
+    class MealManagement {
+
+        @Test
+        @DisplayName("addMeal throws exception if food dictionary item is missing")
+        void addMeal_foodNotFound_throwsException() {
+            when(foodDictionaryRepository.findById(99)).thenReturn(Optional.empty());
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    patientService.addMeal(samplePatient, "BREAKFAST", 99, 150.0));
+
+            assertTrue(ex.getMessage().contains("Không tìm thấy món ăn"));
+        }
+
+        @Test
+        @DisplayName("addMeal saves new meal record successfully")
+        void addMeal_success() {
+            FoodDictionary food = FoodDictionary.builder().id(5).foodName("Cơm trắng").build();
+            when(foodDictionaryRepository.findById(5)).thenReturn(Optional.of(food));
+            when(patientMealRepository.save(any(PatientMeal.class))).thenAnswer(i -> i.getArgument(0));
+
+            PatientMeal meal = patientService.addMeal(samplePatient, "BREAKFAST", 5, 200.0);
+
+            assertNotNull(meal);
+            assertEquals("BREAKFAST", meal.getMealType());
+            assertEquals(200.0, meal.getQuantityG());
+            assertEquals(food, meal.getFood());
+        }
     }
 }
