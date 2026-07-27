@@ -179,59 +179,6 @@
                                     data-bs-toggle="modal" th:data-bs-target="'#viewModal' + ${req.id}">
                                 <i class="fa-solid fa-eye me-1"></i>Xem
                             </button>
-
-                            <!-- Modal Xử lý (PENDING) -->
-                            <div th:if="${req.status == 'PENDING'}" class="modal fade text-start" th:id="'processModal' + ${req.id}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content" style="border-radius: 16px; border: none;">
-                                        <div class="modal-header border-0 pb-0">
-                                            <h5 class="modal-title fw-bold">Xử lý yêu cầu</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3 p-3 rounded" style="background-color: #f8f9fa;">
-                                                <small class="text-muted d-block mb-1">Bệnh nhân:</small>
-                                                <div class="fw-bold" th:text="${req.patient.fullName}">Nguyễn Văn A</div>
-                                                <hr class="my-2">
-                                                <small class="text-muted d-block mb-1">Lý do yêu cầu:</small>
-                                                <div th:text="${req.patientReason}">Tôi muốn đổi lịch khám...</div>
-                                            </div>
-                                            <form th:action="@{'/doctor/change-requests/' + ${req.id} + '/process'}" method="post">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold">Lời nhắn phản hồi cho Bệnh nhân <span class="text-danger">*</span></label>
-                                                    <textarea class="form-control" name="doctorResponse" rows="3" required placeholder="Nhập lời nhắn... VD: Đồng ý đổi lịch sang thứ 6..."></textarea>
-                                                </div>
-                                                <div class="d-flex gap-2 justify-content-end mt-4">
-                                                    <button type="submit" name="action" value="REJECT" class="btn btn-outline-danger px-4 rounded-pill fw-bold">Từ chối</button>
-                                                    <button type="submit" name="action" value="APPROVE" class="btn btn-success px-4 rounded-pill fw-bold">Duyệt Yêu cầu</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Modal Xem (APPROVED/REJECTED) -->
-                            <div th:if="${req.status != 'PENDING'}" class="modal fade text-start" th:id="'viewModal' + ${req.id}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content" style="border-radius: 16px; border: none;">
-                                        <div class="modal-header border-0 pb-0">
-                                            <h5 class="modal-title fw-bold">Chi tiết yêu cầu</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3 p-3 rounded border">
-                                                <small class="text-muted d-block mb-1">Lý do yêu cầu (Từ BN):</small>
-                                                <div th:text="${req.patientReason}">...</div>
-                                            </div>
-                                            <div class="mb-3 p-3 rounded" th:classappend="${req.status == 'APPROVED' ? 'bg-success text-white' : 'bg-danger text-white'}" style="opacity: 0.9;">
-                                                <small class="d-block mb-1 opacity-75">Phản hồi của Bác sĩ (<span th:text="${#temporals.format(req.processedAt, 'dd/MM/yyyy HH:mm')}"></span>):</small>
-                                                <div class="fw-bold" th:text="${req.doctorResponse}">...</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -255,6 +202,63 @@
                 </li>
             </ul>
         </nav>
+    </div>
+</div>
+
+<!-- CHANGE REQUEST MODALS (PLACED OUTSIDE CARD-CUSTOM CONTAINER TO PREVENT FLICKER) -->
+<div th:each="req : ${changeRequestPage.content}">
+
+    <!-- Modal Xử lý (PENDING) -->
+    <div th:if="${req.status == 'PENDING'}" class="modal fade text-start" th:id="'processModal' + ${req.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Xử lý yêu cầu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 p-3 rounded" style="background-color: #f8f9fa;">
+                        <small class="text-muted d-block mb-1">Bệnh nhân:</small>
+                        <div class="fw-bold" th:text="${req.patient.fullName}">Nguyễn Văn A</div>
+                        <hr class="my-2">
+                        <small class="text-muted d-block mb-1">Lý do yêu cầu:</small>
+                        <div th:text="${req.patientReason}">Tôi muốn đổi lịch khám...</div>
+                    </div>
+                    <form th:action="@{'/doctor/change-requests/' + ${req.id} + '/process'}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Lời nhắn phản hồi cho Bệnh nhân <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="doctorResponse" rows="3" required placeholder="Nhập lời nhắn... VD: Đồng ý đổi lịch sang thứ 6..."></textarea>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end mt-4">
+                            <button type="submit" name="action" value="REJECT" class="btn btn-outline-danger px-4 rounded-pill fw-bold">Từ chối</button>
+                            <button type="submit" name="action" value="APPROVE" class="btn btn-success px-4 rounded-pill fw-bold">Duyệt Yêu cầu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Xem (APPROVED/REJECTED) -->
+    <div th:if="${req.status != 'PENDING'}" class="modal fade text-start" th:id="'viewModal' + ${req.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Chi tiết yêu cầu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 p-3 rounded border">
+                        <small class="text-muted d-block mb-1">Lý do yêu cầu (Từ BN):</small>
+                        <div th:text="${req.patientReason}">...</div>
+                    </div>
+                    <div class="mb-3 p-3 rounded" th:classappend="${req.status == 'APPROVED' ? 'bg-success text-white' : 'bg-danger text-white'}" style="opacity: 0.9;">
+                        <small class="d-block mb-1 opacity-75">Phản hồi của Bác sĩ (<span th:text="${#temporals.format(req.processedAt, 'dd/MM/yyyy HH:mm')}"></span>):</small>
+                        <div class="fw-bold" th:text="${req.doctorResponse}">...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
