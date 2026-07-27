@@ -44,8 +44,8 @@
                             <div class="mb-4">
                                 <label class="form-label fw-semibold text-muted mb-2"><i class="fa-solid fa-stethoscope me-2 text-primary"></i>Loại lịch hẹn <span class="text-danger">*</span></label>
                                 <select id="appointmentType" name="appointmentType" required class="form-select custom-style-48">
-                                    <option value="INITIAL">Khám lần đầu (INITIAL)</option>
-                                    <option value="CHECKUP" selected>Tái khám định kỳ (CHECKUP)</option>
+                                    <option value="INITIAL" th:selected="${patient != null && (patient.status == 'NEW' || patient.status == 'PENDING')}">Khám lần đầu (INITIAL)</option>
+                                    <option value="CHECKUP" th:selected="${patient == null || (patient.status != 'NEW' && patient.status != 'PENDING')}">Tái khám định kỳ (CHECKUP)</option>
                                     <option value="EMERGENCY">Khẩn cấp (EMERGENCY)</option>
                                 </select>
                             </div>
