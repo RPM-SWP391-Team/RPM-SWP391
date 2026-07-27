@@ -7,6 +7,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -101,6 +104,14 @@ public class PatientService {
 
     public List<FoodDictionary> findActiveFoods() {
         return foodDictionaryRepository.findByIsActiveTrue();
+    }
+
+    public Page<FoodDictionary> findActiveFoods(String search, Pageable pageable) {
+        if (search != null && !search.trim().isEmpty()) {
+            return foodDictionaryRepository.findByIsActiveTrueAndFoodNameContainingIgnoreCaseOrIsActiveTrueAndEnglishNameContainingIgnoreCase(search.trim(), search.trim(), pageable);
+        } else {
+            return foodDictionaryRepository.findByIsActiveTrue(pageable);
+        }
     }
 
     @Transactional

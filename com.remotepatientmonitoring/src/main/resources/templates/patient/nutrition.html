@@ -311,10 +311,15 @@
                     </h5>
                     <p class="small text-muted mb-0">Tra cứu giá trị dinh dưỡng có trong 100g thực phẩm gợi ý tham khảo.</p>
                 </div>
-                <div class="input-group custom-style-121">
-                    <span class="input-group-text bg-light border-end-0 custom-style-122"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" id="foodSearchInput" placeholder="Tìm kiếm món ăn, thực phẩm..." onkeyup="filterFoodDictionary()" class="form-control bg-light border-start-0 custom-style-123">
-                </div>
+                <!-- Pure Thymeleaf Server-Side Search Form -->
+                <form th:action="@{/patient/nutrition}" method="GET" class="custom-style-121">
+                    <input type="hidden" name="date" th:value="${currentDate}">
+                    <div class="input-group">
+                        <input type="text" name="foodSearch" th:value="${foodSearch}" placeholder="Tìm kiếm món ăn, thực phẩm..." class="form-control bg-light border-end-0 custom-style-123">
+                        <button type="submit" class="btn btn-warning text-dark px-3 fw-bold"><i class="fa-solid fa-magnifying-glass me-1"></i>Tìm kiếm</button>
+                        <a th:if="${foodSearch != null and !#strings.isEmpty(foodSearch)}" th:href="@{/patient/nutrition(date=${currentDate})}" class="btn btn-outline-secondary px-3" title="Xóa bộ lọc"><i class="fa-solid fa-xmark"></i></a>
+                    </div>
+                </form>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle" id="foodDictTable">
@@ -332,6 +337,11 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr th:if="${#lists.isEmpty(foods)}">
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>Không tìm thấy thực phẩm nào phù hợp.
+                            </td>
+                        </tr>
                         <tr th:each="food : ${foods}" class="food-row">
                             <td class="fw-bold text-dark food-name-cell" th:text="${food.foodName}">Cơm trắng</td>
                             <td class="text-center fw-semibold text-danger"><span th:text="${food.energyKcal}">130</span> kcal</td>
@@ -355,14 +365,28 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Pagination Controls -->
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top">
-                <div class="small text-muted" id="foodDictPaginationInfo">
-                    Hiển thị 1 - 20 trong tổng số <span id="foodDictTotalItems">0</span> thực phẩm
+            <!-- Pure Thymeleaf Server-Side Pagination Controls -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top" th:if="${foodPageObj != null and foodPageObj.totalPages > 1}">
+                <div class="small text-muted">
+                    Hiển thị <b th:text="${foodPageObj.number * foodPageObj.size + 1}">1</b> - <b th:text="${Math.min((foodPageObj.number + 1) * foodPageObj.size, foodPageObj.totalElements)}">20</b> trong tổng số <b th:text="${foodPageObj.totalElements}">0</b> thực phẩm
                 </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0" id="foodDictPagination">
-                        <!-- Will be dynamically populated by JS -->
+                <nav aria-label="Phân trang từ điển thực phẩm">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${foodPageObj.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/patient/nutrition(foodPage=0, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang đầu"><i class="fa-solid fa-angles-left"></i></a>
+                        </li>
+                        <li class="page-item" th:classappend="${!foodPageObj.hasPrevious()} ? 'disabled'">
+                            <a class="page-link" th:href="@{/patient/nutrition(foodPage=${foodPageObj.number - 1}, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang trước"><i class="fa-solid fa-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(Math.max(0, foodPageObj.number - 2), Math.min(foodPageObj.totalPages - 1, foodPageObj.number + 2))}" th:classappend="${i == foodPageObj.number} ? 'active'">
+                            <a class="page-link" th:href="@{/patient/nutrition(foodPage=${i}, foodSearch=${foodSearch}, date=${currentDate})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${!foodPageObj.hasNext()} ? 'disabled'">
+                            <a class="page-link" th:href="@{/patient/nutrition(foodPage=${foodPageObj.number + 1}, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang sau"><i class="fa-solid fa-chevron-right"></i></a>
+                        </li>
+                        <li class="page-item" th:classappend="${foodPageObj.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/patient/nutrition(foodPage=${foodPageObj.totalPages - 1}, foodSearch=${foodSearch}, date=${currentDate})}" title="Trang cuối"><i class="fa-solid fa-angles-right"></i></a>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -393,7 +417,7 @@
                         <label for="foodPreset" class="form-label fw-semibold">Chọn món ăn từ từ điển</label>
                         <select class="form-select" id="foodPreset" onchange="applyFoodPreset(this.value)">
                             <option value="">-- Chọn món ăn --</option>
-                            <option th:each="food : ${foods}" 
+                            <option th:each="food : ${allActiveFoods != null ? allActiveFoods : foods}" 
                                     th:value="${food.id}" 
                                     th:text="${food.foodName} + ' (' + ${food.energyKcal} + ' kcal)'"
                                     th:data-calories="${food.energyKcal}" 
@@ -549,153 +573,8 @@
             recalculateNutrients();
         }
 
-        let currentFoodPage = 1;
-        const itemsPerPage = 20;
-        let filteredRows = [];
-
-        function initFoodPagination() {
-            const table = document.getElementById('foodDictTable');
-            if (!table) return;
-            const rows = Array.from(table.querySelectorAll('.food-row'));
-            filteredRows = rows;
-            currentFoodPage = 1;
-            renderPaginationControls();
-            showPage(1);
-        }
-
-        function showPage(page) {
-            currentFoodPage = page;
-            const startIdx = (page - 1) * itemsPerPage;
-            const endIdx = startIdx + itemsPerPage;
-
-            // Hide all rows
-            const allRows = document.querySelectorAll('.food-row');
-            allRows.forEach(r => r.style.display = 'none');
-
-            // Show only rows for current page
-            const pageRows = filteredRows.slice(startIdx, endIdx);
-            pageRows.forEach(r => r.style.display = '');
-
-            // Update info text
-            const total = filteredRows.length;
-            const displayedStart = total > 0 ? startIdx + 1 : 0;
-            const displayedEnd = Math.min(endIdx, total);
-            document.getElementById('foodDictTotalItems').textContent = total;
-            document.getElementById('foodDictPaginationInfo').innerHTML = 
-                `Hiển thị <b>${displayedStart} - ${displayedEnd}</b> trong tổng số <b>${total}</b> thực phẩm`;
-
-            updateActivePageButton();
-        }
-
-        function renderPaginationControls() {
-            const total = filteredRows.length;
-            const pageCount = Math.ceil(total / itemsPerPage);
-            const paginationUl = document.getElementById('foodDictPagination');
-            paginationUl.innerHTML = '';
-
-            if (pageCount <= 1) {
-                paginationUl.style.display = 'none';
-                return;
-            }
-            paginationUl.style.display = 'flex';
-
-            // First Page Button
-            const firstLi = document.createElement('li');
-            firstLi.className = 'page-item' + (currentFoodPage === 1 ? ' disabled' : '');
-            firstLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(1)" title="Trang đầu"><i class="fa-solid fa-angles-left"></i></a>`;
-            paginationUl.appendChild(firstLi);
-
-            // Previous Button
-            const prevLi = document.createElement('li');
-            prevLi.className = 'page-item' + (currentFoodPage === 1 ? ' disabled' : '');
-            prevLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${currentFoodPage - 1})" title="Trang trước"><i class="fa-solid fa-chevron-left"></i></a>`;
-            paginationUl.appendChild(prevLi);
-
-            // Calculate sliding page window (max 5 visible pages)
-            let startPage = Math.max(1, currentFoodPage - 2);
-            let endPage = Math.min(pageCount, currentFoodPage + 2);
-
-            if (currentFoodPage <= 3) {
-                endPage = Math.min(pageCount, 5);
-            } else if (currentFoodPage >= pageCount - 2) {
-                startPage = Math.max(1, pageCount - 4);
-            }
-
-            if (startPage > 1) {
-                const dotsLi = document.createElement('li');
-                dotsLi.className = 'page-item disabled';
-                dotsLi.innerHTML = `<span class="page-link">...</span>`;
-                paginationUl.appendChild(dotsLi);
-            }
-
-            // Page Numbers
-            for (let i = startPage; i <= endPage; i++) {
-                const li = document.createElement('li');
-                li.className = 'page-item page-num-item' + (currentFoodPage === i ? ' active' : '');
-                li.setAttribute('data-page', i);
-                li.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${i})">${i}</a>`;
-                paginationUl.appendChild(li);
-            }
-
-            if (endPage < pageCount) {
-                const dotsLi = document.createElement('li');
-                dotsLi.className = 'page-item disabled';
-                dotsLi.innerHTML = `<span class="page-link">...</span>`;
-                paginationUl.appendChild(dotsLi);
-            }
-
-            // Next Button
-            const nextLi = document.createElement('li');
-            nextLi.className = 'page-item' + (currentFoodPage === pageCount ? ' disabled' : '');
-            nextLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${currentFoodPage + 1})" title="Trang sau"><i class="fa-solid fa-chevron-right"></i></a>`;
-            paginationUl.appendChild(nextLi);
-
-            // Last Page Button
-            const lastLi = document.createElement('li');
-            lastLi.className = 'page-item' + (currentFoodPage === pageCount ? ' disabled' : '');
-            lastLi.innerHTML = `<a class="page-link" href="javascript:void(0)" onclick="changeFoodPage(${pageCount})" title="Trang cuối"><i class="fa-solid fa-angles-right"></i></a>`;
-            paginationUl.appendChild(lastLi);
-        }
-
-        function changeFoodPage(page) {
-            const total = filteredRows.length;
-            const pageCount = Math.ceil(total / itemsPerPage);
-            if (page < 1 || page > pageCount) return;
-            showPage(page);
-            renderPaginationControls();
-        }
-
-        function updateActivePageButton() {
-            document.querySelectorAll('#foodDictPagination .page-num-item').forEach(li => {
-                const p = parseInt(li.getAttribute('data-page'));
-                if (p === currentFoodPage) {
-                    li.classList.add('active');
-                } else {
-                    li.classList.remove('active');
-                }
-            });
-        }
-
-        function removeVietnameseTones(str) {
-            return str
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/đ/g, 'd')
-                .replace(/Đ/g, 'D');
-        }
-
-        function filterFoodDictionary() {
-            const query = removeVietnameseTones(document.getElementById('foodSearchInput').value.toLowerCase().trim());
-            const allRows = Array.from(document.querySelectorAll('#foodDictTable .food-row'));
-            
-            filteredRows = allRows.filter(row => {
-                const name = removeVietnameseTones(row.querySelector('.food-name-cell').textContent.toLowerCase());
-                return name.includes(query);
-            });
-
-            currentFoodPage = 1;
-            renderPaginationControls();
-            showPage(1);
+        function applyFoodPreset(presetValue) {
+            recalculateNutrients();
         }
 
         function quickSelectFood(element) {
@@ -743,7 +622,6 @@
     <script>
         let editMealModal;
         document.addEventListener("DOMContentLoaded", function() {
-            initFoodPagination();
             editMealModal = new bootstrap.Modal(document.getElementById('editMealModal'));
         });
 
