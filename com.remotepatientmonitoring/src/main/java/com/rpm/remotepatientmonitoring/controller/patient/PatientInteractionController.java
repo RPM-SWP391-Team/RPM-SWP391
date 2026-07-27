@@ -299,6 +299,25 @@ public class PatientInteractionController {
         return "redirect:/patient/appointments?bookSuccess=true";
     }
 
+    @GetMapping("/appointments/edit/{id}")
+    public String editAppointmentPage(@PathVariable("id") Integer id, Model model) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        Appointment appt = patientInteractionService.getAppointmentById(id);
+        if (appt == null || appt.getPatient() == null || !appt.getPatient().getId().equals(patient.getId())) {
+            return "redirect:/patient/appointments";
+        }
+
+        List<Doctor> doctors = patientInteractionService.getAvailableDoctors(patient.getHospital().getId());
+        model.addAttribute("patient", patient);
+        model.addAttribute("appointment", appt);
+        model.addAttribute("doctors", doctors);
+        return "patient/edit-appointment";
+    }
+
     @PostMapping("/appointments/update/{id}")
     public String updateAppointment(
             @PathVariable("id") Integer id,

@@ -156,7 +156,7 @@
                                     </td>
                                     <td>
                                         <div th:if="${appt.status == 'PENDING'}" class="d-inline-flex gap-2">
-                                            <a th:href="'#editAppointmentCssModal-' + ${appt.id}" class="btn btn-sm btn-outline-primary">
+                                            <a th:href="@{/patient/appointments/edit/{id}(id=${appt.id})}" class="btn btn-sm btn-outline-primary">
                                                 <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
                                             </a>
                                             <form th:action="@{/patient/appointments/delete/{id}(id=${appt.id})}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch khám này không?');" class="custom-style-30">
