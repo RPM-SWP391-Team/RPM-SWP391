@@ -854,7 +854,7 @@ public class PatientController {
         model.addAttribute("fatPercent", fatPercent);
         model.addAttribute("proteinPercent", proteinPercent);
         
-        Pageable foodPageable = PageRequest.of(foodPage, 20);
+        Pageable foodPageable = PageRequest.of(foodPage < 0 ? 0 : foodPage, 10);
         Page<FoodDictionary> foodPageObj = patientService.findActiveFoods(foodSearch, foodPageable);
 
         model.addAttribute("foodPageObj", foodPageObj);
