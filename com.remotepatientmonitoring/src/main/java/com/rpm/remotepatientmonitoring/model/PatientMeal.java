@@ -103,19 +103,4 @@ public class PatientMeal {
         }
         return null;
     }
-
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public Patient getPatient() { return patient; }
-    public void setPatient(Patient patient) { this.patient = patient; }
-    public FoodDictionary getFood() { return food; }
-    public void setFood(FoodDictionary food) { this.food = food; }
-    public LocalDate getLogDate() { return logDate; }
-    public void setLogDate(LocalDate logDate) { this.logDate = logDate; }
-    public String getMealType() { return mealType; }
-    public void setMealType(String mealType) { this.mealType = mealType; }
-    public Double getQuantityG() { return quantityG; }
-    public void setQuantityG(Double quantityG) { this.quantityG = quantityG; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
