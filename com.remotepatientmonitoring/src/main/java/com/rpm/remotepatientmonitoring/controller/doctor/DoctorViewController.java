@@ -1335,6 +1335,55 @@ public class DoctorViewController {
         return REDIRECT_APPOINTMENTS;
     }
 
+    @PostMapping("/appointments/{id}/cancel")
+    public String cancelAppointment(
+            @PathVariable("id") Integer id,
+            @RequestParam(value = "cancelReason", required = false) String cancelReason,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        Appointment appt = appointmentRepository.findById(id).orElse(null);
+        if (appt == null || appt.getDoctor() == null || !appt.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, MSG_APPOINTMENT_NOT_FOUND);
+            return REDIRECT_APPOINTMENTS;
+        }
+
+        if ("COMPLETED".equals(appt.getStatus()) || "CANCELLED".equals(appt.getStatus())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Lịch hẹn này không thể hủy.");
+            return REDIRECT_APPOINTMENTS;
+        }
+
+        appt.setStatus("CANCELLED");
+        if (cancelReason != null && !cancelReason.trim().isEmpty()) {
+            appt.setDoctorNote("Hủy lịch: " + cancelReason.trim());
+        }
+        appt.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appt);
+
+        if (appt.getPatient() != null) {
+            Notification notif = Notification.builder()
+                    .patient(appt.getPatient())
+                    .doctor(doctor)
+                    .recipientType("PATIENT")
+                    .title("Lịch khám đã bị hủy bởi Bác sĩ")
+                    .content("Bác sĩ " + doctor.getFullName() + " đã hủy lịch khám vào "
+                            + appt.getAppointmentTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            + (cancelReason != null && !cancelReason.trim().isEmpty() ? ". Lý do: " + cancelReason.trim() : ""))
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        }
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã hủy lịch hẹn thành công.");
+        return REDIRECT_APPOINTMENTS;
+    }
+
     // =========================================================
     // GET: Trang Cấu hình Ngưỡng Cảnh Báo Riêng Cho Bệnh Nhân và Lịch sử
     // =========================================================
