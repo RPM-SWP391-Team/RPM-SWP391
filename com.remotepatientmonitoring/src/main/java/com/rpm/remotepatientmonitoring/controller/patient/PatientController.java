@@ -959,23 +959,23 @@ public class PatientController {
         int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
 
         if (sys >= sysEmerg || dia >= diaEmerg) return "Nguy hiểm";
-        if (sys >= sysDangMin || dia >= diaDangMin) return "Vượt ngưỡng";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "Nguy cơ cao";
         if (sys >= sysWarnMin || dia >= diaWarnMin) return "Cần chú ý";
         return "Đạt mục tiêu";
     }
 
     private String getBpClass(Integer sys, Integer dia, AlertThreshold threshold) {
         if (sys == null || dia == null) return "text-danger fw-bold";
-        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
-        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 160;
+        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 100;
         int sysDangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
         int diaDangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
-        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
-        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 120;
+        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 80;
 
         if (sys >= sysEmerg || dia >= diaEmerg) return "text-danger fw-bold";
-        if (sys >= sysDangMin || dia >= diaDangMin) return "text-warning fw-bold"; // Optional: Use text-warning or a custom class if text-orange exists.
-        if (sys >= sysWarnMin || dia >= diaWarnMin) return "text-warning fw-bold";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "text-orange fw-bold";
+        if (sys >= sysWarnMin || dia >= diaWarnMin) return "text-yellow-dark fw-bold";
         return "text-success fw-bold";
     }
 
@@ -987,9 +987,9 @@ public class PatientController {
         double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
 
         if (glu < hypo) return "Nguy hiểm (Hạ)";
-        if (glu > highMax) return "Nguy hiểm (Cao)";
-        if (glu > normMax) return "Vượt ngưỡng";
-        return "Đạt mục tiêu";
+        if (glu >= highMax) return "Nguy hiểm (Cao)";
+        if (glu > normMax) return "Nguy cơ cao";
+        return "Bình thường";
     }
 
     private String getGlucoseClass(java.math.BigDecimal val, AlertThreshold threshold) {
@@ -999,8 +999,8 @@ public class PatientController {
         double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
         double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
 
-        if (glu < hypo || glu > highMax) return "text-danger fw-bold";
-        if (glu > normMax) return "text-warning fw-bold";
+        if (glu < hypo || glu >= highMax) return "text-danger fw-bold";
+        if (glu > normMax) return "text-orange fw-bold";
         return "text-success fw-bold";
     }
 }

@@ -91,10 +91,22 @@ def chat_endpoint(request: AiChatRequest):
         is_greeting = q_plan.intent == "greeting" if q_plan else False
         is_off_topic = (q_plan.intent == "off_topic" or not q_plan.is_medical) if q_plan else False
 
+        # Kiểm tra xem câu trả lời có chứa thông báo từ chối do chưa chọn bệnh nhân hoặc thiếu dữ liệu hay không
+        ans_lower = cleaned_answer.lower()
+        refusal_keywords = [
+            "chưa chọn bệnh nhân", 
+            "không có thông tin bệnh nhân", 
+            "chưa có thông tin cụ thể", 
+            "không có đủ dữ liệu", 
+            "bác sĩ chưa chọn", 
+            "chưa chọn bệnh nhân cụ thể"
+        ]
+        is_refusal = any(kw in ans_lower for kw in refusal_keywords)
+
         # Xây dựng danh sách trích dẫn có cấu trúc (Structured Citations)
         citations_list = []
-        # Chỉ đính kèm trích dẫn nếu KHÔNG PHẢI chào hỏi, KHÔNG PHẢI off-topic và answer không chứa thông báo thiếu dữ liệu
-        if not is_greeting and not is_off_topic and result.retrieved_chunks and "không có đủ dữ liệu" not in cleaned_answer.lower():
+        # CHỈ đính kèm trích dẫn nếu KHÔNG PHẢI chào hỏi, KHÔNG PHẢI off-topic và KHÔNG PHẢI từ chối
+        if not is_greeting and not is_off_topic and not is_refusal and result.retrieved_chunks:
             seen_sources = set()
             for chunk in result.retrieved_chunks:
                 meta = getattr(chunk, "metadata", {}) or {}

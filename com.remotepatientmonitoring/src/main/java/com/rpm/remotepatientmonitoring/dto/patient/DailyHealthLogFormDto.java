@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @Data
 @ValidHealthLog
 public class DailyHealthLogFormDto {
+    private Integer id;
     private String logType;
     private String inputMethod = "MANUAL";
 

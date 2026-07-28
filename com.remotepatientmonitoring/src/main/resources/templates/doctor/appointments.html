@@ -298,16 +298,51 @@
                             </td>
                             <td th:if="${appt.status == 'PENDING'}">
                                 <div class="d-flex gap-1">
-                                    <form th:action="@{/doctor/appointments/{id}/accept(id=${appt.id})}" method="POST"
-                                        onsubmit="return confirm('Xác nhận chấp nhận lịch hẹn này?');">
-                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                                            <i class="fa-solid fa-check me-1"></i>Chấp nhận
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3"
+                                        data-bs-toggle="modal" th:data-bs-target="'#acceptModal' + ${appt.id}">
+                                        <i class="fa-solid fa-check me-1"></i>Chấp nhận
+                                    </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
                                         data-bs-toggle="modal" th:data-bs-target="'#rejectModal' + ${appt.id}">
                                         <i class="fa-solid fa-xmark me-1"></i>Từ chối
                                     </button>
+                                </div>
+
+                                <!-- Modal nhập thông tin địa điểm và ghi chú khi chấp nhận -->
+                                <div class="modal fade" th:id="'acceptModal' + ${appt.id}" tabindex="-1"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content" style="border-radius: 16px; border: none;">
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold">Chấp nhận lịch hẹn</h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form th:action="@{/doctor/appointments/{id}/accept(id=${appt.id})}"
+                                                method="post">
+                                                <div class="modal-body text-start">
+                                                    <p class="text-muted small">Vui lòng cung cấp địa điểm khám và chỉ dẫn/ghi chú cho bệnh nhân.</p>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Địa điểm khám (Phòng khám, địa chỉ) <span class="text-danger">*</span></label>
+                                                        <input type="text" name="location" class="form-control" 
+                                                            placeholder="Ví dụ: Phòng 302, Tầng 3, Khu khám A" required />
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Chỉ dẫn / Ghi chú cho bệnh nhân</label>
+                                                        <textarea name="doctorNote" class="form-control" rows="3"
+                                                            placeholder="Ví dụ: Nhịn ăn sáng trước khi đến khám..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 pt-0">
+                                                    <button type="button" class="btn btn-light rounded-pill px-3"
+                                                        data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-success rounded-pill px-3">
+                                                        <i class="fa-solid fa-check me-1"></i>Xác nhận chấp nhận
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Modal nhập lý do từ chối -->
