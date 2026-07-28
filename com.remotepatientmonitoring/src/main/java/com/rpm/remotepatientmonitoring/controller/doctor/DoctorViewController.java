@@ -1241,6 +1241,8 @@ public class DoctorViewController {
     @PostMapping("/appointments/{id}/accept")
     public String acceptAppointment(
             @PathVariable("id") Integer id,
+            @RequestParam("location") String location,
+            @RequestParam(value = "doctorNote", required = false) String doctorNote,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes redirectAttributes) {
 
@@ -1261,6 +1263,8 @@ public class DoctorViewController {
         }
 
         appt.setStatus("ACCEPTED");
+        appt.setLocation(location);
+        appt.setDoctorNote(doctorNote);
         appt.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appt);
 
@@ -1272,7 +1276,8 @@ public class DoctorViewController {
                     .recipientType("PATIENT")
                     .title("Lịch khám đã được chấp nhận")
                     .content("Bác sĩ " + doctor.getFullName() + " đã xác nhận lịch khám vào "
-                            + appt.getAppointmentTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".")
+                            + appt.getAppointmentTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            + " tại " + location + ".")
                     .isRead(false)
                     .createdAt(LocalDateTime.now())
                     .build();

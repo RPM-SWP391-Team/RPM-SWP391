@@ -51,14 +51,21 @@ class EmbeddingConfig:
     embedding_dimension: int = 384
 
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+
+
 @dataclass(frozen=True)
 class IndexConfig:
     # Thông số cấu hình chung cho Phase 2 Indexing
-    vector_index_path: str = "data/vector.index"
-    vector_id_map_path: str = "data/vector_id_map.json"
-    bm25_index_path: str = "data/bm25.pkl"
-    manifest_path: str = "data/index_manifest.json"
-    cache_db_path: str = "data/embedding_cache.db"
+    chunks_jsonl_path: str = str(DATA_DIR / "chunks.jsonl")
+    vector_index_path: str = str(DATA_DIR / "vector.index")
+    vector_id_map_path: str = str(DATA_DIR / "vector_id_map.json")
+    bm25_index_path: str = str(DATA_DIR / "bm25.pkl")
+    manifest_path: str = str(DATA_DIR / "index_manifest.json")
+    cache_db_path: str = str(DATA_DIR / "embedding_cache.db")
     embedding_batch_size: int = 32
     device: str = "cpu"  # Mặc định cpu, hệ thống sẽ ưu tiên cuda nếu có
 

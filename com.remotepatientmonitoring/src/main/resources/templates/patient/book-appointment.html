@@ -12,12 +12,12 @@
                 <!-- Error Alert -->
                 <div th:if="${param.bookError}" role="alert" class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm custom-style-45">
                     <i class="fa-solid fa-circle-exclamation me-2"></i>
-                    <span th:if="${param.bookError[0] == 'emptyReason'}">Lý do đăng ký khám không được để trống.</span>
-                    <span th:if="${param.bookError[0] == 'reasonTooLong'}">Lý do đăng ký khám không được vượt quá 500 ký tự.</span>
-                    <span th:if="${param.bookError[0] == 'invalidDate'}">Thời gian hẹn khám không hợp lệ.</span>
-                    <span th:if="${param.bookError[0] == 'pastDate'}">Thời gian hẹn khám phải ở tương lai.</span>
-                    <span th:if="${param.bookError[0] == 'outsideWorkingHours'}">Lịch khám thông thường phải trong giờ hành chính (08:00 - 17:00, Thứ 2 đến Thứ 6).</span>
-                    <span th:if="${param.bookError[0] == 'invalidDoctor'}">Bác sĩ được chọn không hợp lệ hoặc không thuộc bệnh viện này.</span>
+                    <span th:if="${param.bookError == 'emptyReason'}">Lý do đăng ký khám không được để trống.</span>
+                    <span th:if="${param.bookError == 'reasonTooLong'}">Lý do đăng ký khám không được vượt quá 500 ký tự.</span>
+                    <span th:if="${param.bookError == 'invalidDate'}">Thời gian hẹn khám không hợp lệ.</span>
+                    <span th:if="${param.bookError == 'pastDate'}">Thời gian hẹn khám phải ở tương lai.</span>
+                    <span th:if="${param.bookError == 'outsideWorkingHours'}">Lịch khám thông thường phải trong giờ hành chính (08:00 - 17:00, Thứ 2 đến Thứ 6).</span>
+                    <span th:if="${param.bookError == 'invalidDoctor'}">Bác sĩ được chọn không hợp lệ hoặc không thuộc bệnh viện này.</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
 

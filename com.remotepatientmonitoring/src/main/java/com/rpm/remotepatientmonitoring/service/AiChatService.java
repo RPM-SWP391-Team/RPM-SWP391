@@ -101,12 +101,12 @@ public class AiChatService {
                         }
 
                         if (recentChats != null && !recentChats.isEmpty()) {
-                            // Lọc các câu thoại lỗi "trang Dashboard" nếu đang ở trong hồ sơ bệnh nhân
+                            // Lọc bỏ các câu thoại lỗi bị nhiễm độc từ trước (chứa thông báo từ chối cũ)
                             List<com.rpm.remotepatientmonitoring.model.AiChatHistory> validChats = new java.util.ArrayList<>();
                             for (com.rpm.remotepatientmonitoring.model.AiChatHistory h : recentChats) {
-                                String ans = h.getAnswer() != null ? h.getAnswer() : "";
-                                if (patientId != null && ans.contains("trang Dashboard")) {
-                                    continue; // Bỏ qua câu trả lời lỗi bị nhiễm từ trước
+                                String ans = h.getAnswer() != null ? h.getAnswer().toLowerCase() : "";
+                                if (ans.contains("trang dashboard") || ans.contains("chưa chọn bệnh nhân") || ans.contains("không có thông tin bệnh nhân") || ans.contains("chưa chọn bệnh nhân cụ thể")) {
+                                    continue; // Bỏ qua các câu từ chối bị nhiễm độc từ trước
                                 }
                                 validChats.add(h);
                             }

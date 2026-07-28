@@ -37,49 +37,49 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         
-        <div th:if="${param.bookError != null and param.bookError[0] == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được để trống!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do đăng ký khám không được vượt quá 500 ký tự!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Ngày giờ đặt lịch không hợp lệ!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Thời gian khám mong muốn phải lớn hơn ngày hiện tại!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.bookError != null and param.bookError[0] == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.bookError != null and param.bookError == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-clock me-2"></i>Thời gian đặt lịch phải nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6)!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
         <!-- Update Errors -->
-        <div th:if="${param.updateError != null and param.updateError[0] == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'emptyReason'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do cập nhật không được để trống!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'reasonTooLong'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Lý do cập nhật không được vượt quá 500 ký tự!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'invalidDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Ngày giờ cập nhật không hợp lệ!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'pastDate'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Thời gian khám được cập nhật phải lớn hơn ngày hiện tại!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'outsideWorkingHours'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-clock me-2"></i>Thời gian đặt lịch phải nằm trong giờ hành chính (08:00 - 17:00, từ Thứ 2 đến Thứ 6)!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div th:if="${param.updateError != null and param.updateError[0] == 'notPending'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${param.updateError != null and param.updateError == 'notPending'}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2"></i>Chỉ có thể chỉnh sửa các lịch hẹn đang ở trạng thái chờ duyệt (PENDING)!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -134,6 +134,8 @@
                                     <th>Bác sĩ</th>
                                     <th>Loại lịch hẹn</th>
                                     <th>Lý do của bạn</th>
+                                    <th>Địa điểm</th>
+                                    <th>Chỉ dẫn của bác sĩ</th>
                                     <th>Trạng thái</th>
                                     <th>Hành động</th>
                                 </tr>
@@ -146,6 +148,8 @@
                                         <span class="badge bg-secondary" th:text="${appt.appointmentType}">CHECKUP</span>
                                     </td>
                                     <td th:text="${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}">Lý do khám</td>
+                                    <td th:text="${appt.location != null ? appt.location : 'Chưa thiết lập'}">Địa điểm</td>
+                                    <td th:text="${appt.doctorNote != null ? appt.doctorNote : 'Không có'}">Ghi chú</td>
                                     <td>
                                         <span class="badge badge-status" 
                                               th:classappend="${appt.status == 'PENDING' ? 'bg-warning text-dark' : (appt.status == 'ACCEPTED' || appt.status == 'COMPLETED' ? 'bg-success text-white' : 'bg-danger text-white')}"
@@ -174,7 +178,7 @@
                                     </td>
                                 </tr>
                                 <tr th:if="${#lists.isEmpty(appointments)}">
-                                    <td colspan="6" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
+                                    <td colspan="8" class="text-center text-muted py-4">Không có lịch hẹn nào</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -195,6 +199,11 @@
                             <h6 class="fw-bold mb-1" th:text="${#temporals.format(appt.appointmentTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</h6>
                             <p class="mb-1 text-muted small">Bác sĩ phụ trách: <span th:text="${appt.doctor.fullName}">Bác sĩ B</span></p>
                             <p class="mb-1 text-muted small" th:text="'Lý do: ' + ${appt.patientRequestReason != null ? appt.patientRequestReason : 'Không có'}"></p>
+                            <p class="mb-1 text-muted small"><i class="fa-solid fa-location-dot me-1 text-primary"></i>Địa điểm: <span th:text="${appt.location != null ? appt.location : 'Chưa thiết lập'}">Phòng khám</span></p>
+                            <div th:if="${appt.doctorNote != null and !appt.doctorNote.isEmpty()}" class="bg-light p-2 rounded mb-2 mt-2">
+                                <strong class="text-primary small d-block mb-1"><i class="fa-solid fa-notes-medical me-1"></i>Chỉ dẫn của bác sĩ:</strong>
+                                <p class="mb-0 small text-dark" th:text="${appt.doctorNote}"></p>
+                            </div>
 
                             <div th:if="${appt.status == 'PENDING'}" class="mt-2 d-flex gap-2 justify-content-end">
                                 <a th:href="'#editAppointmentCssModal-' + ${appt.id}" class="btn btn-sm btn-outline-primary flex-fill text-center">
@@ -503,7 +512,7 @@
                                     </thead>
                                     <tbody>
                                         <!-- Only show logs where systolic/diastolic are not null -->
-                                        <tr th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-row" th:with="bpLevel=${(log.systolicBp >= 180 or log.diastolicBp >= 110) ? 'RED' : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
+                                        <tr th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-row" th:with="bpLevel=${(log.systolicBp != null and log.systolicBp >= 160) or (log.diastolicBp != null and log.diastolicBp >= 100) ? 'RED' : ((log.systolicBp != null and log.systolicBp >= 140) or (log.diastolicBp != null and log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp != null and log.systolicBp >= 120) or (log.diastolicBp != null and log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
                                             <td class="fw-bold text-dark" th:text="${#temporals.format(log.logTime, 'dd/MM/yyyy HH:mm')}">10/06/2026 09:00</td>
                                             <td>
                                                 <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Buổi sáng</span>
@@ -539,7 +548,7 @@
                             
                             <!-- Mobile BP View -->
                             <div class="d-md-none">
-                                <div th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="bpLevel=${(log.systolicBp >= 180 or log.diastolicBp >= 110) ? 'RED' : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN'))}">
+                                <div th:each="log : ${bpLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="bp-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="bpLevel=${(log.systolicBp != null and log.systolicBp >= 180) or (log.diastolicBp != null and log.diastolicBp >= 110) or log.alertLevel == 'RED' ? 'RED' : (log.alertLevel != null ? log.alertLevel : ((log.systolicBp >= 140 or log.diastolicBp >= 90) ? 'ORANGE' : ((log.systolicBp >= 120 or log.diastolicBp >= 80) ? 'YELLOW' : 'GREEN')))}">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Buổi sáng</span>
                                         <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Buổi tối</span>
@@ -647,7 +656,7 @@
 
                             <!-- Mobile Glucose View -->
                             <div class="d-md-none">
-                                <div th:each="log : ${glucoseLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="glucose-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="glLevel=${(log.glucoseLevel < 4.4 or log.glucoseLevel > 16.0) ? 'RED' : (log.glucoseLevel > 10.0 ? 'ORANGE' : 'GREEN')}">
+                                <div th:each="log : ${glucoseLogs}" th:data-date="${#temporals.format(log.logTime, 'yyyy-MM-dd')}" class="glucose-log-card mobile-card mb-2 p-3 border rounded shadow-sm bg-white" th:with="glLevel=${log.glucoseLevel != null and (log.glucoseLevel < 4.4 or log.glucoseLevel >= 16.0) ? 'RED' : (log.glucoseLevel != null and log.glucoseLevel > 10.0 ? 'ORANGE' : 'GREEN')}">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="badge bg-primary text-white" th:if="${log.logType == 'MORNING'}">🌅 Trước ăn sáng</span>
                                         <span class="badge bg-info text-white" th:if="${log.logType == 'EVENING'}">🌙 Sau ăn tối 2h</span>
@@ -698,86 +707,6 @@
 
     
     <!-- Request Change Modal (Pure CSS - Zero JS) -->
-    <div id="requestChangeCssModal" class="css-modal-overlay">
-        <div class="css-modal-dialog card card-custom p-0">
-            <div class="d-flex justify-content-between align-items-center border-0 pb-0 pt-3 px-4">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-paper-plane text-warning me-2"></i>Gửi Yêu Cầu Thay Đổi
-                </h5>
-                <a href="#!" class="btn-close text-decoration-none" aria-label="Close"></a>
-            </div>
-            <form th:action="@{/patient/request-change}" method="POST">
-                <div class="py-3 px-4">
-                    <div class="mb-3">
-                        <label for="requestType" class="form-label small fw-semibold text-muted">Loại yêu cầu thay đổi <span class="text-danger">*</span></label>
-                        <select id="requestType" name="requestType" required class="form-select custom-style-43">
-                            <option value="TREATMENT_PLAN">Thay đổi phác đồ điều trị (Treatment Plan)</option>
-                            <option value="SCHEDULE">Thay đổi lịch sinh hoạt (Schedule)</option>
-                            <option value="DIET">Thay đổi quy tắc dinh dưỡng (Diet)</option>
-                            <option value="APPOINTMENT">Thay đổi lịch hẹn khám (Appointment)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="patientReason" class="form-label small fw-semibold text-muted">Mô tả lý do thay đổi <span class="text-danger">*</span></label>
-                        <textarea id="patientReason" name="patientReason" rows="5" 
-                                  placeholder="Mô tả cụ thể lý do tại sao bạn muốn thay đổi (Ví dụ: thuốc gây mệt mỏi, muốn dời giờ đi bộ, thức ăn không phù hợp...)" required maxlength="1000" class="form-control custom-style-44"></textarea>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
-                    <a href="#!" class="btn btn-secondary small custom-style-43">Hủy</a>
-                    <button type="submit" class="btn btn-primary small custom-style-43">Gửi yêu cầu</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Edit Appointment Modals (Pure CSS - Zero JS) -->
-    <div th:each="appt : ${appointments}" th:if="${appt.status == 'PENDING'}" th:id="'editAppointmentCssModal-' + ${appt.id}" class="css-modal-overlay">
-        <div class="css-modal-dialog card card-custom p-0">
-            <div class="d-flex justify-content-between align-items-center border-0 pb-0 pt-3 px-4">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Chỉnh Sửa Lịch Hẹn Khám
-                </h5>
-                <a href="#!" class="btn-close text-decoration-none" aria-label="Close"></a>
-            </div>
-            <form th:action="@{/patient/appointments/update/{id}(id=${appt.id})}" method="POST">
-                <div class="py-3 px-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Thời gian khám mong muốn <span class="text-danger">*</span></label>
-                        <input type="datetime-local" name="appointmentTime" 
-                               th:value="${#temporals.format(appt.appointmentTime, 'yyyy-MM-dd''T''HH:mm')}"
-                               th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" required class="form-control custom-style-43">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Loại lịch hẹn <span class="text-danger">*</span></label>
-                        <select name="appointmentType" required class="form-select custom-style-43">
-                            <option value="INITIAL" th:selected="${appt.appointmentType == 'INITIAL'}">Khám lần đầu (INITIAL)</option>
-                            <option value="CHECKUP" th:selected="${appt.appointmentType == 'CHECKUP'}">Tái khám định kỳ (CHECKUP)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Bác sĩ khám <span class="text-danger">*</span></label>
-                        <select name="doctorId" required class="form-select custom-style-43">
-                            <option th:each="doc : ${doctors}" th:value="${doc.id}" 
-                                    th:selected="${appt.doctor.id == doc.id}"
-                                    th:text="${doc.fullName + ' - ' + (doc.gender == 'MALE' ? 'Nam' : (doc.gender == 'FEMALE' ? 'Nữ' : 'Chưa cập nhật')) + ' - ' + (doc.specialty != null ? doc.specialty : 'Đa khoa')}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">Lý do đăng ký khám <span class="text-danger">*</span></label>
-                        <textarea name="patientRequestReason" rows="3" 
-                                  placeholder="Nhập lý do của bạn..." required maxlength="500" th:text="${appt.patientRequestReason}" class="form-control custom-style-44"></textarea>
-                        <small class="text-muted">Tối đa 500 ký tự.</small>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2 border-0 pt-0 px-4 pb-3">
-                    <a href="#!" class="btn btn-secondary small custom-style-43">Hủy</a>
-                    <button type="submit" class="btn btn-primary small custom-style-43">Cập nhật</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
     <!-- Bottom Navigation Bar -->
     <div th:replace="~{patient/fragments :: bottom-nav}"></div>
 
@@ -995,8 +924,25 @@
         </div>
     </div>
 
-    <!-- Script xử lý Đánh giá Bác sĩ -->
+    <!-- Script xử lý Đánh giá Bác sĩ & Xóa nhật ký sức khỏe -->
     <script>
+        function deleteHealthLog(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đo sức khỏe này?')) return;
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/patient/log/delete';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id';
+            input.value = id;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         let selectedDoctorRating = 5;
 
         function openDoctorRatingModal(appointmentId, doctorName) {
