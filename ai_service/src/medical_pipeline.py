@@ -6,6 +6,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
+from . import config
 from .pipeline import RAGPipeline, PipelineResult
 from .prompt_builder import PromptBuilder, PromptResult
 from .llm_client import GeminiLLMClient, GroqLLMClient
