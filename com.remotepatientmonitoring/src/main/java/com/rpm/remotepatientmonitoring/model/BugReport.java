@@ -22,8 +22,7 @@ public class BugReport {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @org.hibernate.annotations.Nationalized
-    @Column(nullable = false, length = 255, columnDefinition = "NVARCHAR(255)")
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
