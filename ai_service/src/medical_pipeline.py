@@ -38,9 +38,10 @@ class MedicalRAGPipeline:
         self.chunk_store = DictChunkStore()
         # Ensure chunks.jsonl exists or it will fail here. For demo, it should be fine.
         try:
-            self.chunk_store.load_from_jsonl("data/chunks.jsonl")
+            self.chunk_store.load_from_jsonl(config.INDEX.chunks_jsonl_path)
         except Exception as e:
-            print("Warning: chunks.jsonl not found or failed to load. Retrieval might be empty.")
+            logger.error(f"Lỗi khi load ChunkStore từ {config.INDEX.chunks_jsonl_path}: {e}")
+            print(f"Warning: chunks.jsonl not found at {config.INDEX.chunks_jsonl_path}. Retrieval might be empty.")
             
         self.bm25_index = BM25RetrieverImpl(self.tokenizer)
         try:
