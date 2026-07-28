@@ -111,8 +111,6 @@ def execute_semantic_search(query: str, engine: Any, api_key: str = None) -> Dic
         node_lookup=engine.chunk_store._store,
         patient=None
     )
-        patient=None
-    )
     
     # 3. Định dạng kết quả (JSON)
     results = []
