@@ -135,8 +135,14 @@ def chat_endpoint(request: AiChatRequest):
                 chunk_text = getattr(chunk, "text", "").lower()
                 
                 # Loại bỏ "Unknown" hoặc "Unknown.pdf" bằng cách suy luận từ nội dung
-                if not doc_name_str or "unknown" in doc_name_str.lower():
-                    if any(term in chunk_text for term in ["hypertension", "huyết áp", "160/100", "systolic", "diastolic", "esc", "blood pressure"]):
+                if not doc_name_str or "unknown" in doc_name_str.lower() or doc_name_str.lower() in ["none", "null"]:
+                    if any(term in chunk_text for term in ["recommendation 3.", "recommendations 3.", "prevention or delay", "prevent type 2"]):
+                        pdf_name = "dc26s003.pdf"
+                    elif any(term in chunk_text for term in ["recommendation 9.", "recommendations 9.", "pharmacologic", "metformin"]):
+                        pdf_name = "dc26s009.pdf"
+                    elif any(term in chunk_text for term in ["recommendation 4.", "recommendations 4.", "comprehensive medical"]):
+                        pdf_name = "dc24s004.pdf"
+                    elif any(term in chunk_text for term in ["hypertension", "huyết áp", "160/100", "systolic", "diastolic", "esc", "blood pressure"]):
                         pdf_name = "dc26s010.pdf"
                     elif any(term in chunk_text for term in ["diabetes", "ada", "glucose", "đái tháo đường"]):
                         pdf_name = "dc26s002.pdf"
@@ -147,7 +153,7 @@ def chat_endpoint(request: AiChatRequest):
                 elif len(doc_name_str) > 2:
                     pdf_name = f"{doc_name_str}.pdf"
                 else:
-                    pdf_name = "dc26s010.pdf"
+                    pdf_name = "dc26s002.pdf"
                 
                 if pdf_name not in seen_sources and pdf_name.lower() != "unknown.pdf":
                     seen_sources.add(pdf_name)

@@ -140,16 +140,30 @@ def execute_semantic_search(query: str, engine: Any, api_key: str = None) -> Dic
             raw_file = meta.get("source_file", meta.get("file_name", meta.get("document_name", meta.get("source_document", meta.get("file", "")))))
             raw_file_str = str(raw_file).strip() if raw_file else ""
 
-            if raw_file_str.endswith(".pdf"):
-                pdf_name = raw_file_str
-            elif raw_file_str and len(raw_file_str) > 2:
-                pdf_name = f"{raw_file_str}.pdf"
-            else:
+            if not raw_file_str or "unknown" in raw_file_str.lower() or raw_file_str.lower() in ["none", "null"]:
                 text_lower = cleaned_text.lower()
-                if "diabetes" in text_lower or "glucose" in text_lower or "hba1c" in text_lower or "insulin" in text_lower or "ada" in text_lower:
+                if any(term in text_lower for term in ["recommendation 3.", "recommendations 3.", "prevention or delay", "prevent type 2"]):
+                    pdf_name = "dc26s003.pdf"
+                elif any(term in text_lower for term in ["recommendation 9.", "recommendations 9.", "metformin", "insulin", "pharmacologic"]):
+                    pdf_name = "dc26s009.pdf"
+                elif any(term in text_lower for term in ["recommendation 4.", "recommendations 4.", "comprehensive medical"]):
+                    pdf_name = "dc24s004.pdf"
+                elif any(term in text_lower for term in ["recommendation 10.", "recommendations 10.", "cardiovascular"]):
+                    pdf_name = "dc26s010.pdf"
+                elif any(term in text_lower for term in ["recommendation 2.", "recommendations 2.", "diagnosis"]):
+                    pdf_name = "dc26s002.pdf"
+                elif any(term in text_lower for term in ["esc", "hypertension", "huyết áp"]):
+                    pdf_name = "ehae178.pdf"
+                elif any(term in text_lower for term in ["diabetes", "glucose", "hba1c", "ada"]):
                     pdf_name = "dc26s002.pdf"
                 else:
                     pdf_name = "ehae178.pdf"
+            elif raw_file_str.endswith(".pdf"):
+                pdf_name = raw_file_str
+            elif len(raw_file_str) > 2:
+                pdf_name = f"{raw_file_str}.pdf"
+            else:
+                pdf_name = "dc26s002.pdf"
 
             # Tra cứu tiêu đề tiếng Việt chuẩn của tài liệu PDF
             source_title = PDF_TITLE_MAP.get(pdf_name, f"Tài liệu Y khoa Chuyên ngành ({pdf_name})")
