@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -169,6 +170,16 @@ public class PatientInteractionService {
                 && doctor.getCurrentPatientCount() >= doctor.getCapacityLimit()) {
             throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " hiện đã đạt giới hạn tiếp nhận bệnh nhân (" + doctor.getCapacityLimit() + " bệnh nhân), không thể nhận thêm đơn hẹn mới.");
         }
+
+        // Kiểm tra tránh trùng lịch khám của Bác sĩ vào cùng mốc thời gian
+        List<String> activeStatuses = Arrays.asList("PENDING", "ACCEPTED");
+        boolean isSlotTaken = appointmentRepository.existsByDoctorIdAndAppointmentTimeAndStatusIn(doctorId, apptTime, activeStatuses);
+        if (isSlotTaken) {
+            throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " đã có lịch khám vào khung giờ " 
+                    + apptTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) 
+                    + ". Vui lòng chọn khung giờ khác!");
+        }
+
         if (patientRequestReason != null && patientRequestReason.length() > 500) {
             throw new IllegalArgumentException("Lý do yêu cầu không được vượt quá 500 ký tự.");
         }
@@ -202,6 +213,14 @@ public class PatientInteractionService {
         notificationRepository.save(notif);
     }
 
+    public Appointment getAppointmentById(Integer id) {
+        Optional<Appointment> apptOpt = appointmentRepository.findById(id);
+        if (apptOpt.isPresent()) {
+            return apptOpt.get();
+        }
+        return null;
+    }
+
     @Transactional
     public void updateAppointment(Integer id, Integer patientId, Integer doctorId, String appointmentType, String patientRequestReason, LocalDateTime apptTime) {
         Optional<Appointment> apptOpt = appointmentRepository.findById(id);
@@ -221,6 +240,15 @@ public class PatientInteractionService {
             throw new IllegalArgumentException("Không tìm thấy bác sĩ với ID: " + doctorId);
         }
         Doctor doctor = doctorOpt.get();
+
+        // Kiểm tra tránh trùng lịch khám của Bác sĩ vào cùng mốc thời gian (ngoại trừ lịch hẹn hiện tại)
+        List<String> activeStatuses = Arrays.asList("PENDING", "ACCEPTED");
+        boolean isSlotTaken = appointmentRepository.existsByDoctorIdAndAppointmentTimeAndStatusInAndIdNot(doctorId, apptTime, activeStatuses, id);
+        if (isSlotTaken) {
+            throw new IllegalStateException("Bác sĩ " + doctor.getFullName() + " đã có lịch khám vào khung giờ " 
+                    + apptTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) 
+                    + ". Vui lòng chọn khung giờ khác!");
+        }
 
         appt.setDoctor(doctor);
         appt.setAppointmentTime(apptTime);

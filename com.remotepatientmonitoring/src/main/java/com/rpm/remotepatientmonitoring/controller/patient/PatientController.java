@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -753,6 +756,8 @@ public class PatientController {
     @GetMapping("/nutrition")
     public String getNutritionPage(
             @RequestParam(value = "date", required = false) String dateStr,
+            @RequestParam(value = "foodPage", defaultValue = "0") int foodPage,
+            @RequestParam(value = "foodSearch", required = false) String foodSearch,
             Model model) {
         Patient patient = getCurrentPatient();
         if (patient == null) {
@@ -849,8 +854,14 @@ public class PatientController {
         model.addAttribute("fatPercent", fatPercent);
         model.addAttribute("proteinPercent", proteinPercent);
         
-        List<FoodDictionary> foods = patientService.findActiveFoods();
-        model.addAttribute("foods", foods);
+        Pageable foodPageable = PageRequest.of(foodPage < 0 ? 0 : foodPage, 10);
+        Page<FoodDictionary> foodPageObj = patientService.findActiveFoods(foodSearch, foodPageable);
+
+        model.addAttribute("foodPageObj", foodPageObj);
+        model.addAttribute("foods", foodPageObj.getContent());
+        model.addAttribute("allActiveFoods", patientService.findActiveFoods());
+        model.addAttribute("foodPage", foodPage);
+        model.addAttribute("foodSearch", foodSearch != null ? foodSearch.trim() : "");
 
         return "patient/nutrition";
     }
@@ -888,7 +899,6 @@ public class PatientController {
 
     @PostMapping("/progress/update")
     public String updateProfile(
-            @RequestParam(value = "fullName", required = false) String fullName,
             @RequestParam("phone") String phone,
             @RequestParam("address") String address,
             @RequestParam(value = "currentPassword", required = false) String currentPassword,
@@ -934,7 +944,7 @@ public class PatientController {
             }
         }
 
-        patientService.updateProfile(patient, fullName, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
+        patientService.updateProfile(patient, phone, address, emergencyContactName, emergencyContactPhone, isChangingPassword ? password : null);
 
         return "redirect:/patient/progress?updateSuccess=true";
     }
@@ -949,23 +959,23 @@ public class PatientController {
         int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
 
         if (sys >= sysEmerg || dia >= diaEmerg) return "Nguy hiểm";
-        if (sys >= sysDangMin || dia >= diaDangMin) return "Vượt ngưỡng";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "Nguy cơ cao";
         if (sys >= sysWarnMin || dia >= diaWarnMin) return "Cần chú ý";
         return "Đạt mục tiêu";
     }
 
     private String getBpClass(Integer sys, Integer dia, AlertThreshold threshold) {
         if (sys == null || dia == null) return "text-danger fw-bold";
-        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
-        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+        int sysEmerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 160;
+        int diaEmerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 100;
         int sysDangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
         int diaDangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
-        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
-        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
+        int sysWarnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 120;
+        int diaWarnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 80;
 
         if (sys >= sysEmerg || dia >= diaEmerg) return "text-danger fw-bold";
-        if (sys >= sysDangMin || dia >= diaDangMin) return "text-warning fw-bold"; // Optional: Use text-warning or a custom class if text-orange exists.
-        if (sys >= sysWarnMin || dia >= diaWarnMin) return "text-warning fw-bold";
+        if (sys >= sysDangMin || dia >= diaDangMin) return "text-orange fw-bold";
+        if (sys >= sysWarnMin || dia >= diaWarnMin) return "text-yellow-dark fw-bold";
         return "text-success fw-bold";
     }
 
@@ -977,9 +987,9 @@ public class PatientController {
         double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
 
         if (glu < hypo) return "Nguy hiểm (Hạ)";
-        if (glu > highMax) return "Nguy hiểm (Cao)";
-        if (glu > normMax) return "Vượt ngưỡng";
-        return "Đạt mục tiêu";
+        if (glu >= highMax) return "Nguy hiểm (Cao)";
+        if (glu > normMax) return "Nguy cơ cao";
+        return "Bình thường";
     }
 
     private String getGlucoseClass(java.math.BigDecimal val, AlertThreshold threshold) {
@@ -989,8 +999,8 @@ public class PatientController {
         double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
         double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
 
-        if (glu < hypo || glu > highMax) return "text-danger fw-bold";
-        if (glu > normMax) return "text-warning fw-bold";
+        if (glu < hypo || glu >= highMax) return "text-danger fw-bold";
+        if (glu > normMax) return "text-orange fw-bold";
         return "text-success fw-bold";
     }
 }

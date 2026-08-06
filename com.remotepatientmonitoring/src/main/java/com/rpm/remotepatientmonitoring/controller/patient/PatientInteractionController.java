@@ -86,14 +86,14 @@ public class PatientInteractionController {
         List<Appointment> appointments = patientInteractionService.getAppointments(patient.getId());
         List<ChangeRequest> changeRequests = patientInteractionService.getChangeRequests(patient.getId());
 
-        // Fetch logs for the last 7 days for the chart
-        LocalDate chartStartDate = LocalDate.now().minusDays(7);
+        // Lấy nhật ký hoạt động 7 ngày gần đây cho biểu đồ
+        LocalDate chartStartDate = LocalDate.now().minusDays(7); // Ngày hiện tại - 7 ngày
         List<DailyHealthLog> chartLogs = patientInteractionService.getLatestLogsForChart(patient.getId(), chartStartDate);
 
-        // Group and keep only the latest log per day and milestone for the chart, merging indices
+        // Nhóm lại và chỉ giữ lại nhật ký mới nhất mỗi ngày và mốc thời gian cho biểu đồ, hợp nhất các chỉ số
         Map<String, DailyHealthLog> latestLogsMap = new LinkedHashMap<>();
         for (DailyHealthLog log : chartLogs) {
-            String key = log.getLogDate().toString() + "_" + log.getLogType();
+            String key = log.getLogDate().toString() + "_" + log.getLogType(); // Ví dụ: "2026-07-27_EVENING"
             DailyHealthLog existing = latestLogsMap.get(key);
             if (existing == null) {
                 DailyHealthLog merged = new DailyHealthLog();
@@ -130,10 +130,10 @@ public class PatientInteractionController {
         List<Double> glucoseList = new ArrayList<>();
 
         for (DailyHealthLog log : latestLogsMap.values()) {
-            dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")");
+            dates.add(log.getLogDate().toString() + " (" + log.getLogType() + ")"); // Ví dụ: 2026-07-23 (MORNING)
             systolicList.add(log.getSystolicBp());
             diastolicList.add(log.getDiastolicBp());
-            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : null);
+            glucoseList.add(log.getGlucoseLevel() != null ? log.getGlucoseLevel().doubleValue() : null); // Chuyển BigDecimal -> double
         }
 
         // --- Xử lý lọc Từ ngày - Đến ngày ---
@@ -297,6 +297,52 @@ public class PatientInteractionController {
         }
 
         return "redirect:/patient/appointments?bookSuccess=true";
+    }
+
+    @GetMapping("/appointments/edit/{id}")
+    public String editAppointmentPage(@PathVariable("id") Integer id, Model model) {
+        Patient patient = getCurrentPatient();
+        if (patient == null) {
+            return "redirect:/auth/login";
+        }
+
+        Appointment appt = patientInteractionService.getAppointmentById(id);
+        if (appt == null || appt.getPatient() == null || !appt.getPatient().getId().equals(patient.getId())) {
+            return "redirect:/patient/appointments";
+        }
+
+        List<Doctor> doctors = new ArrayList<>();
+        if (patient.getHospital() != null) {
+            List<Doctor> hospDocs = patientInteractionService.getAvailableDoctors(patient.getHospital().getId());
+            if (hospDocs != null) {
+                doctors.addAll(hospDocs);
+            }
+        }
+
+        if (doctors.isEmpty()) {
+            List<Doctor> allDocs = patientInteractionService.getAllDoctors();
+            if (allDocs != null) {
+                doctors.addAll(allDocs);
+            }
+        }
+
+        if (appt.getDoctor() != null) {
+            boolean alreadyInList = false;
+            for (Doctor d : doctors) {
+                if (d != null && d.getId() != null && d.getId().equals(appt.getDoctor().getId())) {
+                    alreadyInList = true;
+                    break;
+                }
+            }
+            if (!alreadyInList) {
+                doctors.add(0, appt.getDoctor());
+            }
+        }
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("appointment", appt);
+        model.addAttribute("doctors", doctors);
+        return "patient/edit-appointment";
     }
 
     @PostMapping("/appointments/update/{id}")

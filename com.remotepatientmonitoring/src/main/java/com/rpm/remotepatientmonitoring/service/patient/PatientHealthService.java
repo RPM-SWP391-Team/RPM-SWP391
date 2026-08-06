@@ -60,6 +60,12 @@ public class PatientHealthService {
     private AuditTrailService auditTrailService;
 
     public Map<String, Object> submitDailyHealthLog(HealthLogRequest req) {
+        if (req.getSystolicBp() != null && req.getDiastolicBp() != null) {
+            if (req.getSystolicBp() <= req.getDiastolicBp()) {
+                throw new IllegalArgumentException("Huyết áp tâm thu phải lớn hơn tâm trương!");
+            }
+        }
+
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate).withProcedureName("sp_record_daily_health_log");
         MapSqlParameterSource inParams = new MapSqlParameterSource();
         inParams.addValue("patient_id", req.getPatientId());
@@ -84,17 +90,21 @@ public class PatientHealthService {
 
     public void evaluateAndGenerateAlerts(HealthLogRequest req) {
         Patient patient = patientRepository.findById(req.getPatientId()).orElse(null);
-        if (patient == null || patient.getDoctor() == null) return;
+        if (patient == null || patient.getDoctor() == null)
+            return;
 
         Doctor doctor = patient.getDoctor();
-        DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(req.getPatientId()).orElse(null);
+        DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(req.getPatientId())
+                .orElse(null);
 
-        Optional<AlertThreshold> patientThresholdOpt = alertThresholdRepository.findByPatientIdAndScope(patient.getId(), "PATIENT");
+        Optional<AlertThreshold> patientThresholdOpt = alertThresholdRepository.findByPatientIdAndScope(patient.getId(),
+                "PATIENT");
         AlertThreshold threshold = null;
         if (patientThresholdOpt.isPresent()) {
             threshold = patientThresholdOpt.get();
         } else if (doctor.getHospital() != null) {
-            Optional<AlertThreshold> hospitalThresholdOpt = alertThresholdRepository.findByHospitalIdAndScope(doctor.getHospital().getId(), "HOSPITAL");
+            Optional<AlertThreshold> hospitalThresholdOpt = alertThresholdRepository
+                    .findByHospitalIdAndScope(doctor.getHospital().getId(), "HOSPITAL");
             if (hospitalThresholdOpt.isPresent()) {
                 threshold = hospitalThresholdOpt.get();
             }
@@ -111,56 +121,122 @@ public class PatientHealthService {
 
         if (req.getSystolicBp() != null) {
             int sys = req.getSystolicBp();
-            int warnMin = threshold != null && threshold.getSystolicWarningMin() != null ? threshold.getSystolicWarningMin() : 130;
-            int dangMin = threshold != null && threshold.getSystolicDangerMin() != null ? threshold.getSystolicDangerMin() : 140;
-            int emerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null ? threshold.getSystolicEmergencyThreshold() : 180;
-            
-            if (sys >= emerg) { systolicLevel = 4; alertMessage += "Huyết áp tâm thu cấp cứu (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=" + emerg; }
-            else if (sys >= dangMin) { systolicLevel = 3; alertMessage += "Huyết áp tâm thu nguy hiểm (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=" + dangMin; }
-            else if (sys >= warnMin) { systolicLevel = 2; alertMessage += "Huyết áp tâm thu hơi cao (" + sys + "). "; metricType = "BLOOD_PRESSURE"; metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?"); thresholdViolated = ">=" + warnMin; }
+            int warnMin = threshold != null && threshold.getSystolicWarningMin() != null
+                    ? threshold.getSystolicWarningMin()
+                    : 120;
+            int dangMin = threshold != null && threshold.getSystolicDangerMin() != null
+                    ? threshold.getSystolicDangerMin()
+                    : 140;
+            int emerg = threshold != null && threshold.getSystolicEmergencyThreshold() != null
+                    ? threshold.getSystolicEmergencyThreshold()
+                    : 160;
+
+            if (sys >= emerg) {
+                systolicLevel = 4;
+                alertMessage += "Huyết áp tâm thu nguy kịch (" + sys + "). ";
+                metricType = "BLOOD_PRESSURE";
+                metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?");
+                thresholdViolated = ">=" + emerg;
+            } else if (sys >= dangMin) {
+                systolicLevel = 3;
+                alertMessage += "Huyết áp tâm thu nguy cơ cao (" + sys + "). ";
+                metricType = "BLOOD_PRESSURE";
+                metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?");
+                thresholdViolated = ">=" + dangMin;
+            } else if (sys >= warnMin) {
+                systolicLevel = 2;
+                alertMessage += "Huyết áp tâm thu chú ý (" + sys + "). ";
+                metricType = "BLOOD_PRESSURE";
+                metricValue = sys + "/" + (req.getDiastolicBp() != null ? req.getDiastolicBp() : "?");
+                thresholdViolated = ">=" + warnMin;
+            }
         }
 
         if (req.getDiastolicBp() != null) {
             int dia = req.getDiastolicBp();
-            int warnMin = threshold != null && threshold.getDiastolicWarningMin() != null ? threshold.getDiastolicWarningMin() : 85;
-            int dangMin = threshold != null && threshold.getDiastolicDangerMin() != null ? threshold.getDiastolicDangerMin() : 90;
-            int emerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null ? threshold.getDiastolicEmergencyThreshold() : 110;
+            int warnMin = threshold != null && threshold.getDiastolicWarningMin() != null
+                    ? threshold.getDiastolicWarningMin()
+                    : 80;
+            int dangMin = threshold != null && threshold.getDiastolicDangerMin() != null
+                    ? threshold.getDiastolicDangerMin()
+                    : 90;
+            int emerg = threshold != null && threshold.getDiastolicEmergencyThreshold() != null
+                    ? threshold.getDiastolicEmergencyThreshold()
+                    : 100;
 
-            if (dia >= emerg) { diastolicLevel = 4; alertMessage += "Huyết áp tâm trương cấp cứu (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=" + emerg; }
-            else if (dia >= dangMin) { diastolicLevel = 3; alertMessage += "Huyết áp tâm trương nguy hiểm (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=" + dangMin; }
-            else if (dia >= warnMin) { diastolicLevel = 2; alertMessage += "Huyết áp tâm trương hơi cao (" + dia + "). "; metricType = "BLOOD_PRESSURE"; thresholdViolated = ">=" + warnMin; }
+            if (dia >= emerg) {
+                diastolicLevel = 4;
+                alertMessage += "Huyết áp tâm trương nguy kịch (" + dia + "). ";
+                metricType = "BLOOD_PRESSURE";
+                thresholdViolated = ">=" + emerg;
+            } else if (dia >= dangMin) {
+                diastolicLevel = 3;
+                alertMessage += "Huyết áp tâm trương nguy cơ cao (" + dia + "). ";
+                metricType = "BLOOD_PRESSURE";
+                thresholdViolated = ">=" + dangMin;
+            } else if (dia >= warnMin) {
+                diastolicLevel = 2;
+                alertMessage += "Huyết áp tâm trương chú ý (" + dia + "). ";
+                metricType = "BLOOD_PRESSURE";
+                thresholdViolated = ">=" + warnMin;
+            }
         }
-        
+
         if (req.getGlucoseLevel() != null) {
             double glu = req.getGlucoseLevel().doubleValue();
-            double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null ? threshold.getGlucoseHypoThreshold().doubleValue() : 4.4;
-            double highMax = threshold != null && threshold.getGlucoseHighMax() != null ? threshold.getGlucoseHighMax().doubleValue() : 16.0;
-            double normMax = threshold != null && threshold.getGlucoseNormalMax() != null ? threshold.getGlucoseNormalMax().doubleValue() : 10.0;
+            double hypo = threshold != null && threshold.getGlucoseHypoThreshold() != null
+                    ? threshold.getGlucoseHypoThreshold().doubleValue()
+                    : 4.4;
+            double highMax = threshold != null && threshold.getGlucoseHighMax() != null
+                    ? threshold.getGlucoseHighMax().doubleValue()
+                    : 16.0;
+            double normMax = threshold != null && threshold.getGlucoseNormalMax() != null
+                    ? threshold.getGlucoseNormalMax().doubleValue()
+                    : 10.0;
 
-            if (glu < hypo) { glucoseLevel = 4; alertMessage += "Hạ đường huyết (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = "<" + hypo; }
-            else if (glu > highMax) { glucoseLevel = 4; alertMessage += "Đường huyết khẩn cấp (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">" + highMax; }
-            else if (glu > normMax) { glucoseLevel = 2; alertMessage += "Đường huyết cao (" + glu + " mmol/L). "; metricType = "GLUCOSE"; metricValue = String.valueOf(glu); thresholdViolated = ">" + normMax; }
+            if (glu < hypo) {
+                glucoseLevel = 4;
+                alertMessage += "Hạ đường huyết (" + glu + " mmol/L). ";
+                metricType = "GLUCOSE";
+                metricValue = String.valueOf(glu);
+                thresholdViolated = "<" + hypo;
+            } else if (glu >= highMax) {
+                glucoseLevel = 4;
+                alertMessage += "Đường huyết khẩn cấp (" + glu + " mmol/L). ";
+                metricType = "GLUCOSE";
+                metricValue = String.valueOf(glu);
+                thresholdViolated = ">=" + highMax;
+            } else if (glu > normMax) {
+                glucoseLevel = 2;
+                alertMessage += "Đường huyết cao (" + glu + " mmol/L). ";
+                metricType = "GLUCOSE";
+                metricValue = String.valueOf(glu);
+                thresholdViolated = ">" + normMax;
+            }
         }
-        
+
         int finalLevel = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));
 
         String alertColor = "GREEN";
-        if (finalLevel == 4) alertColor = "RED";
-        else if (finalLevel == 3) alertColor = "ORANGE";
-        else if (finalLevel == 2) alertColor = "YELLOW";
+        if (finalLevel == 4)
+            alertColor = "RED";
+        else if (finalLevel == 3)
+            alertColor = "ORANGE";
+        else if (finalLevel == 2)
+            alertColor = "YELLOW";
 
         if (latestLog != null) {
             latestLog.setAlertLevel(alertColor);
             healthLogRepository.save(latestLog);
         }
-        
+
         if (finalLevel >= 2) {
             Alert alert = new Alert();
             alert.setPatient(patient);
             alert.setDoctor(doctor);
             alert.setHealthLog(latestLog);
             alert.setAlertLevel(finalLevel);
-            
+
             alert.setAlertColor(alertColor);
             alert.setMetricType(metricType);
             alert.setThresholdViolated(thresholdViolated);
@@ -169,9 +245,9 @@ public class PatientHealthService {
             alert.setIsResolved(false);
             alert.setTriggeredAt(java.time.LocalDateTime.now());
             alert.setCreatedAt(java.time.LocalDateTime.now());
-            
+
             alertRepository.save(alert);
-            
+
             // Only notify DOCTOR if level >= 3 (Orange/Red)
             if (finalLevel >= 3) {
                 Notification notif = new Notification();
@@ -186,7 +262,7 @@ public class PatientHealthService {
                 notif.setContent("Phát hiện chỉ số bất thường mức " + alertColor + ". Vui lòng kiểm tra ngay!");
                 notif.setIsRead(false);
                 notif.setCreatedAt(java.time.LocalDateTime.now());
-                
+
                 notificationRepository.save(notif);
             }
         }
@@ -198,10 +274,11 @@ public class PatientHealthService {
         if (id != null) {
             log = healthLogRepository.findById(id).orElse(null);
             if (log != null) {
-                // Clear old alerts and notifications first since they are about to be re-evaluated
+                // Clear old alerts and notifications first since they are about to be
+                // re-evaluated
                 alertRepository.deleteByHealthLogId(id);
                 notificationRepository.deleteByDailyHealthLogId(id);
-                
+
                 log.setLogType(formDto.getLogType());
                 log.setSystolicBp(formDto.getSystolicBp());
                 log.setDiastolicBp(formDto.getDiastolicBp());
@@ -214,9 +291,9 @@ public class PatientHealthService {
         } else {
             log = createNewDailyHealthLogEntity(patient, formDto);
         }
-        
+
         healthLogRepository.save(log);
-        
+
         // Evaluate alerts for the log
         HealthLogRequest alertReq = new HealthLogRequest();
         alertReq.setPatientId(patient.getId());
@@ -272,7 +349,8 @@ public class PatientHealthService {
     }
 
     public void saveDailyHealthLog(Patient patient, DailyHealthLogFormDto formDto) {
-        if (patient == null || formDto == null) return;
+        if (patient == null || formDto == null)
+            return;
         HealthLogRequest req = new HealthLogRequest();
         req.setPatientId(patient.getId());
         req.setLogType(formDto.getLogType() != null ? formDto.getLogType() : "RANDOM");
@@ -295,28 +373,109 @@ public class PatientHealthService {
             return res;
         }
 
-        DailyHealthLog latestLog = healthLogRepository.findFirstByPatientIdOrderByLogTimeDesc(patient.getId()).orElse(null);
+        // Fetch threshold for accurate level computation
+        AlertThreshold threshold = getAlertThresholdByPatientOrHospital(
+                patient.getId(),
+                patient.getHospital() != null ? patient.getHospital().getId() : null);
+
+        // Fetch latest BP and Glucose logs
+        DailyHealthLog latestBpLog = healthLogRepository
+                .findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+        DailyHealthLog latestGlLog = healthLogRepository
+                .findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+
         boolean isEmergency = false;
         int level = 1;
         String message = "Chỉ số an toàn";
 
-        if (latestLog != null) {
-            if ("RED".equals(latestLog.getAlertLevel()) || "ORANGE".equals(latestLog.getAlertLevel())) {
-                isEmergency = true;
-                level = "RED".equals(latestLog.getAlertLevel()) ? 3 : 2;
-                message = "Cảnh báo chỉ số sức khỏe vượt ngưỡng nguy hiểm!";
+        // Compute level from actual numeric values (same logic as
+        // evaluateAndGenerateAlerts)
+        int systolicLevel = 1;
+        int diastolicLevel = 1;
+        int glucoseLevel = 1;
+
+        if (latestBpLog != null && latestBpLog.getSystolicBp() != null) {
+            int sys = latestBpLog.getSystolicBp();
+            int warnMin = (threshold != null && threshold.getSystolicWarningMin() != null)
+                    ? threshold.getSystolicWarningMin()
+                    : 120;
+            int dangMin = (threshold != null && threshold.getSystolicDangerMin() != null)
+                    ? threshold.getSystolicDangerMin()
+                    : 140;
+            int emerg = (threshold != null && threshold.getSystolicEmergencyThreshold() != null)
+                    ? threshold.getSystolicEmergencyThreshold()
+                    : 160;
+
+            if (sys >= emerg) {
+                systolicLevel = 4;
+            } else if (sys >= dangMin) {
+                systolicLevel = 3;
+            } else if (sys >= warnMin) {
+                systolicLevel = 2;
             }
+        }
+
+        if (latestBpLog != null && latestBpLog.getDiastolicBp() != null) {
+            int dia = latestBpLog.getDiastolicBp();
+            int warnMin = (threshold != null && threshold.getDiastolicWarningMin() != null)
+                    ? threshold.getDiastolicWarningMin()
+                    : 80;
+            int dangMin = (threshold != null && threshold.getDiastolicDangerMin() != null)
+                    ? threshold.getDiastolicDangerMin()
+                    : 90;
+            int emerg = (threshold != null && threshold.getDiastolicEmergencyThreshold() != null)
+                    ? threshold.getDiastolicEmergencyThreshold()
+                    : 100;
+
+            if (dia >= emerg) {
+                diastolicLevel = 4;
+            } else if (dia >= dangMin) {
+                diastolicLevel = 3;
+            } else if (dia >= warnMin) {
+                diastolicLevel = 2;
+            }
+        }
+
+        if (latestGlLog != null && latestGlLog.getGlucoseLevel() != null) {
+            double glu = latestGlLog.getGlucoseLevel().doubleValue();
+            double hypo = (threshold != null && threshold.getGlucoseHypoThreshold() != null)
+                    ? threshold.getGlucoseHypoThreshold().doubleValue()
+                    : 4.4;
+            double highMax = (threshold != null && threshold.getGlucoseHighMax() != null)
+                    ? threshold.getGlucoseHighMax().doubleValue()
+                    : 16.0;
+            double normMax = (threshold != null && threshold.getGlucoseNormalMax() != null)
+                    ? threshold.getGlucoseNormalMax().doubleValue()
+                    : 10.0;
+
+            if (glu < hypo) {
+                glucoseLevel = 4;
+            } else if (glu >= highMax) {
+                glucoseLevel = 4;
+            } else if (glu > normMax) {
+                glucoseLevel = 2;
+            }
+        }
+
+        level = Math.max(systolicLevel, Math.max(diastolicLevel, glucoseLevel));
+
+        if (level >= 3) {
+            isEmergency = true;
+            message = "Cảnh báo chỉ số sức khỏe vượt ngưỡng nguy hiểm!";
+        } else if (level == 2) {
+            message = "Chỉ số sức khỏe cần chú ý theo dõi.";
         }
 
         res.put("isEmergency", isEmergency);
         res.put("level", level);
         res.put("alertMessage", message);
-        res.put("emergencyContactName", patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Người thân");
-        res.put("emergencyContactPhone", patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
+        res.put("emergencyContactName",
+                patient.getEmergencyContactName() != null ? patient.getEmergencyContactName() : "Người thân");
+        res.put("emergencyContactPhone",
+                patient.getEmergencyContactPhone() != null ? patient.getEmergencyContactPhone() : "");
 
-        // Fetch and populate latest BP and Glucose levels for Today's Health Assessment UI
-        DailyHealthLog latestBpLog = healthLogRepository.findFirstByPatientIdAndSystolicBpIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
-        DailyHealthLog latestGlLog = healthLogRepository.findFirstByPatientIdAndGlucoseLevelIsNotNullOrderByLogTimeDesc(patient.getId()).orElse(null);
+        // Populate latest BP and Glucose levels for Today's Health Assessment UI
+        // (already fetched above)
 
         if (latestBpLog != null) {
             res.put("latestSystolic", latestBpLog.getSystolicBp());
@@ -334,8 +493,8 @@ public class PatientHealthService {
 
         List<Map<String, Object>> guideList = new java.util.ArrayList<>();
         if (patient.getHospital() != null) {
-            List<EmergencyGuide> guides = 
-                emergencyGuideRepository.findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
+            List<EmergencyGuide> guides = emergencyGuideRepository
+                    .findByHospitalIdAndIsActive(patient.getHospital().getId(), true);
             for (EmergencyGuide g : guides) {
                 Map<String, Object> gMap = new java.util.HashMap<>();
                 gMap.put("title", g.getTitle());
@@ -351,10 +510,16 @@ public class PatientHealthService {
                 .findFirstByPatientIdAndIsResolvedTrueAndResolutionNotesIsNotNullOrderByResolvedAtDesc(patient.getId())
                 .orElse(null);
 
-        if (latestDoctorNoteAlert != null && latestDoctorNoteAlert.getResolutionNotes() != null && !latestDoctorNoteAlert.getResolutionNotes().trim().isEmpty()) {
+        if (latestDoctorNoteAlert != null && latestDoctorNoteAlert.getResolutionNotes() != null
+                && !latestDoctorNoteAlert.getResolutionNotes().trim().isEmpty()) {
             res.put("doctorNote", latestDoctorNoteAlert.getResolutionNotes());
-            res.put("doctorName", latestDoctorNoteAlert.getResolvedByDoctor() != null ? latestDoctorNoteAlert.getResolvedByDoctor().getFullName() : "Bác sĩ phụ trách");
-            res.put("doctorNoteTime", latestDoctorNoteAlert.getResolvedAt() != null ? latestDoctorNoteAlert.getResolvedAt().toString() : "");
+            res.put("doctorName",
+                    latestDoctorNoteAlert.getResolvedByDoctor() != null
+                            ? latestDoctorNoteAlert.getResolvedByDoctor().getFullName()
+                            : "Bác sĩ phụ trách");
+            res.put("doctorNoteTime",
+                    latestDoctorNoteAlert.getResolvedAt() != null ? latestDoctorNoteAlert.getResolvedAt().toString()
+                            : "");
         } else {
             res.put("doctorNote", null);
         }
@@ -363,7 +528,8 @@ public class PatientHealthService {
     }
 
     public List<EmergencyProtocol> getEmergencyProtocols(Integer hospitalId) {
-        if (hospitalId == null) return List.of();
+        if (hospitalId == null)
+            return List.of();
         return emergencyProtocolRepository.findByHospitalIdAndIsActiveTrue(hospitalId);
     }
 
@@ -377,7 +543,8 @@ public class PatientHealthService {
             return opt.get();
         }
         if (hospitalId != null) {
-            Optional<AlertThreshold> hospOpt = alertThresholdRepository.findByHospitalIdAndScope(hospitalId, "HOSPITAL");
+            Optional<AlertThreshold> hospOpt = alertThresholdRepository.findByHospitalIdAndScope(hospitalId,
+                    "HOSPITAL");
             if (hospOpt.isPresent()) {
                 return hospOpt.get();
             }
@@ -385,4 +552,3 @@ public class PatientHealthService {
         return null;
     }
 }
-

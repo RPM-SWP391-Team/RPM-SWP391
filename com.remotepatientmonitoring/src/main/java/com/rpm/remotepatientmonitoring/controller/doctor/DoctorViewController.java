@@ -337,6 +337,7 @@ public class DoctorViewController {
 
         // Trả về viện
         patient.setDoctor(null);
+        patient.setStatus("NEW");
         patient.setUpdatedAt(LocalDateTime.now());
         patientRepository.save(patient);
 
@@ -884,6 +885,12 @@ public class DoctorViewController {
                 return REDIRECT_APPOINTMENTS;
             }
 
+            int hour = apptTime.getHour();
+            if (hour < 8 || hour >= 17) {
+                redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Giờ hẹn phải nằm trong giờ làm việc (Từ 08:00 sáng đến 17:00 chiều).");
+                return REDIRECT_APPOINTMENTS;
+            }
+
             com.rpm.remotepatientmonitoring.model.Appointment appt = com.rpm.remotepatientmonitoring.model.Appointment.builder()
                     .patient(patient)
                     .doctor(doctor)
@@ -1206,7 +1213,17 @@ public class DoctorViewController {
         }
         model.addAttribute("patientAge", age);
         
-        model.addAttribute("unresolvedAlerts", alertRepository.findByPatientIdAndIsResolvedFalse(patient.getId()));
+        List<com.rpm.remotepatientmonitoring.model.Alert> unresolvedAlerts = alertRepository.findByPatientIdAndIsResolvedFalse(patient.getId());
+        for (com.rpm.remotepatientmonitoring.model.Alert alert : unresolvedAlerts) {
+            if ("N/A".equalsIgnoreCase(alert.getMetricValue()) || alert.getMetricValue() == null || alert.getMetricValue().trim().isEmpty()) {
+                String computedValue = alert.getMetricValue();
+                if (!"N/A".equalsIgnoreCase(computedValue) && computedValue != null) {
+                    alert.setMetricValue(computedValue);
+                    alertRepository.save(alert);
+                }
+            }
+        }
+        model.addAttribute("unresolvedAlerts", unresolvedAlerts);
     }
 
     private LocalDateTime[] parseDateParameters(String startDateStr, String endDateStr) {
@@ -1234,6 +1251,8 @@ public class DoctorViewController {
     @PostMapping("/appointments/{id}/accept")
     public String acceptAppointment(
             @PathVariable("id") Integer id,
+            @RequestParam("location") String location,
+            @RequestParam(value = "doctorNote", required = false) String doctorNote,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes redirectAttributes) {
 
@@ -1254,6 +1273,8 @@ public class DoctorViewController {
         }
 
         appt.setStatus("ACCEPTED");
+        appt.setLocation(location);
+        appt.setDoctorNote(doctorNote);
         appt.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appt);
 
@@ -1265,7 +1286,8 @@ public class DoctorViewController {
                     .recipientType("PATIENT")
                     .title("Lịch khám đã được chấp nhận")
                     .content("Bác sĩ " + doctor.getFullName() + " đã xác nhận lịch khám vào "
-                            + appt.getAppointmentTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".")
+                            + appt.getAppointmentTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            + " tại " + location + ".")
                     .isRead(false)
                     .createdAt(LocalDateTime.now())
                     .build();
@@ -1325,6 +1347,55 @@ public class DoctorViewController {
         }
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã từ chối lịch hẹn.");
+        return REDIRECT_APPOINTMENTS;
+    }
+
+    @PostMapping("/appointments/{id}/cancel")
+    public String cancelAppointment(
+            @PathVariable("id") Integer id,
+            @RequestParam(value = "cancelReason", required = false) String cancelReason,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+
+        Doctor doctor = doctorRepository.findByAccountId(userDetails.getAccount().getId()).orElse(null);
+        if (doctor == null) {
+            return REDIRECT_LOGIN;
+        }
+
+        Appointment appt = appointmentRepository.findById(id).orElse(null);
+        if (appt == null || appt.getDoctor() == null || !appt.getDoctor().getId().equals(doctor.getId())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, MSG_APPOINTMENT_NOT_FOUND);
+            return REDIRECT_APPOINTMENTS;
+        }
+
+        if ("COMPLETED".equals(appt.getStatus()) || "CANCELLED".equals(appt.getStatus())) {
+            redirectAttributes.addFlashAttribute(ATTR_ERROR_MSG, "Lịch hẹn này không thể hủy.");
+            return REDIRECT_APPOINTMENTS;
+        }
+
+        appt.setStatus("CANCELLED");
+        if (cancelReason != null && !cancelReason.trim().isEmpty()) {
+            appt.setDoctorNote("Hủy lịch: " + cancelReason.trim());
+        }
+        appt.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appt);
+
+        if (appt.getPatient() != null) {
+            Notification notif = Notification.builder()
+                    .patient(appt.getPatient())
+                    .doctor(doctor)
+                    .recipientType("PATIENT")
+                    .title("Lịch khám đã bị hủy bởi Bác sĩ")
+                    .content("Bác sĩ " + doctor.getFullName() + " đã hủy lịch khám vào "
+                            + appt.getAppointmentTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                            + (cancelReason != null && !cancelReason.trim().isEmpty() ? ". Lý do: " + cancelReason.trim() : ""))
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        }
+
+        redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã hủy lịch hẹn thành công.");
         return REDIRECT_APPOINTMENTS;
     }
 
@@ -1519,7 +1590,20 @@ public class DoctorViewController {
         entity.setDiastolicDangerMax(dto.getDiastolicDangerMax());
         entity.setDiastolicEmergencyThreshold(dto.getDiastolicEmergencyThreshold());
 
-        alertThresholdRepository.save(entity);
+        AlertThreshold savedEntity = alertThresholdRepository.save(entity);
+
+        if (auditTrailService != null) {
+            auditTrailService.logAction(
+                    "DOCTOR",
+                    doctor.getId(),
+                    "UPDATE_PATIENT_THRESHOLD",
+                    "AlertThreshold",
+                    savedEntity.getId(),
+                    null,
+                    dto,
+                    "Bác sĩ " + doctor.getFullName() + " đã cập nhật ngưỡng cảnh báo riêng cho bệnh nhân " + patient.getFullName()
+            );
+        }
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã lưu ngưỡng cảnh báo riêng cho bệnh nhân.");
         return "redirect:/doctor/patient-detail/" + id + "/thresholds";

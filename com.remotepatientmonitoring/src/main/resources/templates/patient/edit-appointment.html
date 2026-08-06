@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{patient/fragments :: header-links('Chỉnh sửa Lịch Khám - RPM')}"></head>
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <div th:replace="~{patient/fragments :: top-nav}"></div>
+    <div th:replace="~{patient/fragments :: bottom-nav}"></div>
+
+    <main class="container my-4 flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card card-custom p-4 shadow-sm border-0 rounded-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <a href="/patient/appointments" class="btn btn-sm btn-light me-3 rounded-circle" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </a>
+                        <h3 class="fw-bold mb-0 text-primary">
+                            <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Lịch Khám
+                        </h3>
+                    </div>
+                    
+                    <hr class="text-muted mb-4">
+
+                    <form th:action="@{/patient/appointments/update/{id}(id=${appointment.id})}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Bác sĩ phụ trách</label>
+                            <select name="doctorId" class="form-select rounded-3 py-2" required>
+                                <option value="" disabled th:selected="${appointment.doctor == null}">-- Chọn Bác sĩ --</option>
+                                <option th:each="doc : ${doctors}" 
+                                        th:value="${doc != null ? doc.id : ''}" 
+                                        th:selected="${appointment.doctor != null and doc != null and appointment.doctor.id == doc.id}"
+                                        th:text="${doc != null ? ('BS. ' + (doc.fullName != null ? doc.fullName : 'Bác sĩ')) : 'Bác sĩ'}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Hình thức khám</label>
+                            <select name="appointmentType" class="form-select rounded-3 py-2" required>
+                                <option value="INITIAL" th:selected="${appointment.appointmentType == 'INITIAL'}">Khám lần đầu (INITIAL)</option>
+                                <option value="CHECKUP" th:selected="${appointment.appointmentType == 'CHECKUP'}">Tái khám định kỳ (CHECKUP)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark">Thời gian khám mong muốn</label>
+                            <input type="datetime-local" 
+                                   name="appointmentTime" 
+                                   class="form-control rounded-3 py-2" 
+                                   th:value="${appointment.appointmentTime != null ? #temporals.format(appointment.appointmentTime, 'yyyy-MM-dd''T''HH:mm') : ''}" 
+                                   required>
+                            <small class="text-muted d-block mt-1">Giờ hành chính: 08:00 - 17:00 (Thứ 2 đến Thứ 6).</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-dark">Lý do khám / Triệu chứng</label>
+                            <textarea name="patientRequestReason" 
+                                      class="form-control rounded-3" 
+                                      rows="4" 
+                                      maxlength="500" 
+                                      required 
+                                      th:text="${appointment.patientRequestReason != null ? appointment.patientRequestReason : ''}"></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="/patient/appointments" class="btn btn-light py-2 w-50 fw-semibold rounded-3">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary py-2 w-50 fw-bold rounded-3">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>Lưu Cập Nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block th:replace="~{patient/fragments :: footer-scripts}"></th:block>
+</body>
+</html>

@@ -91,10 +91,22 @@ def chat_endpoint(request: AiChatRequest):
         is_greeting = q_plan.intent == "greeting" if q_plan else False
         is_off_topic = (q_plan.intent == "off_topic" or not q_plan.is_medical) if q_plan else False
 
+        # Kiểm tra xem câu trả lời có chứa thông báo từ chối do chưa chọn bệnh nhân hoặc thiếu dữ liệu hay không
+        ans_lower = cleaned_answer.lower()
+        refusal_keywords = [
+            "chưa chọn bệnh nhân", 
+            "không có thông tin bệnh nhân", 
+            "chưa có thông tin cụ thể", 
+            "không có đủ dữ liệu", 
+            "bác sĩ chưa chọn", 
+            "chưa chọn bệnh nhân cụ thể"
+        ]
+        is_refusal = any(kw in ans_lower for kw in refusal_keywords)
+
         # Xây dựng danh sách trích dẫn có cấu trúc (Structured Citations)
         citations_list = []
-        # Chỉ đính kèm trích dẫn nếu KHÔNG PHẢI chào hỏi, KHÔNG PHẢI off-topic và answer không chứa thông báo thiếu dữ liệu
-        if not is_greeting and not is_off_topic and result.retrieved_chunks and "không có đủ dữ liệu" not in cleaned_answer.lower():
+        # CHỈ đính kèm trích dẫn nếu KHÔNG PHẢI chào hỏi, KHÔNG PHẢI off-topic và KHÔNG PHẢI từ chối
+        if not is_greeting and not is_off_topic and not is_refusal and result.retrieved_chunks:
             seen_sources = set()
             for chunk in result.retrieved_chunks:
                 meta = getattr(chunk, "metadata", {}) or {}
@@ -123,8 +135,14 @@ def chat_endpoint(request: AiChatRequest):
                 chunk_text = getattr(chunk, "text", "").lower()
                 
                 # Loại bỏ "Unknown" hoặc "Unknown.pdf" bằng cách suy luận từ nội dung
-                if not doc_name_str or "unknown" in doc_name_str.lower():
-                    if any(term in chunk_text for term in ["hypertension", "huyết áp", "160/100", "systolic", "diastolic", "esc", "blood pressure"]):
+                if not doc_name_str or "unknown" in doc_name_str.lower() or doc_name_str.lower() in ["none", "null"]:
+                    if any(term in chunk_text for term in ["recommendation 3.", "recommendations 3.", "prevention or delay", "prevent type 2"]):
+                        pdf_name = "dc26s003.pdf"
+                    elif any(term in chunk_text for term in ["recommendation 9.", "recommendations 9.", "pharmacologic", "metformin"]):
+                        pdf_name = "dc26s009.pdf"
+                    elif any(term in chunk_text for term in ["recommendation 4.", "recommendations 4.", "comprehensive medical"]):
+                        pdf_name = "dc24s004.pdf"
+                    elif any(term in chunk_text for term in ["hypertension", "huyết áp", "160/100", "systolic", "diastolic", "esc", "blood pressure"]):
                         pdf_name = "dc26s010.pdf"
                     elif any(term in chunk_text for term in ["diabetes", "ada", "glucose", "đái tháo đường"]):
                         pdf_name = "dc26s002.pdf"
@@ -135,7 +153,7 @@ def chat_endpoint(request: AiChatRequest):
                 elif len(doc_name_str) > 2:
                     pdf_name = f"{doc_name_str}.pdf"
                 else:
-                    pdf_name = "dc26s010.pdf"
+                    pdf_name = "dc26s002.pdf"
                 
                 if pdf_name not in seen_sources and pdf_name.lower() != "unknown.pdf":
                     seen_sources.add(pdf_name)

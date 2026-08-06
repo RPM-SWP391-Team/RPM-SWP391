@@ -58,6 +58,7 @@ public class HealthLogController {
         if (id != null) {
             DailyHealthLog existing = patientHealthService.getDailyHealthLogById(id);
             if (existing != null && existing.getPatient().getId().equals(patient.getId())) {
+                formDto.setId(id);
                 formDto.setLogType(existing.getLogType());
                 formDto.setInputMethod(existing.getInputMethod());
                 formDto.setSystolicBp(existing.getSystolicBp());
@@ -76,7 +77,6 @@ public class HealthLogController {
         model.addAttribute("org.springframework.validation.BindingResult.healthLog", 
             new org.springframework.validation.BeanPropertyBindingResult(formDto, "healthLog"));
         model.addAttribute("patient", patient);
-        model.addAttribute("healthLogs", patientHealthService.getRecentDailyHealthLogs(patient.getId()));
         return "patient/log";
     }
 
@@ -96,7 +96,6 @@ public class HealthLogController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("patient", patient);
-            model.addAttribute("healthLogs", patientHealthService.getRecentDailyHealthLogs(patient.getId()));
             if (id != null) {
                 model.addAttribute("logId", id);
             }

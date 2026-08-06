@@ -27,7 +27,7 @@ public interface PatientRepository extends JpaRepository<Patient, Integer> {
     List<Patient> findAllByPatientCodeIsNotNull();
 
 
-    @Query("SELECT p FROM Patient p WHERE (p.status = 'NEW' OR p.status = 'PENDING' OR p.status = 'UNASSIGNED') AND p.doctor IS NULL AND (p.hospital.id = :hospitalId OR :hospitalId IS NULL) AND (:keyword IS NULL OR :keyword = '' OR LOWER(p.phone) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    @Query("SELECT p FROM Patient p WHERE p.doctor IS NULL AND (p.hospital.id = :hospitalId OR :hospitalId IS NULL) AND (:keyword IS NULL OR :keyword = '' OR LOWER(p.phone) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.patientCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Patient> searchUnassignedPatients(@Param("hospitalId") Integer hospitalId, @Param("keyword") String keyword);
 
     @Query(value = "EXEC sp_assign_patient_to_doctor @patient_id = :patientId, @doctor_id = :doctorId, @actor_id = :actorId, @actor_type = :actorType", nativeQuery = true)
