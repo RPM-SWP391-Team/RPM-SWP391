@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import com.rpm.remotepatientmonitoring.model.Account;
 
 @Entity
 @Table(name = "bug_reports")

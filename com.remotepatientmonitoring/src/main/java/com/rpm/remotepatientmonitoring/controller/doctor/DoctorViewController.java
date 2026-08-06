@@ -1213,7 +1213,17 @@ public class DoctorViewController {
         }
         model.addAttribute("patientAge", age);
         
-        model.addAttribute("unresolvedAlerts", alertRepository.findByPatientIdAndIsResolvedFalse(patient.getId()));
+        List<com.rpm.remotepatientmonitoring.model.Alert> unresolvedAlerts = alertRepository.findByPatientIdAndIsResolvedFalse(patient.getId());
+        for (com.rpm.remotepatientmonitoring.model.Alert alert : unresolvedAlerts) {
+            if ("N/A".equalsIgnoreCase(alert.getMetricValue()) || alert.getMetricValue() == null || alert.getMetricValue().trim().isEmpty()) {
+                String computedValue = alert.getMetricValue();
+                if (!"N/A".equalsIgnoreCase(computedValue) && computedValue != null) {
+                    alert.setMetricValue(computedValue);
+                    alertRepository.save(alert);
+                }
+            }
+        }
+        model.addAttribute("unresolvedAlerts", unresolvedAlerts);
     }
 
     private LocalDateTime[] parseDateParameters(String startDateStr, String endDateStr) {
@@ -1580,7 +1590,20 @@ public class DoctorViewController {
         entity.setDiastolicDangerMax(dto.getDiastolicDangerMax());
         entity.setDiastolicEmergencyThreshold(dto.getDiastolicEmergencyThreshold());
 
-        alertThresholdRepository.save(entity);
+        AlertThreshold savedEntity = alertThresholdRepository.save(entity);
+
+        if (auditTrailService != null) {
+            auditTrailService.logAction(
+                    "DOCTOR",
+                    doctor.getId(),
+                    "UPDATE_PATIENT_THRESHOLD",
+                    "AlertThreshold",
+                    savedEntity.getId(),
+                    null,
+                    dto,
+                    "Bác sĩ " + doctor.getFullName() + " đã cập nhật ngưỡng cảnh báo riêng cho bệnh nhân " + patient.getFullName()
+            );
+        }
 
         redirectAttributes.addFlashAttribute(ATTR_SUCCESS_MSG, "Đã lưu ngưỡng cảnh báo riêng cho bệnh nhân.");
         return "redirect:/doctor/patient-detail/" + id + "/thresholds";
